@@ -11,6 +11,10 @@ on:
       - '.github/workflows/voronovskaja-proof.yml'
   workflow_dispatch:
 
+concurrency:
+  group: voronovskaja-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
