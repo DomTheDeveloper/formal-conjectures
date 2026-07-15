@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - solve-voronovskaja-no-sorry
+  pull_request:
+    paths:
+      - 'FormalConjectures/Paper/VoronovskajaTypeFormula.lean'
+      - 'FormalConjectures/Paper/VoronovskajaCounterexample.lean'
+      - '.github/workflows/voronovskaja-proof.yml'
   workflow_dispatch:
 
 permissions:
