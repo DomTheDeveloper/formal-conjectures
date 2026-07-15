@@ -8,6 +8,9 @@ on:
     paths:
       - 'FormalConjectures/Paper/VoronovskajaTypeFormula.lean'
       - 'FormalConjectures/Paper/VoronovskajaProof.lean'
+      - 'FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean'
+      - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
+      - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
       - '.github/workflows/voronovskaja-proof.yml'
   workflow_dispatch:
 
@@ -42,6 +45,7 @@ jobs:
         run: |
           lake exe cache get >/dev/null
 
+      # Focused compatibility build: Taylor expansion, Levy convergence, CLT, then the target proof.
       - name: Verify proof module
         id: lean
         shell: bash
@@ -50,7 +54,7 @@ jobs:
           lake build FormalConjectures.Paper.VoronovskajaProof > /tmp/lean.log 2>&1
           status=$?
           echo "status=$status" >> "$GITHUB_OUTPUT"
-          tail -n 160 /tmp/lean.log
+          tail -n 220 /tmp/lean.log
           exit 0
 
       - name: Upload Lean diagnostics
