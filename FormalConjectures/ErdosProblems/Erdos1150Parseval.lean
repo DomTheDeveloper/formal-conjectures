@@ -18,6 +18,14 @@ import Mathlib.Analysis.Fourier.ZMod
 import Mathlib.Algebra.Polynomial.Eval.Degree
 import Mathlib.Topology.Algebra.Polynomial
 
+/-!
+# Parseval's lower bound for Erdős Problem 1150
+
+This file proves the textbook lower bound for Littlewood polynomials by applying
+discrete Parseval on `ZMod (n + 1)` and identifying the Fourier coefficients
+with evaluations at roots of unity.
+-/
+
 open Complex Finset MeasureTheory
 open scoped BigOperators ComplexConjugate Polynomial ZMod
 
