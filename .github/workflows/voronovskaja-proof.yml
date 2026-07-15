@@ -43,6 +43,7 @@ jobs:
         run: |
           lake exe cache get >/dev/null
 
+      # Compile the imported problem module first, then the no-sorry disproof.
       - name: Verify counterexample module
         id: lean
         shell: bash
