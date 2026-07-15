@@ -8,13 +8,15 @@ module
 public import Mathlib.Analysis.Calculus.Taylor
 public import Mathlib.MeasureTheory.Measure.CharacteristicFunction
 
+import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import Mathlib.Analysis.Fourier.FourierTransformDeriv
 import Mathlib.Probability.Notation
 
 /-!
-# Taylor expansion of the characteristic function
+# Taylor expansion of a real characteristic function
 
-This is a compatibility backport for the mathlib snapshot pinned by formal-conjectures.
+This is a minimal compatibility backport for the mathlib snapshot pinned by formal-conjectures.
+Only the real, second-order expansion needed by the central limit theorem is provided.
 -/
 
 public section
@@ -24,32 +26,7 @@ open scoped Nat RealInnerProductSpace Topology
 
 namespace MeasureTheory
 
-private theorem iteratedFDeriv_comp_const_smul_compat
-    {𝕜 E F : Type*} [NontriviallyNormedField 𝕜]
-    [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-    [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-    {i : ℕ} {f : E → F} (a : 𝕜) (hf : ContDiff 𝕜 i f) :
-    iteratedFDeriv 𝕜 i (fun z ↦ f (a • z)) =
-      fun x ↦ a ^ i • iteratedFDeriv 𝕜 i f (a • x) := by
-  induction i with
-  | zero => ext; simp
-  | succ i hi =>
-    ext v
-    rw [iteratedFDeriv_succ_eq_comp_left, iteratedFDeriv_succ_eq_comp_left]
-    simp only [Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one, self_le_add_right, hf.of_le, hi,
-      Function.comp_apply, continuousMultilinearCurryLeftEquiv_symm_apply, smul_apply]
-    rw [fderiv_fun_const_smul, fderiv_comp_smul, smul_smul, ← pow_succ]
-    · simp
-    rw [← Function.comp_def (g := (a • ·))]
-    apply DifferentiableAt.comp
-    · exact hf.contDiffAt.differentiableAt_iteratedFDeriv (Nat.cast_lt.2 i.lt_succ_self)
-    · exact differentiableAt_id.const_smul _
-
-section InnerProductSpace
-
-variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
-  {μ : Measure E} [IsFiniteMeasure μ]
+variable {μ : Measure ℝ} [IsFiniteMeasure μ]
 
 @[fun_prop]
 theorem contDiff_charFun {n : ℕ} (hint : MemLp id n μ) :
@@ -57,67 +34,51 @@ theorem contDiff_charFun {n : ℕ} (hint : MemLp id n μ) :
   simp_rw [funext charFun_eq_fourierIntegral']
   refine (contDiff_fourierIntegral (L := innerSL ℝ) fun k hk ↦ ?_).comp (by fun_prop)
   simp only [Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary, mul_one]
-  refine MemLp.integrable_norm_pow' (hint.mono_exponent (by simp_all))
+  exact MemLp.integrable_norm_pow' (hint.mono_exponent (by simp_all))
 
-@[fun_prop]
-theorem contDiff_charFun' {n : ℕ∞} (hint : ∀ (k : ℕ), MemLp id k μ) :
-    ContDiff ℝ n (charFun μ) := by
-  simp_rw [funext charFun_eq_fourierIntegral']
-  refine (contDiff_fourierIntegral (L := innerSL ℝ) fun k hk ↦ ?_).comp (by fun_prop)
-  simp only [Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary, mul_one]
-  refine MemLp.integrable_norm_pow' ((hint k).mono_exponent (by simp_all))
-
-@[fun_prop]
-lemma continuous_charFun : Continuous (charFun μ) := by
-  refine contDiff_zero.1 (contDiff_charFun ?_)
-  simpa using by fun_prop
-
-theorem iteratedFDeriv_charFun {n : ℕ} {t : E} (hint : MemLp id n μ) (x : Fin n → E) :
-    iteratedFDeriv ℝ n (charFun μ) t x = I ^ n * ∫ y, (∏ i, ⟪y, x i⟫) * exp (⟪y, t⟫ * I) ∂μ := by
-  have h : innerₗ E = (innerSL ℝ).toLinearMap₁₂ := rfl
-  have hint' (k : ℕ) (hk : k ≤ (n : ℕ∞)) : Integrable (fun x ↦ ‖x‖ ^ k * ‖(1 : E → ℂ) x‖) μ := by
-    simp only [Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary, mul_one]
-    refine MemLp.integrable_norm_pow' (hint.mono_exponent (by simp_all))
-  simp_rw [funext charFun_eq_fourierIntegral']
-  rw [iteratedFDeriv_comp_const_smul_compat]
-  swap
-  · rw [h]
-    exact contDiff_fourierIntegral _ hint'
-  simp only [mul_inv_rev, neg_smul]
-  rw [h, iteratedFDeriv_fourierIntegral _ hint' (by fun_prop) le_rfl]
-  simp only [smul_apply, real_smul, ofReal_pow, ofReal_neg, ofReal_mul, ofReal_inv, ofReal_ofNat,
-    ofReal_prod]
-  rw [fourierIntegral_continuousMultilinearMap_apply Real.continuous_fourierChar]
-  swap
-  · exact integrable_fourierPowSMulRight _ (by simpa using hint.integrable_norm_pow') (by fun_prop)
-  simp only [fourierIntegral, Real.fourierChar, Circle.exp, ContinuousMap.coe_mk, ofReal_mul,
-    ofReal_ofNat, innerSL, map_neg, map_smul, ContinuousLinearMap.toLinearMap₁₂_apply,
-    LinearMap.mkContinuous₂_apply, innerₛₗ_apply_apply, smul_eq_mul, neg_neg, AddChar.coe_mk,
-    ofReal_inv, fourierPowSMulRight_apply, Pi.ofNat_apply, real_smul, ofReal_prod, mul_one,
-    Circle.smul_def]
-  simp_rw [mul_left_comm (exp _), integral_const_mul, ← mul_assoc, ← mul_pow]
-  field_simp
-  congr with
-  ring
-
-end InnerProductSpace
-
-section Real
-
-variable {μ : Measure ℝ} [IsFiniteMeasure μ]
-
-theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ) :
+private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ) :
     iteratedDeriv n (charFun μ) t = I ^ n * ∫ x, x ^ n * exp (t * x * I) ∂μ := by
-  rw [iteratedDeriv, iteratedFDeriv_charFun hint]
-  simp
+  let F : ℝ → ℂ :=
+    fourierIntegral Real.fourierChar μ (innerSL ℝ).toLinearMap₁₂ (1 : ℝ → ℂ)
+  let c : ℝ := -(2 * π)⁻¹
+  have hint' (k : ℕ) (hk : k ≤ (n : ℕ∞)) :
+      Integrable (fun x : ℝ ↦ ‖x‖ ^ k * ‖(1 : ℝ → ℂ) x‖) μ := by
+    simp only [Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary, mul_one]
+    exact MemLp.integrable_norm_pow' (hint.mono_exponent (by simp_all))
+  have hF : ContDiff ℝ n F := by
+    dsimp [F]
+    exact contDiff_fourierIntegral (innerSL ℝ) hint'
+  have hchar : charFun μ = fun s ↦ F (c * s) := by
+    funext s
+    rw [charFun_eq_fourierIntegral']
+    simp [F, c, smul_eq_mul]
+  rw [hchar, iteratedDeriv_comp_const_smul hF c]
+  dsimp [F]
+  rw [iteratedDeriv, iteratedFDeriv_fourierIntegral (innerSL ℝ) hint' (by fun_prop) le_rfl]
+  rw [Real.fourierIntegral_continuousMultilinearMap_apply']
+  · simp only [ContinuousMultilinearMap.smul_apply, fourierIntegral, Real.fourierChar,
+      Circle.exp, ContinuousMap.coe_mk, ofReal_mul, ofReal_ofNat, innerSL, map_neg, map_smul,
+      ContinuousLinearMap.toLinearMap₁₂_apply, LinearMap.mkContinuous₂_apply,
+      innerₛₗ_apply_apply, smul_eq_mul, neg_neg, AddChar.coe_mk, ofReal_inv,
+      fourierPowSMulRight_apply, Pi.ofNat_apply, real_smul, ofReal_prod, mul_one,
+      Circle.smul_def, c]
+    simp_rw [mul_left_comm (exp _), integral_const_mul, ← mul_assoc, ← mul_pow]
+    field_simp
+    congr with x
+    ring
+  · exact integrable_fourierPowSMulRight _ (by simpa using hint.integrable_norm_pow') (by fun_prop)
 
-theorem iteratedDeriv_charFun_zero {n : ℕ} (hint : MemLp id n μ) :
+private theorem iteratedDeriv_charFun_zero {n : ℕ} (hint : MemLp id n μ) :
     iteratedDeriv n (charFun μ) 0 = I ^ n * ∫ x, x ^ n ∂μ := by
   rw [iteratedDeriv_charFun hint]
-  simp only [zero_mul, ofReal_zero, mul_zero, exp_zero, mul_one]
-  rw [integral_ofReal]
+  simp only [zero_mul, ofReal_zero, exp_zero, mul_one]
+  congr 1
+  rw [← integral_ofReal]
+  apply integral_congr_ae
+  filter_upwards with x
+  norm_cast
 
-lemma taylorWithinEval_charFun_zero {n : ℕ} (hint : MemLp id n μ) (t : ℝ) :
+private lemma taylorWithinEval_charFun_zero {n : ℕ} (hint : MemLp id n μ) (t : ℝ) :
     taylorWithinEval (charFun μ) n univ 0 t
       = ∑ k ∈ Finset.range (n + 1), (k ! : ℂ)⁻¹ * (t * I) ^ k * ∫ x, x ^ k ∂μ := by
   simp_rw [taylor_within_apply, sub_zero, RCLike.real_smul_eq_coe_mul]
@@ -129,7 +90,7 @@ lemma taylorWithinEval_charFun_zero {n : ℕ} (hint : MemLp id n μ) (t : ℝ) :
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsProbabilityMeasure P]
   {X : Ω → ℝ}
 
-lemma taylorWithinEval_charFun_two_zero (hX : AEMeasurable X P)
+private lemma taylorWithinEval_charFun_two_zero (hX : AEMeasurable X P)
     (hint : MemLp id 2 (P.map X)) (t : ℝ) :
     taylorWithinEval (charFun (P.map X)) 2 univ 0 t =
       1 + (P[X] : ℝ) * t * I - (P[X ^ 2] : ℝ) * t ^ 2 / 2 := by
@@ -144,15 +105,15 @@ lemma taylorWithinEval_charFun_two_zero (hX : AEMeasurable X P)
   simp [field]
   ring
 
-lemma taylorWithinEval_charFun_two_zero' (hX : AEMeasurable X P)
+private lemma taylorWithinEval_charFun_two_zero' (hX : AEMeasurable X P)
     (h0 : P[X] = 0) (h1 : P[X ^ 2] = 1) (t : ℝ) :
     taylorWithinEval (charFun (P.map X)) 2 univ 0 t = 1 - t ^ 2 / 2 := by
   rw [taylorWithinEval_charFun_two_zero hX, h0, h1]
   · simp
-  refine (memLp_two_iff_integrable_sq (by fun_prop)).2 (.of_integral_ne_zero ?_)
-  rw [integral_map]
-  any_goals fun_prop
-  simp [← Pi.pow_apply, h1]
+  exact (memLp_two_iff_integrable_sq (by fun_prop)).2 (.of_integral_ne_zero <| by
+    rw [integral_map]
+    any_goals fun_prop
+    simp [← Pi.pow_apply, h1])
 
 lemma taylor_charFun_two (hX : AEMeasurable X P) (h0 : P[X] = 0) (h1 : P[X ^ 2] = 1) :
     (fun t ↦ charFun (P.map X) t - (1 - t ^ 2 / 2)) =o[𝓝 0] fun t ↦ t ^ 2 := by
@@ -162,10 +123,15 @@ lemma taylor_charFun_two (hX : AEMeasurable X P) (h0 : P[X] = 0) (h1 : P[X ^ 2] 
     rw [integral_map]
     any_goals fun_prop
     simp_all
-  simpa [taylorWithinEval_charFun_two_zero' hX h0 h1] using
-    (taylor_isLittleO (s := univ) (x₀ := 0) (n := 2)
-      convex_univ (Set.mem_univ 0) hcont.contDiffOn)
-
-end Real
+  have hTaylor :=
+    taylor_isLittleO (s := univ) (x₀ := 0) (n := 2)
+      convex_univ (Set.mem_univ 0) hcont.contDiffOn
+  have hpoly :
+      (fun t ↦ taylorWithinEval (charFun (P.map X)) 2 univ 0 t) =
+        fun t ↦ 1 - t ^ 2 / 2 := by
+    funext t
+    exact taylorWithinEval_charFun_two_zero' hX h0 h1 t
+  rw [hpoly] at hTaylor
+  simpa only [nhdsWithin_univ, sub_zero] using hTaylor
 
 end MeasureTheory
