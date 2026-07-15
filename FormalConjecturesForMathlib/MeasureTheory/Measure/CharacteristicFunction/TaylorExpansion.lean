@@ -66,7 +66,7 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
     congr with x
     ring
   · apply integrable_fourierPowSMulRight _
-    · convert hint.integrable_norm_pow' using 1 <;> simp
+    · exact hint.integrable_norm_pow'
     · fun_prop
 
 private theorem iteratedDeriv_charFun_zero {n : ℕ} (hint : MemLp id n μ) :
