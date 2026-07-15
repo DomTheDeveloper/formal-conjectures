@@ -16,14 +16,16 @@ limitations under the License.
 
 import FormalConjectures.Paper.VoronovskajaTypeFormula
 import FormalConjecturesForMathlib.Probability.CentralLimitTheorem
+import FormalConjecturesForMathlib.Probability.Distributions.Binomial
 
 /-!
 # Proof infrastructure for the Bézier–Bernstein Voronovskaja problem
 
 This file records exact identities needed by the asymptotic proof. In particular, it checks that
 Lean elaborates the sampling point `k / n` in `bezierBernstein` as division in `ℝ`, proves that the
-Bézier coefficients form a probability mass function, and splits the approximation error into its
-linear moment and Taylor-remainder parts.
+Bézier coefficients form a probability mass function, expresses their first centered moment as a
+powered-binomial-tail sum, and splits the approximation error into its linear moment and
+Taylor-remainder parts.
 -/
 
 open Topology Filter Real unitInterval Polynomial
@@ -93,10 +95,44 @@ theorem sum_bezierWeight (n : ℕ) {α : ℝ} (hα : 0 < α) (x : ℝ) :
   rw [sum_range_succ_sub]
   simp [bernsteinTail_zero, bernsteinTail_succ_self, hα.ne']
 
+/-- Discrete summation by parts for a first moment of successive differences. -/
+@[category API, AMS 26 40 47]
+private theorem sum_range_succ_cast_mul_sub (a : ℕ → ℝ) (m : ℕ) :
+    ∑ k ∈ Finset.range (m + 1), (k : ℝ) * (a k - a (k + 1)) =
+      ∑ k ∈ Finset.range m, a (k + 1) - (m : ℝ) * a (m + 1) := by
+  induction m with
+  | zero => simp
+  | succ m ih =>
+      rw [Finset.sum_range_succ, ih, Finset.sum_range_succ]
+      push_cast
+      ring
+
+/-- The uncentered first moment of the Bézier weights is the sum of the powered Bernstein tails. -/
+@[category API, AMS 26 40 47]
+theorem sum_cast_mul_bezierWeight (n : ℕ) {α : ℝ} (hα : 0 < α) (x : ℝ) :
+    ∑ k ∈ Finset.range (n + 1), (k : ℝ) * bezierWeight n k α x =
+      ∑ k ∈ Finset.range n, (bernsteinTail n (k + 1)).eval x ^ α := by
+  rw [show (∑ k ∈ Finset.range (n + 1), (k : ℝ) * bezierWeight n k α x) =
+      ∑ k ∈ Finset.range (n + 1), (k : ℝ) *
+        ((bernsteinTail n k).eval x ^ α -
+          (bernsteinTail n (k + 1)).eval x ^ α) by rfl]
+  rw [sum_range_succ_cast_mul_sub]
+  simp [bernsteinTail_succ_self, hα.ne']
+
 /-- The first centered moment of the Bézier probability weights. -/
 noncomputable def bezierCenteredMoment (n : ℕ) (α x : ℝ) : ℝ :=
   ∑ k ∈ Finset.range (n + 1),
     (((k : ℝ) / (n : ℝ)) - x) * bezierWeight n k α x
+
+/-- Exact tail-sum formula for the centered first moment. -/
+@[category API, AMS 26 40 47]
+theorem bezierCenteredMoment_eq_tail_sum (n : ℕ) {α : ℝ} (hα : 0 < α) (x : ℝ) :
+    bezierCenteredMoment n α x =
+      (∑ k ∈ Finset.range n, (bernsteinTail n (k + 1)).eval x ^ α) / (n : ℝ) - x := by
+  rw [bezierCenteredMoment]
+  simp_rw [sub_mul, div_mul_eq_mul_div]
+  rw [Finset.sum_sub_distrib, Finset.sum_div, ← Finset.mul_sum,
+    sum_cast_mul_bezierWeight n hα x, sum_bezierWeight n hα x, mul_one]
 
 /-- The weighted first-order Taylor remainder of `f` at `x`. -/
 noncomputable def bezierTaylorRemainder
