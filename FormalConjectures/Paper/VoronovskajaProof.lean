@@ -15,8 +15,7 @@ limitations under the License.
 -/
 
 import FormalConjectures.Paper.VoronovskajaTypeFormula
-import FormalConjecturesForMathlib.MeasureTheory.Measure.CharacteristicFunction.TaylorExpansion
-import FormalConjecturesForMathlib.MeasureTheory.Measure.LevyConvergence
+import FormalConjecturesForMathlib.Probability.CentralLimitTheorem
 
 /-!
 # Proof infrastructure for the Bézier–Bernstein Voronovskaja problem
