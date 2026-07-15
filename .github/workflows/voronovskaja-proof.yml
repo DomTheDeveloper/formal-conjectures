@@ -9,6 +9,7 @@ on:
       - 'FormalConjectures/Paper/VoronovskajaTypeFormula.lean'
       - 'FormalConjectures/Paper/VoronovskajaProof.lean'
       - 'FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean'
+      - 'FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
@@ -34,10 +35,12 @@ jobs:
             sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      - name: Restore mathlib cache
+      - name: Restore Lean dependency cache
         uses: actions/cache@v5
         with:
-          path: ~/.cache/mathlib
+          path: |
+            ~/.cache/mathlib
+            .lake/packages
           key: voronovskaja-arm-${{ hashFiles('lake-manifest.json') }}
           restore-keys: |
             voronovskaja-arm-
@@ -73,6 +76,9 @@ jobs:
             compile_module FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean || status=$?
           fi
           if [ "$status" -eq 0 ]; then
+            compile_module FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean || status=$?
+          fi
+          if [ "$status" -eq 0 ]; then
             compile_module FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean || status=$?
           fi
           if [ "$status" -eq 0 ]; then
@@ -81,7 +87,7 @@ jobs:
           fi
 
           echo "status=$status" >> "$GITHUB_OUTPUT"
-          tail -n 300 "$log"
+          tail -n 320 "$log"
           exit 0
 
       - name: Upload Lean diagnostics
