@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
+import FormalConjectures.ErdosProblems.Erdos1150Parseval
 import FormalConjectures.Util.ProblemImports
 
 /-!
@@ -51,6 +52,6 @@ theorem erdos_1150.variants.parseval_lower_bound (P : ℂ[X]) (n : ℕ)
     (hcoeff : ∀ i ≤ P.natDegree, P.coeff i = -1 ∨ P.coeff i = 1)
     (hdeg : P.natDegree = n) :
     ⨆ z : Metric.sphere (0 : ℂ) 1, ‖P.eval (z : ℂ)‖ ≥ Real.sqrt (n + 1) := by
-  sorry
+  exact Erdos1150Parseval.parseval_lower_bound P n hcoeff hdeg
 
 end Erdos1150
