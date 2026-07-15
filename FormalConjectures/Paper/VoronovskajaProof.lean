@@ -15,7 +15,6 @@ limitations under the License.
 -/
 
 import FormalConjectures.Paper.VoronovskajaTypeFormula
-import Mathlib.Probability.Distributions.Binomial
 
 /-!
 # Proof infrastructure for the Bézier–Bernstein Voronovskaja problem
