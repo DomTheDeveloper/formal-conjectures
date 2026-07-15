@@ -44,8 +44,14 @@ jobs:
         shell: bash
         run: |
           set +e
-          lake env lean FormalConjectures/Paper/VoronovskajaCounterexample.lean > /tmp/lean.log 2>&1
+          : > /tmp/lean.log
+          lake env lean -o FormalConjectures/Paper/VoronovskajaTypeFormula.olean \
+            FormalConjectures/Paper/VoronovskajaTypeFormula.lean >> /tmp/lean.log 2>&1
           status=$?
+          if [ "$status" -eq 0 ]; then
+            lake env lean FormalConjectures/Paper/VoronovskajaCounterexample.lean >> /tmp/lean.log 2>&1
+            status=$?
+          fi
           echo "status=$status" >> "$GITHUB_OUTPUT"
           tail -n 160 /tmp/lean.log
           exit 0
