@@ -1,0 +1,38 @@
+name: Verify Conjecture 316 proof
+
+on:
+  push:
+    branches: ["agent/solve-wotw316"]
+    paths:
+      - "FormalConjectures/WrittenOnTheWallII/GraphConjecture316Proof.lean"
+      - "FormalConjectures/WrittenOnTheWallII/GraphConjecture316.lean"
+      - ".github/workflows/verify-wotw316.yml"
+  workflow_dispatch:
+
+jobs:
+  lean-wotw316:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Fetch Mathlib cache
+        run: |
+          lake exe cache unpack
+          lake exe cache get
+      - name: Check proof module
+        shell: bash
+        run: |
+          set -o pipefail
+          lake env lean FormalConjectures/WrittenOnTheWallII/GraphConjecture316Proof.lean 2>&1 | tee wotw316.log
+      - name: Upload diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wotw316-build-log
+          path: wotw316.log
+          if-no-files-found: warn
