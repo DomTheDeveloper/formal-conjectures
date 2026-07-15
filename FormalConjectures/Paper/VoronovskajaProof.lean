@@ -57,13 +57,13 @@ theorem bernsteinTail_zero (n : ℕ) : bernsteinTail n 0 = 1 := by
   have hIcc : Finset.Icc 0 n = Finset.range (n + 1) := by
     ext j
     simp
-    omega
   rw [hIcc, bernsteinPolynomial.sum]
 
 /-- The Bézier mass attached to the sampling point `k / n`. -/
 noncomputable def bezierWeight (n k : ℕ) (α x : ℝ) : ℝ :=
   (bernsteinTail n k).eval x ^ α - (bernsteinTail n (k + 1)).eval x ^ α
 
+@[category API, AMS 26 40 47]
 private theorem sum_range_succ_sub (a : ℕ → ℝ) (m : ℕ) :
     ∑ k ∈ Finset.range m, (a k - a (k + 1)) = a 0 - a m := by
   induction m with
