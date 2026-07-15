@@ -51,7 +51,8 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
   have hchar : charFun μ = fun s ↦ F (c * s) := by
     funext s
     rw [charFun_eq_fourierIntegral']
-    simp [F, c, smul_eq_mul, mul_comm, mul_left_comm, mul_assoc]
+    simp [F, c, smul_eq_mul, mul_comm]
+    rfl
   rw [hchar, iteratedDeriv_comp_const_smul hF c]
   dsimp [F]
   rw [iteratedDeriv, iteratedFDeriv_fourierIntegral (innerSL ℝ) hint' (by fun_prop) le_rfl]
@@ -64,7 +65,9 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
     simp_rw [mul_left_comm (exp _), integral_const_mul, ← mul_assoc, ← mul_pow]
     congr with x
     ring
-  · exact integrable_fourierPowSMulRight _ (by simpa using hint.integrable_norm_pow') (by fun_prop)
+  · apply integrable_fourierPowSMulRight _
+    · convert hint.integrable_norm_pow' using 1 <;> simp
+    · fun_prop
 
 private theorem iteratedDeriv_charFun_zero {n : ℕ} (hint : MemLp id n μ) :
     iteratedDeriv n (charFun μ) 0 = I ^ n * ∫ x, x ^ n ∂μ := by
@@ -124,12 +127,7 @@ lemma taylor_charFun_two (hX : AEMeasurable X P) (h0 : P[X] = 0) (h1 : P[X ^ 2] 
   have hTaylor :=
     taylor_isLittleO (s := univ) (x₀ := 0) (n := 2)
       convex_univ (Set.mem_univ 0) hcont.contDiffOn
-  have hpoly :
-      (fun t : ℝ ↦ taylorWithinEval (charFun (P.map X)) 2 univ 0 t) =
-        fun t : ℝ ↦ (1 : ℂ) - (t : ℂ) ^ 2 / 2 := by
-    funext t
-    exact taylorWithinEval_charFun_two_zero' hX h0 h1 t
-  rw [hpoly] at hTaylor
+  simp_rw [taylorWithinEval_charFun_two_zero' hX h0 h1] at hTaylor
   simpa only [nhdsWithin_univ, sub_zero] using hTaylor
 
 end MeasureTheory
