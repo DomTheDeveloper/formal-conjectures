@@ -45,16 +45,39 @@ jobs:
         run: |
           lake exe cache get >/dev/null
 
-      # Focused compatibility build: Taylor expansion, Levy convergence, CLT, then the target proof.
-      - name: Verify proof module
+      - name: Verify proof modules
         id: lean
         shell: bash
         run: |
           set +e
-          lake build FormalConjectures.Paper.VoronovskajaProof > /tmp/lean.log 2>&1
-          status=$?
+          log=/tmp/lean.log
+          : > "$log"
+          status=0
+
+          compile_module() {
+            source="$1"
+            module="${source%.lean}"
+            out=".lake/build/lib/lean/${module}.olean"
+            ilean=".lake/build/lib/lean/${module}.ilean"
+            mkdir -p "$(dirname "$out")"
+            echo "=== Compiling ${source} ===" >> "$log"
+            lake env lean "$source" -o "$out" -i "$ilean" >> "$log" 2>&1
+          }
+
+          compile_module FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean || status=$?
+          if [ "$status" -eq 0 ]; then
+            compile_module FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean || status=$?
+          fi
+          if [ "$status" -eq 0 ]; then
+            compile_module FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean || status=$?
+          fi
+          if [ "$status" -eq 0 ]; then
+            echo "=== Building target proof module ===" >> "$log"
+            lake build FormalConjectures.Paper.VoronovskajaProof >> "$log" 2>&1 || status=$?
+          fi
+
           echo "status=$status" >> "$GITHUB_OUTPUT"
-          tail -n 220 /tmp/lean.log
+          tail -n 260 "$log"
           exit 0
 
       - name: Upload Lean diagnostics
