@@ -19,8 +19,9 @@ import FormalConjectures.Paper.VoronovskajaTypeFormula
 /-!
 # Proof infrastructure for the Bézier–Bernstein Voronovskaja problem
 
-This file records exact identities needed by the asymptotic proof.  In particular, it checks that
-Lean elaborates the sampling point `k / n` in `bezierBernstein` as division in `ℝ`.
+This file records exact identities needed by the asymptotic proof. In particular, it checks that
+Lean elaborates the sampling point `k / n` in `bezierBernstein` as division in `ℝ`, and proves that
+the Bézier coefficients form a probability mass function.
 -/
 
 open Topology Filter Real unitInterval Polynomial
@@ -48,5 +49,38 @@ theorem bernsteinTail_self_eval (n : ℕ) (x : ℝ) :
 @[category API, AMS 26 40 47]
 theorem bernsteinTail_succ_self (n : ℕ) : bernsteinTail n (n + 1) = 0 := by
   simp [bernsteinTail]
+
+/-- The initial Bernstein tail is the constant polynomial one. -/
+@[category API, AMS 26 40 47]
+theorem bernsteinTail_zero (n : ℕ) : bernsteinTail n 0 = 1 := by
+  rw [bernsteinTail]
+  have hIcc : Finset.Icc 0 n = Finset.range (n + 1) := by
+    ext j
+    simp
+    omega
+  rw [hIcc, bernsteinPolynomial.sum]
+
+/-- The Bézier mass attached to the sampling point `k / n`. -/
+noncomputable def bezierWeight (n k : ℕ) (α x : ℝ) : ℝ :=
+  (bernsteinTail n k).eval x ^ α - (bernsteinTail n (k + 1)).eval x ^ α
+
+private theorem sum_range_succ_sub (a : ℕ → ℝ) (m : ℕ) :
+    ∑ k ∈ Finset.range m, (a k - a (k + 1)) = a 0 - a m := by
+  induction m with
+  | zero => simp
+  | succ m ih =>
+      rw [Finset.sum_range_succ, ih]
+      ring
+
+/-- For positive shape parameter, the Bézier weights have total mass one. -/
+@[category API, AMS 26 40 47]
+theorem sum_bezierWeight (n : ℕ) {α : ℝ} (hα : 0 < α) (x : ℝ) :
+    ∑ k ∈ Finset.range (n + 1), bezierWeight n k α x = 1 := by
+  rw [show (∑ k ∈ Finset.range (n + 1), bezierWeight n k α x) =
+      ∑ k ∈ Finset.range (n + 1),
+        ((bernsteinTail n k).eval x ^ α -
+          (bernsteinTail n (k + 1)).eval x ^ α) by rfl]
+  rw [sum_range_succ_sub]
+  simp [bernsteinTail_zero, bernsteinTail_succ_self, hα.ne']
 
 end VoronovskajaTypeFormula
