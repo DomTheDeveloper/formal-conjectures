@@ -40,7 +40,7 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
     iteratedDeriv n (charFun μ) t = I ^ n * ∫ x, x ^ n * exp (t * x * I) ∂μ := by
   let F : ℝ → ℂ :=
     fourierIntegral Real.fourierChar μ (innerSL ℝ).toLinearMap₁₂ (1 : ℝ → ℂ)
-  let c : ℝ := -(2 * π)⁻¹
+  let c : ℝ := -(2 * Real.pi)⁻¹
   have hint' (k : ℕ) (hk : k ≤ (n : ℕ∞)) :
       Integrable (fun x : ℝ ↦ ‖x‖ ^ k * ‖(1 : ℝ → ℂ) x‖) μ := by
     simp only [Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary, mul_one]
@@ -51,19 +51,17 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
   have hchar : charFun μ = fun s ↦ F (c * s) := by
     funext s
     rw [charFun_eq_fourierIntegral']
-    simp [F, c, smul_eq_mul]
+    simp [F, c, smul_eq_mul, mul_comm, mul_left_comm, mul_assoc]
   rw [hchar, iteratedDeriv_comp_const_smul hF c]
   dsimp [F]
   rw [iteratedDeriv, iteratedFDeriv_fourierIntegral (innerSL ℝ) hint' (by fun_prop) le_rfl]
   rw [Real.fourierIntegral_continuousMultilinearMap_apply']
-  · simp only [ContinuousMultilinearMap.smul_apply, fourierIntegral, Real.fourierChar,
-      Circle.exp, ContinuousMap.coe_mk, ofReal_mul, ofReal_ofNat, innerSL, map_neg, map_smul,
-      ContinuousLinearMap.toLinearMap₁₂_apply, LinearMap.mkContinuous₂_apply,
-      innerₛₗ_apply_apply, smul_eq_mul, neg_neg, AddChar.coe_mk, ofReal_inv,
+  · simp only [fourierIntegral, Real.fourierChar, Circle.exp, ContinuousMap.coe_mk,
+      ofReal_mul, ofReal_ofNat, innerSL, ContinuousLinearMap.toLinearMap₁₂_apply,
+      LinearMap.mkContinuous₂_apply, innerₛₗ_apply_apply, smul_eq_mul, AddChar.coe_mk,
       fourierPowSMulRight_apply, Pi.ofNat_apply, real_smul, ofReal_prod, mul_one,
       Circle.smul_def, c]
     simp_rw [mul_left_comm (exp _), integral_const_mul, ← mul_assoc, ← mul_pow]
-    field_simp
     congr with x
     ring
   · exact integrable_fourierPowSMulRight _ (by simpa using hint.integrable_norm_pow') (by fun_prop)
@@ -73,10 +71,10 @@ private theorem iteratedDeriv_charFun_zero {n : ℕ} (hint : MemLp id n μ) :
   rw [iteratedDeriv_charFun hint]
   simp only [zero_mul, ofReal_zero, exp_zero, mul_one]
   congr 1
-  rw [← integral_ofReal]
-  apply integral_congr_ae
-  filter_upwards with x
-  norm_cast
+  have hcast :
+      (∫ x : ℝ, ((x ^ n : ℝ) : ℂ) ∂μ) = ((∫ x : ℝ, x ^ n ∂μ : ℝ) : ℂ) :=
+    integral_ofReal
+  simpa only [ofReal_pow] using hcast
 
 private lemma taylorWithinEval_charFun_zero {n : ℕ} (hint : MemLp id n μ) (t : ℝ) :
     taylorWithinEval (charFun μ) n univ 0 t
@@ -127,8 +125,8 @@ lemma taylor_charFun_two (hX : AEMeasurable X P) (h0 : P[X] = 0) (h1 : P[X ^ 2] 
     taylor_isLittleO (s := univ) (x₀ := 0) (n := 2)
       convex_univ (Set.mem_univ 0) hcont.contDiffOn
   have hpoly :
-      (fun t ↦ taylorWithinEval (charFun (P.map X)) 2 univ 0 t) =
-        fun t ↦ 1 - t ^ 2 / 2 := by
+      (fun t : ℝ ↦ taylorWithinEval (charFun (P.map X)) 2 univ 0 t) =
+        fun t : ℝ ↦ (1 : ℂ) - (t : ℂ) ^ 2 / 2 := by
     funext t
     exact taylorWithinEval_charFun_two_zero' hX h0 h1 t
   rw [hpoly] at hTaylor
