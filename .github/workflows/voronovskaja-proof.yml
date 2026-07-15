@@ -1,0 +1,39 @@
+name: Voronovskaja proof verification
+
+on:
+  push:
+    branches:
+      - solve-voronovskaja-no-sorry
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore mathlib cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/mathlib
+          key: voronovskaja-${{ hashFiles('lake-manifest.json') }}
+          restore-keys: |
+            voronovskaja-
+            oleans-
+
+      - name: Fetch precompiled dependencies
+        run: |
+          lake exe cache get
+
+      - name: Verify target module
+        run: |
+          lake env lean FormalConjectures/Paper/VoronovskajaTypeFormula.lean
