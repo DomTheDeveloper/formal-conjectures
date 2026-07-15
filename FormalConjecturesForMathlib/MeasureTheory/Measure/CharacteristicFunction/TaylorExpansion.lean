@@ -56,8 +56,7 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
   dsimp [F]
   rw [iteratedDeriv, iteratedFDeriv_fourierIntegral (innerSL ℝ) hint' (by fun_prop) le_rfl]
   rw [Real.fourierIntegral_continuousMultilinearMap_apply']
-  · simp_rw [mul_left_comm (exp _), integral_const_mul, ← mul_assoc, ← mul_pow]
-    congr with x
+  · congr with x
     ring
   · apply integrable_fourierPowSMulRight _
     · refine hint.integrable_norm_pow'.congr ?_
