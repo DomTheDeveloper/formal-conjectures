@@ -7,7 +7,7 @@ on:
   pull_request:
     paths:
       - 'FormalConjectures/Paper/VoronovskajaTypeFormula.lean'
-      - 'FormalConjectures/Paper/VoronovskajaCounterexample.lean'
+      - 'FormalConjectures/Paper/VoronovskajaProof.lean'
       - '.github/workflows/voronovskaja-proof.yml'
   workflow_dispatch:
 
@@ -42,12 +42,12 @@ jobs:
         run: |
           lake exe cache get >/dev/null
 
-      - name: Verify counterexample module
+      - name: Verify proof module
         id: lean
         shell: bash
         run: |
           set +e
-          lake build FormalConjectures.Paper.VoronovskajaCounterexample > /tmp/lean.log 2>&1
+          lake build FormalConjectures.Paper.VoronovskajaProof > /tmp/lean.log 2>&1
           status=$?
           echo "status=$status" >> "$GITHUB_OUTPUT"
           tail -n 160 /tmp/lean.log
