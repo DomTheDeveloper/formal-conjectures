@@ -21,8 +21,9 @@ import FormalConjecturesForMathlib.Probability.CentralLimitTheorem
 # Proof infrastructure for the Bézier–Bernstein Voronovskaja problem
 
 This file records exact identities needed by the asymptotic proof. In particular, it checks that
-Lean elaborates the sampling point `k / n` in `bezierBernstein` as division in `ℝ`, and proves that
-the Bézier coefficients form a probability mass function.
+Lean elaborates the sampling point `k / n` in `bezierBernstein` as division in `ℝ`, proves that the
+Bézier coefficients form a probability mass function, and splits the approximation error into its
+linear moment and Taylor-remainder parts.
 -/
 
 open Topology Filter Real unitInterval Polynomial
@@ -91,5 +92,44 @@ theorem sum_bezierWeight (n : ℕ) {α : ℝ} (hα : 0 < α) (x : ℝ) :
           (bernsteinTail n (k + 1)).eval x ^ α) by rfl]
   rw [sum_range_succ_sub]
   simp [bernsteinTail_zero, bernsteinTail_succ_self, hα.ne']
+
+/-- The first centered moment of the Bézier probability weights. -/
+noncomputable def bezierCenteredMoment (n : ℕ) (α x : ℝ) : ℝ :=
+  ∑ k ∈ Finset.range (n + 1),
+    (((k : ℝ) / (n : ℝ)) - x) * bezierWeight n k α x
+
+/-- The weighted first-order Taylor remainder of `f` at `x`. -/
+noncomputable def bezierTaylorRemainder
+    (n : ℕ) (α : ℝ) (f : ℝ → ℝ) (x slope : ℝ) : ℝ :=
+  ∑ k ∈ Finset.range (n + 1),
+    (f ((k : ℝ) / (n : ℝ)) - f x -
+      slope * (((k : ℝ) / (n : ℝ)) - x)) * bezierWeight n k α x
+
+/-- Exact decomposition of the Bézier approximation error into a centered first moment and a
+Taylor-remainder term. -/
+@[category API, AMS 26 40 47]
+theorem bezierBernstein_sub_eq_moment_add_remainder
+    (n : ℕ) {α : ℝ} (hα : 0 < α) (f : ℝ → ℝ) (x slope : ℝ) :
+    bezierBernstein n α f x - f x =
+      slope * bezierCenteredMoment n α x +
+        bezierTaylorRemainder n α f x slope := by
+  calc
+    bezierBernstein n α f x - f x =
+        ∑ k ∈ Finset.range (n + 1),
+          (f ((k : ℝ) / (n : ℝ)) - f x) * bezierWeight n k α x := by
+      rw [bezierBernstein_uses_real_division]
+      simp_rw [bezierWeight, sub_mul]
+      rw [Finset.sum_sub_distrib, ← Finset.mul_sum, sum_bezierWeight n hα x, mul_one]
+    _ = ∑ k ∈ Finset.range (n + 1),
+          (slope * ((((k : ℝ) / (n : ℝ)) - x) * bezierWeight n k α x) +
+            (f ((k : ℝ) / (n : ℝ)) - f x -
+              slope * (((k : ℝ) / (n : ℝ)) - x)) * bezierWeight n k α x) := by
+      apply Finset.sum_congr rfl
+      intro k hk
+      ring
+    _ = slope * bezierCenteredMoment n α x +
+        bezierTaylorRemainder n α f x slope := by
+      rw [Finset.sum_add_distrib, Finset.mul_sum]
+      rfl
 
 end VoronovskajaTypeFormula
