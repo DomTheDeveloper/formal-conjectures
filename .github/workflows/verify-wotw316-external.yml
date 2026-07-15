@@ -6,6 +6,11 @@ on:
       - agent/wotw316-verification
     paths:
       - ".github/workflows/verify-wotw316-external.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/verify-wotw316-external.yml"
   workflow_dispatch:
 
 concurrency:
