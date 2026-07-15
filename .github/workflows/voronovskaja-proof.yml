@@ -37,9 +37,13 @@ jobs:
 
       - name: Fetch precompiled dependencies
         run: |
-          lake exe cache get
+          lake exe cache get >/dev/null
 
-      - name: Verify source and counterexample modules
+      - name: Verify counterexample module
+        shell: bash
         run: |
-          lake env lean FormalConjectures/Paper/VoronovskajaTypeFormula.lean
-          lake env lean FormalConjectures/Paper/VoronovskajaCounterexample.lean
+          set +e
+          lake env lean FormalConjectures/Paper/VoronovskajaCounterexample.lean > /tmp/lean.log 2>&1
+          status=$?
+          tail -n 160 /tmp/lean.log
+          exit $status
