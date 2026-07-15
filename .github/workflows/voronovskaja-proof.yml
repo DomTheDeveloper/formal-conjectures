@@ -34,10 +34,7 @@ jobs:
         run: |
           lake exe cache get
 
-      - name: Verify target module
+      - name: Verify source and counterexample modules
         run: |
           lake env lean FormalConjectures/Paper/VoronovskajaTypeFormula.lean
-
-      - name: Print elaborated operator
-        run: |
-          lake env lean VoronovskajaProbe.lean
+          lake env lean FormalConjectures/Paper/VoronovskajaCounterexample.lean
