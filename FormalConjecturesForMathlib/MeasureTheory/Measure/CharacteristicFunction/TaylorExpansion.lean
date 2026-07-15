@@ -24,6 +24,27 @@ open scoped Nat RealInnerProductSpace Topology
 
 namespace MeasureTheory
 
+private theorem iteratedFDeriv_comp_const_smul_compat
+    {𝕜 E F : Type*} [NontriviallyNormedField 𝕜]
+    [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+    [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+    {i : ℕ} {f : E → F} (a : 𝕜) (hf : ContDiff 𝕜 i f) :
+    iteratedFDeriv 𝕜 i (fun z ↦ f (a • z)) =
+      fun x ↦ a ^ i • iteratedFDeriv 𝕜 i f (a • x) := by
+  induction i with
+  | zero => ext; simp
+  | succ i hi =>
+    ext v
+    rw [iteratedFDeriv_succ_eq_comp_left, iteratedFDeriv_succ_eq_comp_left]
+    simp only [Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one, self_le_add_right, hf.of_le, hi,
+      Function.comp_apply, continuousMultilinearCurryLeftEquiv_symm_apply, smul_apply]
+    rw [fderiv_fun_const_smul, fderiv_comp_smul, smul_smul, ← pow_succ]
+    · simp
+    rw [← Function.comp_def (g := (a • ·))]
+    apply DifferentiableAt.comp
+    · exact hf.contDiffAt.differentiableAt_iteratedFDeriv (Nat.cast_lt.2 i.lt_succ_self)
+    · exact differentiableAt_id.const_smul _
+
 section InnerProductSpace
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
@@ -58,7 +79,7 @@ theorem iteratedFDeriv_charFun {n : ℕ} {t : E} (hint : MemLp id n μ) (x : Fin
     simp only [Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary, mul_one]
     refine MemLp.integrable_norm_pow' (hint.mono_exponent (by simp_all))
   simp_rw [funext charFun_eq_fourierIntegral']
-  rw [iteratedFDeriv_comp_const_smul]
+  rw [iteratedFDeriv_comp_const_smul_compat]
   swap
   · rw [h]
     exact contDiff_fourierIntegral _ hint'
