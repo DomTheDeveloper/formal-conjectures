@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: voronovskaja-${{ github.event.pull_request.number || github.ref }}
+  group: voronovskaja-proof
   cancel-in-progress: true
 
 permissions:
@@ -43,20 +43,13 @@ jobs:
         run: |
           lake exe cache get >/dev/null
 
-      # Compile the imported problem module first, then the no-sorry disproof.
       - name: Verify counterexample module
         id: lean
         shell: bash
         run: |
           set +e
-          : > /tmp/lean.log
-          lake env lean -o FormalConjectures/Paper/VoronovskajaTypeFormula.olean \
-            FormalConjectures/Paper/VoronovskajaTypeFormula.lean >> /tmp/lean.log 2>&1
+          lake build FormalConjectures.Paper.VoronovskajaCounterexample > /tmp/lean.log 2>&1
           status=$?
-          if [ "$status" -eq 0 ]; then
-            lake env lean FormalConjectures/Paper/VoronovskajaCounterexample.lean >> /tmp/lean.log 2>&1
-            status=$?
-          fi
           echo "status=$status" >> "$GITHUB_OUTPUT"
           tail -n 160 /tmp/lean.log
           exit 0
