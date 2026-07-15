@@ -38,7 +38,7 @@ where $A$ is the set of minimum-degree vertices, $M$ is the set of maximum-degre
 and $\operatorname{dist\_min}(S) = \min_{v \notin S} \operatorname{dist}(v, S)$ (see `distMin`).
 -/
 @[category research solved, AMS 5,
-  formal_proof using lean4 at "https://github.com/DomTheDeveloper/formal-conjectures/blob/ee646195c4c73cd724a1a689d1f015ebc3295eb8/ExternalProofs/WrittenOnTheWallII/GraphConjecture65.lean"]
+  formal_proof using lean4 at "https://github.com/DomTheDeveloper/formal-conjectures/blob/1dc5b8e33623bf0196e1e28c2f9d07b2031ecb52/ExternalProofs/WrittenOnTheWallII/GraphConjecture65.lean"]
 theorem conjecture65 (G : SimpleGraph α) [DecidableRel G.Adj] (h : G.Connected) :
     let A : Set α := {v | G.degree v = G.minDegree}
     let M : Set α := {v | G.degree v = G.maxDegree}
