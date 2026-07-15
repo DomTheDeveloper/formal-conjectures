@@ -56,17 +56,13 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
   dsimp [F]
   rw [iteratedDeriv, iteratedFDeriv_fourierIntegral (innerSL ℝ) hint' (by fun_prop) le_rfl]
   rw [Real.fourierIntegral_continuousMultilinearMap_apply']
-  · simp only [fourierIntegral, Real.fourierChar, Circle.exp, ContinuousMap.coe_mk,
-      ofReal_mul, ofReal_ofNat, innerSL, ContinuousLinearMap.toLinearMap₁₂_apply,
-      LinearMap.mkContinuous₂_apply, innerₛₗ_apply_apply, smul_eq_mul, AddChar.coe_mk,
-      fourierPowSMulRight_apply, Pi.ofNat_apply, real_smul, ofReal_prod, mul_one,
-      Circle.smul_def, c]
-    simp_rw [mul_left_comm (exp _), integral_const_mul, ← mul_assoc, ← mul_pow]
+  · simp_rw [mul_left_comm (exp _), integral_const_mul, ← mul_assoc, ← mul_pow]
     congr with x
     ring
   · apply integrable_fourierPowSMulRight _
-    · change Integrable (fun v : ℝ ↦ ‖v‖ ^ n) μ
-      exact hint.integrable_norm_pow'
+    · refine hint.integrable_norm_pow'.congr ?_
+      filter_upwards with v
+      simp
     · fun_prop
 
 private theorem iteratedDeriv_charFun_zero {n : ℕ} (hint : MemLp id n μ) :
