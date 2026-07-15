@@ -51,7 +51,6 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
   have hchar : charFun μ = fun s ↦ F (c * s) := by
     funext s
     rw [charFun_eq_fourierIntegral']
-    simp [F, c, smul_eq_mul, mul_comm]
     rfl
   rw [hchar, iteratedDeriv_comp_const_smul hF c]
   dsimp [F]
@@ -66,7 +65,7 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
     congr with x
     ring
   · apply integrable_fourierPowSMulRight _
-    · exact hint.integrable_norm_pow'
+    · simpa only [id_eq, Pi.one_apply, norm_one, mul_one] using hint.integrable_norm_pow'
     · fun_prop
 
 private theorem iteratedDeriv_charFun_zero {n : ℕ} (hint : MemLp id n μ) :
