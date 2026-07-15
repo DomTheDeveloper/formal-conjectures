@@ -63,7 +63,6 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
       fourierPowSMulRight_apply, Pi.ofNat_apply, real_smul, ofReal_prod, mul_one,
       Circle.smul_def, c]
     field_simp
-    congr with x
     ring
   · apply integrable_fourierPowSMulRight _
     · refine hint.integrable_norm_pow'.congr ?_
