@@ -51,7 +51,6 @@ lemma continuous_charFun : Continuous (charFun μ) := by
   refine contDiff_zero.1 (contDiff_charFun ?_)
   simpa using by fun_prop
 
-set_option backward.isDefEq.respectTransparency false in
 theorem iteratedFDeriv_charFun {n : ℕ} {t : E} (hint : MemLp id n μ) (x : Fin n → E) :
     iteratedFDeriv ℝ n (charFun μ) t x = I ^ n * ∫ y, (∏ i, ⟪y, x i⟫) * exp (⟪y, t⟫ * I) ∂μ := by
   have h : innerₗ E = (innerSL ℝ).toLinearMap₁₂ := rfl
@@ -93,8 +92,9 @@ theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ) :
 
 theorem iteratedDeriv_charFun_zero {n : ℕ} (hint : MemLp id n μ) :
     iteratedDeriv n (charFun μ) 0 = I ^ n * ∫ x, x ^ n ∂μ := by
-  simp [iteratedDeriv_charFun hint]
-  norm_cast
+  rw [iteratedDeriv_charFun hint]
+  simp only [zero_mul, ofReal_zero, mul_zero, exp_zero, mul_one]
+  rw [integral_ofReal]
 
 lemma taylorWithinEval_charFun_zero {n : ℕ} (hint : MemLp id n μ) (t : ℝ) :
     taylorWithinEval (charFun μ) n univ 0 t
@@ -113,7 +113,7 @@ lemma taylorWithinEval_charFun_two_zero (hX : AEMeasurable X P)
     taylorWithinEval (charFun (P.map X)) 2 univ 0 t =
       1 + (P[X] : ℝ) * t * I - (P[X ^ 2] : ℝ) * t ^ 2 / 2 := by
   have : IsProbabilityMeasure (P.map X) := Measure.isProbabilityMeasure_map hX
-  convert! taylorWithinEval_charFun_zero hint t with x
+  rw [taylorWithinEval_charFun_zero hint]
   simp only [Pi.pow_apply, Nat.reduceAdd, Finset.sum_range_succ, Finset.range_one,
     Finset.sum_singleton, Nat.factorial_zero, Nat.cast_one, inv_one, pow_zero, mul_one,
     integral_const, probReal_univ, smul_eq_mul, ofReal_one, Nat.factorial_one, pow_one, one_mul,
@@ -135,14 +135,15 @@ lemma taylorWithinEval_charFun_two_zero' (hX : AEMeasurable X P)
 
 lemma taylor_charFun_two (hX : AEMeasurable X P) (h0 : P[X] = 0) (h1 : P[X ^ 2] = 1) :
     (fun t ↦ charFun (P.map X) t - (1 - t ^ 2 / 2)) =o[𝓝 0] fun t ↦ t ^ 2 := by
-  simp_rw [← taylorWithinEval_charFun_two_zero' (by fun_prop) h0 h1]
-  convert! taylor_isLittleO_univ ?_
-  · simp
-  refine contDiff_charFun <|
-    (memLp_two_iff_integrable_sq (by fun_prop)).2 (.of_integral_ne_zero ?_)
-  rw [integral_map]
-  any_goals fun_prop
-  simp_all
+  have hcont : ContDiff ℝ 2 (charFun (P.map X)) := by
+    refine contDiff_charFun <|
+      (memLp_two_iff_integrable_sq (by fun_prop)).2 (.of_integral_ne_zero ?_)
+    rw [integral_map]
+    any_goals fun_prop
+    simp_all
+  simpa [taylorWithinEval_charFun_two_zero' hX h0 h1] using
+    (taylor_isLittleO (s := univ) (x₀ := 0) (n := 2)
+      convex_univ (Set.mem_univ 0) hcont.contDiffOn)
 
 end Real
 
