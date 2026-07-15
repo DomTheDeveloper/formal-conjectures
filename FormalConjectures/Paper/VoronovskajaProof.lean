@@ -15,6 +15,7 @@ limitations under the License.
 -/
 
 import FormalConjectures.Paper.VoronovskajaTypeFormula
+import Mathlib.Probability.Distributions.Binomial
 
 /-!
 # Proof infrastructure for the Bézier–Bernstein Voronovskaja problem
@@ -58,6 +59,14 @@ theorem bernsteinTail_zero (n : ℕ) : bernsteinTail n 0 = 1 := by
     ext j
     simp
   rw [hIcc, bernsteinPolynomial.sum]
+
+/-- Evaluation of a Bernstein tail as its explicit binomial-probability sum. -/
+@[category API, AMS 26 40 47]
+theorem bernsteinTail_eval_eq_sum (n k : ℕ) (x : ℝ) :
+    (bernsteinTail n k).eval x =
+      ∑ j ∈ Finset.Icc k n,
+        (n.choose j : ℝ) * x ^ j * (1 - x) ^ (n - j) := by
+  simp [bernsteinTail, bernsteinPolynomial]
 
 /-- The Bézier mass attached to the sampling point `k / n`. -/
 noncomputable def bezierWeight (n k : ℕ) (α x : ℝ) : ℝ :=
