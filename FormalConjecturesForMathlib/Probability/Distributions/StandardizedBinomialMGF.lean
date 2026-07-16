@@ -38,43 +38,19 @@ namespace ProbabilityTheory
 lemma mgf_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
     mgf id Bin(ℝ, n, p) t =
       ((1 - (p : ℝ)) + (p : ℝ) * exp t) ^ n := by
-  rw [mgf]
-  change (∫ x : ℝ, exp (t * x) ∂((binomial n p).map (Nat.cast : ℕ → ℝ))) = _
-  have hcast : AEMeasurable (Nat.cast : ℕ → ℝ) (binomial n p) :=
-    (.of_discrete : Measurable (Nat.cast : ℕ → ℝ)).aemeasurable
-  have hexpNat : AEStronglyMeasurable (fun x : ℝ ↦ exp (t * x))
-      ((binomial n p).map (Nat.cast : ℕ → ℝ)) := by fun_prop
-  rw [integral_map hcast hexpNat]
-  have hval : AEMeasurable (Fin.val : Fin (n + 1) → ℕ) (binomialPMF n p).toMeasure :=
-    (.of_discrete : Measurable (Fin.val : Fin (n + 1) → ℕ)).aemeasurable
-  have hexpFin : AEStronglyMeasurable (fun x : ℕ ↦ exp (t * (x : ℝ)))
-      ((binomialPMF n p).toMeasure.map Fin.val) := by fun_prop
-  rw [binomial, integral_map hval hexpFin]
-  have hsum :
-      (∫ x : Fin (n + 1), exp (t * ((x : ℕ) : ℝ)) ∂(binomialPMF n p).toMeasure) =
-        ∑ x : Fin (n + 1), ((binomialPMF n p) x).toReal •
-          exp (t * ((x : ℕ) : ℝ)) :=
-    PMF.integral_eq_sum (binomialPMF n p) (fun x : Fin (n + 1) ↦
-      exp (t * ((x : ℕ) : ℝ)))
-  rw [hsum]
-  simp only [binomialPMF, PMF.binomial_apply, Finset.sum_fin_eq_sum_range]
-  have hq :
-      ((1 : ℝ≥0∞) - (unitInterval.toNNReal p : ℝ≥0∞)).toReal = 1 - (p : ℝ) := by
-    rw [ENNReal.toReal_sub_of_le]
-    · simp
-    · simpa using p.2.2
-    · simp
+  rw [mgf, integral_map_cast_binomial]
+  rw [show Finset.Iic n = Finset.range (n + 1) by ext k; simp]
+  simp only [smul_eq_mul]
   conv_rhs => rw [add_comm]
   rw [add_pow]
   apply Finset.sum_congr rfl
   intro k hk
-  have hk' : k < n + 1 := Finset.mem_range.mp hk
-  simp only [dif_pos hk', Fin.val_last]
   have hexp : exp (t * (k : ℝ)) = exp t ^ k := by
     calc
       exp (t * (k : ℝ)) = exp ((k : ℝ) * t) := by congr 1 <;> ring
       _ = exp t ^ k := Real.exp_nat_mul _ _
-  simp [hq, smul_eq_mul, hexp]
+  rw [hexp]
+  push_cast
   ring
 
 /-- Exact MGF of one standardized Bernoulli variable. -/
@@ -143,15 +119,7 @@ private lemma integrable_exp_mul_standardizedBinomialMeasure
     Integrable (fun z : ℝ ↦ exp (t * z)) (standardizedBinomialMeasure n p) := by
   rw [standardizedBinomialMeasure]
   rw [integrable_map_measure (by fun_prop) (continuous_standardizeBinomial n p).aemeasurable]
-  change Integrable
-    (fun z : ℝ ↦ exp (t * standardizeBinomial n p z))
-    ((binomial n p).map (Nat.cast : ℕ → ℝ))
-  rw [integrable_map_measure (by fun_prop)
-    ((.of_discrete : Measurable (Nat.cast : ℕ → ℝ)).aemeasurable)]
-  rw [binomial]
-  rw [integrable_map_measure (by fun_prop)
-    ((.of_discrete : Measurable (Fin.val : Fin (n + 1) → ℕ)).aemeasurable)]
-  exact .of_finite
+  exact integrable_map_cast_binomial _
 
 /-- For positive `n`, standardized binomial laws have a sub-Gaussian parameter independent of
 `n`. -/
