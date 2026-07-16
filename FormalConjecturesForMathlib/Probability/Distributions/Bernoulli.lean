@@ -77,6 +77,11 @@ noncomputable def bernoulliStdDev (p : I) : ℝ := Real.sqrt ((p : ℝ) * (1 - p
 noncomputable def standardizedBernoulli (p : I) (z : ℝ) : ℝ :=
   (z - p) / bernoulliStdDev p
 
+@[fun_prop]
+lemma continuous_standardizedBernoulli (p : I) : Continuous (standardizedBernoulli p) := by
+  unfold standardizedBernoulli
+  fun_prop
+
 lemma bernoulliStdDev_pos (p : I) (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1) :
     0 < bernoulliStdDev p := by
   rw [bernoulliStdDev, Real.sqrt_pos]
@@ -97,22 +102,23 @@ lemma integral_sq_standardizedBernoulli
   simp only [smul_eq_mul, standardizedBernoulli]
   have hvar : 0 ≤ (p : ℝ) * (1 - p) :=
     (mul_pos hp0 (sub_pos.mpr hp1)).le
-  have hs : bernoulliStdDev p ≠ 0 := (bernoulliStdDev_pos p hp0 hp1).ne'
   rw [div_pow, div_pow, bernoulliStdDev, Real.sq_sqrt hvar]
-  field_simp [hs, mul_ne_zero hp0.ne' (sub_ne_zero.mpr hp1.ne)]
+  have hq : 1 - (p : ℝ) ≠ 0 := sub_ne_zero.mpr hp1.ne
+  field_simp [hp0.ne', hq]
   ring
 
 lemma charFun_standardizedBernoulli
     (p : I) (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1) (t : ℝ) :
     charFun (Ber((1 : ℝ), 0, p).map (standardizedBernoulli p)) t =
-      (p : ℂ) * exp (t * ((1 - p) / bernoulliStdDev p) * I) +
-        (1 - (p : ℝ) : ℂ) * exp (t * (-p / bernoulliStdDev p) * I) := by
+      (p : ℂ) * exp (t * ((1 - (p : ℝ)) / bernoulliStdDev p) * Complex.I) +
+        ((1 - (p : ℝ) : ℝ) : ℂ) *
+          exp (t * (-(p : ℝ) / bernoulliStdDev p) * Complex.I) := by
   rw [charFun_apply_real, integral_map]
   · rw [integral_bernoulliMeasure]
-    simp only [smul_eq_mul, standardizedBernoulli, one_sub, sub_zero, zero_sub]
+    simp only [RCLike.real_smul_eq_coe_mul, standardizedBernoulli, sub_zero, zero_sub]
     push_cast
-    ring_nf
-  · fun_prop
+    congr 1 <;> ring
+  · exact (continuous_standardizedBernoulli p).aemeasurable
   · fun_prop
 
 end Standardized
