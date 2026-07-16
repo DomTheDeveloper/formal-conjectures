@@ -97,13 +97,13 @@ noncomputable def poweredStandardizedBinomialTailDifference
   (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Ioi t) -
     (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Iic (-t))
 
-private lemma measurable_measureReal_Ioi (μ : Measure ℝ) :
+private lemma measurable_measureReal_Ioi (μ : Measure ℝ) [IsFiniteMeasure μ] :
     Measurable (fun t : ℝ ↦ μ.real (Ioi t)) := by
   apply Antitone.measurable
   intro a b hab
   exact measureReal_mono fun z hz ↦ hab.trans_lt hz
 
-private lemma measurable_measureReal_Iic_neg (μ : Measure ℝ) :
+private lemma measurable_measureReal_Iic_neg (μ : Measure ℝ) [IsFiniteMeasure μ] :
     Measurable (fun t : ℝ ↦ μ.real (Iic (-t))) := by
   apply Antitone.measurable
   intro a b hab
@@ -176,6 +176,17 @@ private lemma exp_rpow_tail_eq
   field_simp [hc]
   ring
 
+private lemma abs_tailDifference_le_add
+    (n : ℕ) (p : I) (α : ℝ) (hα : 0 < α) (t : ℝ) :
+    |poweredStandardizedBinomialTailDifference n p α hα t| ≤
+      (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Ioi t) +
+        (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Iic (-t)) := by
+  rw [poweredStandardizedBinomialTailDifference]
+  simpa only [Real.norm_eq_abs, abs_of_nonneg measureReal_nonneg] using
+    (norm_sub_le
+      ((poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Ioi t))
+      ((poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Iic (-t))))
+
 /-- The integrated difference of the powered right and left tails converges to the exact powered
 Gaussian first-moment constant.  This is the uniform-integrability step missing from weak
 convergence alone. -/
@@ -201,7 +212,7 @@ lemma tendsto_integral_poweredStandardizedBinomialTailDifference
         (measurable_poweredStandardizedBinomialTailDifference n p α hα).aestronglyMeasurable
     · refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
       filter_upwards [self_mem_ae_restrict measurableSet_Ioi] with t ht
-      have hn0 : 0 < n := by omega
+      have hn0 : 0 < n := hn
       have ht0 : 0 ≤ t := le_of_lt ht
       have hright :=
         measureReal_Ioi_poweredStandardizedBinomialProbability_le_exp_rpow
@@ -216,14 +227,13 @@ lemma tendsto_integral_poweredStandardizedBinomialTailDifference
       calc
         |poweredStandardizedBinomialTailDifference n p α hα t| ≤
             (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Ioi t) +
-              (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Iic (-t)) := by
-                rw [poweredStandardizedBinomialTailDifference]
-                exact abs_sub_le _ _
+              (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Iic (-t)) :=
+          abs_tailDifference_le_add n p α hα t
         _ ≤ (exp (-t ^ 2 / (2 * c))) ^ α +
               (exp (-t ^ 2 / (2 * c))) ^ α := add_le_add hright hleft
         _ = g t := by rw [heq]; simp [g]
-    · filter_upwards with t
-      exact tendsto_poweredStandardizedBinomialTailDifference p hp0 hp1 α hα t
+    · exact ae_of_all _ fun t ↦
+        tendsto_poweredStandardizedBinomialTailDifference p hp0 hp1 α hα t
   · let b : ℝ := 1 / (2 * c)
     have hb : 0 < b := one_div_pos.mpr (mul_pos two_pos hc)
     let g : ℝ → ℝ := fun t ↦ (1 + α) * exp (-b * t ^ 2)
@@ -235,7 +245,7 @@ lemma tendsto_integral_poweredStandardizedBinomialTailDifference
         (measurable_poweredStandardizedBinomialTailDifference n p α hα).aestronglyMeasurable
     · refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
       filter_upwards [self_mem_ae_restrict measurableSet_Ioi] with t ht
-      have hn0 : 0 < n := by omega
+      have hn0 : 0 < n := hn
       have ht0 : 0 ≤ t := le_of_lt ht
       let q : ℝ := exp (-t ^ 2 / (2 * c))
       have hq0 : 0 ≤ q := exp_nonneg _
@@ -259,12 +269,11 @@ lemma tendsto_integral_poweredStandardizedBinomialTailDifference
       calc
         |poweredStandardizedBinomialTailDifference n p α hα t| ≤
             (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Ioi t) +
-              (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Iic (-t)) := by
-                rw [poweredStandardizedBinomialTailDifference]
-                exact abs_sub_le _ _
+              (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Iic (-t)) :=
+          abs_tailDifference_le_add n p α hα t
         _ ≤ q + α * q := add_le_add hright (by simpa [q] using hleft)
         _ = g t := by rw [q, heq]; simp [g]; ring
-    · filter_upwards with t
-      exact tendsto_poweredStandardizedBinomialTailDifference p hp0 hp1 α hα t
+    · exact ae_of_all _ fun t ↦
+        tendsto_poweredStandardizedBinomialTailDifference p hp0 hp1 α hα t
 
 end ProbabilityTheory
