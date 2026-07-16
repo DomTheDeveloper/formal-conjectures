@@ -161,8 +161,9 @@ private theorem standardizedBinomialMeasure_eq_pmf_map
   have hcast : Measurable (Nat.cast : ℕ → ℝ) := .of_discrete
   have hstd : Measurable (standardizeBinomial n x) :=
     (continuous_standardizeBinomial n x).measurable
-  change ((((binomialPMF n x).toMeasure.map (Fin.val : Fin (n + 1) → ℕ)).map
-      (Nat.cast : ℕ → ℝ)).map (standardizeBinomial n x)) = _
+  rw [standardizedBinomialMeasure]
+  change ((Bin(n, x).map (Nat.cast : ℕ → ℝ)).map (standardizeBinomial n x)) = _
+  rw [binomial_eq_binomialPMF_toMeasure_map_val]
   rw [Measure.map_map hstd hcast]
   rw [Measure.map_map (hstd.comp hcast) hval]
   simpa [Function.comp_def] using
