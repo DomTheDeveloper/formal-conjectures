@@ -233,9 +233,9 @@ lemma tendsto_inv_sqrt_mul_integral_poweredStandardizedBinomialSecondMomentTail
       calc
         (Real.sqrt n)⁻¹ * poweredStandardizedBinomialSecondMomentTail n p α hα t ≤
             poweredStandardizedBinomialSecondMomentTail n p α hα t := by
-              nlinarith [measureReal_nonneg
-                (μ := (poweredStandardizedBinomialProbability n p α hα : Measure ℝ))
-                (s := {z : ℝ | t < z ^ 2})]
+          have htail0 : 0 ≤ poweredStandardizedBinomialSecondMomentTail n p α hα t :=
+            measureReal_nonneg
+          simpa only [one_mul] using mul_le_mul_of_nonneg_right hinv_one htail0
         _ ≤ 2 * exp (-b * t) := by
           simpa [b] using
             secondMomentTail_le_exp_of_alpha_le_one
@@ -269,9 +269,9 @@ lemma tendsto_inv_sqrt_mul_integral_poweredStandardizedBinomialSecondMomentTail
       calc
         (Real.sqrt n)⁻¹ * poweredStandardizedBinomialSecondMomentTail n p α hα t ≤
             poweredStandardizedBinomialSecondMomentTail n p α hα t := by
-              nlinarith [measureReal_nonneg
-                (μ := (poweredStandardizedBinomialProbability n p α hα : Measure ℝ))
-                (s := {z : ℝ | t < z ^ 2})]
+          have htail0 : 0 ≤ poweredStandardizedBinomialSecondMomentTail n p α hα t :=
+            measureReal_nonneg
+          simpa only [one_mul] using mul_le_mul_of_nonneg_right hinv_one htail0
         _ ≤ (1 + α) * exp (-b * t) := by
           simpa [b] using
             secondMomentTail_le_exp_of_one_le_alpha
