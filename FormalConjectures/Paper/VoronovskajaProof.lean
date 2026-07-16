@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.Paper.VoronovskajaTypeFormula
+import FormalConjectures.Paper.VoronovskajaDefinitions
 import FormalConjecturesForMathlib.Probability.CentralLimitTheorem
 import FormalConjecturesForMathlib.Probability.Distributions.Binomial
 
