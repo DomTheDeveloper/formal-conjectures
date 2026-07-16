@@ -103,13 +103,13 @@ lemma charFun_standardizedBinomialMeasure
         rw [← Complex.exp_add]
         congr 1
         dsimp [a]
-        ring
+        ring_nf
       have hneg :
           exp (s * (-(p : ℝ) / bernoulliStdDev p) * Complex.I) =
             exp (-(a * (p : ℝ)) * Complex.I) := by
         congr 1
         dsimp [a]
-        ring
+        ring_nf
       rw [hexp, hneg]
       ring
     rw [hfactor, mul_pow]
@@ -131,7 +131,7 @@ lemma tendsto_standardizedBinomialProbability
   refine MeasureTheory.ProbabilityMeasure.tendsto_of_tendsto_charFun fun t ↦ ?_
   change Tendsto (fun n ↦ charFun (standardizedBinomialMeasure n p) t) atTop
     (𝓝 (charFun (gaussianReal 0 1) t))
-  simp_rw [charFun_standardizedBinomialMeasure n p hp0 hp1 t]
+  simp_rw [charFun_standardizedBinomialMeasure _ p hp0 hp1 t]
   simpa [charFun_gaussianReal, neg_div] using
     tendsto_charFun_inv_sqrt_mul_pow
       (P := Ber((1 : ℝ), 0, p))
