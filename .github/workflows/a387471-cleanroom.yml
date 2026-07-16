@@ -22,8 +22,8 @@ jobs:
         run: |
           git clone https://github.com/DomTheDeveloper/crl.git crl
           cd crl
-          git checkout 31185ffa86ecba290e1b0fea0384a8b62040ddb5
-          test "$(git rev-parse HEAD)" = "31185ffa86ecba290e1b0fea0384a8b62040ddb5"
+          git checkout 6129020e04e750f8686d1c2083cc793fe104a15d
+          test "$(git rev-parse HEAD)" = "6129020e04e750f8686d1c2083cc793fe104a15d"
       - name: Install elan
         run: |
           curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
@@ -69,8 +69,8 @@ jobs:
         run: |
           git clone https://github.com/DomTheDeveloper/crl.git crl
           cd crl
-          git checkout 31185ffa86ecba290e1b0fea0384a8b62040ddb5
-          test "$(git rev-parse HEAD)" = "31185ffa86ecba290e1b0fea0384a8b62040ddb5"
+          git checkout 6129020e04e750f8686d1c2083cc793fe104a15d
+          test "$(git rev-parse HEAD)" = "6129020e04e750f8686d1c2083cc793fe104a15d"
       - name: Install elan
         run: |
           curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
