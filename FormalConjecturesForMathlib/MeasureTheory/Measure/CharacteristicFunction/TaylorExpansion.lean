@@ -63,6 +63,7 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
       fourierPowSMulRight_apply, Pi.ofNat_apply, real_smul, ofReal_prod, mul_one,
       Circle.smul_def, c]
     rw [← integral_const_mul]
+    rw [← integral_const_mul]
     apply integral_congr_ae
     filter_upwards with v
     simp only [Fin.prod_const, Fintype.card_fin]
