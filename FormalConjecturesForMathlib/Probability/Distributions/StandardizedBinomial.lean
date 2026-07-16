@@ -24,7 +24,7 @@ public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 # Standardized binomial laws
 
 This file identifies the characteristic function of a centered and normalized binomial law with
-an `n`th power of a centered Bernoulli characteristic function.  The one-dimensional CLT then gives
+an `n`th power of a centered Bernoulli characteristic function. The one-dimensional CLT then gives
 weak convergence to the standard Gaussian.
 -/
 
@@ -42,6 +42,11 @@ namespace ProbabilityTheory
 noncomputable def standardizeBinomial (n : ℕ) (p : I) (z : ℝ) : ℝ :=
   (Real.sqrt n)⁻¹ * ((z - n * (p : ℝ)) / bernoulliStdDev p)
 
+@[fun_prop]
+lemma continuous_standardizeBinomial (n : ℕ) (p : I) : Continuous (standardizeBinomial n p) := by
+  unfold standardizeBinomial
+  fun_prop
+
 /-- The centered, variance-one binomial law. -/
 @[expose]
 noncomputable def standardizedBinomialMeasure (n : ℕ) (p : I) : Measure ℝ :=
@@ -49,7 +54,7 @@ noncomputable def standardizedBinomialMeasure (n : ℕ) (p : I) : Measure ℝ :=
 
 instance isProbabilityMeasure_standardizedBinomialMeasure (n : ℕ) (p : I) :
     IsProbabilityMeasure (standardizedBinomialMeasure n p) :=
-  isProbabilityMeasure_map (by fun_prop)
+  isProbabilityMeasure_map (continuous_standardizeBinomial n p).aemeasurable
 
 /-- The probability-measure wrapper of the standardized binomial law. -/
 @[expose]
@@ -67,32 +72,52 @@ lemma charFun_standardizedBinomialMeasure
       (charFun (Ber((1 : ℝ), 0, p).map (standardizedBernoulli p))
         ((Real.sqrt n)⁻¹ * t)) ^ n := by
   rw [standardizedBinomialMeasure, charFun_apply_real, integral_map]
-  · rw [← integral_mul_const]
-    have hsplit (z : ℝ) :
-        exp (t * standardizeBinomial n p z * I) =
-          exp (((Real.sqrt n)⁻¹ * t / bernoulliStdDev p) * z * I) *
-            exp (-((Real.sqrt n)⁻¹ * t / bernoulliStdDev p) * (n * (p : ℝ)) * I) := by
+  · have hsplit (z : ℝ) :
+        exp (t * standardizeBinomial n p z * Complex.I) =
+          exp (((Real.sqrt n)⁻¹ * t / bernoulliStdDev p) * z * Complex.I) *
+            exp (-((Real.sqrt n)⁻¹ * t / bernoulliStdDev p) *
+              (n * (p : ℝ)) * Complex.I) := by
       rw [← Complex.exp_add]
       congr 1
       rw [standardizeBinomial]
       push_cast
       ring
     simp_rw [hsplit]
-    rw [integral_mul_const, ← charFun_apply_real]
-    rw [charFun_map_cast_binomial]
+    rw [integral_mul_const, ← charFun_apply_real, charFun_map_cast_binomial]
     rw [charFun_standardizedBernoulli p hp0 hp1]
-    simp only [ofReal_inv, ofReal_mul, ofReal_div, ofReal_natCast]
-    have hs : bernoulliStdDev p ≠ 0 := (bernoulliStdDev_pos p hp0 hp1).ne'
-    rw [add_pow]
-    simp only [Finset.sum_fin_eq_sum_range]
-    apply Finset.sum_congr rfl
-    intro k hk
-    rw [Finset.mem_range] at hk
-    simp only [dif_pos hk]
-    rw [mul_pow, Complex.exp_nat_mul]
-    field_simp [hs]
-    ring_nf
-  · fun_prop
+    let s : ℝ := (Real.sqrt n)⁻¹ * t
+    let a : ℝ := s / bernoulliStdDev p
+    have hfactor :
+        (p : ℂ) * exp (s * ((1 - (p : ℝ)) / bernoulliStdDev p) * Complex.I) +
+            ((1 - (p : ℝ) : ℝ) : ℂ) *
+              exp (s * (-(p : ℝ) / bernoulliStdDev p) * Complex.I) =
+          (((1 - (p : ℝ) : ℝ) : ℂ) + (p : ℂ) * exp (a * Complex.I)) *
+            exp (-(a * (p : ℝ)) * Complex.I) := by
+      have hexp :
+          exp (s * ((1 - (p : ℝ)) / bernoulliStdDev p) * Complex.I) =
+            exp (a * Complex.I) * exp (-(a * (p : ℝ)) * Complex.I) := by
+        rw [← Complex.exp_add]
+        congr 1
+        dsimp [a]
+        ring
+      have hneg :
+          exp (s * (-(p : ℝ) / bernoulliStdDev p) * Complex.I) =
+            exp (-(a * (p : ℝ)) * Complex.I) := by
+        congr 1
+        dsimp [a]
+        ring
+      rw [hexp, hneg]
+      ring
+    rw [hfactor, mul_pow, ← Complex.exp_nat_mul]
+    dsimp [a, s]
+    congr 1
+    · congr 1
+      congr 2
+      ring
+    · congr 1
+      push_cast
+      ring
+  · exact (continuous_standardizeBinomial n p).aemeasurable
   · fun_prop
 
 lemma tendsto_standardizedBinomialProbability
@@ -107,7 +132,7 @@ lemma tendsto_standardizedBinomialProbability
     tendsto_charFun_inv_sqrt_mul_pow
       (P := Ber((1 : ℝ), 0, p))
       (X := standardizedBernoulli p)
-      (by fun_prop)
+      (continuous_standardizedBernoulli p).aemeasurable
       (integral_standardizedBernoulli p hp0 hp1)
       (by simpa only [Pi.pow_apply] using integral_sq_standardizedBernoulli p hp0 hp1)
       t
