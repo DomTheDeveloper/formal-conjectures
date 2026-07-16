@@ -51,8 +51,39 @@ theorem isSumOfFourSquaresWithPowers_3 : IsSumOfFourSquaresWithPowers 3 :=
   ⟨0, 0, 0, 0, 0, 1, by norm_num⟩
 
 @[category test, AMS 11]
+theorem isSumOfFourSquaresWithPowers_4 : IsSumOfFourSquaresWithPowers 4 :=
+  ⟨0, 0, 0, 0, 1, 1, by norm_num⟩
+
+@[category test, AMS 11]
 theorem isSumOfFourSquaresWithPowers_5 : IsSumOfFourSquaresWithPowers 5 :=
   ⟨1, 0, 0, 0, 0, 0, by norm_num⟩
+
+/-- A representation scales by four: increment both powers of two and double the free squares. -/
+theorem scale_four {n : ℕ} (hn : IsSumOfFourSquaresWithPowers n) :
+    IsSumOfFourSquaresWithPowers (4 * n) := by
+  rcases hn with ⟨a, b, c, d, x, y, h⟩
+  refine ⟨a + 1, b, c + 1, d, 2 * x, 2 * y, ?_⟩
+  rw [h]
+  simp only [pow_succ]
+  ring
+
+/-- It is enough to prove the conjecture for integers not divisible by four. -/
+theorem conjecture_of_not_four_dvd
+    (hprimitive : ∀ n : ℕ, 1 < n → ¬4 ∣ n → IsSumOfFourSquaresWithPowers n) :
+    ∀ n : ℕ, 1 < n → IsSumOfFourSquaresWithPowers n := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      intro hn
+      by_cases h4 : 4 ∣ n
+      · obtain ⟨m, rfl⟩ := h4
+        by_cases hm : m = 1
+        · subst m
+          exact isSumOfFourSquaresWithPowers_4
+        · have hmgt : 1 < m := by omega
+          have hmlt : m < 4 * m := by omega
+          exact scale_four (ih m hmlt hmgt)
+      · exact hprimitive n hn h4
 
 /--
 **Zhi-Wei Sun's Four-Square Conjecture (A308734)**: Any integer $n > 1$ can be written as
