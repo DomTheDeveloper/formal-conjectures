@@ -6,7 +6,6 @@ Authors: Yaël Dillies, Etienne Marion
 module
 
 public import Mathlib.MeasureTheory.MeasurableSpace.NCard
-public import Mathlib.Order.Interval.Set.Nat
 public import Mathlib.Probability.Distributions.SetBernoulli
 
 import Mathlib.Probability.Notation
