@@ -15,15 +15,16 @@ limitations under the License.
 -/
 module
 
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import Mathlib.MeasureTheory.Measure.CharacteristicFunction
-public import Mathlib.Probability.Distributions.Bernoulli
+public import Mathlib.Topology.UnitInterval
 
 /-!
-# Standardized Bernoulli probability measures
+# Bernoulli measures and standardized Bernoulli variables
 
-Mathlib already supplies `bernoulliMeasure`, its probability-measure instance, and its integral
-formula.  This file adds only the centering and normalization API used by the binomial CLT and tail
-bounds in the Voronovskaja proof.
+The mathlib snapshot pinned by this repository predates the general two-point
+`ProbabilityTheory.bernoulliMeasure` API.  We provide the small compatibility layer needed by the
+Voronovskaja proof, followed by centering and normalization lemmas for a real Bernoulli variable.
 -/
 
 public section
@@ -32,6 +33,40 @@ open MeasureTheory Measure unitInterval Complex
 open scoped ENNReal
 
 namespace ProbabilityTheory
+
+section BernoulliMeasure
+
+variable {X : Type*} [MeasurableSpace X] {x y : X} {p : I}
+
+/-- The two-point Bernoulli probability measure, assigning mass `p` to `x` and `1-p` to `y`. -/
+@[expose]
+noncomputable def bernoulliMeasure (x y : X) (p : I) : Measure X :=
+  toNNReal p • dirac x + toNNReal (σ p) • dirac y
+
+@[inherit_doc]
+scoped notation "Ber(" x ", " y ", " p ")" => bernoulliMeasure x y p
+
+lemma bernoulliMeasure_def (x y : X) (p : I) :
+    Ber(x, y, p) = toNNReal p • dirac x + toNNReal (σ p) • dirac y := rfl
+
+instance isProbabilityMeasure_bernoulliMeasure : IsProbabilityMeasure Ber(x, y, p) where
+  measure_univ := by simp [bernoulliMeasure_def, ← ENNReal.coe_add]
+
+section Integral
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+
+/-- Integral of a function against the two-point Bernoulli measure. -/
+lemma integral_bernoulliMeasure [MeasurableSingletonClass X]
+    (x y : X) (p : I) (f : X → E) :
+    ∫ z, f z ∂Ber(x, y, p) = (p : ℝ) • f x + (1 - p : ℝ) • f y := by
+  rw [bernoulliMeasure_def, integral_add_measure]
+  · simp [NNReal.smul_def]
+  all_goals exact (integrable_dirac (by simp)).smul_measure_nnreal
+
+end Integral
+
+end BernoulliMeasure
 
 section Standardized
 
