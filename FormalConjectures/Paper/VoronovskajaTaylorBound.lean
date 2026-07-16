@@ -155,7 +155,7 @@ lemma norm_sub_linearization_le_sq
       hg hbound y (right_mem_Icc.2 hxy)
     have hgx : g x = 0 := by simp [g]
     rw [hgx, sub_zero] at h
-    simpa [g, d, pow_two] using h
+    simpa [g, d, pow_two, mul_assoc] using h
   · have hsub : Icc y x ⊆ I := Icc_subset_Icc hy.1 hx.2
     have hg : ∀ z ∈ Icc y x,
         HasDerivWithinAt g (d z - d x) (Icc y x) z := by
