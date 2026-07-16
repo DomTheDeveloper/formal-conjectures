@@ -99,12 +99,13 @@ lemma tendsto_classical_bezierBernstein_all
       atTop
       (𝓝 ((1 / 2 : ℝ) * x * (1 - x) * iteratedDerivWithin 2 f I x)) := by
   rcases eq_or_lt_of_le hx.1 with rfl | hx0
-  · simpa [bezierBernstein_zero one_pos f] using
-      (tendsto_const_nhds : Tendsto (fun _ : ℕ ↦ (0 : ℝ)) atTop (𝓝 0))
+  · simp [bezierBernstein_zero _ one_pos f]
   rcases eq_or_lt_of_le hx.2 with hx1eq | hx1
   · subst x
-    simpa [bezierBernstein_one one_pos f] using
-      (tendsto_const_nhds : Tendsto (fun _ : ℕ ↦ (0 : ℝ)) atTop (𝓝 0))
+    apply tendsto_atTop_of_eventually_const (i₀ := 1)
+    intro n hn
+    have hnpos : 0 < n := by omega
+    simp [bezierBernstein_one n hnpos one_pos f]
   · let xI : I := ⟨x, hx⟩
     simpa [xI] using tendsto_classical_bezierBernstein_interior f hf xI hx0 hx1
 
