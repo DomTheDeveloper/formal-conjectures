@@ -54,9 +54,9 @@ instance isProbabilityMeasure_map_cast_binomial : IsProbabilityMeasure Bin(R, n,
 
 lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
     charFun Bin(ℝ, n, p) t =
-      (((1 - (p : ℝ) : ℝ) : ℂ) + (p : ℂ) * exp (t * I)) ^ n := by
+      (((1 - (p : ℝ) : ℝ) : ℂ) + (p : ℂ) * exp (t * Complex.I)) ^ n := by
   rw [charFun_apply_real]
-  change (∫ x : ℝ, exp (t * x * I) ∂((binomial n p).map (Nat.cast : ℕ → ℝ))) = _
+  change (∫ x : ℝ, exp (t * x * Complex.I) ∂((binomial n p).map (Nat.cast : ℕ → ℝ))) = _
   rw [integral_map, binomial, integral_map, PMF.integral_eq_sum]
   any_goals fun_prop
   simp only [binomialPMF, PMF.binomial_apply, ENNReal.toReal_ofNat, NNReal.smul_def,
