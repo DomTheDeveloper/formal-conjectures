@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    https://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,10 +18,12 @@ module
 public import FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialLimit
 public import FormalConjecturesForMathlib.Probability.Distributions.StandardizedBinomialMGF
 
+import Mathlib.Analysis.MeanInequalitiesPow
+
 /-!
 # Tail identities for powered distributions
 
-The powered-survival construction was defined through its cumulative distribution function.  This
+The powered-survival construction was defined through its cumulative distribution function. This
 file records the corresponding exact left- and right-tail formulas in terms of real-valued measures.
 These identities are the bridge from sub-Gaussian bounds for the base standardized binomial law to
 uniform tail bounds for the powered law.
@@ -35,6 +37,27 @@ open MeasureTheory ProbabilityTheory Real Set
 open scoped ENNReal NNReal ProbabilityTheory Topology unitInterval
 
 namespace ProbabilityTheory
+
+/-- For `0 ≤ α ≤ 1`, the left tail of the powered-survival transform is bounded by the
+`α`th power of the original left tail. -/
+lemma one_sub_one_sub_rpow_le_rpow {u α : ℝ}
+    (hu0 : 0 ≤ u) (hu1 : u ≤ 1) (hα0 : 0 ≤ α) (hα1 : α ≤ 1) :
+    1 - (1 - u) ^ α ≤ u ^ α := by
+  have hsub : 0 ≤ 1 - u := sub_nonneg.mpr hu1
+  have h := Real.rpow_add_le_add_rpow hu0 hsub hα0 hα1
+  have hone : (u + (1 - u)) ^ α = 1 := by simp
+  rw [hone] at h
+  linarith
+
+/-- For `1 ≤ α`, the left tail of the powered-survival transform is at most `α` times the
+original left tail. -/
+lemma one_sub_one_sub_rpow_le_mul {u α : ℝ} (hu1 : u ≤ 1) (hα1 : 1 ≤ α) :
+    1 - (1 - u) ^ α ≤ α * u := by
+  have hs : -1 ≤ -u := by linarith
+  have h := one_add_mul_self_le_rpow_one_add (s := -u) hs hα1
+  have hsub : 1 + -u = 1 - u := by ring
+  rw [hsub] at h
+  linarith
 
 /-- The survival function of a real probability measure is the real mass of the open right ray. -/
 lemma one_sub_cdf_eq_measureReal_Ioi (μ : Measure ℝ) [IsProbabilityMeasure μ] (x : ℝ) :
