@@ -68,8 +68,7 @@ private lemma ae_standardizedBernoulli_mem_Icc
     constructor
     · simp [standardizedBernoulli]
     · simpa [standardizedBernoulli] using hle
-  rw [Filter.Eventually, mem_ae_iff]
-  rw [bernoulliMeasure_def]
+  rw [ae_iff, bernoulliMeasure_def]
   simp [hOne, hZero]
 
 /-- A centered and variance-one Bernoulli variable is sub-Gaussian, with the explicit Hoeffding
