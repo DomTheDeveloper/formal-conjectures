@@ -1,0 +1,105 @@
+name: Clean-room A387471 audit
+
+on:
+  push:
+    branches: [ci/a387471-cleanroom]
+  workflow_dispatch:
+
+concurrency:
+  group: a387471-cleanroom-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch exact CRL proof commit
+        run: |
+          git clone https://github.com/DomTheDeveloper/crl.git crl
+          cd crl
+          git checkout 31185ffa86ecba290e1b0fea0384a8b62040ddb5
+          test "$(git rev-parse HEAD)" = "31185ffa86ecba290e1b0fea0384a8b62040ddb5"
+      - name: Install elan
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Guard source
+        run: |
+          ! grep -RnE --include='*.lean' '(^|[[:space:]])(sorry|admit|native_decide)([[:space:]]|$)' crl/proofs/lean/A387471
+      - name: Resolve pinned Mathlib
+        working-directory: crl/proofs/lean/A387471
+        run: lake update
+      - name: Fetch Mathlib cache
+        working-directory: crl/proofs/lean/A387471
+        run: lake exe cache get || true
+      - name: Build exact theorem stack
+        working-directory: crl/proofs/lean/A387471
+        shell: bash
+        run: |
+          set -o pipefail
+          lake build 2>&1 | tee build.log
+      - name: Audit exact theorem axioms
+        working-directory: crl/proofs/lean/A387471
+        shell: bash
+        run: |
+          grep -A20 -B2 'A387471.exactStatement_proved' build.log || true
+          if grep -q 'sorryAx' build.log; then
+            echo '::error::sorryAx detected'; exit 1
+          fi
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a387471-cleanroom-linux-log
+          path: crl/proofs/lean/A387471/build.log
+          if-no-files-found: warn
+
+  verify-macos:
+    runs-on: macos-14
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch exact CRL proof commit
+        run: |
+          git clone https://github.com/DomTheDeveloper/crl.git crl
+          cd crl
+          git checkout 31185ffa86ecba290e1b0fea0384a8b62040ddb5
+          test "$(git rev-parse HEAD)" = "31185ffa86ecba290e1b0fea0384a8b62040ddb5"
+      - name: Install elan
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Guard source
+        run: |
+          ! grep -RnE --include='*.lean' '(^|[[:space:]])(sorry|admit|native_decide)([[:space:]]|$)' crl/proofs/lean/A387471
+      - name: Resolve pinned Mathlib
+        working-directory: crl/proofs/lean/A387471
+        run: lake update
+      - name: Fetch Mathlib cache
+        working-directory: crl/proofs/lean/A387471
+        run: lake exe cache get || true
+      - name: Build exact theorem stack
+        working-directory: crl/proofs/lean/A387471
+        shell: bash
+        run: |
+          set -o pipefail
+          lake build 2>&1 | tee build.log
+      - name: Audit exact theorem axioms
+        working-directory: crl/proofs/lean/A387471
+        shell: bash
+        run: |
+          grep -A20 -B2 'A387471.exactStatement_proved' build.log || true
+          if grep -q 'sorryAx' build.log; then
+            echo '::error::sorryAx detected'; exit 1
+          fi
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a387471-cleanroom-macos-log
+          path: crl/proofs/lean/A387471/build.log
+          if-no-files-found: warn
