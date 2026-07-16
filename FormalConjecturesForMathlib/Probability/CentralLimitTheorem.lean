@@ -33,11 +33,13 @@ private lemma tendsto_pow_exp_of_isLittleO_sub_add_div_compat {f : ℕ → ℂ} 
     (hf : (fun n ↦ f n - (1 + t / n)) =o[atTop] fun n ↦ 1 / (n : ℂ)) :
     Tendsto (fun n ↦ f n ^ n) atTop (𝓝 (exp t)) := by
   rw [show (fun n ↦ f n ^ n) = (fun n ↦ (1 + (f n - 1)) ^ n) by ext; simp]
-  refine Complex.tendsto_one_add_pow_exp_of_tendsto (tendsto_sub_nhds_zero_iff.1 ?_)
-  convert hf.tendsto_inv_smul_nhds_zero.congr' ?_ using 2
-  filter_upwards [eventually_ne_atTop 0] with n h0
-  simp
-  field_simp [n.cast_ne_zero.2 h0]
+  apply Complex.tendsto_one_add_pow_exp_of_tendsto
+  have hsmall : Tendsto
+      (fun n : ℕ ↦ (n : ℂ) * (f n - (1 + t / n))) atTop (𝓝 0) := by
+    simpa [one_div] using hf.tendsto_inv_smul_nhds_zero
+  refine (hsmall.add_const t).congr' ?_
+  filter_upwards [eventually_ne_atTop 0] with n hn
+  field_simp [Nat.cast_ne_zero.mpr hn]
   ring
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
