@@ -5,30 +5,33 @@ Authors: Yaël Dillies, Etienne Marion
 -/
 module
 
-public import Mathlib.MeasureTheory.MeasurableSpace.NCard
-public import Mathlib.Probability.Distributions.SetBernoulli
+public import Mathlib.Probability.ProbabilityMassFunction.Binomial
 
 /-!
 # Binomial probability measures
 
-Minimal compatibility backport for the mathlib snapshot pinned by formal-conjectures.  This file
-keeps only the measure-valued binomial law and its probability-measure instances.  The
-Voronovskaja development adds the few analytic identities it needs separately instead of
-backporting the much larger modern binomial API.
+Minimal compatibility layer for the mathlib snapshot pinned by formal-conjectures.  The snapshot
+already contains a normalized binomial probability mass function on `Fin (n + 1)`.  We push that
+PMF to `ℕ`, and then to any measurable additive monoid via the natural-number cast.
 -/
 
 public section
 
-open MeasureTheory Set Measure
+open MeasureTheory Measure
 open scoped ProbabilityTheory unitInterval
 
 namespace ProbabilityTheory
 
 variable {R : Type*} [MeasurableSpace R] [AddMonoidWithOne R] {n : ℕ} {p : I}
 
+private noncomputable def unitIntervalNNReal (p : I) : ℝ≥0 := ⟨p, p.2.1⟩
+
+private lemma unitIntervalNNReal_le_one (p : I) : unitIntervalNNReal p ≤ 1 := p.2.2
+
 /-- The binomial probability distribution with parameters `n` and `p`. -/
 @[expose]
-noncomputable def binomial (n : ℕ) (p : I) : Measure ℕ := setBer(Iio n, p).map ncard
+noncomputable def binomial (n : ℕ) (p : I) : Measure ℕ :=
+  ((PMF.binomial (unitIntervalNNReal p) (unitIntervalNNReal_le_one p) n).toMeasure).map Fin.val
 
 /-- The binomial probability distribution on `ℕ`. -/
 scoped notation3 "Bin(" n ", " p ")" => binomial n p
