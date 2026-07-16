@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: DomTheDeveloper/crl
-          ref: dd09b89808b223271587d1d8f9aa5b262aa62b94
+          ref: ac2ea683249f48318c651721f59e04c52bc76e5d
           path: crl
 
       - name: Install Lean
