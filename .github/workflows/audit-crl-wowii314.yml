@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: wowii314-fork-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   audit:
     runs-on: ubuntu-slim
@@ -24,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: DomTheDeveloper/crl
-          ref: 6154684597f7c33bf521d3695e5cbaa132f915ba
+          ref: dd09b89808b223271587d1d8f9aa5b262aa62b94
           path: crl
 
       - name: Install Lean
