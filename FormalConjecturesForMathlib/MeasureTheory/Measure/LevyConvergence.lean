@@ -25,11 +25,11 @@ by the one-dimensional central limit theorem used in the Voronovskaja proof.
 public section
 
 open Filter BoundedContinuousFunction Real RCLike
-open scoped Topology RealInnerProductSpace ENNReal
+open scoped Topology RealInnerProductSpace InnerProductSpace ENNReal
 
 namespace MeasureTheory
 
-private lemma tendsto_iSup_of_tendsto_limsup_compat {ι α β : Type*}
+private lemma tendsto_iSup_of_tendsto_limsup_compat {ι α β : Type*} [Nonempty ι]
     [ConditionallyCompleteLattice α] [CompleteLinearOrder β]
     [TopologicalSpace β] [FirstCountableTopology β] [OrderTopology β]
     {u : ι → α → β} {c : β}
@@ -38,8 +38,7 @@ private lemma tendsto_iSup_of_tendsto_limsup_compat {ι α β : Type*}
     (h_anti : ∀ i, Antitone (u i)) :
     Tendsto (fun r : α ↦ ⨆ i, u i r) atTop (𝓝 c) := by
   classical
-  rcases isEmpty_or_nonempty ι with hι | ⟨⟨n0⟩⟩
-  · simpa using! h_limsup
+  let n0 : ι := Classical.choice (inferInstance : Nonempty ι)
   refine tendsto_order.mpr ⟨fun b hb ↦ ?_, fun b hb ↦ ?_⟩
   · filter_upwards with r
     have hc : c ≤ u n0 r := (h_anti n0).le_of_tendsto (h_all n0) r
@@ -106,7 +105,7 @@ private lemma Nat_tendsto_iSup_of_tendsto_limsup_compat {α β : Type*}
     (h_limsup : Tendsto (fun r : α ↦ limsup (fun n ↦ u n r) atTop) atTop (𝓝 c))
     (h_anti : ∀ n, Antitone (u n)) :
     Tendsto (fun r : α ↦ ⨆ n, u n r) atTop (𝓝 c) := by
-  rw [← cofinite_eq_atTop] at h_limsup
+  rw [← Nat.cofinite_eq_atTop] at h_limsup
   exact tendsto_iSup_of_tendsto_limsup_compat h_all h_limsup h_anti
 
 private lemma isTightMeasureSet_range_of_tendsto_limsup_inner_compat
@@ -176,8 +175,6 @@ private lemma isTightMeasureSet_range_of_tendsto_limsup_measureReal_inner_of_nor
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
   [MeasurableSpace E] [BorelSpace E]
 
-/-- Pointwise convergence of characteristic functions to a function continuous at zero implies
-uniform tightness of the underlying probability measures. -/
 lemma isTightMeasureSet_of_tendsto_charFun {μ : ℕ → Measure E}
     [∀ i, IsProbabilityMeasure (μ i)] {f : E → ℂ} (hf : ContinuousAt f 0)
     (h : ∀ t, Tendsto (fun n ↦ charFun (μ n) t) atTop (𝓝 (f t))) :
