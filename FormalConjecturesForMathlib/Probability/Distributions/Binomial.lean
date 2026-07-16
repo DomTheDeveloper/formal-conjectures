@@ -68,11 +68,12 @@ lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
       ((binomialPMF n p).toMeasure.map Fin.val) := by fun_prop
   rw [binomial, integral_map hval hexpFin]
   have hsum :
-      (∫ x : Fin (n + 1), exp (t * (x : ℕ) * Complex.I) ∂(binomialPMF n p).toMeasure) =
+      (∫ x : Fin (n + 1), exp (t * ((x : ℕ) : ℝ) * Complex.I)
+        ∂(binomialPMF n p).toMeasure) =
         ∑ x : Fin (n + 1), ((binomialPMF n p) x).toReal •
-          exp (t * (x : ℕ) * Complex.I) :=
+          exp (t * ((x : ℕ) : ℝ) * Complex.I) :=
     PMF.integral_eq_sum (binomialPMF n p) (fun x : Fin (n + 1) ↦
-      exp (t * (x : ℕ) * Complex.I))
+      exp (t * ((x : ℕ) : ℝ) * Complex.I))
   rw [hsum]
   simp only [binomialPMF, PMF.binomial_apply, Finset.sum_fin_eq_sum_range]
   have hq : ((1 : ℝ≥0∞) - (toNNReal p : ℝ≥0∞)).toReal = 1 - (p : ℝ) := by
