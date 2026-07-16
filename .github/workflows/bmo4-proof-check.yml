@@ -1,0 +1,20 @@
+name: BMO4 proof check
+
+on:
+  push:
+    branches:
+      - solve-bmo4-no-sorry
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          test: false
+          lint: false
+          build: false
+      - name: Compile exact BMO4 proof
+        run: lake env lean FormalConjectures/Other/BMO4Proof.lean
