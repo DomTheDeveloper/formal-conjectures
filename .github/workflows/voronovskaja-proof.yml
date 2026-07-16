@@ -1,9 +1,6 @@
 name: Voronovskaja proof verification
 
 on:
-  push:
-    branches:
-      - solve-voronovskaja-no-sorry
   pull_request:
     paths:
       - 'FormalConjectures/Paper/VoronovskajaTypeFormula.lean'
