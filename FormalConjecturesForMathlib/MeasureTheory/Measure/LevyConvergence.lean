@@ -17,7 +17,7 @@ import Mathlib.MeasureTheory.Measure.TightNormed
 /-!
 # Lévy's convergence theorem
 
-A compatibility backport for the mathlib snapshot pinned by formal-conjectures.  The final
+A compatibility backport for the mathlib snapshot pinned by formal-conjectures. The final
 convergence theorem is specialized to real probability measures, which is exactly the form needed
 by the one-dimensional central limit theorem used in the Voronovskaja proof.
 -/
@@ -55,7 +55,8 @@ private lemma tendsto_iSup_of_tendsto_limsup_compat {ι α β : Type*} [Nonempty
     · filter_upwards [(tendsto_order.1 h_limsup).2 b hb] with r hr
       contrapose! h
       exact ⟨limsup (u · r) cofinite, h, hr⟩
-  obtain ⟨r, hr⟩ : ∃ r, ∀ s ≥ r, limsup (u · s) cofinite ≤ b' := by simpa using! hev
+  simp only [eventually_atTop] at hev
+  obtain ⟨r, hr⟩ := hev
   obtain ⟨b'', hb''b, hb''⟩ : ∃ b'' ∈ Set.Ico b' b, ∀ᶠ n in cofinite, u n r ≤ b'' := by
     rcases Set.eq_empty_or_nonempty (Set.Ioo b' b) with h | ⟨b'', hb'b'', hb''b⟩
     · refine ⟨b', ⟨le_rfl, hb'b⟩, ?_⟩
@@ -115,7 +116,7 @@ private lemma isTightMeasureSet_range_of_tendsto_limsup_inner_compat
     (h : ∀ y, Tendsto
       (fun r : ℝ ↦ limsup (fun n ↦ μ n {x | r < ‖⟪y, x⟫_𝕜‖}) atTop) atTop (𝓝 0)) :
     IsTightMeasureSet (Set.range μ) := by
-  refine isTightMeasureSet_of_inner_tendsto 𝕜 fun z ↦ ?_
+  refine isTightMeasureSet_of_inner_tendsto fun z ↦ ?_
   simp_rw [iSup_range]
   refine Nat_tendsto_iSup_of_tendsto_limsup_compat (fun n ↦ ?_) (h z) (fun n u v huv ↦ by gcongr)
   have h_tight : IsTightMeasureSet {(μ n).map (fun x ↦ ⟪z, x⟫_𝕜)} :=
@@ -149,7 +150,7 @@ private lemma isTightMeasureSet_range_of_tendsto_limsup_inner_of_norm_eq_one_com
     · simp only [norm_smul, norm_inv, norm_algebraMap', Real.norm_eq_abs, abs_norm]
       rw [inv_mul_cancel₀ (by positivity)]
     exact h.comp <| (tendsto_const_mul_atTop_of_pos (by positivity)).mpr tendsto_id
-  convert! h' using 7 with r n x
+  convert h' using 7 with r n x
   rw [inner_smul_left]
   simp only [map_inv₀, RCLike.conj_ofReal, norm_mul, norm_inv, norm_algebraMap', norm_norm]
   rw [mul_lt_mul_iff_right₀]
