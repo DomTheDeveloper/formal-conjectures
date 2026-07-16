@@ -1,5 +1,6 @@
 name: Voronovskaja proof verification
 
+# Dedicated verifier for the experimental no-sorry proof branch.
 on:
   pull_request:
     paths:
