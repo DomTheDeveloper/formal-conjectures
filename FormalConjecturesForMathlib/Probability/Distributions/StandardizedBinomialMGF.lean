@@ -58,7 +58,8 @@ lemma mgf_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
       exp (t * ((x : ℕ) : ℝ)))
   rw [hsum]
   simp only [binomialPMF, PMF.binomial_apply, Finset.sum_fin_eq_sum_range]
-  have hq : ((1 : ℝ≥0∞) - (toNNReal p : ℝ≥0∞)).toReal = 1 - (p : ℝ) := by
+  have hq :
+      ((1 : ℝ≥0∞) - (unitInterval.toNNReal p : ℝ≥0∞)).toReal = 1 - (p : ℝ) := by
     rw [ENNReal.toReal_sub_of_le]
     · simp
     · simpa using p.2.2
@@ -105,9 +106,9 @@ lemma mgf_standardizedBinomialMeasure (n : ℕ) (p : I) (t : ℝ) :
     ring
   simp_rw [hsplit]
   rw [integral_mul_const]
-  have hbin := mgf_map_cast_binomial n p a
-  rw [mgf] at hbin
-  rw [hbin, mgf_standardizedBernoulli]
+  change mgf id Bin(ℝ, n, p) a * exp (-(a * (n * (p : ℝ)))) =
+    (mgf (standardizedBernoulli p) Ber((1 : ℝ), 0, p) s) ^ n
+  rw [mgf_map_cast_binomial, mgf_standardizedBernoulli]
   have hfactor :
       (p : ℝ) * exp (s * ((1 - (p : ℝ)) / bernoulliStdDev p)) +
           (1 - (p : ℝ)) * exp (s * (-(p : ℝ) / bernoulliStdDev p)) =
@@ -179,8 +180,7 @@ lemma hasSubgaussianMGF_standardizedBinomialMeasure
     calc
       (mgf (standardizedBernoulli p) Ber((1 : ℝ), 0, p) s) ^ n ≤
           (exp ((c : ℝ) * s ^ 2 / 2)) ^ n := by
-            gcongr
-            exact hB.mgf_le s
+            exact pow_le_pow_left₀ mgf_nonneg (hB.mgf_le s) n
       _ = exp ((c : ℝ) * t ^ 2 / 2) := by
         rw [← Real.exp_nat_mul]
         congr 1
