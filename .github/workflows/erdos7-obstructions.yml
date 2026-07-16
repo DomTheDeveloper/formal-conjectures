@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
