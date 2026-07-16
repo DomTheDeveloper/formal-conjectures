@@ -13,18 +13,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
+module
 
-import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
-import Mathlib.Probability.CDF
-import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+public import Mathlib.Probability.CDF
+public import Mathlib.Probability.Distributions.Gaussian.Real
 
 /-!
 # Powered survival distributions
 
 For a real probability distribution with CDF `F` and `α > 0`, the function
-`x ↦ 1 - (1 - F x) ^ α` is again a CDF.  Applied to the standard Gaussian, this is the limit law
+`x ↦ 1 - (1 - F x) ^ α` is again a CDF. Applied to the standard Gaussian, this is the limit law
 for the standardized Bézier–Bernstein weights.
 -/
+
+public section
 
 open Filter MeasureTheory Set Topology
 open scoped Topology
