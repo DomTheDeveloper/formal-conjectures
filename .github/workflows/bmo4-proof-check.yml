@@ -4,17 +4,51 @@ on:
   push:
     branches:
       - solve-bmo4-no-sorry
+    paths-ignore:
+      - BMO4_CI_LOG.txt
+      - BMO4_CI_STATUS.txt
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: solve-bmo4-no-sorry
       - uses: leanprover/lean-action@v1
         with:
           test: false
           lint: false
           build: false
-      - name: Compile exact BMO4 proof
-        run: lake env lean FormalConjectures/Other/BMO4Proof.lean
+      - name: Compile exact BMO4 proof and persist log
+        id: compile
+        shell: bash
+        run: |
+          set +e
+          lake env lean FormalConjectures/Other/BMO4Proof.lean > BMO4_CI_LOG.txt 2>&1
+          code=$?
+          if [ "$code" -eq 0 ]; then
+            echo PASS > BMO4_CI_STATUS.txt
+          else
+            echo FAIL > BMO4_CI_STATUS.txt
+          fi
+          cat BMO4_CI_LOG.txt
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+      - name: Commit auditable compiler result
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add BMO4_CI_LOG.txt BMO4_CI_STATUS.txt
+          git commit -m "Record BMO4 Lean CI result [skip ci]" || true
+          git push
+      - name: Enforce successful compilation
+        shell: bash
+        run: exit "${{ steps.compile.outputs.exit_code }}"
