@@ -67,6 +67,79 @@ theorem scale_four {n : ℕ} (hn : IsSumOfFourSquaresWithPowers n) :
   simp only [pow_succ]
   ring
 
+private theorem even_residues_of_eight_dvd_sum_four_squares :
+    ∀ a b c d : Fin 8,
+      (a.val ^ 2 + b.val ^ 2 + c.val ^ 2 + d.val ^ 2 ≡ 0 [MOD 8]) →
+        Even a.val ∧ Even b.val ∧ Even c.val ∧ Even d.val := by
+  native_decide
+
+private theorem even_of_even_mod_eight {n : ℕ} (h : Even (n % 8)) : Even n := by
+  rw [even_iff_two_dvd] at h ⊢
+  have hmod : n % 8 ≡ 0 [MOD 2] := Nat.modEq_zero_iff_dvd.mpr h
+  have hcong : n % 8 ≡ n [MOD 2] :=
+    (Nat.mod_modEq n 8).of_dvd (by norm_num)
+  exact Nat.modEq_zero_iff_dvd.mp (hcong.symm.trans hmod)
+
+/-- If four squares sum to a multiple of eight, then all four bases are even. -/
+private theorem even_of_eight_dvd_sum_four_squares {w x y z : ℕ}
+    (h : 8 ∣ w ^ 2 + x ^ 2 + y ^ 2 + z ^ 2) :
+    Even w ∧ Even x ∧ Even y ∧ Even z := by
+  let W : Fin 8 := ⟨w % 8, Nat.mod_lt _ (by norm_num)⟩
+  let X : Fin 8 := ⟨x % 8, Nat.mod_lt _ (by norm_num)⟩
+  let Y : Fin 8 := ⟨y % 8, Nat.mod_lt _ (by norm_num)⟩
+  let Z : Fin 8 := ⟨z % 8, Nat.mod_lt _ (by norm_num)⟩
+  have hw : w % 8 ^ 2 ≡ w ^ 2 [MOD 8] := (Nat.mod_modEq w 8).pow 2
+  have hx : x % 8 ^ 2 ≡ x ^ 2 [MOD 8] := (Nat.mod_modEq x 8).pow 2
+  have hy : y % 8 ^ 2 ≡ y ^ 2 [MOD 8] := (Nat.mod_modEq y 8).pow 2
+  have hz : z % 8 ^ 2 ≡ z ^ 2 [MOD 8] := (Nat.mod_modEq z 8).pow 2
+  have hsum : W.val ^ 2 + X.val ^ 2 + Y.val ^ 2 + Z.val ^ 2 ≡ 0 [MOD 8] := by
+    change (w % 8) ^ 2 + (x % 8) ^ 2 + (y % 8) ^ 2 + (z % 8) ^ 2 ≡ 0 [MOD 8]
+    exact (((hw.add hx).add hy).add hz).trans h.modEq_zero_nat
+  obtain ⟨hw', hx', hy', hz'⟩ :=
+    even_residues_of_eight_dvd_sum_four_squares W X Y Z hsum
+  exact ⟨even_of_even_mod_eight hw', even_of_even_mod_eight hx',
+    even_of_even_mod_eight hy', even_of_even_mod_eight hz'⟩
+
+/-- For even `n`, a representation of `4 * n` descends to a representation of `n`. -/
+theorem descale_four_of_even {n : ℕ} (hn : Even n)
+    (hrep : IsSumOfFourSquaresWithPowers (4 * n)) : IsSumOfFourSquaresWithPowers n := by
+  rcases hrep with ⟨a, b, c, d, x, y, h⟩
+  have h8 : 8 ∣ (2 ^ a * 3 ^ b) ^ 2 + (2 ^ c * 5 ^ d) ^ 2 + x ^ 2 + y ^ 2 := by
+    rw [← h]
+    obtain ⟨k, hk⟩ := hn
+    refine ⟨k, ?_⟩
+    rw [hk]
+    omega
+  obtain ⟨hu, hv, hx, hy⟩ := even_of_eight_dvd_sum_four_squares h8
+  cases a with
+  | zero =>
+      have hodd : Odd (3 ^ b) := (by norm_num : Odd (3 : ℕ)).pow
+      exact (Nat.not_even_iff_odd.mpr hodd) (by simpa using hu)
+  | succ a =>
+      cases c with
+      | zero =>
+          have hodd : Odd (5 ^ d) := (by norm_num : Odd (5 : ℕ)).pow
+          exact (Nat.not_even_iff_odd.mpr hodd) (by simpa using hv)
+      | succ c =>
+          rcases hx with ⟨x', hx'⟩
+          rcases hy with ⟨y', hy'⟩
+          refine ⟨a, b, c, d, x', y', ?_⟩
+          have h4 :
+              4 * n = 4 * ((2 ^ a * 3 ^ b) ^ 2 + (2 ^ c * 5 ^ d) ^ 2 + x' ^ 2 + y' ^ 2) := by
+            calc
+              4 * n = (2 ^ (a + 1) * 3 ^ b) ^ 2 + (2 ^ (c + 1) * 5 ^ d) ^ 2 +
+                  x ^ 2 + y ^ 2 := h
+              _ = 4 * ((2 ^ a * 3 ^ b) ^ 2 + (2 ^ c * 5 ^ d) ^ 2 + x' ^ 2 + y' ^ 2) := by
+                rw [hx', hy']
+                simp only [pow_succ]
+                ring
+          omega
+
+/-- For even `n`, representability is invariant under multiplication by four. -/
+theorem scale_four_iff_of_even {n : ℕ} (hn : Even n) :
+    IsSumOfFourSquaresWithPowers (4 * n) ↔ IsSumOfFourSquaresWithPowers n :=
+  ⟨descale_four_of_even hn, scale_four⟩
+
 /-- It is enough to prove the conjecture for integers not divisible by four. -/
 theorem conjecture_of_not_four_dvd
     (hprimitive : ∀ n : ℕ, 1 < n → ¬4 ∣ n → IsSumOfFourSquaresWithPowers n) :
