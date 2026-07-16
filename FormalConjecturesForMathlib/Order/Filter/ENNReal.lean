@@ -41,12 +41,12 @@ lemma ofReal_limsup_compat {u : α → ℝ}
     · simp
     filter_upwards [h x (by simpa using hx)] with a ha
     obtain ha₀ | ha₀ := le_total (u a) 0
-    · simpa [ofReal_of_nonpos, ha₀] using hx.bot_lt
-    · simp [ofReal_lt_coe_iff, ha₀, hx]
+    · simpa [ofReal_of_nonpos, *] using hx.bot_lt
+    · simp [ofReal_lt_coe_iff, *]
   · rintro h x hx
     have hx₀ : 0 < x := hx.trans_le' (by simp)
     filter_upwards [h (.ofReal x) (by simpa [hx₀] using hx)] with a ha
-    exact (toReal_lt_of_lt_ofReal ha).trans_le' (by simp [toReal_ofReal', hx₀.le])
+    exact (toReal_lt_of_lt_ofReal ha).trans_le' (by simp [toReal_ofReal'])
 
 lemma ofReal_limsup_toReal_compat [f.NeBot] {u : α → ℝ≥0∞} {C : ℝ≥0}
     (hf : ∀ᶠ a in f, u a ≤ C) :
