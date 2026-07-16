@@ -20,7 +20,7 @@ PMF to `ℕ`, and then to any measurable additive monoid via the natural-number 
 
 public section
 
-open MeasureTheory Measure Complex
+open MeasureTheory Measure Complex unitInterval
 open scoped unitInterval
 
 namespace ProbabilityTheory
@@ -29,8 +29,7 @@ variable {R : Type*} [MeasurableSpace R] [AddMonoidWithOne R] {n : ℕ} {p : I}
 
 @[expose]
 noncomputable def binomialPMF (n : ℕ) (p : I) : PMF (Fin (n + 1)) :=
-  PMF.binomial (⟨(p : ℝ), p.2.1⟩ : ℝ≥0)
-    (show (⟨(p : ℝ), p.2.1⟩ : ℝ≥0) ≤ 1 from p.2.2) n
+  PMF.binomial (toNNReal p) (by simpa using p.2.2) n
 
 /-- The binomial probability distribution with parameters `n` and `p`. -/
 @[expose]
@@ -59,8 +58,7 @@ lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
   change (∫ x : ℝ, exp (t * x * Complex.I) ∂((binomial n p).map (Nat.cast : ℕ → ℝ))) = _
   rw [integral_map, binomial, integral_map, PMF.integral_eq_sum]
   any_goals fun_prop
-  simp only [binomialPMF, PMF.binomial_apply, ENNReal.toReal_ofNat, NNReal.smul_def,
-    Finset.sum_fin_eq_sum_range, Fin.last_sub_coe, Fin.val_last]
+  simp only [binomialPMF, PMF.binomial_apply, Finset.sum_fin_eq_sum_range]
   rw [← add_pow]
   apply Finset.sum_congr rfl
   intro k hk
