@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: DomTheDeveloper/crl
-          ref: bd23f500a5b7dd5a3c19c4caaf31b5240c2cc4cc
+          ref: 6154684597f7c33bf521d3695e5cbaa132f915ba
           path: crl
 
       - name: Install Lean
@@ -77,11 +77,34 @@ jobs:
         shell: bash
         run: lake exe cache get
 
-      - name: Compile exact theorem
+      - name: Compile exact proof stack in dependency order
         shell: bash
         run: |
-          set -o pipefail
-          lake env lean WOWII/ZZGraphConjecture314Final.lean 2>&1 | tee wowii314-build.log
+          set -euo pipefail
+          : > wowii314-build.log
+          files=(
+            WOWII/GraphConjecture143Proof.lean
+            WOWII/ZZGraphConjecture314Core.lean
+            WOWII/ZZGraphConjecture314DominatingEdge.lean
+            WOWII/ZZGraphConjecture314BipartiteCommon.lean
+            WOWII/ZZGraphConjecture314ChainGraph.lean
+            WOWII/ZZGraphConjecture314Cycle5.lean
+            WOWII/ZZGraphConjecture314Cycle5Blowup.lean
+            WOWII/ZZGraphConjecture314P5Bridge.lean
+            WOWII/ZZGraphConjecture314ConditionalFinal.lean
+            WOWII/ZZGraphConjecture314GeodesicP5.lean
+            WOWII/ZZGraphConjecture314BipartiteClassification.lean
+            WOWII/ZZGraphConjecture314CycleDichotomy.lean
+            WOWII/ZZGraphConjecture314C5Embedding.lean
+            WOWII/ZZGraphConjecture314C5Dominates.lean
+            WOWII/ZZGraphConjecture314C5Bags.lean
+            WOWII/ZZGraphConjecture314C5BlowupClassification.lean
+            WOWII/ZZGraphConjecture314Final.lean
+          )
+          for file in "${files[@]}"; do
+            echo "=== Checking $file ===" | tee -a wowii314-build.log
+            lake env lean "$file" 2>&1 | tee -a wowii314-build.log
+          done
 
       - name: Audit theorem type and axioms
         shell: bash
