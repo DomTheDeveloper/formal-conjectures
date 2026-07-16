@@ -6,32 +6,29 @@ Authors: Yaël Dillies, Etienne Marion
 module
 
 public import Mathlib.Probability.ProbabilityMassFunction.Binomial
+public import Mathlib.Topology.UnitInterval
 
 /-!
 # Binomial probability measures
 
-Minimal compatibility layer for the mathlib snapshot pinned by formal-conjectures.  The snapshot
-already contains a normalized binomial probability mass function on `Fin (n + 1)`.  We push that
+Minimal compatibility layer for the mathlib snapshot pinned by formal-conjectures. The snapshot
+already contains a normalized binomial probability mass function on `Fin (n + 1)`. We push that
 PMF to `ℕ`, and then to any measurable additive monoid via the natural-number cast.
 -/
 
 public section
 
 open MeasureTheory Measure
-open scoped ProbabilityTheory unitInterval
+open scoped unitInterval
 
 namespace ProbabilityTheory
 
 variable {R : Type*} [MeasurableSpace R] [AddMonoidWithOne R] {n : ℕ} {p : I}
 
-private noncomputable def unitIntervalNNReal (p : I) : ℝ≥0 := ⟨p, p.2.1⟩
-
-private lemma unitIntervalNNReal_le_one (p : I) : unitIntervalNNReal p ≤ 1 := p.2.2
-
 /-- The binomial probability distribution with parameters `n` and `p`. -/
 @[expose]
 noncomputable def binomial (n : ℕ) (p : I) : Measure ℕ :=
-  ((PMF.binomial (unitIntervalNNReal p) (unitIntervalNNReal_le_one p) n).toMeasure).map Fin.val
+  ((PMF.binomial (⟨(p : ℝ), p.2.1⟩ : ℝ≥0) (show (⟨(p : ℝ), p.2.1⟩ : ℝ≥0) ≤ 1 from p.2.2) n).toMeasure).map Fin.val
 
 /-- The binomial probability distribution on `ℕ`. -/
 scoped notation3 "Bin(" n ", " p ")" => binomial n p
@@ -43,7 +40,7 @@ scoped notation3 "Bin(" R ", " n ", " p ")" => (binomial n p).map (Nat.cast : �
 lemma binomial_nat : Bin(ℕ, n, p) = Bin(n, p) := map_id
 
 instance isProbabilityMeasure_binomial : IsProbabilityMeasure Bin(n, p) :=
-  isProbabilityMeasure_map <| by fun_prop
+  isProbabilityMeasure_map (.of_discrete : Measurable (Fin.val : Fin (n + 1) → ℕ)).aemeasurable
 
 instance isProbabilityMeasure_map_cast_binomial : IsProbabilityMeasure Bin(R, n, p) :=
   isProbabilityMeasure_map .of_discrete
