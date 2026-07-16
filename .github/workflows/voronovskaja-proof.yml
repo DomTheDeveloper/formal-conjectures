@@ -5,6 +5,7 @@ on:
     paths:
       - 'FormalConjectures/Paper/VoronovskajaTypeFormula.lean'
       - 'FormalConjectures/Paper/VoronovskajaProof.lean'
+      - 'FormalConjectures/Paper/VoronovskajaAffine.lean'
       - 'FormalConjectures/Paper/VoronovskajaEndpoints.lean'
       - 'FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean'
       - 'FormalConjecturesForMathlib/Probability/CDFConvergence.lean'
@@ -108,12 +109,13 @@ jobs:
             compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialMoments.lean || status=$?
           fi
           if [ "$status" -eq 0 ]; then
-            echo "=== Building endpoint proof module ===" >> "$log"
-            lake build FormalConjectures.Paper.VoronovskajaEndpoints >> "$log" 2>&1 || status=$?
+            echo "=== Building affine and endpoint proof modules ===" >> "$log"
+            lake build FormalConjectures.Paper.VoronovskajaAffine \
+              FormalConjectures.Paper.VoronovskajaEndpoints >> "$log" 2>&1 || status=$?
           fi
 
           echo "status=$status" >> "$GITHUB_OUTPUT"
-          tail -n 700 "$log"
+          tail -n 760 "$log"
           exit 0
 
       - name: Upload Lean diagnostics
