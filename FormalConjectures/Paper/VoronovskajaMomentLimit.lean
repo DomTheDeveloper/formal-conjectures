@@ -69,9 +69,18 @@ lemma tendsto_sqrt_mul_bezierCenteredMoment
       atTop
       (𝓝 (bernoulliStdDev x * poweredGaussianFirstMomentConstant α)) := by
   have hmean := tendsto_integral_id_poweredStandardizedBinomial x hx0 hx1 α hα
-  have hscaled := tendsto_const_nhds.mul hmean
+  have hscaled :
+      Tendsto
+        (fun n : ℕ ↦ bernoulliStdDev x *
+          (∫ z : ℝ, z
+            ∂(poweredStandardizedBinomialProbability n x α hα : Measure ℝ)))
+        atTop
+        (𝓝 (bernoulliStdDev x * poweredGaussianFirstMomentConstant α)) :=
+    tendsto_const_nhds.mul hmean
+  have hnpos : ∀ᶠ n : ℕ in atTop, 0 < n :=
+    eventually_atTop.2 ⟨1, fun n hn ↦ hn⟩
   refine hscaled.congr' ?_
-  filter_upwards [eventually_atTop.2 ⟨1, fun n hn ↦ hn⟩] with n hn
+  filter_upwards [hnpos] with n hn
   exact (sqrt_mul_bezierCenteredMoment_eq_stdDev_mul_integral
     n hn x hx0 hx1 α hα).symm
 
