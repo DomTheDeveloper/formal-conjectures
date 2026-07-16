@@ -88,10 +88,10 @@ private theorem even_of_eight_dvd_sum_four_squares {w x y z : ℕ}
   let X : Fin 8 := ⟨x % 8, Nat.mod_lt _ (by norm_num)⟩
   let Y : Fin 8 := ⟨y % 8, Nat.mod_lt _ (by norm_num)⟩
   let Z : Fin 8 := ⟨z % 8, Nat.mod_lt _ (by norm_num)⟩
-  have hw : w % 8 ^ 2 ≡ w ^ 2 [MOD 8] := (Nat.mod_modEq w 8).pow 2
-  have hx : x % 8 ^ 2 ≡ x ^ 2 [MOD 8] := (Nat.mod_modEq x 8).pow 2
-  have hy : y % 8 ^ 2 ≡ y ^ 2 [MOD 8] := (Nat.mod_modEq y 8).pow 2
-  have hz : z % 8 ^ 2 ≡ z ^ 2 [MOD 8] := (Nat.mod_modEq z 8).pow 2
+  have hw : (w % 8) ^ 2 ≡ w ^ 2 [MOD 8] := (Nat.mod_modEq w 8).pow 2
+  have hx : (x % 8) ^ 2 ≡ x ^ 2 [MOD 8] := (Nat.mod_modEq x 8).pow 2
+  have hy : (y % 8) ^ 2 ≡ y ^ 2 [MOD 8] := (Nat.mod_modEq y 8).pow 2
+  have hz : (z % 8) ^ 2 ≡ z ^ 2 [MOD 8] := (Nat.mod_modEq z 8).pow 2
   have hsum : W.val ^ 2 + X.val ^ 2 + Y.val ^ 2 + Z.val ^ 2 ≡ 0 [MOD 8] := by
     change (w % 8) ^ 2 + (x % 8) ^ 2 + (y % 8) ^ 2 + (z % 8) ^ 2 ≡ 0 [MOD 8]
     exact (((hw.add hx).add hy).add hz).trans h.modEq_zero_nat
