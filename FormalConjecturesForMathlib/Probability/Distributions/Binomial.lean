@@ -5,7 +5,9 @@ Authors: Yaël Dillies, Etienne Marion
 -/
 module
 
+public import Mathlib.MeasureTheory.Measure.CharacteristicFunction
 public import Mathlib.Probability.ProbabilityMassFunction.Binomial
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
 public import Mathlib.Topology.UnitInterval
 
 /-!
@@ -18,17 +20,22 @@ PMF to `ℕ`, and then to any measurable additive monoid via the natural-number 
 
 public section
 
-open MeasureTheory Measure
+open MeasureTheory Measure Complex
 open scoped unitInterval
 
 namespace ProbabilityTheory
 
 variable {R : Type*} [MeasurableSpace R] [AddMonoidWithOne R] {n : ℕ} {p : I}
 
+@[expose]
+noncomputable def binomialPMF (n : ℕ) (p : I) : PMF (Fin (n + 1)) :=
+  PMF.binomial (⟨(p : ℝ), p.2.1⟩ : ℝ≥0)
+    (show (⟨(p : ℝ), p.2.1⟩ : ℝ≥0) ≤ 1 from p.2.2) n
+
 /-- The binomial probability distribution with parameters `n` and `p`. -/
 @[expose]
 noncomputable def binomial (n : ℕ) (p : I) : Measure ℕ :=
-  ((PMF.binomial (⟨(p : ℝ), p.2.1⟩ : ℝ≥0) (show (⟨(p : ℝ), p.2.1⟩ : ℝ≥0) ≤ 1 from p.2.2) n).toMeasure).map Fin.val
+  (binomialPMF n p).toMeasure.map Fin.val
 
 /-- The binomial probability distribution on `ℕ`. -/
 scoped notation3 "Bin(" n ", " p ")" => binomial n p
@@ -44,5 +51,23 @@ instance isProbabilityMeasure_binomial : IsProbabilityMeasure Bin(n, p) :=
 
 instance isProbabilityMeasure_map_cast_binomial : IsProbabilityMeasure Bin(R, n, p) :=
   isProbabilityMeasure_map .of_discrete
+
+lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
+    charFun Bin(ℝ, n, p) t =
+      (((1 - (p : ℝ) : ℝ) : ℂ) + (p : ℂ) * exp (t * I)) ^ n := by
+  rw [charFun_apply_real]
+  change (∫ x : ℝ, exp (t * x * I) ∂((binomial n p).map (Nat.cast : ℕ → ℝ))) = _
+  rw [integral_map, binomial, integral_map, PMF.integral_eq_sum]
+  any_goals fun_prop
+  simp only [binomialPMF, PMF.binomial_apply, ENNReal.toReal_ofNat, NNReal.smul_def,
+    Finset.sum_fin_eq_sum_range, Fin.last_sub_coe, Fin.val_last]
+  rw [← add_pow]
+  apply Finset.sum_congr rfl
+  intro k hk
+  rw [Finset.mem_range] at hk
+  simp only [dif_pos hk]
+  push_cast
+  rw [← Complex.exp_nat_mul]
+  ring
 
 end ProbabilityTheory
