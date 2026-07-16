@@ -15,6 +15,7 @@ limitations under the License.
 -/
 module
 
+public import FormalConjecturesForMathlib.MeasureTheory.Measure.LevyConvergence
 public import FormalConjecturesForMathlib.Probability.CentralLimitTheorem
 public import FormalConjecturesForMathlib.Probability.Distributions.Bernoulli
 public import FormalConjecturesForMathlib.Probability.Distributions.Binomial
@@ -54,7 +55,7 @@ noncomputable def standardizedBinomialMeasure (n : ℕ) (p : I) : Measure ℝ :=
 
 instance isProbabilityMeasure_standardizedBinomialMeasure (n : ℕ) (p : I) :
     IsProbabilityMeasure (standardizedBinomialMeasure n p) :=
-  isProbabilityMeasure_map (continuous_standardizeBinomial n p).aemeasurable
+  Measure.isProbabilityMeasure_map (continuous_standardizeBinomial n p).aemeasurable
 
 /-- The probability-measure wrapper of the standardized binomial law. -/
 @[expose]
@@ -71,22 +72,25 @@ lemma charFun_standardizedBinomialMeasure
     charFun (standardizedBinomialMeasure n p) t =
       (charFun (Ber((1 : ℝ), 0, p).map (standardizedBernoulli p))
         ((Real.sqrt n)⁻¹ * t)) ^ n := by
+  let s : ℝ := (Real.sqrt n)⁻¹ * t
+  let a : ℝ := s / bernoulliStdDev p
   rw [standardizedBinomialMeasure, charFun_apply_real, integral_map]
   · have hsplit (z : ℝ) :
         exp (t * standardizeBinomial n p z * Complex.I) =
-          exp (((Real.sqrt n)⁻¹ * t / bernoulliStdDev p) * z * Complex.I) *
-            exp (-((Real.sqrt n)⁻¹ * t / bernoulliStdDev p) *
-              (n * (p : ℝ)) * Complex.I) := by
+          exp (a * z * Complex.I) *
+            exp (-(a * (n * (p : ℝ))) * Complex.I) := by
       rw [← Complex.exp_add]
       congr 1
       rw [standardizeBinomial]
+      dsimp [a, s]
       push_cast
       ring
     simp_rw [hsplit]
-    rw [integral_mul_const, ← charFun_apply_real, charFun_map_cast_binomial]
+    rw [integral_mul_const]
+    have hbin := charFun_map_cast_binomial n p a
+    rw [charFun_apply_real] at hbin
+    rw [hbin]
     rw [charFun_standardizedBernoulli p hp0 hp1]
-    let s : ℝ := (Real.sqrt n)⁻¹ * t
-    let a : ℝ := s / bernoulliStdDev p
     have hfactor :
         (p : ℂ) * exp (s * ((1 - (p : ℝ)) / bernoulliStdDev p) * Complex.I) +
             ((1 - (p : ℝ) : ℝ) : ℂ) *
@@ -108,15 +112,15 @@ lemma charFun_standardizedBinomialMeasure
         ring
       rw [hexp, hneg]
       ring
-    rw [hfactor, mul_pow, ← Complex.exp_nat_mul]
-    dsimp [a, s]
+    rw [hfactor, mul_pow]
     congr 1
-    · congr 1
-      congr 2
-      ring
-    · congr 1
-      push_cast
-      ring
+    calc
+      exp (-(a * (n * (p : ℝ))) * Complex.I) =
+          exp ((n : ℂ) * (-(a * (p : ℝ)) * Complex.I)) := by
+            congr 1
+            push_cast
+            ring
+      _ = exp (-(a * (p : ℝ)) * Complex.I) ^ n := Complex.exp_nat_mul _ _
   · exact (continuous_standardizeBinomial n p).aemeasurable
   · fun_prop
 
@@ -124,7 +128,7 @@ lemma tendsto_standardizedBinomialProbability
     (p : I) (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1) :
     Tendsto (fun n ↦ standardizedBinomialProbability n p) atTop
       (𝓝 standardGaussianProbability) := by
-  refine ProbabilityMeasure.tendsto_of_tendsto_charFun fun t ↦ ?_
+  refine MeasureTheory.ProbabilityMeasure.tendsto_of_tendsto_charFun fun t ↦ ?_
   change Tendsto (fun n ↦ charFun (standardizedBinomialMeasure n p) t) atTop
     (𝓝 (charFun (gaussianReal 0 1) t))
   simp_rw [charFun_standardizedBinomialMeasure n p hp0 hp1 t]
