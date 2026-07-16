@@ -69,7 +69,8 @@ private lemma ae_standardizedBernoulli_mem_Icc
     · simp [standardizedBernoulli]
     · simpa [standardizedBernoulli] using hle
   rw [ae_iff, bernoulliMeasure_def]
-  simp [hOne, hZero]
+  simp
+  exact ⟨Or.inr hOne, Or.inr hZero⟩
 
 /-- A centered and variance-one Bernoulli variable is sub-Gaussian, with the explicit Hoeffding
 parameter coming from the width of its two-point support. -/
