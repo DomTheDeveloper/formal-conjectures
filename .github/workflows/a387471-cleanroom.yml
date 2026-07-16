@@ -3,10 +3,13 @@ name: Clean-room A387471 audit
 on:
   push:
     branches: [ci/a387471-cleanroom]
+  pull_request:
+    branches: [main]
+    paths: ['.github/workflows/a387471-cleanroom.yml', 'A387471_CLEANROOM_TRIGGER']
   workflow_dispatch:
 
 concurrency:
-  group: a387471-cleanroom-${{ github.ref }}
+  group: a387471-cleanroom-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
