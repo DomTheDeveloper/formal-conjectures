@@ -1,0 +1,86 @@
+# Copyright 2026 The Formal Conjectures Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Temporary observable Windows Voronovskaja verification
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up pinned Lean environment
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-github-cache: false
+          use-mathlib-cache: true
+
+      - name: Reject proof placeholders
+        shell: pwsh
+        run: |
+          $paths = @(
+            'FormalConjectures/Paper/Voronovskaja*.lean',
+            'FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean',
+            'FormalConjecturesForMathlib/Probability/CDFConvergence.lean',
+            'FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean',
+            'FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean',
+            'FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomial*.lean',
+            'FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean',
+            'FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomial*.lean',
+            'FormalConjecturesForMathlib/Order/Filter/ENNReal.lean',
+            'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean',
+            'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
+          )
+          $matches = Get-ChildItem $paths | Select-String -Pattern '\bsorry\b|\badmit\b|^\s*axiom\s'
+          if ($matches) {
+            $matches | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
+
+      - name: Compile exact theorem
+        shell: pwsh
+        run: |
+          lake build Mathlib.Order.Interval.Set.Nat FormalConjectures.Paper.VoronovskajaTypeFormula 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP\voronovskaja-windows.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Axiom audit
+        shell: pwsh
+        run: |
+          @'
+          import FormalConjectures.Paper.VoronovskajaTypeFormula
+          #print axioms VoronovskajaTypeFormula.voronovskaja_theorem.bernstein_operators
+          #print axioms VoronovskajaTypeFormula.voronovskaja_theorem.bezier_bernstein_operators
+          #print axioms VoronovskajaTypeFormula.tendsto_bezierBernstein_all
+          #print axioms VoronovskajaTypeFormula.tendsto_classical_bezierBernstein_all
+          '@ | Set-Content "$env:RUNNER_TEMP\VoronovskajaAxioms.lean"
+          lake env lean "$env:RUNNER_TEMP\VoronovskajaAxioms.lean" 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP\voronovskaja-windows.log" -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: voronovskaja-windows-log
+          path: ${{ runner.temp }}/voronovskaja-windows.log
