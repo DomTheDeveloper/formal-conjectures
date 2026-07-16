@@ -87,7 +87,13 @@ lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
   intro k hk
   have hk' : k < n + 1 := Finset.mem_range.mp hk
   simp only [dif_pos hk', Fin.val_last]
-  simp [hq, RCLike.real_smul_eq_coe_mul, ← Complex.exp_nat_mul]
+  have hexp :
+      exp ((t : ℂ) * (k : ℂ) * Complex.I) = exp ((t : ℂ) * Complex.I) ^ k := by
+    calc
+      exp ((t : ℂ) * (k : ℂ) * Complex.I) =
+          exp ((k : ℂ) * ((t : ℂ) * Complex.I)) := by congr 1 <;> ring
+      _ = exp ((t : ℂ) * Complex.I) ^ k := Complex.exp_nat_mul _ _
+  simp [hq, RCLike.real_smul_eq_coe_mul, hexp]
   ring
 
 end ProbabilityTheory
