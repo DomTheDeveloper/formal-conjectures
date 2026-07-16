@@ -18,8 +18,8 @@ concurrency:
 
 jobs:
   audit:
-    runs-on: ubuntu-slim
-    timeout-minutes: 15
+    runs-on: windows-latest
+    timeout-minutes: 60
     steps:
       - name: Check out pinned Formal Conjectures
         uses: actions/checkout@v4
