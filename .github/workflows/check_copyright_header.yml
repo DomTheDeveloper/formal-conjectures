@@ -17,13 +17,8 @@ name: 'Check Copyright Header'
 on:
   pull_request:
 
-concurrency:
-  group: copyright-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   check-copyright:
-    if: github.head_ref != 'solve-voronovskaja-no-sorry'
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository code
