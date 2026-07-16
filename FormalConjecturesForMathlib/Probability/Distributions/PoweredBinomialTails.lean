@@ -104,4 +104,80 @@ lemma measureReal_Ioi_poweredStandardizedBinomialProbability
       (1 - cdf (standardizedBinomialMeasure n p) x) ^ α := by
   exact measureReal_Ioi_poweredMeasure (standardizedBinomialMeasure n p) α hα x
 
+/-- Uniform right-tail bound for standardized binomial laws. -/
+lemma measureReal_Ioi_standardizedBinomialMeasure_le_exp
+    (n : ℕ) (hn : 0 < n) (p : unitInterval)
+    (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1)
+    (t : ℝ) (ht : 0 ≤ t) :
+    (standardizedBinomialMeasure n p).real (Ioi t) ≤
+      exp (-t ^ 2 / (2 * (standardizedBernoulliSubgaussianParameter p : ℝ))) := by
+  calc
+    (standardizedBinomialMeasure n p).real (Ioi t) ≤
+        (standardizedBinomialMeasure n p).real (Ici t) :=
+      measureReal_mono Ioi_subset_Ici_self
+    _ ≤ exp (-t ^ 2 / (2 * (standardizedBernoulliSubgaussianParameter p : ℝ))) := by
+      simpa only [id_eq] using
+        (hasSubgaussianMGF_standardizedBinomialMeasure n hn p hp0 hp1).measure_ge_le ht
+
+/-- Uniform left-tail bound for standardized binomial laws. -/
+lemma measureReal_Iic_standardizedBinomialMeasure_le_exp
+    (n : ℕ) (hn : 0 < n) (p : unitInterval)
+    (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1)
+    (t : ℝ) (ht : 0 ≤ t) :
+    (standardizedBinomialMeasure n p).real (Iic (-t)) ≤
+      exp (-t ^ 2 / (2 * (standardizedBernoulliSubgaussianParameter p : ℝ))) := by
+  have h :=
+    ((hasSubgaussianMGF_standardizedBinomialMeasure n hn p hp0 hp1).neg).measure_ge_le ht
+  convert h using 1
+  ext z
+  simp
+
+/-- The right tail of every powered standardized binomial law has a uniform Gaussian bound. -/
+lemma measureReal_Ioi_poweredStandardizedBinomialProbability_le_exp_rpow
+    (n : ℕ) (hn : 0 < n) (p : unitInterval)
+    (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1)
+    (α : ℝ) (hα : 0 < α) (t : ℝ) (ht : 0 ≤ t) :
+    (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Ioi t) ≤
+      (exp (-t ^ 2 / (2 * (standardizedBernoulliSubgaussianParameter p : ℝ)))) ^ α := by
+  rw [measureReal_Ioi_poweredStandardizedBinomialProbability]
+  rw [one_sub_cdf_eq_measureReal_Ioi]
+  exact Real.rpow_le_rpow measureReal_nonneg
+    (measureReal_Ioi_standardizedBinomialMeasure_le_exp n hn p hp0 hp1 t ht) hα.le
+
+/-- For `0 < α ≤ 1`, the left tail of every powered standardized binomial law has the same
+uniform Gaussian-power bound as the right tail. -/
+lemma measureReal_Iic_poweredStandardizedBinomialProbability_le_exp_rpow
+    (n : ℕ) (hn : 0 < n) (p : unitInterval)
+    (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1)
+    (α : ℝ) (hα : 0 < α) (hα1 : α ≤ 1) (t : ℝ) (ht : 0 ≤ t) :
+    (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Iic (-t)) ≤
+      (exp (-t ^ 2 / (2 * (standardizedBernoulliSubgaussianParameter p : ℝ)))) ^ α := by
+  rw [measureReal_Iic_poweredStandardizedBinomialProbability]
+  rw [cdf_eq_real]
+  calc
+    1 - (1 - (standardizedBinomialMeasure n p).real (Iic (-t))) ^ α ≤
+        ((standardizedBinomialMeasure n p).real (Iic (-t))) ^ α :=
+      one_sub_one_sub_rpow_le_rpow measureReal_nonneg measureReal_le_one hα.le hα1
+    _ ≤ (exp (-t ^ 2 / (2 * (standardizedBernoulliSubgaussianParameter p : ℝ)))) ^ α :=
+      Real.rpow_le_rpow measureReal_nonneg
+        (measureReal_Iic_standardizedBinomialMeasure_le_exp n hn p hp0 hp1 t ht) hα.le
+
+/-- For `1 ≤ α`, the left tail of every powered standardized binomial law is bounded by `α`
+times the original Gaussian tail bound. -/
+lemma measureReal_Iic_poweredStandardizedBinomialProbability_le_mul_exp
+    (n : ℕ) (hn : 0 < n) (p : unitInterval)
+    (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1)
+    (α : ℝ) (hα : 0 < α) (hα1 : 1 ≤ α) (t : ℝ) (ht : 0 ≤ t) :
+    (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Iic (-t)) ≤
+      α * exp (-t ^ 2 / (2 * (standardizedBernoulliSubgaussianParameter p : ℝ))) := by
+  rw [measureReal_Iic_poweredStandardizedBinomialProbability]
+  rw [cdf_eq_real]
+  calc
+    1 - (1 - (standardizedBinomialMeasure n p).real (Iic (-t))) ^ α ≤
+        α * (standardizedBinomialMeasure n p).real (Iic (-t)) :=
+      one_sub_one_sub_rpow_le_mul measureReal_le_one hα1
+    _ ≤ α * exp (-t ^ 2 / (2 * (standardizedBernoulliSubgaussianParameter p : ℝ))) := by
+      gcongr
+      exact measureReal_Iic_standardizedBinomialMeasure_le_exp n hn p hp0 hp1 t ht
+
 end ProbabilityTheory
