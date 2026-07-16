@@ -21,6 +21,7 @@ on:
       - 'FormalConjectures/Paper/VoronovskajaProof.lean'
       - 'FormalConjectures/Paper/VoronovskajaAffine.lean'
       - 'FormalConjectures/Paper/VoronovskajaEndpoints.lean'
+      - 'FormalConjectures/Paper/VoronovskajaDiscreteLaw.lean'
       - 'FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean'
       - 'FormalConjecturesForMathlib/Probability/CDFConvergence.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean'
@@ -47,8 +48,8 @@ permissions:
 
 jobs:
   diagnose:
-    runs-on: ubuntu-slim
-    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -62,12 +63,12 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ~/.cache/mathlib
-          key: voronovskaja-slim-${{ hashFiles('lake-manifest.json') }}
+          key: voronovskaja-x64-${{ hashFiles('lake-manifest.json') }}
 
       - name: Fetch precompiled dependencies
         run: lake exe cache get
 
-      - name: Compile through first suspected failure
+      - name: Compile proof chain
         shell: bash
         run: |
           set -o pipefail
@@ -76,6 +77,18 @@ jobs:
             FormalConjecturesForMathlib.Order.Filter.ENNReal \
             FormalConjecturesForMathlib.MeasureTheory.Measure.LevyConvergence \
             FormalConjecturesForMathlib.Probability.CentralLimitTheorem \
+            FormalConjecturesForMathlib.Probability.Distributions.Bernoulli \
+            FormalConjecturesForMathlib.Probability.Distributions.Binomial \
+            FormalConjecturesForMathlib.Probability.Distributions.StandardizedBinomial \
+            FormalConjecturesForMathlib.Probability.Distributions.StandardizedBinomialTails \
+            FormalConjecturesForMathlib.Probability.Distributions.StandardizedBinomialMGF \
+            FormalConjecturesForMathlib.Probability.CDFConvergence \
+            FormalConjecturesForMathlib.Probability.Distributions.PoweredGaussian \
+            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialLimit \
+            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialTails \
+            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialMoments \
+            FormalConjectures.Paper.VoronovskajaProof \
+            FormalConjectures.Paper.VoronovskajaDiscreteLaw \
             2>&1 | tee /tmp/lean.log
 
       - name: Upload Lean diagnostics
