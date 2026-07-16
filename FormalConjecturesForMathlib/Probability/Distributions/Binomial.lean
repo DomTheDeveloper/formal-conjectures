@@ -1,99 +1,63 @@
 /-
-Copyright (c) 2025 Yaël Dillies. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies, Etienne Marion
+Copyright 2026 The Formal Conjectures Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 -/
 module
 
 public import Mathlib.MeasureTheory.Measure.CharacteristicFunction
 public import Mathlib.Probability.ProbabilityMassFunction.Binomial
 public import Mathlib.Probability.ProbabilityMassFunction.Integrals
-public import Mathlib.Topology.UnitInterval
 
 /-!
-# Binomial probability measures
+# Finite binomial PMFs and their characteristic function
 
-Minimal compatibility layer for the mathlib snapshot pinned by formal-conjectures. The snapshot
-already contains a normalized binomial probability mass function on `Fin (n + 1)`. We push that
-PMF to `ℕ`, and then to any measurable additive monoid via the natural-number cast.
+Mathlib already defines the canonical binomial measures `Bin(n, p)` and `Bin(R, n, p)`, together
+with their probability-measure instances and finite-sum integral formula.  This file adds the finite
+`Fin (n + 1)` PMF alias used by the Bézier-law calculation and records the characteristic function
+of the real-valued binomial measure.
 -/
 
 public section
 
 open MeasureTheory Measure Complex unitInterval
-open scoped unitInterval ENNReal
+open scoped unitInterval ENNReal ProbabilityTheory
 
 namespace ProbabilityTheory
 
-variable {R : Type*} [MeasurableSpace R] [AddMonoidWithOne R] {n : ℕ} {p : I}
-
+/-- The finite binomial PMF on `Fin (n + 1)`. -/
 @[expose]
 noncomputable def binomialPMF (n : ℕ) (p : I) : PMF (Fin (n + 1)) :=
   PMF.binomial (toNNReal p) (by simpa using p.2.2) n
 
-/-- The binomial probability distribution with parameters `n` and `p`. -/
-@[expose]
-noncomputable def binomial (n : ℕ) (p : I) : Measure ℕ :=
-  (binomialPMF n p).toMeasure.map Fin.val
-
-/-- The binomial probability distribution on `ℕ`. -/
-scoped notation3 "Bin(" n ", " p ")" => binomial n p
-
-/-- The binomial probability distribution valued in the semiring `R`. -/
-scoped notation3 "Bin(" R ", " n ", " p ")" => (binomial n p).map (Nat.cast : ℕ → R)
-
-@[simp]
-lemma binomial_nat : Bin(ℕ, n, p) = Bin(n, p) := map_id
-
-instance isProbabilityMeasure_binomial : IsProbabilityMeasure Bin(n, p) :=
-  isProbabilityMeasure_map (.of_discrete : Measurable (Fin.val : Fin (n + 1) → ℕ)).aemeasurable
-
-instance isProbabilityMeasure_map_cast_binomial : IsProbabilityMeasure Bin(R, n, p) :=
-  isProbabilityMeasure_map .of_discrete
-
 lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
     charFun Bin(ℝ, n, p) t =
       (((1 - (p : ℝ) : ℝ) : ℂ) + (p : ℂ) * exp (t * Complex.I)) ^ n := by
-  rw [charFun_apply_real]
-  change (∫ x : ℝ, exp (t * x * Complex.I) ∂((binomial n p).map (Nat.cast : ℕ → ℝ))) = _
-  have hcast : AEMeasurable (Nat.cast : ℕ → ℝ) (binomial n p) :=
-    (.of_discrete : Measurable (Nat.cast : ℕ → ℝ)).aemeasurable
-  have hexpNat : AEStronglyMeasurable (fun x : ℝ ↦ exp (t * x * Complex.I))
-      ((binomial n p).map (Nat.cast : ℕ → ℝ)) := by fun_prop
-  rw [integral_map hcast hexpNat]
-  have hval : AEMeasurable (Fin.val : Fin (n + 1) → ℕ) (binomialPMF n p).toMeasure :=
-    (.of_discrete : Measurable (Fin.val : Fin (n + 1) → ℕ)).aemeasurable
-  have hexpFin : AEStronglyMeasurable
-      (fun x : ℕ ↦ exp (t * (x : ℝ) * Complex.I))
-      ((binomialPMF n p).toMeasure.map Fin.val) := by fun_prop
-  rw [binomial, integral_map hval hexpFin]
-  have hsum :
-      (∫ x : Fin (n + 1), exp (t * ((x : ℕ) : ℝ) * Complex.I)
-        ∂(binomialPMF n p).toMeasure) =
-        ∑ x : Fin (n + 1), ((binomialPMF n p) x).toReal •
-          exp (t * ((x : ℕ) : ℝ) * Complex.I) :=
-    PMF.integral_eq_sum (binomialPMF n p) (fun x : Fin (n + 1) ↦
-      exp (t * ((x : ℕ) : ℝ) * Complex.I))
-  rw [hsum]
-  simp only [binomialPMF, PMF.binomial_apply, Finset.sum_fin_eq_sum_range]
-  have hq : ((1 : ℝ≥0∞) - (toNNReal p : ℝ≥0∞)).toReal = 1 - (p : ℝ) := by
-    rw [ENNReal.toReal_sub_of_le]
-    · simp
-    · simpa using p.2.2
-    · simp
+  rw [charFun_apply_real, integral_map_cast_binomial]
+  rw [show Finset.Iic n = Finset.range (n + 1) by ext k; simp]
+  simp only [RCLike.real_smul_eq_coe_mul]
   conv_rhs => rw [add_comm]
   rw [add_pow]
   apply Finset.sum_congr rfl
   intro k hk
-  have hk' : k < n + 1 := Finset.mem_range.mp hk
-  simp only [dif_pos hk', Fin.val_last]
   have hexp :
       exp ((t : ℂ) * (k : ℂ) * Complex.I) = exp ((t : ℂ) * Complex.I) ^ k := by
     calc
       exp ((t : ℂ) * (k : ℂ) * Complex.I) =
           exp ((k : ℂ) * ((t : ℂ) * Complex.I)) := by congr 1 <;> ring
       _ = exp ((t : ℂ) * Complex.I) ^ k := Complex.exp_nat_mul _ _
-  simp [hq, RCLike.real_smul_eq_coe_mul, hexp]
+  rw [hexp]
+  push_cast
   ring
 
 end ProbabilityTheory
