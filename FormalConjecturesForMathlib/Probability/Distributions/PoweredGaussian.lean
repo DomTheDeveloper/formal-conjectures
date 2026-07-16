@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -121,7 +121,7 @@ lemma cdf_gaussianReal_zero_one_neg (t : ℝ) :
     have hset : Ici t = {t} ∪ Ioi t := by
       ext z
       simp only [mem_Ici, mem_union, mem_singleton_iff, mem_Ioi]
-      exact le_iff_eq_or_lt
+      simpa [eq_comm] using (le_iff_eq_or_lt : t ≤ z ↔ t = z ∨ t < z)
     rw [hset, measure_union]
     · simp [μ]
     · exact disjoint_singleton_left.mpr (not_mem_Ioi_self)
