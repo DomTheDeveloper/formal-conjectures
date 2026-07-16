@@ -72,6 +72,18 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
     have hpiC : (Real.pi : ℂ) ≠ 0 := by exact_mod_cast hpiR
     field_simp [hpiR, hpiC]
     ring_nf
+    have hπ : (Real.pi : ℂ) ^ n * (Real.pi : ℂ)⁻¹ ^ n = 1 := by
+      rw [← mul_pow]
+      simp [hpiC]
+    have htwo : (-2 : ℂ) ^ n * (-1 / 2 : ℂ) ^ n = 1 := by
+      rw [← mul_pow]
+      norm_num
+    calc
+      (Real.pi : ℂ) ^ n * (Real.pi : ℂ)⁻¹ ^ n * I ^ n * (v : ℂ) ^ n *
+          (-2 : ℂ) ^ n * (-1 / 2 : ℂ) ^ n =
+          (((Real.pi : ℂ) ^ n * (Real.pi : ℂ)⁻¹ ^ n) *
+            ((-2 : ℂ) ^ n * (-1 / 2 : ℂ) ^ n)) * (I ^ n * (v : ℂ) ^ n) := by ring
+      _ = I ^ n * (v : ℂ) ^ n := by rw [hπ, htwo]; ring
   · apply integrable_fourierPowSMulRight _
     · refine hint.integrable_norm_pow'.congr ?_
       filter_upwards with v
