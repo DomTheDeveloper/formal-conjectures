@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><title>AXLE probe</title><pre id="out">starting</pre><script>
+try {
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', 'https://axle.axiommath.ai/api/v1/check', false);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send(JSON.stringify({content:'import Mathlib\n#check Nat', environment:'lean-4.27.0', ignore_imports:true, timeout_seconds:30}));
+  document.getElementById('out').textContent = 'STATUS ' + xhr.status + '\n' + xhr.responseText;
+} catch (e) {
+  document.getElementById('out').textContent = 'ERROR ' + String(e) + '\n' + (e && e.stack || '');
+}
+</script>
