@@ -33,7 +33,7 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
@@ -49,9 +49,9 @@ jobs:
           path: |
             ~/.cache/mathlib
             .lake/packages
-          key: voronovskaja-arm-${{ hashFiles('lake-manifest.json') }}
+          key: voronovskaja-x64-${{ hashFiles('lake-manifest.json') }}
           restore-keys: |
-            voronovskaja-arm-
+            voronovskaja-x64-
 
       - name: Fetch precompiled dependencies
         run: lake exe cache get >/dev/null
