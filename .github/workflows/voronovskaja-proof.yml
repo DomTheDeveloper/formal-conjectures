@@ -9,6 +9,7 @@ on:
       - 'FormalConjectures/Paper/VoronovskajaTypeFormula.lean'
       - 'FormalConjectures/Paper/VoronovskajaProof.lean'
       - 'FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean'
+      - 'FormalConjecturesForMathlib/Probability/CDFConvergence.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomial.lean'
@@ -95,6 +96,9 @@ jobs:
             compile_module FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomial.lean || status=$?
           fi
           if [ "$status" -eq 0 ]; then
+            compile_module FormalConjecturesForMathlib/Probability/CDFConvergence.lean || status=$?
+          fi
+          if [ "$status" -eq 0 ]; then
             compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean || status=$?
           fi
           if [ "$status" -eq 0 ]; then
@@ -103,7 +107,7 @@ jobs:
           fi
 
           echo "status=$status" >> "$GITHUB_OUTPUT"
-          tail -n 420 "$log"
+          tail -n 460 "$log"
           exit 0
 
       - name: Upload Lean diagnostics
