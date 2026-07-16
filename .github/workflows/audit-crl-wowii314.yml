@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - audit/wowii314-crl
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
@@ -14,17 +11,17 @@ permissions:
 
 jobs:
   audit:
-    runs-on: macos-14
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 60
     steps:
       - name: Check out pinned Formal Conjectures
         uses: actions/checkout@v4
 
-      - name: Check out canonical CRL proof branch
+      - name: Check out canonical CRL proof commit
         uses: actions/checkout@v4
         with:
           repository: DomTheDeveloper/crl
-          ref: agent/wowii314-proof
+          ref: bd23f500a5b7dd5a3c19c4caaf31b5240c2cc4cc
           path: crl
 
       - name: Install Lean
