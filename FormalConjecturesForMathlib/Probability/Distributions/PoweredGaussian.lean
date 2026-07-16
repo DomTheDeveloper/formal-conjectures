@@ -35,6 +35,7 @@ open scoped Topology
 namespace ProbabilityTheory
 
 /-- The CDF obtained by raising the survival function of `μ` to the positive power `α`. -/
+@[expose]
 noncomputable def poweredCDF (μ : Measure ℝ) (α : ℝ) (hα : 0 < α) :
     StieltjesFunction ℝ where
   toFun x := 1 - (1 - cdf μ x) ^ α
@@ -73,6 +74,7 @@ lemma tendsto_poweredCDF_atTop (μ : Measure ℝ) (α : ℝ) (hα : 0 < α) :
   convert tendsto_const_nhds.sub hp using 1 <;> simp
 
 /-- The probability measure associated to `poweredCDF`. -/
+@[expose]
 noncomputable def poweredMeasure (μ : Measure ℝ) (α : ℝ) (hα : 0 < α) : Measure ℝ :=
   (poweredCDF μ α hα).measure
 
@@ -90,6 +92,7 @@ lemma cdf_poweredMeasure (μ : Measure ℝ) (α : ℝ) (hα : 0 < α) :
     (tendsto_poweredCDF_atBot μ α hα) (tendsto_poweredCDF_atTop μ α hα)
 
 /-- The powered-survival transform of the standard Gaussian distribution. -/
+@[expose]
 noncomputable def poweredGaussianMeasure (α : ℝ) (hα : 0 < α) : Measure ℝ :=
   poweredMeasure (gaussianReal 0 1) α hα
 
