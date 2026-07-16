@@ -18,6 +18,7 @@ on:
   pull_request:
     paths:
       - 'FormalConjectures/ErdosProblems/Erdos7Obstructions.lean'
+      - 'FormalConjectures/ErdosProblems/Erdos7RepeatedModulusArithmetic.lean'
       - '.github/workflows/erdos7-obstructions.yml'
   workflow_dispatch:
 
@@ -46,22 +47,28 @@ jobs:
 
       - name: Check for placeholders
         run: |
-          ! grep -nE '\b(sorry|admit)\b' FormalConjectures/ErdosProblems/Erdos7Obstructions.lean
+          ! grep -nE '\b(sorry|admit)\b' \
+            FormalConjectures/ErdosProblems/Erdos7Obstructions.lean \
+            FormalConjectures/ErdosProblems/Erdos7RepeatedModulusArithmetic.lean
 
-      - name: Compile obstruction kernel
+      - name: Compile obstruction kernels
         shell: bash
         run: |
           set -o pipefail
           lake env lean FormalConjectures/ErdosProblems/Erdos7Obstructions.lean 2>&1 | tee /tmp/erdos7-lean.log
+          lake env lean FormalConjectures/ErdosProblems/Erdos7RepeatedModulusArithmetic.lean 2>&1 | tee -a /tmp/erdos7-lean.log
 
       - name: Axiom audit
         shell: bash
         run: |
           cat > Erdos7AxiomAudit.lean <<'EOF'
           import FormalConjectures.ErdosProblems.Erdos7Obstructions
+          import FormalConjectures.ErdosProblems.Erdos7RepeatedModulusArithmetic
           #print axioms Erdos7Obstructions.block_excess_two
           #print axioms Erdos7Obstructions.block_excess_one
           #print axioms Erdos7Obstructions.profile_threshold
+          #print axioms Erdos7Obstructions.profile_contradiction
+          #print axioms Erdos7Obstructions.b17_profile_threshold
           #print axioms Erdos7Obstructions.u315_capacity_arithmetic
           #print axioms Erdos7Obstructions.u675_box_arithmetic
           #print axioms Erdos7Obstructions.lcm_45045_gap
@@ -69,6 +76,9 @@ jobs:
           #print axioms Erdos7Obstructions.lcm_6081075_profile_gap
           #print axioms Erdos7Obstructions.two_fiber_correction_363825
           #print axioms Erdos7Obstructions.two_fiber_correction_467775
+          #print axioms Erdos7RepeatedModulusArithmetic.ten_auxiliary_forest_gap
+          #print axioms Erdos7RepeatedModulusArithmetic.eleven_auxiliary_sequential_gap
+          #print axioms Erdos7RepeatedModulusArithmetic.eleven_auxiliary_uncovered_margin
           EOF
           set -o pipefail
           lake env lean Erdos7AxiomAudit.lean 2>&1 | tee /tmp/erdos7-axioms.log
