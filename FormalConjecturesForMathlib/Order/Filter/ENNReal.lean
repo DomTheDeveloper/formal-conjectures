@@ -13,14 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
+module
 
-import Mathlib.Order.Filter.ENNReal
+public import Mathlib.Order.Filter.ENNReal
 
 /-!
 # ENNReal limsup compatibility
 
 Small compatibility backport for the mathlib snapshot pinned by formal-conjectures.
 -/
+
+public section
 
 open Filter
 open scoped NNReal
