@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    https://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -105,5 +105,33 @@ lemma cdf_poweredGaussianMeasure (α : ℝ) (hα : 0 < α) (x : ℝ) :
       1 - (1 - cdf (gaussianReal 0 1) x) ^ α := by
   rw [poweredGaussianMeasure, cdf_poweredMeasure]
   rfl
+
+/-- Symmetry of the standard Gaussian cumulative distribution function. -/
+lemma cdf_gaussianReal_zero_one_neg (t : ℝ) :
+    cdf (gaussianReal 0 1) (-t) = 1 - cdf (gaussianReal 0 1) t := by
+  let μ : Measure ℝ := gaussianReal 0 1
+  have hmap : μ.map (fun z : ℝ => -z) = μ := by
+    simpa [μ] using (gaussianReal_map_neg (μ := 0) (v := 1))
+  have hleft : μ.real (Iic (-t)) = μ.real (Ici t) := by
+    rw [← hmap, map_measureReal_apply measurable_neg measurableSet_Iic]
+    congr 1
+    ext z
+    simp
+  have hIci_measure : μ (Ici t) = μ (Ioi t) := by
+    have hset : Ici t = {t} ∪ Ioi t := by
+      ext z
+      simp only [mem_Ici, mem_union, mem_singleton_iff, mem_Ioi]
+      exact le_iff_eq_or_lt
+    rw [hset, measure_union]
+    · simp [μ]
+    · exact disjoint_singleton_left.mpr (not_mem_Ioi_self)
+    · exact measurableSet_Ioi
+  have hIci : μ.real (Ici t) = μ.real (Ioi t) := by
+    unfold Measure.real
+    rw [hIci_measure]
+  have hcomp : μ.real (Iic t) + μ.real (Ioi t) = 1 := by
+    simpa [μ] using (measureReal_add_measureReal_compl (μ := μ) measurableSet_Iic)
+  rw [cdf_eq_real, cdf_eq_real, hleft, hIci]
+  linarith
 
 end ProbabilityTheory
