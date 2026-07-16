@@ -103,7 +103,7 @@ lemma integral_sq_standardizedBernoulli
   have hvar : 0 ≤ (p : ℝ) * (1 - p) :=
     (mul_pos hp0 (sub_pos.mpr hp1)).le
   rw [div_pow, div_pow, bernoulliStdDev, Real.sq_sqrt hvar]
-  have hq : 1 - (p : ℝ) ≠ 0 := sub_ne_zero.mpr hp1.ne
+  have hq : 1 - (p : ℝ) ≠ 0 := sub_ne_zero.mpr hp1.ne.symm
   field_simp [hp0.ne', hq]
   ring
 
