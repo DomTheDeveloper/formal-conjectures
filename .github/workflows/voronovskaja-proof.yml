@@ -12,6 +12,7 @@ on:
       - 'FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean'
+      - 'FormalConjecturesForMathlib/Order/Filter/ENNReal.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
       - '.github/workflows/voronovskaja-proof.yml'
@@ -70,6 +71,9 @@ jobs:
           }
 
           compile_module FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean || status=$?
+          if [ "$status" -eq 0 ]; then
+            compile_module FormalConjecturesForMathlib/Order/Filter/ENNReal.lean || status=$?
+          fi
           if [ "$status" -eq 0 ]; then
             compile_module FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean || status=$?
           fi
