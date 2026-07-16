@@ -67,17 +67,21 @@ lemma tendsto_bezierBernstein_interior
         (bernoulliStdDev x * poweredGaussianFirstMomentConstant α))) :=
     tendsto_const_nhds.mul hmoment
   have hrem := tendsto_sqrt_mul_bezierTaylorRemainder α hα f hf x hx0 hx1
-  have hsum := hlinear.add hrem
+  have hsum : Tendsto
+      (fun n : ℕ ↦
+        slope * (Real.sqrt n * bezierCenteredMoment n α (x : ℝ)) +
+          Real.sqrt n * bezierTaylorRemainder n α f (x : ℝ) slope)
+      atTop
+      (𝓝 (bezierVoronovskajaConstant α *
+        Real.sqrt ((x : ℝ) * (1 - (x : ℝ))) *
+          iteratedDerivWithin 1 f I (x : ℝ))) := by
+    convert hlinear.add hrem using 1
+    simp only [slope, bezierVoronovskajaConstant, bernoulliStdDev, add_zero]
+    ring
   refine hsum.congr' ?_
   filter_upwards with n
   rw [bezierBernstein_sub_eq_moment_add_remainder n hα f (x : ℝ) slope]
-  change Real.sqrt n *
-      (slope * bezierCenteredMoment n α (x : ℝ) +
-        bezierTaylorRemainder n α f (x : ℝ) slope) = _
   ring
-  all_goals
-    simp only [slope, bezierVoronovskajaConstant, bernoulliStdDev]
-    ring
 
 /-- Exact Bézier--Bernstein Voronovskaja formula on the whole unit interval. -/
 lemma tendsto_bezierBernstein_all
