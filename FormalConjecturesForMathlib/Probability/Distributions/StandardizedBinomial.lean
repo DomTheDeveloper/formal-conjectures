@@ -103,13 +103,15 @@ lemma charFun_standardizedBinomialMeasure
         rw [← Complex.exp_add]
         congr 1
         dsimp [a]
-        ring_nf
+        push_cast
+        ring
       have hneg :
           exp (s * (-(p : ℝ) / bernoulliStdDev p) * Complex.I) =
             exp (-(a * (p : ℝ)) * Complex.I) := by
         congr 1
         dsimp [a]
-        ring_nf
+        push_cast
+        ring
       rw [hexp, hneg]
       ring
     rw [hfactor, mul_pow]
