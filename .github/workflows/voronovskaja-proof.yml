@@ -40,7 +40,12 @@ permissions:
 
 jobs:
   diagnose:
-    runs-on: ubuntu-latest
+    name: diagnose-${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -55,7 +60,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ~/.cache/mathlib
-          key: voronovskaja-x64-${{ hashFiles('lake-manifest.json') }}
+          key: voronovskaja-${{ runner.arch }}-${{ hashFiles('lake-manifest.json') }}
 
       - name: Fetch precompiled dependencies
         run: lake exe cache get
@@ -137,5 +142,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: voronovskaja-lean-log
+          name: voronovskaja-lean-log-${{ runner.arch }}
           path: /tmp/lean.log
