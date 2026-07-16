@@ -92,9 +92,11 @@ private lemma tendsto_iSup_of_tendsto_limsup_compat {ι α β : Type*} [Nonempty
   · apply hrs n v
     calc
       rs n = rs (⟨n, hn⟩ : {n | b'' < u n r}) := rfl
-      _ ≤ ⨆ n : {n | b'' < u n r}, rs n :=
-        le_ciSup (Finite.bddAbove_range _) (⟨n, hn⟩ : {n | b'' < u n r})
-      _ ≤ r ⊔ ⨆ n : {n | b'' < u n r}, rs n := le_sup_right
+      _ ≤ ⨆ m : {n | b'' < u n r}, rs (m : ι) := by
+        exact le_ciSup
+          (f := fun m : {n | b'' < u n r} ↦ rs (m : ι))
+          (Finite.bddAbove_range _) (⟨n, hn⟩ : {n | b'' < u n r})
+      _ ≤ r ⊔ ⨆ m : {n | b'' < u n r}, rs (m : ι) := le_sup_right
       _ ≤ v := hv
   · exact (h_anti n (le_sup_left.trans hv)).trans (not_lt.mp hn)
 
