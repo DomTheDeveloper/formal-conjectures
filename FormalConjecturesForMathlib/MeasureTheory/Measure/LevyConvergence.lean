@@ -10,6 +10,7 @@ public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 public import Mathlib.MeasureTheory.Measure.Tight
 
 import FormalConjecturesForMathlib.MeasureTheory.Measure.CharacteristicFunction.TaylorExpansion
+import FormalConjecturesForMathlib.Order.Filter.ENNReal
 import Mathlib.MeasureTheory.Measure.IntegralCharFun
 import Mathlib.MeasureTheory.Measure.Prokhorov
 import Mathlib.MeasureTheory.Measure.TightNormed
@@ -92,7 +93,7 @@ private lemma tendsto_iSup_of_tendsto_limsup_compat {ι α β : Type*} [Nonempty
     calc
       rs n = rs (⟨n, hn⟩ : {n | b'' < u n r}) := rfl
       _ ≤ ⨆ n : {n | b'' < u n r}, rs n :=
-        le_ciSup (Finite.bddAbove_range _) ⟨n, hn⟩
+        le_ciSup (Finite.bddAbove_range _) (⟨n, hn⟩ : {n | b'' < u n r})
       _ ≤ r ⊔ ⨆ n : {n | b'' < u n r}, rs n := le_sup_right
       _ ≤ v := hv
   · exact (h_anti n (le_sup_left.trans hv)).trans (not_lt.mp hn)
@@ -168,7 +169,7 @@ private lemma isTightMeasureSet_range_of_tendsto_limsup_measureReal_inner_of_nor
       limsup (fun n ↦ μ n {x | r < ‖⟪z, x⟫_𝕜‖}) atTop =
         ENNReal.ofReal (limsup (fun n ↦ (μ n).real {x | r < ‖⟪z, x⟫_𝕜‖}) atTop) := by
     simp_rw [measureReal_def]
-    rw [ENNReal.ofReal_limsup_toReal (C := C)]
+    rw [ENNReal.ofReal_limsup_toReal_compat (C := C)]
     filter_upwards [hμ] with n hn using (measure_mono (Set.subset_univ _)).trans hn
   simpa only [h_ofReal, ← ENNReal.ofReal_zero] using ENNReal.tendsto_ofReal (h z hz)
 
@@ -180,7 +181,7 @@ lemma isTightMeasureSet_of_tendsto_charFun {μ : ℕ → Measure E}
     (h : ∀ t, Tendsto (fun n ↦ charFun (μ n) t) atTop (𝓝 (f t))) :
     IsTightMeasureSet (Set.range μ) := by
   refine isTightMeasureSet_range_of_tendsto_limsup_measureReal_inner_of_norm_eq_one_compat
-    (fun z hz ↦ ?_) 1 (.of_forall fun _ ↦ by simp)
+    (𝕜 := ℝ) (fun z hz ↦ ?_) 1 (.of_forall fun _ ↦ by simp)
   have h_le_4 n r (hr : 0 < r) :
       2⁻¹ * r * ‖∫ t in -2 * r⁻¹..2 * r⁻¹, 1 - charFun (μ n) (t • z)‖ ≤ 4 := by
     have hr' : -(2 * r⁻¹) ≤ 2 * r⁻¹ := by rw [neg_le_self_iff]; positivity
