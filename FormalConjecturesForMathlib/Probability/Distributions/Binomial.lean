@@ -21,7 +21,7 @@ PMF to `ℕ`, and then to any measurable additive monoid via the natural-number 
 public section
 
 open MeasureTheory Measure Complex unitInterval
-open scoped unitInterval
+open scoped unitInterval ENNReal
 
 namespace ProbabilityTheory
 
