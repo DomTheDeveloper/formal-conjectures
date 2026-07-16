@@ -42,12 +42,12 @@ lemma tendsto_charFun_inv_sqrt_mul_pow {X : Ω → ℝ}
     have aux : (fun (n : ℕ) ↦ ‖(1 / n : ℂ)‖) = fun (n : ℕ) ↦ ‖(1 / n : ℝ)‖ := by simp
     rw [← Asymptotics.isLittleO_norm_right, aux, Asymptotics.isLittleO_norm_right]
     refine .of_const_mul_right (c := t ^ 2) ?_
-    convert! this using 4 with n <;> norm_cast <;> simp [field]
+    convert this using 4 with n <;> norm_cast <;> simp [field]
   have ht : Tendsto (fun (n : ℕ) ↦ (√n)⁻¹ * t) atTop (𝓝 0) := by
     rw [← zero_mul t]
     exact .mul_const t (tendsto_inv_atTop_zero.comp <| Real.tendsto_sqrt_atTop.comp <|
       tendsto_natCast_atTop_atTop)
-  convert! (taylor_charFun_two hX h0 h1).comp_tendsto ht using 2
+  convert (taylor_charFun_two hX h0 h1).comp_tendsto ht using 2
   simp
   ring
 
