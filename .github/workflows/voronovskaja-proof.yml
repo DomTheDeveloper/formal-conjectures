@@ -43,6 +43,8 @@ jobs:
             arch: x64
           - os: ubuntu-24.04-arm
             arch: arm
+          - os: macos-latest
+            arch: macos
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
