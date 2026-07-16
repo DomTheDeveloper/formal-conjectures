@@ -17,36 +17,37 @@ theorem bmo4_complete_test
     intro n
     induction n with
     | zero =>
-        left
-        constructor
-        · norm_num
-        · norm_num [a_ini]
+        exact Or.inl ⟨by norm_num, by norm_num [a_ini]⟩
     | succ n ih =>
         rcases ih with h0 | h1 | h2 | h3
-        · have hamod : a n % 3 = 2 := by omega
-          right; left
-          constructor
+        · rcases h0 with ⟨hn4, hform⟩
+          have hamod : a n % 3 = 2 := by omega
+          have hdiv : a n = 3 * ((a n - 2) / 3) + 2 := by omega
+          refine Or.inr (Or.inl ⟨?_, ?_⟩)
           · omega
           · rw [a_rec n]
             simp [hamod, pow_succ]
             omega
-        · have hamod : a n % 3 = 0 := by omega
-          right; right; left
-          constructor
+        · rcases h1 with ⟨hn4, hform⟩
+          have hamod : a n % 3 = 0 := by omega
+          have hdiv : a n = 3 * (a n / 3) := by omega
+          refine Or.inr (Or.inr (Or.inl ⟨?_, ?_⟩))
           · omega
           · rw [a_rec n]
             simp [hamod, pow_succ]
             omega
-        · have hamod : a n % 3 = 0 := by omega
-          right; right; right
-          constructor
+        · rcases h2 with ⟨hn4, hform⟩
+          have hamod : a n % 3 = 0 := by omega
+          have hdiv : a n = 3 * (a n / 3) := by omega
+          refine Or.inr (Or.inr (Or.inr ⟨?_, ?_⟩))
           · omega
           · rw [a_rec n]
             simp [hamod, pow_succ]
             omega
-        · have hamod : a n % 3 = 0 := by omega
-          left
-          constructor
+        · rcases h3 with ⟨hn4, hform⟩
+          have hamod : a n % 3 = 0 := by omega
+          have hdiv : a n = 3 * (a n / 3) := by omega
+          refine Or.inl ⟨?_, ?_⟩
           · omega
           · rw [a_rec n]
             simp [hamod, pow_succ]
