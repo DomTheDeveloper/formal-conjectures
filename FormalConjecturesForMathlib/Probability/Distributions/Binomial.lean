@@ -56,15 +56,26 @@ lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
       (((1 - (p : ℝ) : ℝ) : ℂ) + (p : ℂ) * exp (t * Complex.I)) ^ n := by
   rw [charFun_apply_real]
   change (∫ x : ℝ, exp (t * x * Complex.I) ∂((binomial n p).map (Nat.cast : ℕ → ℝ))) = _
-  rw [integral_map, binomial, integral_map, PMF.integral_eq_sum]
-  any_goals fun_prop
-  simp only [binomialPMF, PMF.binomial_apply, Finset.sum_fin_eq_sum_range]
-  rw [add_pow]
-  apply Finset.sum_congr rfl
-  intro k hk
-  have hk' : k < n + 1 := Finset.mem_range.mp hk
-  simp only [dif_pos hk', Fin.val_last]
-  simp [RCLike.real_smul_eq_coe_mul, ← Complex.exp_nat_mul]
-  ring
+  rw [integral_map]
+  · rw [binomial, integral_map]
+    · rw [PMF.integral_eq_sum]
+      simp only [binomialPMF, PMF.binomial_apply, Finset.sum_fin_eq_sum_range]
+      have hq : ((1 : ℝ≥0∞) - (toNNReal p : ℝ≥0∞)).toReal = 1 - (p : ℝ) := by
+        rw [ENNReal.toReal_sub_of_le]
+        · simp
+        · simpa using p.2.2
+        · simp
+      conv_rhs => rw [add_comm]
+      rw [add_pow]
+      apply Finset.sum_congr rfl
+      intro k hk
+      have hk' : k < n + 1 := Finset.mem_range.mp hk
+      simp only [dif_pos hk', Fin.val_last]
+      simp [hq, RCLike.real_smul_eq_coe_mul, ← Complex.exp_nat_mul]
+      ring
+    · exact (.of_discrete : Measurable (Fin.val : Fin (n + 1) → ℕ)).aemeasurable
+    · fun_prop
+  · exact (.of_discrete : Measurable (Nat.cast : ℕ → ℝ)).aemeasurable
+  · fun_prop
 
 end ProbabilityTheory
