@@ -29,19 +29,6 @@ open scoped Real Topology
 
 namespace ProbabilityTheory
 
-private lemma tendsto_pow_exp_of_isLittleO_sub_add_div_compat {f : ℕ → ℂ} (t : ℂ)
-    (hf : (fun n ↦ f n - (1 + t / n)) =o[atTop] fun n ↦ 1 / (n : ℂ)) :
-    Tendsto (fun n ↦ f n ^ n) atTop (𝓝 (exp t)) := by
-  rw [show (fun n ↦ f n ^ n) = (fun n ↦ (1 + (f n - 1)) ^ n) by ext; simp]
-  apply Complex.tendsto_one_add_pow_exp_of_tendsto
-  have hsmall : Tendsto
-      (fun n : ℕ ↦ (n : ℂ) * (f n - (1 + t / n))) atTop (𝓝 0) := by
-    simpa [one_div] using hf.tendsto_inv_smul_nhds_zero
-  refine (hsmall.add_const t).congr' ?_
-  filter_upwards [eventually_ne_atTop 0] with n hn
-  field_simp [Nat.cast_ne_zero.mpr hn]
-  ring
-
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 
 variable [IsProbabilityMeasure P]
@@ -50,7 +37,7 @@ lemma tendsto_charFun_inv_sqrt_mul_pow {X : Ω → ℝ}
     (hX : AEMeasurable X P) (h0 : P[X] = 0) (h1 : P[X ^ 2] = 1) (t : ℝ) :
     Tendsto (fun (n : ℕ) ↦ (charFun (P.map X) ((√n)⁻¹ * t)) ^ n) atTop
       (𝓝 (exp (- t ^ 2 / 2))) := by
-  apply tendsto_pow_exp_of_isLittleO_sub_add_div_compat
+  apply Complex.tendsto_pow_exp_of_isLittleO_sub_add_div
   suffices (fun (n : ℕ) ↦ charFun (Measure.map X P) ((√n)⁻¹ * t) -
       (1 + (-(((√n)⁻¹ * t) ^ 2 / 2) : ℂ))) =o[atTop] fun n ↦ ((√n)⁻¹ * t) ^ 2 by
     have aux : (fun (n : ℕ) ↦ ‖(1 / n : ℂ)‖) = fun (n : ℕ) ↦ ‖(1 / n : ℝ)‖ := by simp
