@@ -52,6 +52,23 @@ theorem profile_threshold
     mul_nonneg (sub_nonneg.mpr (le_of_lt hcoef)) (sub_nonneg.mpr hR)
   nlinarith
 
+/-- A profile upper bound and a strict propagated lower bound cannot both hold.
+This is the exact final algebraic step used by every fiber certificate. -/
+theorem profile_contradiction
+    (IB rB rA C R : ℚ)
+    (hcoef : IB < rB)
+    (hR : rA ≤ R)
+    (hbase : IB * (rA + C) < rB * rA)
+    (hcover : rB * R ≤ IB * (R + C)) : False := by
+  have hstrict := profile_threshold IB rB rA C R hcoef hR hbase
+  exact (not_lt_of_ge hcover) hstrict
+
+/-- For the first surviving LCM split, a remainder of `38295` is already
+strictly too large for the `B = 17` profile capacity. -/
+theorem b17_profile_threshold (R : ℤ) (hR : 38295 ≤ R) :
+    R + 574410 < 16 * R := by
+  omega
+
 /-- Arithmetic core of the elementary `U(315) ≤ 241` argument. -/
 theorem u315_capacity_arithmetic :
     (195 : ℤ) + ((18 + 12 + 5 + 6 + 4 + 3 + 1) - 3) = 241 := by
