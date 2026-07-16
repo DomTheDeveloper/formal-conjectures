@@ -59,13 +59,12 @@ lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
   rw [integral_map, binomial, integral_map, PMF.integral_eq_sum]
   any_goals fun_prop
   simp only [binomialPMF, PMF.binomial_apply, Finset.sum_fin_eq_sum_range]
-  rw [← add_pow]
+  rw [add_pow]
   apply Finset.sum_congr rfl
   intro k hk
-  rw [Finset.mem_range] at hk
-  simp only [dif_pos hk]
-  push_cast
-  rw [← Complex.exp_nat_mul]
+  have hk' : k < n + 1 := Finset.mem_range.mp hk
+  simp only [dif_pos hk', Fin.val_last]
+  simp [RCLike.real_smul_eq_coe_mul, ← Complex.exp_nat_mul]
   ring
 
 end ProbabilityTheory
