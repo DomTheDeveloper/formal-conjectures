@@ -1,0 +1,21 @@
+name: A308734 checks
+
+on:
+  push:
+    branches: [a308734-reductions]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile bounded-exponent checker
+        run: c++ -O3 -std=c++20 scripts/a308734_search.cpp -o /tmp/a308734_search
+      - name: Smoke-test checker
+        run: /tmp/a308734_search 100000 4
+      - uses: leanprover/lean-action@v1
+        with:
+          build-args: FormalConjectures.OEIS.308734
