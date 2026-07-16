@@ -101,7 +101,7 @@ lemma ProbabilityMeasure.tendsto_of_tendsto_cdf
         simp_rw [measureReal_Ioc_eq_cdf_sub _ hab]
         exact (h b).sub (h a)
       simpa using hreal
-    · have hempty : Ioc a b = ∅ := Ioc_eq_empty (not_lt_of_ge (le_of_not_ge hab))
+    · have hempty : Ioc a b = ∅ := Ioc_eq_empty (fun hlt ↦ hab hlt.le)
       simpa [hempty] using
         (tendsto_const_nhds : Tendsto (fun _ : ι ↦ (0 : ℝ≥0)) l (𝓝 0))
 
