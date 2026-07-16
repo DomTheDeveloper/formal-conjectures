@@ -1,55 +1,26 @@
 /-
-Copyright (c) 2024 Thomas Zhu. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Thomas Zhu, Etienne Marion
+Copyright 2026 The Formal Conjectures Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 -/
 module
 
-public import Mathlib.Probability.Distributions.Gaussian.Real
-
-import FormalConjecturesForMathlib.MeasureTheory.Measure.CharacteristicFunction.TaylorExpansion
-import FormalConjecturesForMathlib.MeasureTheory.Measure.LevyConvergence
-import Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
-import Mathlib.Tactic.Convert
-
 /-!
-# Central-limit characteristic-function estimate
+# Central limit theorem compatibility import
 
-Minimal compatibility backport for the mathlib snapshot pinned by formal-conjectures. The full
-independent-sum CLT is not needed here; the Bézier–Bernstein proof only uses the standard
-characteristic-function power limit for one centered, unit-variance law.
+The pinned mathlib snapshot already contains the one-dimensional central limit theorem and the exact
+`tendsto_charFun_inv_sqrt_mul_pow` lemma needed for the standardized-binomial proof.  This module
+preserves the existing project import path without maintaining a duplicate proof.
 -/
 
-public section
-
-noncomputable section
-
-open MeasureTheory ProbabilityTheory Complex Filter Asymptotics
-open scoped Real Topology
-
-namespace ProbabilityTheory
-
-variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-
-variable [IsProbabilityMeasure P]
-
-lemma tendsto_charFun_inv_sqrt_mul_pow {X : Ω → ℝ}
-    (hX : AEMeasurable X P) (h0 : P[X] = 0) (h1 : P[X ^ 2] = 1) (t : ℝ) :
-    Tendsto (fun (n : ℕ) ↦ (charFun (P.map X) ((√n)⁻¹ * t)) ^ n) atTop
-      (𝓝 (exp (- t ^ 2 / 2))) := by
-  apply Complex.tendsto_pow_exp_of_isLittleO_sub_add_div
-  suffices (fun (n : ℕ) ↦ charFun (Measure.map X P) ((√n)⁻¹ * t) -
-      (1 + (-(((√n)⁻¹ * t) ^ 2 / 2) : ℂ))) =o[atTop] fun n ↦ ((√n)⁻¹ * t) ^ 2 by
-    have aux : (fun (n : ℕ) ↦ ‖(1 / n : ℂ)‖) = fun (n : ℕ) ↦ ‖(1 / n : ℝ)‖ := by simp
-    rw [← Asymptotics.isLittleO_norm_right, aux, Asymptotics.isLittleO_norm_right]
-    refine .of_const_mul_right (c := t ^ 2) ?_
-    convert this using 4 with n <;> norm_cast <;> simp [field]
-  have ht : Tendsto (fun (n : ℕ) ↦ (√n)⁻¹ * t) atTop (𝓝 0) := by
-    rw [← zero_mul t]
-    exact .mul_const t (tendsto_inv_atTop_zero.comp <| Real.tendsto_sqrt_atTop.comp <|
-      tendsto_natCast_atTop_atTop)
-  convert (taylor_charFun_two hX h0 h1).comp_tendsto ht using 2
-  simp
-  ring
-
-end ProbabilityTheory
+public import Mathlib.Probability.CentralLimitTheorem
