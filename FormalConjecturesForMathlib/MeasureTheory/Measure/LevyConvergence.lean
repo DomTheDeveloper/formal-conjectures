@@ -25,7 +25,7 @@ by the one-dimensional central limit theorem used in the Voronovskaja proof.
 public section
 
 open Filter BoundedContinuousFunction Real RCLike
-open scoped Topology RealInnerProductSpace InnerProductSpace ENNReal
+open scoped Topology RealInnerProductSpace InnerProductSpace ENNReal NNReal
 
 namespace MeasureTheory
 
@@ -80,23 +80,22 @@ private lemma tendsto_iSup_of_tendsto_limsup_compat {ι α β : Type*} [Nonempty
       contrapose! h
       exact ⟨u n r, h, hr⟩
   choose rs hrs using A
+  have hfinite : Set.Finite {n | b'' < u n r} := by
+    have hf := Filter.eventually_cofinite.mp hb''
+    simpa only [not_le] using hf
+  letI : Fintype {n | b'' < u n r} := hfinite.fintype
   simp only [eventually_atTop]
   refine ⟨r ⊔ ⨆ n : {n | b'' < u n r}, rs n, fun v hv ↦ ?_⟩
   apply lt_of_le_of_lt (iSup_le fun n ↦ ?_) hb''b.2
   by_cases hn : b'' < u n r
-  · refine hrs n v ?_
+  · apply hrs n v
     calc
-      rs n = rs (⟨n, by simp [hn]⟩ : {n | b'' < u n r}) := rfl
-      _ ≤ ⨆ n : {n | b'' < u n r}, rs n := by
-        refine le_ciSup (f := fun x : {n | b'' < u n r} ↦ rs x) ?_ ⟨n, by simp [hn]⟩
-        have : Finite {n | b'' < u n r} := by simpa using! hb''
-        exact Finite.bddAbove_range _
+      rs n = rs (⟨n, hn⟩ : {n | b'' < u n r}) := rfl
+      _ ≤ ⨆ n : {n | b'' < u n r}, rs n :=
+        le_ciSup (Finite.bddAbove_range _) ⟨n, hn⟩
       _ ≤ r ⊔ ⨆ n : {n | b'' < u n r}, rs n := le_sup_right
       _ ≤ v := hv
-  · refine (h_anti n ?_).trans (not_lt.mp hn)
-    calc
-      r ≤ r ⊔ ⨆ n : {n | b'' < u n r}, rs n := le_sup_left
-      _ ≤ v := hv
+  · exact (h_anti n (le_sup_left.trans hv)).trans (not_lt.mp hn)
 
 private lemma Nat_tendsto_iSup_of_tendsto_limsup_compat {α β : Type*}
     [ConditionallyCompleteLattice α] [CompleteLinearOrder β]
@@ -116,7 +115,7 @@ private lemma isTightMeasureSet_range_of_tendsto_limsup_inner_compat
     (h : ∀ y, Tendsto
       (fun r : ℝ ↦ limsup (fun n ↦ μ n {x | r < ‖⟪y, x⟫_𝕜‖}) atTop) atTop (𝓝 0)) :
     IsTightMeasureSet (Set.range μ) := by
-  refine isTightMeasureSet_of_inner_tendsto fun z ↦ ?_
+  refine isTightMeasureSet_of_inner_tendsto (𝕜 := 𝕜) fun z ↦ ?_
   simp_rw [iSup_range]
   refine Nat_tendsto_iSup_of_tendsto_limsup_compat (fun n ↦ ?_) (h z) (fun n u v huv ↦ by gcongr)
   have h_tight : IsTightMeasureSet {(μ n).map (fun x ↦ ⟪z, x⟫_𝕜)} :=
@@ -136,7 +135,7 @@ private lemma isTightMeasureSet_range_of_tendsto_limsup_inner_of_norm_eq_one_com
     (h : ∀ y, ‖y‖ = 1 → Tendsto
       (fun r : ℝ ↦ limsup (fun n ↦ μ n {x | r < ‖⟪y, x⟫_𝕜‖}) atTop) atTop (𝓝 0)) :
     IsTightMeasureSet (Set.range μ) := by
-  refine isTightMeasureSet_range_of_tendsto_limsup_inner_compat fun y ↦ ?_
+  refine isTightMeasureSet_range_of_tendsto_limsup_inner_compat (𝕜 := 𝕜) fun y ↦ ?_
   by_cases hy : y = 0
   · simp only [hy, inner_zero_left]
     refine (tendsto_congr' ?_).mpr tendsto_const_nhds
@@ -164,7 +163,7 @@ private lemma isTightMeasureSet_range_of_tendsto_limsup_measureReal_inner_of_nor
       (fun r : ℝ ↦ limsup (fun n ↦ (μ n).real {x | r < ‖⟪y, x⟫_𝕜‖}) atTop) atTop (𝓝 0))
     (C : ℝ≥0) (hμ : ∀ᶠ n in atTop, μ n Set.univ ≤ C) :
     IsTightMeasureSet (Set.range μ) := by
-  refine isTightMeasureSet_range_of_tendsto_limsup_inner_of_norm_eq_one_compat fun z hz ↦ ?_
+  refine isTightMeasureSet_range_of_tendsto_limsup_inner_of_norm_eq_one_compat (𝕜 := 𝕜) fun z hz ↦ ?_
   have h_ofReal (r : ℝ) :
       limsup (fun n ↦ μ n {x | r < ‖⟪z, x⟫_𝕜‖}) atTop =
         ENNReal.ofReal (limsup (fun n ↦ (μ n).real {x | r < ‖⟪z, x⟫_𝕜‖}) atTop) := by
