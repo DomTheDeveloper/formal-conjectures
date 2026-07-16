@@ -75,4 +75,6 @@ theorem a_four : A317940 4 = 7 := by sorry
 A317940 No negative terms among the first 2^20 terms. Is the sequence nonnegative?
 Conjecture: The sequence of rational numbers $A317940\_f(n)$ is nonnegative for all $n \ge 1$.
 -/
+@[category research solved, AMS 11,
+  formal_proof using lean4 at "https://domthedeveloper.github.io/crl/math/a317940/proof/A317940_verified.lean"]
 theorem A317940_f_nonnegative (n : ℕ) (h : n > 0) : A317940_f n ≥ 0 := by sorry
