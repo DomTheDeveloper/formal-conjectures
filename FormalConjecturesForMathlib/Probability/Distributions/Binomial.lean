@@ -24,8 +24,8 @@ public import Mathlib.Probability.ProbabilityMassFunction.Integrals
 
 Mathlib already defines the canonical binomial measures `Bin(n, p)` and `Bin(R, n, p)`, together
 with their probability-measure instances and finite-sum integral formula.  This file adds the finite
-`Fin (n + 1)` PMF alias used by the Bézier-law calculation and records the characteristic function
-of the real-valued binomial measure.
+`Fin (n + 1)` PMF alias used by the Bézier-law calculation, proves that its pushforward is the
+canonical measure, and records the characteristic function of the real-valued binomial measure.
 -/
 
 public section
@@ -39,6 +39,42 @@ namespace ProbabilityTheory
 @[expose]
 noncomputable def binomialPMF (n : ℕ) (p : I) : PMF (Fin (n + 1)) :=
   PMF.binomial (toNNReal p) (by simpa using p.2.2) n
+
+/-- The canonical binomial measure is the pushforward of the finite binomial PMF by `Fin.val`. -/
+lemma binomial_eq_binomialPMF_toMeasure_map_val (n : ℕ) (p : I) :
+    Bin(n, p) = (binomialPMF n p).toMeasure.map (Fin.val : Fin (n + 1) → ℕ) := by
+  refine ext_of_singleton fun k ↦ ?_
+  rw [binomial_singleton]
+  rw [Measure.map_apply (.of_discrete : Measurable (Fin.val : Fin (n + 1) → ℕ))
+    (measurableSet_singleton k)]
+  by_cases hk : k ≤ n
+  · let i : Fin (n + 1) := ⟨k, Nat.lt_succ_iff.mpr hk⟩
+    have hpre : (Fin.val : Fin (n + 1) → ℕ) ⁻¹' ({k} : Set ℕ) = {i} := by
+      ext j
+      simp only [Set.mem_preimage, Set.mem_singleton_iff]
+      constructor
+      · intro h
+        apply Fin.ext
+        simpa [i] using h
+      · intro h
+        subst j
+        simp [i]
+    rw [hpre, (binomialPMF n p).toMeasure_apply_singleton i (measurableSet_singleton i)]
+    have hi : (Fin.ofNat (n + 1) k : Fin (n + 1)) = i := by
+      apply Fin.ext
+      simp [i, Nat.mod_eq_of_lt (Nat.lt_succ_iff.mpr hk)]
+    simpa [binomialPMF, hi] using
+      (PMF.binomial_apply_of_le hk (by simpa using p.2.2))
+  · have hnk : n < k := Nat.lt_of_not_ge hk
+    have hpre : (Fin.val : Fin (n + 1) → ℕ) ⁻¹' ({k} : Set ℕ) = ∅ := by
+      ext i
+      simp only [Set.mem_preimage, Set.mem_singleton_iff, Set.not_mem_empty, iff_false]
+      intro hi
+      apply hk
+      have hik : k < n + 1 := by simpa [hi] using i.isLt
+      exact Nat.lt_succ_iff.mp hik
+    rw [hpre]
+    simp [Nat.choose_eq_zero_of_lt hnk]
 
 lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
     charFun Bin(ℝ, n, p) t =
