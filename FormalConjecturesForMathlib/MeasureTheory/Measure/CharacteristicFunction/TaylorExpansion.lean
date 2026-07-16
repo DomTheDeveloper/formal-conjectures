@@ -62,8 +62,15 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
       innerₛₗ_apply_apply, smul_eq_mul, AddChar.coe_mk,
       fourierPowSMulRight_apply, Pi.ofNat_apply, real_smul, ofReal_prod, mul_one,
       Circle.smul_def, c]
-    field_simp
-    ring
+    rw [← integral_const_mul]
+    apply integral_congr_ae
+    filter_upwards with v
+    simp only [Fin.prod_const, Fintype.card_fin]
+    push_cast
+    have hpiR : Real.pi ≠ 0 := Real.pi_ne_zero
+    have hpiC : (Real.pi : ℂ) ≠ 0 := by exact_mod_cast hpiR
+    field_simp [hpiR, hpiC]
+    ring_nf
   · apply integrable_fourierPowSMulRight _
     · refine hint.integrable_norm_pow'.congr ?_
       filter_upwards with v
