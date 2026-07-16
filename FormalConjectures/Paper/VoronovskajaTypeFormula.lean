@@ -15,6 +15,7 @@ limitations under the License.
 -/
 
 import FormalConjectures.Paper.VoronovskajaMain
+import FormalConjectures.Paper.VoronovskajaClassicalMain
 
 /-!
 # Voronovskaja-type Formula for the Bezier Variant of the Bernstein Operators
@@ -53,7 +54,8 @@ theorem voronovskaja_theorem.bernstein_operators
     Tendsto (fun (n : ℕ) => (n : ℝ) * (bezierBernstein n 1 f x - f x))
     atTop
     (𝓝 ((1 / 2) * x * (1 - x) * f'')) := by
-  sorry
+  dsimp only
+  exact tendsto_classical_bezierBernstein_all f hf x hx
 
 /--
 Voronovskaja formula for Bézier--Bernstein operators with positive shape parameter.
