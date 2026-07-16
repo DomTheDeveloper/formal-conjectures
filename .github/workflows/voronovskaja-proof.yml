@@ -84,6 +84,7 @@ jobs:
         run: |
           set -o pipefail
           lake build \
+            Mathlib.Order.Interval.Set.Nat \
             FormalConjecturesForMathlib.MeasureTheory.Measure.CharacteristicFunction.TaylorExpansion \
             FormalConjecturesForMathlib.Order.Filter.ENNReal \
             FormalConjecturesForMathlib.MeasureTheory.Measure.LevyConvergence \
