@@ -39,7 +39,7 @@ private lemma isPiSystem_iocSystem : IsPiSystem iocSystem := by
   rintro s ⟨⟨a, b⟩, rfl⟩ t ⟨⟨c, d⟩, rfl⟩ _
   refine ⟨(max a c, min b d), ?_⟩
   ext x
-  simp only [mem_inter_iff, mem_Ioc, Prod.fst, Prod.snd, max_lt_iff, le_min_iff]
+  simp only [mem_inter_iff, mem_Ioc, max_lt_iff, le_min_iff]
   aesop
 
 private lemma iocSystem_basis
@@ -101,7 +101,8 @@ lemma ProbabilityMeasure.tendsto_of_tendsto_cdf
         simp_rw [measureReal_Ioc_eq_cdf_sub _ hab]
         exact (h b).sub (h a)
       simpa using hreal
-    · have hempty : Ioc a b = ∅ := Ioc_eq_empty (le_of_not_ge hab)
-      simp [hempty]
+    · have hempty : Ioc a b = ∅ := Ioc_eq_empty (not_lt_of_ge (le_of_not_ge hab))
+      simpa [hempty] using
+        (tendsto_const_nhds : Tendsto (fun _ : ι ↦ (0 : ℝ≥0)) l (𝓝 0))
 
 end ProbabilityTheory
