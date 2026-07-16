@@ -66,7 +66,7 @@ private theorem iteratedDeriv_charFun {n : ℕ} {t : ℝ} (hint : MemLp id n μ)
     rw [← integral_const_mul]
     apply integral_congr_ae
     filter_upwards with v
-    simp only [Fin.prod_const, Fintype.card_fin]
+    simp only [Fin.prod_const, RCLike.inner_apply, conj_trivial, one_mul]
     push_cast
     have hpiR : Real.pi ≠ 0 := Real.pi_ne_zero
     have hpiC : (Real.pi : ℂ) ≠ 0 := by exact_mod_cast hpiR
