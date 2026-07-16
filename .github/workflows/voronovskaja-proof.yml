@@ -16,6 +16,7 @@ on:
       - 'FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomialMGF.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialLimit.lean'
+      - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialTails.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialMoments.lean'
       - 'FormalConjecturesForMathlib/Order/Filter/ENNReal.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
@@ -112,6 +113,9 @@ jobs:
           fi
           if [ "$status" -eq 0 ]; then
             compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialLimit.lean || status=$?
+          fi
+          if [ "$status" -eq 0 ]; then
+            compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialTails.lean || status=$?
           fi
           if [ "$status" -eq 0 ]; then
             compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialMoments.lean || status=$?
