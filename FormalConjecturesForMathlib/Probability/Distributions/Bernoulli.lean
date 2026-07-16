@@ -6,6 +6,7 @@ Authors: Etienne Marion, David Ledvinka
 module
 
 public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Measure.CharacteristicFunction
 public import Mathlib.Topology.UnitInterval
 
 /-!
@@ -16,7 +17,7 @@ A minimal compatibility backport for the mathlib snapshot pinned by formal-conje
 
 public section
 
-open MeasureTheory Measure unitInterval
+open MeasureTheory Measure unitInterval Complex
 open scoped ENNReal
 
 namespace ProbabilityTheory
@@ -64,5 +65,56 @@ lemma integral_bernoulliMeasure [MeasurableSingletonClass X]
   all_goals exact (integrable_dirac (by simp)).smul_measure_nnreal
 
 end Integral
+
+section Standardized
+
+/-- Standard deviation of a nondegenerate Bernoulli variable with success probability `p`. -/
+@[expose]
+noncomputable def bernoulliStdDev (p : I) : ℝ := Real.sqrt ((p : ℝ) * (1 - p))
+
+/-- Center and normalize a real Bernoulli variable. -/
+@[expose]
+noncomputable def standardizedBernoulli (p : I) (z : ℝ) : ℝ :=
+  (z - p) / bernoulliStdDev p
+
+lemma bernoulliStdDev_pos (p : I) (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1) :
+    0 < bernoulliStdDev p := by
+  rw [bernoulliStdDev, Real.sqrt_pos]
+  exact mul_pos hp0 (sub_pos.mpr hp1)
+
+lemma integral_standardizedBernoulli (p : I) (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1) :
+    ∫ z, standardizedBernoulli p z ∂Ber((1 : ℝ), 0, p) = 0 := by
+  rw [integral_bernoulliMeasure]
+  simp only [smul_eq_mul, standardizedBernoulli]
+  have hs : bernoulliStdDev p ≠ 0 := (bernoulliStdDev_pos p hp0 hp1).ne'
+  field_simp [hs]
+  ring
+
+lemma integral_sq_standardizedBernoulli
+    (p : I) (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1) :
+    ∫ z, standardizedBernoulli p z ^ 2 ∂Ber((1 : ℝ), 0, p) = 1 := by
+  rw [integral_bernoulliMeasure]
+  simp only [smul_eq_mul, standardizedBernoulli]
+  have hvar : 0 ≤ (p : ℝ) * (1 - p) :=
+    (mul_pos hp0 (sub_pos.mpr hp1)).le
+  have hs : bernoulliStdDev p ≠ 0 := (bernoulliStdDev_pos p hp0 hp1).ne'
+  rw [div_pow, div_pow, bernoulliStdDev, Real.sq_sqrt hvar]
+  field_simp [hs, mul_ne_zero hp0.ne' (sub_ne_zero.mpr hp1.ne)]
+  ring
+
+lemma charFun_standardizedBernoulli
+    (p : I) (hp0 : 0 < (p : ℝ)) (hp1 : (p : ℝ) < 1) (t : ℝ) :
+    charFun (Ber((1 : ℝ), 0, p).map (standardizedBernoulli p)) t =
+      (p : ℂ) * exp (t * ((1 - p) / bernoulliStdDev p) * I) +
+        (1 - (p : ℝ) : ℂ) * exp (t * (-p / bernoulliStdDev p) * I) := by
+  rw [charFun_apply_real, integral_map]
+  · rw [integral_bernoulliMeasure]
+    simp only [smul_eq_mul, standardizedBernoulli, one_sub, sub_zero, zero_sub]
+    push_cast
+    ring_nf
+  · fun_prop
+  · fun_prop
+
+end Standardized
 
 end ProbabilityTheory
