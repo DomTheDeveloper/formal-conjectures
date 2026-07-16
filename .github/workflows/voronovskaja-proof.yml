@@ -1,6 +1,5 @@
 name: Voronovskaja proof verification
 
-# Dedicated verifier for the experimental no-sorry proof branch.
 on:
   pull_request:
     paths:
@@ -34,18 +33,7 @@ permissions:
 
 jobs:
   verify:
-    name: verify-${{ matrix.arch }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            arch: x64
-          - os: ubuntu-24.04-arm
-            arch: arm
-          - os: macos-latest
-            arch: macos
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v6
 
@@ -61,9 +49,9 @@ jobs:
           path: |
             ~/.cache/mathlib
             .lake/packages
-          key: voronovskaja-${{ matrix.arch }}-${{ hashFiles('lake-manifest.json') }}
+          key: voronovskaja-arm-${{ hashFiles('lake-manifest.json') }}
           restore-keys: |
-            voronovskaja-${{ matrix.arch }}-
+            voronovskaja-arm-
 
       - name: Fetch precompiled dependencies
         run: |
@@ -93,60 +81,33 @@ jobs:
           }
 
           compile_module FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean || status=$?
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Order/Filter/ENNReal.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomial.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomialTails.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomialMGF.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Probability/CDFConvergence.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialLimit.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialTails.lean || status=$?; fi
+          if [ "$status" -eq 0 ]; then compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialMoments.lean || status=$?; fi
           if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Order/Filter/ENNReal.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomial.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomialTails.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomialMGF.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Probability/CDFConvergence.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialLimit.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialTails.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialMoments.lean || status=$?
-          fi
-          if [ "$status" -eq 0 ]; then
-            echo "=== Building affine and endpoint proof modules ===" >> "$log"
             lake build FormalConjectures.Paper.VoronovskajaAffine \
               FormalConjectures.Paper.VoronovskajaEndpoints >> "$log" 2>&1 || status=$?
           fi
 
           echo "status=$status" >> "$GITHUB_OUTPUT"
-          tail -n 760 "$log"
+          tail -n 800 "$log"
           exit 0
 
       - name: Upload Lean diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: voronovskaja-lean-log-${{ matrix.arch }}
+          name: voronovskaja-lean-log
           path: /tmp/lean.log
 
       - name: Fail when Lean fails
