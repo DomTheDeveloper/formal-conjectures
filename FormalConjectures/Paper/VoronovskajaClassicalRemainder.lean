@@ -111,20 +111,23 @@ private lemma abs_classicalSecondRemainderSum_le
       rw [abs_mul, abs_of_nonneg hw]
       by_cases hfar : δ ≤ |((k : ℝ) / (n : ℝ)) - (x : ℝ)|
       · have hR := hglobal ((k : ℝ) / (n : ℝ)) hy
-        have hsq : ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2) ≤ 1 := by
-          nlinarith [abs_sample_sub_le_one n hn x hk, sq_nonneg (((k : ℝ) / (n : ℝ)) - (x : ℝ))]
+        let d : ℝ := ((k : ℝ) / (n : ℝ)) - (x : ℝ)
+        have habs : |d| ≤ 1 := by
+          simpa [d] using abs_sample_sub_le_one n hn x hk
+        have hsq : d ^ 2 ≤ 1 := by
+          nlinarith [abs_nonneg d, sq_abs d]
         simp only [if_pos hfar]
         calc
           |classicalSecondRemainder f (x : ℝ) ((k : ℝ) / (n : ℝ))| *
               bezierWeight n k 1 (x : ℝ) ≤
-              (C * ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2)) *
-                bezierWeight n k 1 (x : ℝ) :=
-            mul_le_mul_of_nonneg_right hR hw
-          _ ≤ C * bezierWeight n k 1 (x : ℝ) := by
-            nlinarith
-          _ ≤ ε * ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2) *
-                bezierWeight n k 1 (x : ℝ) +
-              C * bezierWeight n k 1 (x : ℝ) := by positivity
+              (C * d ^ 2) * bezierWeight n k 1 (x : ℝ) := by
+            simpa [d] using mul_le_mul_of_nonneg_right hR hw
+          _ ≤ C * bezierWeight n k 1 (x : ℝ) :=
+            mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hsq hC0) hw
+          _ ≤ ε * d ^ 2 * bezierWeight n k 1 (x : ℝ) +
+              C * bezierWeight n k 1 (x : ℝ) := by
+            have hd2 : 0 ≤ d ^ 2 := sq_nonneg d
+            positivity
       · have hnear : |((k : ℝ) / (n : ℝ)) - (x : ℝ)| < δ := lt_of_not_ge hfar
         have hR := hlocal ((k : ℝ) / (n : ℝ)) hy hnear
         simp only [if_neg hfar, mul_zero, add_zero]
