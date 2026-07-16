@@ -59,6 +59,66 @@ theorem isSumOfFourSquaresWithSquareConditions_23 : IsSumOfFourSquaresWithSquare
 theorem isSumOfFourSquaresWithSquareConditions_24 : IsSumOfFourSquaresWithSquareConditions 24 :=
   ⟨4, 0, 2, 2, by norm_num, by norm_num, ⟨2, by norm_num⟩, ⟨2, by norm_num⟩⟩
 
+/-- The first exact parametrized family of admissible `(x,y)` pairs, in the range `r ≤ 6s`. -/
+theorem familyOneOfLE (r s z w : ℕ) (hr : r ≤ 6 * s) (hzw : z ≤ w) :
+    IsSumOfFourSquaresWithSquareConditions
+      ((6 * s - r) ^ 4 + (r * s) ^ 2 + z ^ 2 + w ^ 2) := by
+  refine ⟨(6 * s - r) ^ 2, r * s, z, w, ?_, hzw, ?_, ?_⟩
+  · ring
+  · exact ⟨6 * s - r, by ring⟩
+  · refine ⟨6 * s + r, ?_⟩
+    have hsub : 6 * s - r + r = 6 * s := Nat.sub_add_cancel hr
+    nlinarith
+
+/-- The first exact parametrized family of admissible `(x,y)` pairs, in the range `6s ≤ r`. -/
+theorem familyOneOfGE (r s z w : ℕ) (hr : 6 * s ≤ r) (hzw : z ≤ w) :
+    IsSumOfFourSquaresWithSquareConditions
+      ((r - 6 * s) ^ 4 + (r * s) ^ 2 + z ^ 2 + w ^ 2) := by
+  refine ⟨(r - 6 * s) ^ 2, r * s, z, w, ?_, hzw, ?_, ?_⟩
+  · ring
+  · exact ⟨r - 6 * s, by ring⟩
+  · refine ⟨r + 6 * s, ?_⟩
+    have hsub : r - 6 * s + 6 * s = r := Nat.sub_add_cancel hr
+    nlinarith
+
+/-- The second exact parametrized family of admissible `(x,y)` pairs, in the range `2r ≤ 3s`. -/
+theorem familyTwoOfLE (r s z w : ℕ) (hr : 2 * r ≤ 3 * s) (hzw : z ≤ w) :
+    IsSumOfFourSquaresWithSquareConditions
+      ((3 * s - 2 * r) ^ 4 + (r * s) ^ 2 + z ^ 2 + w ^ 2) := by
+  refine ⟨(3 * s - 2 * r) ^ 2, r * s, z, w, ?_, hzw, ?_, ?_⟩
+  · ring
+  · exact ⟨3 * s - 2 * r, by ring⟩
+  · refine ⟨3 * s + 2 * r, ?_⟩
+    have hsub : 3 * s - 2 * r + 2 * r = 3 * s := Nat.sub_add_cancel hr
+    nlinarith
+
+/-- The second exact parametrized family of admissible `(x,y)` pairs, in the range `3s ≤ 2r`. -/
+theorem familyTwoOfGE (r s z w : ℕ) (hr : 3 * s ≤ 2 * r) (hzw : z ≤ w) :
+    IsSumOfFourSquaresWithSquareConditions
+      ((2 * r - 3 * s) ^ 4 + (r * s) ^ 2 + z ^ 2 + w ^ 2) := by
+  refine ⟨(2 * r - 3 * s) ^ 2, r * s, z, w, ?_, hzw, ?_, ?_⟩
+  · ring
+  · exact ⟨2 * r - 3 * s, by ring⟩
+  · refine ⟨2 * r + 3 * s, ?_⟩
+    have hsub : 2 * r - 3 * s + 3 * s = 2 * r := Nat.sub_add_cancel hr
+    nlinarith
+
+/-- Every admissible representation scales to one of sixteen times the represented integer. -/
+theorem mulSixteen {n : ℕ} (h : IsSumOfFourSquaresWithSquareConditions n) :
+    IsSumOfFourSquaresWithSquareConditions (16 * n) := by
+  rcases h with ⟨x, y, z, w, hn, hzw, hx, hxy⟩
+  refine ⟨4 * x, 4 * y, 4 * z, 4 * w, ?_, by omega, ?_, ?_⟩
+  · rw [hn]
+    ring
+  · rcases hx with ⟨a, ha⟩
+    refine ⟨2 * a, ?_⟩
+    rw [ha]
+    ring
+  · rcases hxy with ⟨b, hb⟩
+    refine ⟨2 * b, ?_⟩
+    rw [show 4 * x + 24 * (4 * y) = 4 * (x + 24 * y) by ring, hb]
+    ring
+
 /--
 **Zhi-Wei Sun's Conjecture (A281976)**: Any integer $n \geq 0$ can be written as $x^2 + y^2 + z^2 + w^2$
 with $x, y, z, w$ nonnegative integers and $z \leq w$, such that both $x$ and $x + 24y$ are squares.
