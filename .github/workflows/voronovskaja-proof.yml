@@ -54,12 +54,7 @@ jobs:
             voronovskaja-arm-
 
       - name: Fetch precompiled dependencies
-        run: |
-          if [ -f .lake/packages/mathlib/.lake/build/lib/lean/Mathlib.olean ]; then
-            echo "Mathlib cache already restored."
-          else
-            lake exe cache get >/dev/null
-          fi
+        run: lake exe cache get >/dev/null
 
       - name: Verify proof modules
         id: lean
