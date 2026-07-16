@@ -92,9 +92,9 @@ theorem tendsto_bezierBernstein_zero
 theorem tendsto_bezierBernstein_one
     {α : ℝ} (hα : 0 < α) (f : ℝ → ℝ) :
     Tendsto (fun n : ℕ ↦ Real.sqrt n * (bezierBernstein n α f 1 - f 1)) atTop (𝓝 0) := by
-  rw [Metric.tendsto_atTop]
-  intro ε hε
-  filter_upwards [eventually_gt_atTop 0] with n hn
-  simp [bezierBernstein_one n hn hα f, hε]
+  apply tendsto_atTop_of_eventually_const (i₀ := 1)
+  intro n hn
+  have hnpos : 0 < n := by omega
+  simp [bezierBernstein_one n hnpos hα f]
 
 end VoronovskajaTypeFormula
