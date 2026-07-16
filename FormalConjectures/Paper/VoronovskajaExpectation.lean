@@ -153,8 +153,7 @@ lemma integral_id_poweredStandardizedBinomial_eq_tailDifference
       rw [integral_sub hright hleft]
     _ = ∫ t in Ioi 0, poweredStandardizedBinomialTailDifference n x α hα t := by
       apply integral_congr_ae
-      filter_upwards with t
-      rfl
+      exact ae_of_all _ fun t ↦ rfl
 
 /-- The actual powered standardized-binomial means converge to the explicit Gaussian constant. -/
 lemma tendsto_integral_id_poweredStandardizedBinomial
@@ -166,8 +165,10 @@ lemma tendsto_integral_id_poweredStandardizedBinomial
       atTop (𝓝 (poweredGaussianFirstMomentConstant α)) := by
   have htail :=
     tendsto_integral_poweredStandardizedBinomialTailDifference x hx0 hx1 α hα
+  have hnpos : ∀ᶠ n : ℕ in atTop, 0 < n :=
+    eventually_atTop.2 ⟨1, fun n hn ↦ hn⟩
   refine htail.congr' ?_
-  filter_upwards [eventually_atTop.2 ⟨1, fun n hn ↦ hn⟩] with n hn
+  filter_upwards [hnpos] with n hn
   exact (integral_id_poweredStandardizedBinomial_eq_tailDifference
     n hn x hx0 hx1 α hα).symm
 
