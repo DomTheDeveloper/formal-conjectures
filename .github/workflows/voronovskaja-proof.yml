@@ -16,6 +16,7 @@ on:
       - 'FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomial.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean'
       - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialLimit.lean'
+      - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialMoments.lean'
       - 'FormalConjecturesForMathlib/Order/Filter/ENNReal.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
@@ -107,12 +108,15 @@ jobs:
             compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialLimit.lean || status=$?
           fi
           if [ "$status" -eq 0 ]; then
+            compile_module FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialMoments.lean || status=$?
+          fi
+          if [ "$status" -eq 0 ]; then
             echo "=== Building endpoint proof module ===" >> "$log"
             lake build FormalConjectures.Paper.VoronovskajaEndpoints >> "$log" 2>&1 || status=$?
           fi
 
           echo "status=$status" >> "$GITHUB_OUTPUT"
-          tail -n 620 "$log"
+          tail -n 700 "$log"
           exit 0
 
       - name: Upload Lean diagnostics
