@@ -1,0 +1,84 @@
+# Copyright 2026 The Formal Conjectures Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Erdős 7 obstruction verification
+
+on:
+  pull_request:
+    paths:
+      - 'FormalConjectures/ErdosProblems/Erdos7Obstructions.lean'
+      - '.github/workflows/erdos7-obstructions.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: erdos7-obstructions-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-slim
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install elan
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | \
+            sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch precompiled dependencies
+        run: lake exe cache get
+
+      - name: Check for placeholders
+        run: |
+          ! grep -nE '\b(sorry|admit)\b' FormalConjectures/ErdosProblems/Erdos7Obstructions.lean
+
+      - name: Compile obstruction kernel
+        shell: bash
+        run: |
+          set -o pipefail
+          lake env lean FormalConjectures/ErdosProblems/Erdos7Obstructions.lean 2>&1 | tee /tmp/erdos7-lean.log
+
+      - name: Axiom audit
+        shell: bash
+        run: |
+          cat > Erdos7AxiomAudit.lean <<'EOF'
+          import FormalConjectures.ErdosProblems.Erdos7Obstructions
+          #print axioms Erdos7Obstructions.block_excess_two
+          #print axioms Erdos7Obstructions.block_excess_one
+          #print axioms Erdos7Obstructions.profile_threshold
+          #print axioms Erdos7Obstructions.u315_capacity_arithmetic
+          #print axioms Erdos7Obstructions.u675_box_arithmetic
+          #print axioms Erdos7Obstructions.lcm_45045_gap
+          #print axioms Erdos7Obstructions.lcm_4729725_profile_gap
+          #print axioms Erdos7Obstructions.lcm_6081075_profile_gap
+          #print axioms Erdos7Obstructions.two_fiber_correction_363825
+          #print axioms Erdos7Obstructions.two_fiber_correction_467775
+          EOF
+          set -o pipefail
+          lake env lean Erdos7AxiomAudit.lean 2>&1 | tee /tmp/erdos7-axioms.log
+          ! grep -E 'sorryAx|propext|Classical.choice|Quot.sound' /tmp/erdos7-axioms.log
+
+      - name: Upload Lean diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erdos7-lean-logs
+          path: |
+            /tmp/erdos7-lean.log
+            /tmp/erdos7-axioms.log
