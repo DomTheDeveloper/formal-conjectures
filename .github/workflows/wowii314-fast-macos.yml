@@ -32,7 +32,7 @@ jobs:
       - name: Download Mathlib cache
         run: lake exe cache get
 
-      - name: Prepare exact minimal statement imports
+      - name: Prepare exact minimal statement import
         shell: bash
         run: |
           set -euo pipefail
@@ -65,21 +65,10 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           p = Path('WOWII/ZZGraphConjecture314Core.lean')
-          s = p.read_text()
-          s = s.replace(
+          s = p.read_text().replace(
               'import FormalConjectures.WrittenOnTheWallII.GraphConjecture314',
               'import WOWII.GraphConjecture314Statement', 1)
           p.write_text(s)
-
-          p = Path('WOWII/GraphConjecture143Proof.lean')
-          lines = p.read_text().splitlines()
-          assert lines[0] == 'import FormalConjectures.WrittenOnTheWallII.GraphConjecture143'
-          lines[:1] = [
-              'import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected',
-              'import Mathlib.Combinatorics.SimpleGraph.Acyclic',
-              'import Mathlib.Combinatorics.SimpleGraph.Subgraph',
-          ]
-          p.write_text('\n'.join(lines) + '\n')
           PY
 
       - name: Build exact domination definition
@@ -92,9 +81,9 @@ jobs:
           : > wowii314-fast-build.log
           files=(
             WOWII/GraphConjecture314Statement.lean
-            WOWII/GraphConjecture143Proof.lean
             WOWII/ZZGraphConjecture314Core.lean
             WOWII/ZZGraphConjecture314DominatingEdge.lean
+            WOWII/ZZGraphConjecture314PathTree.lean
             WOWII/ZZGraphConjecture314BipartiteCommon.lean
             WOWII/ZZGraphConjecture314ChainGraph.lean
             WOWII/ZZGraphConjecture314Cycle5.lean
