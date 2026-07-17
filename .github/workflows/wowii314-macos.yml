@@ -34,9 +34,12 @@ jobs:
         shell: bash
         run: lake exe cache get
 
-      - name: Build official theorem module
+      - name: Build official theorem modules
         shell: bash
-        run: lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture314
+        run: |
+          lake build \
+            FormalConjectures.WrittenOnTheWallII.GraphConjecture143 \
+            FormalConjectures.WrittenOnTheWallII.GraphConjecture314
 
       - name: Reject explicit holes
         shell: bash
