@@ -70,16 +70,21 @@ jobs:
             WOWII/ZZGraphConjecture314C5BlowupClassification.lean
             WOWII/ZZGraphConjecture314Final.lean
           )
+          mkdir -p .lake/build/lib/lean/WOWII
           for file in "${files[@]}"; do
+            module="${file%.lean}"
+            output=".lake/build/lib/lean/${module}.olean"
+            mkdir -p "$(dirname "$output")"
             echo "=== Checking $file ===" | tee -a wowii314-build.log
-            lake env lean "$file" 2>&1 | tee -a wowii314-build.log
+            lake env lean -o "$output" "$file" 2>&1 | tee -a wowii314-build.log
           done
 
       - name: Audit exact theorem and axioms
         shell: bash
         run: |
           set -euo pipefail
-          lake env lean WOWII/AuditGraphConjecture314.lean 2>&1 | tee wowii314-axioms.log
+          lake env lean -o /tmp/AuditGraphConjecture314.olean \
+            WOWII/AuditGraphConjecture314.lean 2>&1 | tee wowii314-axioms.log
           ! grep -q sorryAx wowii314-axioms.log
 
       - name: Upload transcripts
