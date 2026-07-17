@@ -34,12 +34,9 @@ jobs:
         shell: bash
         run: lake exe cache get
 
-      - name: Build official theorem modules
+      - name: Build official theorem module
         shell: bash
-        run: |
-          lake build \
-            FormalConjectures.WrittenOnTheWallII.GraphConjecture143 \
-            FormalConjectures.WrittenOnTheWallII.GraphConjecture314
+        run: lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture314
 
       - name: Reject explicit holes
         shell: bash
@@ -55,9 +52,9 @@ jobs:
           set -euo pipefail
           : > wowii314-build.log
           files=(
-            WOWII/GraphConjecture143Proof.lean
             WOWII/ZZGraphConjecture314Core.lean
             WOWII/ZZGraphConjecture314DominatingEdge.lean
+            WOWII/ZZGraphConjecture314PathTree.lean
             WOWII/ZZGraphConjecture314BipartiteCommon.lean
             WOWII/ZZGraphConjecture314ChainGraph.lean
             WOWII/ZZGraphConjecture314Cycle5.lean
