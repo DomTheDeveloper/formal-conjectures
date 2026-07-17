@@ -22,8 +22,8 @@ jobs:
         run: |
           git clone https://github.com/DomTheDeveloper/crl.git crl
           cd crl
-          git checkout 79a93fad89ea13676e0c718598304c9d327f76ff
-          test "$(git rev-parse HEAD)" = "79a93fad89ea13676e0c718598304c9d327f76ff"
+          git checkout 17ffe1b3834dce1b8d66c25b1814a10a91288365
+          test "$(git rev-parse HEAD)" = "17ffe1b3834dce1b8d66c25b1814a10a91288365"
       - name: Install elan
         run: |
           curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
