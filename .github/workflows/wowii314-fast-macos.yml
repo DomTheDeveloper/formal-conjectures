@@ -99,9 +99,13 @@ jobs:
             WOWII/ZZGraphConjecture314C5BlowupClassification.lean
             WOWII/ZZGraphConjecture314Final.lean
           )
+          mkdir -p .lake/build/lib/lean/WOWII
           for file in "${files[@]}"; do
+            module="${file%.lean}"
+            output=".lake/build/lib/lean/${module}.olean"
+            mkdir -p "$(dirname "$output")"
             echo "=== Checking $file ===" | tee -a wowii314-fast-build.log
-            lake env lean "$file" 2>&1 | tee -a wowii314-fast-build.log
+            lake env lean -o "$output" "$file" 2>&1 | tee -a wowii314-fast-build.log
           done
 
       - name: Upload diagnostic transcript
