@@ -28,7 +28,7 @@ weak convergence. This is a convenient specialization of the Portmanteau π-syst
 public section
 
 open Filter MeasureTheory Set
-open scoped Topology
+open scoped Topology NNReal
 
 namespace ProbabilityTheory
 
