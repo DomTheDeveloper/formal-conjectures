@@ -20,12 +20,11 @@ public import Mathlib.Probability.ProbabilityMassFunction.Binomial
 public import Mathlib.Probability.ProbabilityMassFunction.Integrals
 
 /-!
-# Finite binomial PMFs and their characteristic function
+# Finite binomial PMFs and their real-valued pushforwards
 
-Mathlib already defines the canonical binomial measures `Bin(n, p)` and `Bin(R, n, p)`, together
-with their probability-measure instances and finite-sum integral formula.  This file adds the finite
-`Fin (n + 1)` PMF alias used by the Bézier-law calculation, proves that its pushforward is the
-canonical measure, and records the characteristic function of the real-valued binomial measure.
+The pinned mathlib release supplies the finite binomial PMF on `Fin (n + 1)`.  This file packages
+its pushforwards to `ℕ` and `ℝ`, records their probability-measure instances, and proves the finite
+sum formulas needed for characteristic functions and moment-generating functions.
 -/
 
 public section
@@ -40,52 +39,69 @@ namespace ProbabilityTheory
 noncomputable def binomialPMF (n : ℕ) (p : I) : PMF (Fin (n + 1)) :=
   PMF.binomial (toNNReal p) (by simpa using p.2.2) n
 
-/-- The canonical binomial measure is the pushforward of the finite binomial PMF by `Fin.val`. -/
+/-- The binomial counting measure on `ℕ`. -/
+@[expose]
+noncomputable def binomialNatMeasure (n : ℕ) (p : I) : Measure ℕ :=
+  (binomialPMF n p).toMeasure.map (Fin.val : Fin (n + 1) → ℕ)
+
+instance isProbabilityMeasure_binomialNatMeasure (n : ℕ) (p : I) :
+    IsProbabilityMeasure (binomialNatMeasure n p) :=
+  Measure.isProbabilityMeasure_map Measurable.of_discrete.aemeasurable
+
+/-- The real-valued binomial measure. -/
+@[expose]
+noncomputable def binomialRealMeasure (n : ℕ) (p : I) : Measure ℝ :=
+  (binomialPMF n p).toMeasure.map (fun k : Fin (n + 1) ↦ (k : ℝ))
+
+instance isProbabilityMeasure_binomialRealMeasure (n : ℕ) (p : I) :
+    IsProbabilityMeasure (binomialRealMeasure n p) :=
+  Measure.isProbabilityMeasure_map Measurable.of_discrete.aemeasurable
+
+/-- The counting measure is exactly the pushforward of the finite PMF by `Fin.val`. -/
 lemma binomial_eq_binomialPMF_toMeasure_map_val (n : ℕ) (p : I) :
-    Bin(n, p) = (binomialPMF n p).toMeasure.map (Fin.val : Fin (n + 1) → ℕ) := by
-  refine ext_of_singleton fun k ↦ ?_
-  rw [binomial_singleton]
-  rw [Measure.map_apply (.of_discrete : Measurable (Fin.val : Fin (n + 1) → ℕ))
-    (measurableSet_singleton k)]
-  by_cases hk : k ≤ n
-  · let i : Fin (n + 1) := ⟨k, Nat.lt_succ_iff.mpr hk⟩
-    have hpre : (Fin.val : Fin (n + 1) → ℕ) ⁻¹' ({k} : Set ℕ) = {i} := by
-      ext j
-      simp only [Set.mem_preimage, Set.mem_singleton_iff]
-      constructor
-      · intro h
-        apply Fin.ext
-        simpa [i] using h
-      · intro h
-        subst j
-        simp [i]
-    rw [hpre, (binomialPMF n p).toMeasure_apply_singleton i (measurableSet_singleton i)]
-    have hi : (Fin.ofNat (n + 1) k : Fin (n + 1)) = i := by
-      apply Fin.ext
-      simp [i, Nat.mod_eq_of_lt (Nat.lt_succ_iff.mpr hk)]
-    simpa [binomialPMF, hi] using
-      (PMF.binomial_apply_of_le hk (by simpa using p.2.2))
-  · have hnk : n < k := Nat.lt_of_not_ge hk
-    have hpre : (Fin.val : Fin (n + 1) → ℕ) ⁻¹' ({k} : Set ℕ) = ∅ := by
-      ext i
-      simp only [Set.mem_preimage, Set.mem_singleton_iff, Set.not_mem_empty, iff_false]
-      intro hi
-      apply hk
-      have hik : k < n + 1 := by simpa [hi] using i.isLt
-      exact Nat.lt_succ_iff.mp hik
-    rw [hpre]
-    simp [Nat.choose_eq_zero_of_lt hnk]
+    binomialNatMeasure n p =
+      (binomialPMF n p).toMeasure.map (Fin.val : Fin (n + 1) → ℕ) := rfl
+
+lemma binomialPMF_apply_toReal (n : ℕ) (p : I) (k : Fin (n + 1)) :
+    ((binomialPMF n p) k).toReal =
+      (p : ℝ) ^ (k : ℕ) *
+        (1 - (p : ℝ)) ^ ((Fin.last n - k : Fin (n + 1)) : ℕ) *
+          (n.choose (k : ℕ) : ℝ) := by
+  rw [binomialPMF, PMF.binomial_apply]
+  have hq : ((1 : ℝ≥0∞) - (toNNReal p : ℝ≥0∞)).toReal = 1 - (p : ℝ) := by
+    rw [ENNReal.toReal_sub_of_le]
+    · simp
+    · simpa using p.2.2
+    · simp
+  simp [hq]
+
+lemma integral_binomialRealMeasure
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    (n : ℕ) (p : I) (f : ℝ → E) (hf : Continuous f) :
+    (∫ z, f z ∂binomialRealMeasure n p) =
+      ∑ k : Fin (n + 1), (binomialPMF n p k).toReal • f (k : ℝ) := by
+  rw [binomialRealMeasure, integral_map Measurable.of_discrete.aemeasurable hf.aemeasurable]
+  exact PMF.integral_eq_sum _ _
+
+lemma integrable_binomialRealMeasure
+    {E : Type*} [NormedAddCommGroup E]
+    (n : ℕ) (p : I) (f : ℝ → E) (hf : Continuous f) :
+    Integrable f (binomialRealMeasure n p) := by
+  rw [binomialRealMeasure,
+    integrable_map_measure hf.aemeasurable Measurable.of_discrete.aemeasurable]
+  exact .of_finite
 
 lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
-    charFun Bin(ℝ, n, p) t =
+    charFun (binomialRealMeasure n p) t =
       (((1 - (p : ℝ) : ℝ) : ℂ) + (p : ℂ) * exp (t * Complex.I)) ^ n := by
-  rw [charFun_apply_real, integral_map_cast_binomial]
-  rw [show Finset.Iic n = Finset.range (n + 1) by ext k; simp]
+  rw [charFun_apply_real,
+    integral_binomialRealMeasure n p _ (by fun_prop), Fin.sum_univ_eq_sum_range]
   simp only [RCLike.real_smul_eq_coe_mul]
   conv_rhs => rw [add_comm]
   rw [add_pow]
   apply Finset.sum_congr rfl
   intro k hk
+  rw [binomialPMF_apply_toReal]
   have hexp :
       exp ((t : ℂ) * (k : ℂ) * Complex.I) = exp ((t : ℂ) * Complex.I) ^ k := by
     calc
