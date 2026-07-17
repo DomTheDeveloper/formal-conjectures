@@ -1,0 +1,104 @@
+name: Push-only WOWII 314 kernel audit
+
+on:
+  push:
+    branches:
+      - audit/wowii314-push-only
+    paths:
+      - WOWII/**
+      - .github/workflows/wowii314-push-only.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wowii314-push-only
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out audit branch
+        uses: actions/checkout@v4
+
+      - name: Install Lean
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Download Mathlib cache
+        shell: bash
+        run: lake exe cache get
+
+      - name: Build exact official statement
+        shell: bash
+        run: lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture314
+
+      - name: Reject explicit proof holes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -InE '^[[:space:]]*(axiom|sorry|admit)([[:space:]]|$)|:= by[[:space:]]+(sorry|admit)([[:space:]]|$)|native_decide|^[[:space:]]*opaque[[:space:]]' WOWII/*.lean; then
+            exit 1
+          fi
+
+      - name: Compile exact proof modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > wowii314-build.log
+          files=(
+            WOWII/ZZGraphConjecture314Core.lean
+            WOWII/ZZGraphConjecture314DominatingEdge.lean
+            WOWII/ZZGraphConjecture314PathTree.lean
+            WOWII/ZZGraphConjecture314BipartiteCommon.lean
+            WOWII/ZZGraphConjecture314ChainGraph.lean
+            WOWII/ZZGraphConjecture314Cycle5.lean
+            WOWII/ZZGraphConjecture314Cycle5Blowup.lean
+            WOWII/ZZGraphConjecture314P5Bridge.lean
+            WOWII/ZZGraphConjecture314ConditionalFinal.lean
+            WOWII/ZZGraphConjecture314GeodesicP5.lean
+            WOWII/ZZGraphConjecture314BipartiteClassification.lean
+            WOWII/ZZGraphConjecture314CycleDichotomy.lean
+            WOWII/ZZGraphConjecture314C5Embedding.lean
+            WOWII/ZZGraphConjecture314C5Dominates.lean
+            WOWII/ZZGraphConjecture314C5Bags.lean
+            WOWII/ZZGraphConjecture314C5BlowupClassification.lean
+            WOWII/ZZGraphConjecture314Final.lean
+          )
+          mkdir -p .lake/build/lib/lean/WOWII
+          for file in "${files[@]}"; do
+            module="${file%.lean}"
+            output=".lake/build/lib/lean/${module}.olean"
+            mkdir -p "$(dirname "$output")"
+            echo "=== Checking $file ===" | tee -a wowii314-build.log
+            lake env lean -o "$output" "$file" 2>&1 | tee -a wowii314-build.log
+          done
+
+      - name: Verify theorem type and audit axioms
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake env lean -o /tmp/AuditGraphConjecture314.olean \
+            WOWII/AuditGraphConjecture314.lean 2>&1 | tee wowii314-axioms.log
+          if grep -q sorryAx wowii314-axioms.log; then
+            echo 'conjecture314_proved depends on sorryAx' >&2
+            exit 1
+          fi
+          grep -F conjecture314_proved wowii314-axioms.log
+
+      - name: Upload exact transcripts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wowii314-push-only-audit
+          path: |
+            wowii314-build.log
+            wowii314-axioms.log
+          if-no-files-found: warn
