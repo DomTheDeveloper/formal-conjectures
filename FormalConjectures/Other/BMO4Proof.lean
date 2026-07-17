@@ -3,7 +3,7 @@ import FormalConjectures.Util.ProblemImports
 namespace BeaverMathOlympiad
 
 @[category research solved, AMS 5 11 68]
-theorem bmo4_complete_test
+theorem beaver_math_olympiad_problem_4
     (a : ℕ → ℕ)
     (a_ini : a 0 = 2)
     (a_rec : ∀ n, a (n+1)
@@ -59,6 +59,6 @@ theorem bmo4_complete_test
   · omega
   · omega
 
-#print axioms bmo4_complete_test
+#print axioms beaver_math_olympiad_problem_4
 
 end BeaverMathOlympiad
