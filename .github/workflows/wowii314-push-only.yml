@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: wowii314-push-only
@@ -102,3 +102,24 @@ jobs:
             wowii314-build.log
             wowii314-axioms.log
           if-no-files-found: warn
+
+      - name: Persist exact audit result
+        if: always()
+        shell: bash
+        env:
+          AUDIT_STATUS: ${{ job.status }}
+        run: |
+          set -u
+          {
+            echo "status=${AUDIT_STATUS}"
+            echo "source_commit=${GITHUB_SHA}"
+            echo "--- build transcript ---"
+            cat wowii314-build.log 2>/dev/null || true
+            echo "--- axiom transcript ---"
+            cat wowii314-axioms.log 2>/dev/null || true
+          } > wowii314-push-result.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add wowii314-push-result.txt
+          git commit -m 'Record WOWII 314 audit result' || exit 0
+          git push
