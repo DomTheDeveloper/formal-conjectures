@@ -36,9 +36,9 @@ namespace ProbabilityTheory
 
 /-- Exact moment-generating function of the real-valued binomial law. -/
 lemma mgf_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
-    mgf id Bin(ℝ, n, p) t =
+    mgf id (binomialRealMeasure n p) t =
       ((1 - (p : ℝ)) + (p : ℝ) * exp t) ^ n := by
-  rw [mgf, integral_map_cast_binomial]
+  rw [mgf, integral_binomialRealMeasure n p _ (by fun_prop)]
   rw [show Finset.Iic n = Finset.range (n + 1) by ext k; simp]
   simp only [smul_eq_mul]
   conv_rhs => rw [add_comm]
@@ -82,7 +82,7 @@ lemma mgf_standardizedBinomialMeasure (n : ℕ) (p : I) (t : ℝ) :
     ring
   simp_rw [hsplit]
   rw [integral_mul_const]
-  change mgf id Bin(ℝ, n, p) a * exp (-(a * (n * (p : ℝ)))) =
+  change mgf id (binomialRealMeasure n p) a * exp (-(a * (n * (p : ℝ)))) =
     (mgf (standardizedBernoulli p) Ber((1 : ℝ), 0, p) s) ^ n
   rw [mgf_map_cast_binomial, mgf_standardizedBernoulli]
   have hfactor :
@@ -119,7 +119,7 @@ private lemma integrable_exp_mul_standardizedBinomialMeasure
     Integrable (fun z : ℝ ↦ exp (t * z)) (standardizedBinomialMeasure n p) := by
   rw [standardizedBinomialMeasure]
   rw [integrable_map_measure (by fun_prop) (continuous_standardizeBinomial n p).aemeasurable]
-  exact integrable_map_cast_binomial _
+  exact integrable_binomialRealMeasure n p _ (by fun_prop)
 
 /-- For positive `n`, standardized binomial laws have a sub-Gaussian parameter independent of
 `n`. -/
