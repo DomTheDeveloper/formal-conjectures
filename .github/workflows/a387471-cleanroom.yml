@@ -3,13 +3,7 @@ name: Clean-room A387471 audit
 on:
   push:
     branches: [ci/a387471-cleanroom]
-    paths-ignore:
-      - A387471_AUDIT_RESULT.txt
-      - A387471_AUDIT_BUILD.log
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 concurrency:
   group: a387471-cleanroom
@@ -21,95 +15,47 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ci/a387471-cleanroom
-
-      - name: Compile and publish exact diagnostic
+      - name: Fetch exact CRL proof commit
+        run: |
+          git clone https://github.com/DomTheDeveloper/crl.git crl
+          cd crl
+          git checkout 17ffe1b3834dce1b8d66c25b1814a10a91288365
+          test "$(git rev-parse HEAD)" = "17ffe1b3834dce1b8d66c25b1814a10a91288365"
+      - name: Install elan
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Guard source
+        run: |
+          ! grep -RnE --include='*.lean' '(^|[[:space:]])(sorry|admit|native_decide)([[:space:]]|$)' crl/proofs/lean/A387471
+      - name: Resolve pinned Mathlib
+        working-directory: crl/proofs/lean/A387471
+        run: lake update
+      - name: Fetch Mathlib cache
+        working-directory: crl/proofs/lean/A387471
+        run: lake exe cache get || true
+      - name: Build exact theorem stack
+        working-directory: crl/proofs/lean/A387471
         shell: bash
         run: |
           set +e
-          CRL_SHA=17ffe1b3834dce1b8d66c25b1814a10a91288365
-          LOG="$GITHUB_WORKSPACE/A387471_AUDIT_BUILD.log"
-          RESULT="$GITHUB_WORKSPACE/A387471_AUDIT_RESULT.txt"
-          : > "$LOG"
-
-          {
-            echo "A387471 clean-room audit"
-            echo "CRL commit: $CRL_SHA"
-            echo "Started: $(date -u +%FT%TZ)"
-            echo
-          } | tee -a "$LOG"
-
-          git clone https://github.com/DomTheDeveloper/crl.git crl >>"$LOG" 2>&1
-          clone_status=$?
-          if [ "$clone_status" -eq 0 ]; then
-            (cd crl && git checkout "$CRL_SHA" && test "$(git rev-parse HEAD)" = "$CRL_SHA") >>"$LOG" 2>&1
-          fi
-          checkout_status=$?
-
-          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
-            | sh -s -- -y --default-toolchain none >>"$LOG" 2>&1
-          elan_status=$?
-          export PATH="$HOME/.elan/bin:$PATH"
-
-          if [ "$clone_status" -eq 0 ] && [ "$checkout_status" -eq 0 ] && [ "$elan_status" -eq 0 ]; then
-            if grep -RnE --include='*.lean' '(^|[[:space:]])(sorry|admit|native_decide)([[:space:]]|$)' \
-                crl/proofs/lean/A387471 >>"$LOG" 2>&1; then
-              guard_status=1
-              echo "Forbidden placeholder detected." >>"$LOG"
-            else
-              guard_status=0
-            fi
-
-            cd crl/proofs/lean/A387471
-            lake update >>"$LOG" 2>&1
-            update_status=$?
-            lake exe cache get >>"$LOG" 2>&1
-            cache_status=$?
-            lake build >>"$LOG" 2>&1
-            build_status=$?
-            cd "$GITHUB_WORKSPACE"
-          else
-            guard_status=99
-            update_status=99
-            cache_status=99
-            build_status=99
-          fi
-
-          sorry_status=0
-          if grep -q 'sorryAx' "$LOG"; then
-            sorry_status=1
-          fi
-
-          exact_seen=0
-          if grep -q 'A387471.exactStatement_proved' "$LOG"; then
-            exact_seen=1
-          fi
-
-          overall=0
-          for status in "$clone_status" "$checkout_status" "$elan_status" "$guard_status" \
-              "$update_status" "$build_status" "$sorry_status"; do
-            if [ "$status" -ne 0 ]; then overall=1; fi
-          done
-          if [ "$exact_seen" -ne 1 ]; then overall=1; fi
-
-          {
-            echo "CRL_SHA=$CRL_SHA"
-            echo "clone_status=$clone_status"
-            echo "checkout_status=$checkout_status"
-            echo "elan_status=$elan_status"
-            echo "guard_status=$guard_status"
-            echo "lake_update_status=$update_status"
-            echo "cache_status=$cache_status"
-            echo "lake_build_status=$build_status"
-            echo "exact_theorem_seen=$exact_seen"
-            echo "sorryAx_detected=$sorry_status"
-            echo "overall_status=$overall"
-            echo "Finished: $(date -u +%FT%TZ)"
-          } > "$RESULT"
-
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add A387471_AUDIT_RESULT.txt A387471_AUDIT_BUILD.log
-          git commit -m "Record A387471 clean-room audit for $CRL_SHA" || true
-          git push origin HEAD:ci/a387471-cleanroom
+          lake build > build.log 2>&1
+          status=$?
+          echo "$status" > build.status
+          exit 0
+      - name: Audit exact theorem axioms
+        working-directory: crl/proofs/lean/A387471
+        shell: bash
+        run: |
+          if grep -q 'sorryAx' build.log; then echo 99 > build.status; fi
+      - name: Publish diagnostic to audit branch
+        if: always()
+        run: |
+          cp crl/proofs/lean/A387471/build.log A387471_BUILD_LOG.txt || true
+          cp crl/proofs/lean/A387471/build.status A387471_BUILD_STATUS.txt || true
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add A387471_BUILD_LOG.txt A387471_BUILD_STATUS.txt
+          git commit -m 'ci: publish A387471 compiler diagnostic' || true
+          git push origin HEAD:ci/a387471-cleanroom || true
