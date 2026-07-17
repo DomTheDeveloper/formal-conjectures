@@ -11,12 +11,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: wowii314-fast-macos-${{ github.ref }}
+  group: wowii314-fast-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   diagnostic:
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -112,6 +112,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wowii314-fast-macos
+          name: wowii314-fast-ubuntu
           path: wowii314-fast-build.log
           if-no-files-found: warn
