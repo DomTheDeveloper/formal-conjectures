@@ -41,7 +41,7 @@ permissions:
 jobs:
   verify:
     name: kernel-verify
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -56,7 +56,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ~/.cache/mathlib
-          key: voronovskaja-${{ runner.arch }}-${{ hashFiles('lake-manifest.json') }}
+          key: voronovskaja-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lake-manifest.json') }}
 
       - name: Fetch precompiled dependencies
         run: lake exe cache get
