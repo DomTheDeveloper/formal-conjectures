@@ -116,15 +116,20 @@ lemma cdf_gaussianReal_zero_one_neg (t : ℝ) :
     rw [← hmap, map_measureReal_apply measurable_neg measurableSet_Iic]
     congr 1
     ext z
-    simp
+    simp only [Set.mem_preimage, mem_Iic, mem_Ici, neg_le_neg_iff]
   have hIci_measure : μ (Ici t) = μ (Ioi t) := by
     have hset : Ici t = {t} ∪ Ioi t := by
       ext z
       simp only [mem_Ici, mem_union, mem_singleton_iff, mem_Ioi]
       simpa [eq_comm] using (le_iff_eq_or_lt : t ≤ z ↔ t = z ∨ t < z)
+    letI : NoAtoms μ := by
+      dsimp [μ]
+      exact noAtoms_gaussianReal (by norm_num)
     rw [hset, measure_union]
-    · simp [μ]
-    · exact disjoint_singleton_left.mpr (not_mem_Ioi_self)
+    · simp
+    · exact Set.disjoint_singleton_left.mpr (by
+        intro h
+        exact lt_irrefl t h)
     · exact measurableSet_Ioi
   have hIci : μ.real (Ici t) = μ.real (Ioi t) := by
     unfold Measure.real
