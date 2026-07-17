@@ -1,1 +1,1 @@
-Voronovskaja verification trigger after finite-binomial, powered-Gaussian, and CDF convergence repairs.
+Voronovskaja verification trigger after finite-binomial, powered-Gaussian, CDF convergence, and CI-isolation repairs.
