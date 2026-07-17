@@ -51,7 +51,7 @@ lemma continuous_standardizeBinomial (n : ℕ) (p : I) : Continuous (standardize
 /-- The centered, variance-one binomial law. -/
 @[expose]
 noncomputable def standardizedBinomialMeasure (n : ℕ) (p : I) : Measure ℝ :=
-  Bin(ℝ, n, p).map (standardizeBinomial n p)
+  (binomialRealMeasure n p).map (standardizeBinomial n p)
 
 instance isProbabilityMeasure_standardizedBinomialMeasure (n : ℕ) (p : I) :
     IsProbabilityMeasure (standardizedBinomialMeasure n p) :=
