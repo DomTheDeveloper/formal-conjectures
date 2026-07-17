@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 60
     steps:
       - name: Check out exact audit tree
@@ -83,7 +83,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          lake env lean -o /tmp/AuditGraphConjecture314.olean \
+          lake env lean -o "$RUNNER_TEMP/AuditGraphConjecture314.olean" \
             WOWII/AuditGraphConjecture314.lean 2>&1 | tee wowii314-axioms.log
           if grep -q sorryAx wowii314-axioms.log; then
             echo 'conjecture314_proved depends on sorryAx' >&2
