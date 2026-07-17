@@ -1,3 +1,3 @@
 Temporary bootstrap link for the A387471 audit:
 
-[Lean 4.27.0 source archive](https://codeload.github.com/leanprover/lean4/tar.gz/refs/tags/v4.27.0)
+[Lean 4.27.0 source archive](https://github.com/leanprover/lean4/archive/refs/tags/v4.27.0.tar.gz)
