@@ -103,6 +103,6 @@ lemma ProbabilityMeasure.tendsto_of_tendsto_cdf
       simpa using hreal
     · have hempty : Ioc a b = ∅ := Ioc_eq_empty (fun hlt ↦ hab hlt.le)
       simpa [hempty] using
-        (tendsto_const_nhds : Tendsto (fun _ : ι ↦ (0 : ℝ≥0)) l (𝓝 0))
+        (tendsto_const_nhds : Tendsto (fun _ : ι ↦ (0 : ℝ≥0)) l (𝓝 (0 : ℝ≥0)))
 
 end ProbabilityTheory
