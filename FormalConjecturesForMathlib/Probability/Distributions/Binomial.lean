@@ -100,14 +100,13 @@ lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
     charFun (binomialRealMeasure n p) t =
       (((1 - (p : ℝ) : ℝ) : ℂ) + (p : ℂ) * exp (t * Complex.I)) ^ n := by
   rw [charFun_apply_real,
-    integral_binomialRealMeasure n p _ (by fun_prop)]
-  rw [Fin.sum_univ_eq_sum_range]
+    integral_binomialRealMeasure n p _ (by fun_prop), Finset.sum_fin_eq_sum_range]
   simp only [RCLike.real_smul_eq_coe_mul]
   conv_rhs => rw [add_comm]
   rw [add_pow]
   apply Finset.sum_congr rfl
   intro k hk
-  rw [binomialPMF_apply_toReal]
+  rw [dif_pos (Finset.mem_range.mp hk), binomialPMF_apply_toReal]
   have hexp :
       exp ((t : ℂ) * (k : ℂ) * Complex.I) = exp ((t : ℂ) * Complex.I) ^ k := by
     calc
