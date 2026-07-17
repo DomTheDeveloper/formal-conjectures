@@ -1,0 +1,141 @@
+# Copyright 2026 The Formal Conjectures Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Push-only Voronovskaja kernel audit
+
+on:
+  push:
+    branches:
+      - audit/voronovskaja-push
+
+permissions:
+  contents: write
+
+concurrency:
+  group: voronovskaja-push-audit
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up pinned Lean and Mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-github-cache: false
+          use-mathlib-cache: true
+
+      - name: Compile theorem and audit axioms
+        id: verify
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          : > /tmp/voronovskaja-kernel.log
+
+          if grep -R -nE '(^|[^[:alnum:]_])(sorry|admit)([^[:alnum:]_]|$)|^[[:space:]]*axiom[[:space:]]' \
+              FormalConjectures/Paper/Voronovskaja*.lean \
+              FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean \
+              FormalConjecturesForMathlib/Probability/CDFConvergence.lean \
+              FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean \
+              FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean \
+              FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomial*.lean \
+              FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean \
+              FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomial*.lean \
+              FormalConjecturesForMathlib/Order/Filter/ENNReal.lean \
+              FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean \
+              FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean \
+              2>&1 | tee -a /tmp/voronovskaja-kernel.log; then
+            echo 'Proof placeholder or custom axiom declaration detected.' | tee -a /tmp/voronovskaja-kernel.log
+            exit 1
+          fi
+
+          lake build FormalConjectures.Paper.VoronovskajaTypeFormula \
+            2>&1 | tee -a /tmp/voronovskaja-kernel.log
+
+          cat > /tmp/VoronovskajaAxioms.lean <<'EOF'
+          import FormalConjectures.Paper.VoronovskajaTypeFormula
+          #print axioms VoronovskajaTypeFormula.voronovskaja_theorem.bernstein_operators
+          #print axioms VoronovskajaTypeFormula.voronovskaja_theorem.bezier_bernstein_operators
+          #print axioms VoronovskajaTypeFormula.tendsto_bezierBernstein_all
+          #print axioms VoronovskajaTypeFormula.tendsto_classical_bezierBernstein_all
+          EOF
+          lake env lean /tmp/VoronovskajaAxioms.lean \
+            2>&1 | tee -a /tmp/voronovskaja-kernel.log
+
+          if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce' /tmp/voronovskaja-kernel.log; then
+            echo 'Disallowed axiom detected.' | tee -a /tmp/voronovskaja-kernel.log
+            exit 1
+          fi
+
+      - name: Replay compiled environment through kernel checker
+        id: checker
+        if: steps.verify.outcome == 'success'
+        continue-on-error: true
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          leanchecker: true
+          use-github-cache: false
+          use-mathlib-cache: false
+
+      - name: Publish audit status and log
+        if: always()
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+          CHECKER_OUTCOME: ${{ steps.checker.outcome }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -e
+          mkdir -p /tmp/voronovskaja-result
+          cd /tmp/voronovskaja-result
+          git init
+          git checkout --orphan result
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          {
+            echo "source_sha=${SOURCE_SHA}"
+            echo "verify_outcome=${VERIFY_OUTCOME}"
+            echo "leanchecker_outcome=${CHECKER_OUTCOME}"
+            echo "published_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > status.txt
+          if [[ -f /tmp/voronovskaja-kernel.log ]]; then
+            cp /tmp/voronovskaja-kernel.log lean.log
+          else
+            echo 'Verification did not reach the logging step.' > lean.log
+          fi
+          git add status.txt lean.log
+          git commit -m "Publish Voronovskaja kernel audit ${SOURCE_SHA}"
+          git push --force \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            HEAD:refs/heads/audit/voronovskaja-result
+
+      - name: Enforce verification result
+        if: always()
+        shell: bash
+        env:
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+          CHECKER_OUTCOME: ${{ steps.checker.outcome }}
+        run: |
+          [[ "${VERIFY_OUTCOME}" == 'success' ]]
+          [[ "${CHECKER_OUTCOME}" == 'success' ]]
