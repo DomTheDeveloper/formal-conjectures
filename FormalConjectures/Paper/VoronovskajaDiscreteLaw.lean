@@ -15,6 +15,11 @@ limitations under the License.
 -/
 module
 
+public import FormalConjectures.Paper.VoronovskajaProof
+public import FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialLimit
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
+
 /-!
 # The discrete probability law of Bézier--Bernstein weights
 
@@ -23,11 +28,6 @@ after centering and normalization, their law is exactly the powered-survival tra
 standardized binomial law. This is the discrete bridge between the operator formula and the
 probability-limit infrastructure.
 -/
-
-import FormalConjectures.Paper.VoronovskajaProof
-import FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialLimit
-import Mathlib.Probability.ProbabilityMassFunction.Constructions
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
 
 open Topology Filter Real unitInterval Polynomial
 open MeasureTheory ProbabilityTheory
@@ -157,15 +157,11 @@ private theorem standardizedBinomialMeasure_eq_pmf_map
     standardizedBinomialMeasure n x =
       ((binomialPMF n x).map
         (fun k => standardizeBinomial n x ((k : ℕ) : ℝ))).toMeasure := by
-  have hval : Measurable (Fin.val : Fin (n + 1) → ℕ) := .of_discrete
-  have hcast : Measurable (Nat.cast : ℕ → ℝ) := .of_discrete
+  have hcast : Measurable (fun k : Fin (n + 1) ↦ (k : ℝ)) := .of_discrete
   have hstd : Measurable (standardizeBinomial n x) :=
     (continuous_standardizeBinomial n x).measurable
-  rw [standardizedBinomialMeasure]
-  change ((Bin(n, x).map (Nat.cast : ℕ → ℝ)).map (standardizeBinomial n x)) = _
-  rw [binomial_eq_binomialPMF_toMeasure_map_val]
+  rw [standardizedBinomialMeasure, binomialRealMeasure]
   rw [Measure.map_map hstd hcast]
-  rw [Measure.map_map (hstd.comp hcast) hval]
   simpa [Function.comp_def] using
     (PMF.toMeasure_map (p := binomialPMF n x)
       (f := fun k : Fin (n + 1) =>
