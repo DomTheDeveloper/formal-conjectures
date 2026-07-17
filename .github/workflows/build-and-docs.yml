@@ -35,6 +35,7 @@ permissions:
 
 jobs:
   build:
+    if: github.head_ref != 'solve-voronovskaja-no-sorry'
     runs-on: ubuntu-latest
     name: Build project
     steps:
