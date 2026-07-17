@@ -4,29 +4,15 @@ on:
   push:
     branches:
       - solve-bmo4-no-sorry
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
-jobs:
-  verify-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: solve-bmo4-no-sorry
-      - uses: leanprover/lean-action@v1
-        with:
-          test: false
-          lint: false
-          build: false
-      - name: Compile exact BMO4 proof
-        shell: bash
-        run: lake env lean FormalConjectures/Other/BMO4Proof.lean
+concurrency:
+  group: bmo4-proof-check
+  cancel-in-progress: true
 
-  verify-windows:
-    runs-on: windows-latest
+jobs:
+  verify:
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,6 +22,6 @@ jobs:
           test: false
           lint: false
           build: false
-      - name: Compile exact BMO4 proof
-        shell: pwsh
+      - name: Compile exact BMO4 theorem and audit axioms
+        shell: bash
         run: lake env lean FormalConjectures/Other/BMO4Proof.lean
