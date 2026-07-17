@@ -73,7 +73,11 @@ lemma binomialPMF_apply_toReal (n : ℕ) (p : I) (k : Fin (n + 1)) :
     · simp
     · simpa using p.2.2
     · simp
-  simp [hq]
+  have hlast :
+      ((Fin.last n - k : Fin (n + 1)) : ℕ) = n - (k : ℕ) := by
+    rw [Fin.val_sub, Fin.val_last]
+    omega
+  simp [hq, hlast]
 
 lemma integral_binomialRealMeasure
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
@@ -96,7 +100,10 @@ lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
     charFun (binomialRealMeasure n p) t =
       (((1 - (p : ℝ) : ℝ) : ℂ) + (p : ℂ) * exp (t * Complex.I)) ^ n := by
   rw [charFun_apply_real,
-    integral_binomialRealMeasure n p _ (by fun_prop), Fin.sum_univ_eq_sum_range]
+    integral_binomialRealMeasure n p _ (by fun_prop)]
+  rw [Fin.sum_univ_eq_sum_range (fun k : Fin (n + 1) ↦
+    (binomialPMF n p k).toReal •
+      exp ((t : ℂ) * ((k : ℝ) : ℂ) * Complex.I))]
   simp only [RCLike.real_smul_eq_coe_mul]
   conv_rhs => rw [add_comm]
   rw [add_pow]
