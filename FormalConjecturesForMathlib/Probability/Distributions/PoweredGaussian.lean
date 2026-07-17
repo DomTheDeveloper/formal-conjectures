@@ -116,7 +116,6 @@ lemma cdf_gaussianReal_zero_one_neg (t : ℝ) :
     rw [← hmap, map_measureReal_apply measurable_neg measurableSet_Iic]
     congr 1
     ext z
-    simp only [Set.mem_preimage, mem_Iic, mem_Ici, neg_le_neg_iff]
   have hIci_measure : μ (Ici t) = μ (Ioi t) := by
     have hset : Ici t = {t} ∪ Ioi t := by
       ext z
