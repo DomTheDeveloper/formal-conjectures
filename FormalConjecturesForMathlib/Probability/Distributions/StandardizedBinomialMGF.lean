@@ -39,12 +39,13 @@ lemma mgf_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
     mgf id (binomialRealMeasure n p) t =
       ((1 - (p : ℝ)) + (p : ℝ) * exp t) ^ n := by
   rw [mgf, integral_binomialRealMeasure n p _ (by fun_prop)]
-  rw [show Finset.Iic n = Finset.range (n + 1) by ext k; simp]
+  rw [Fin.sum_univ_eq_sum_range]
   simp only [smul_eq_mul]
   conv_rhs => rw [add_comm]
   rw [add_pow]
   apply Finset.sum_congr rfl
   intro k hk
+  rw [binomialPMF_apply_toReal]
   have hexp : exp (t * (k : ℝ)) = exp t ^ k := by
     calc
       exp (t * (k : ℝ)) = exp ((k : ℝ) * t) := by congr 1 <;> ring
