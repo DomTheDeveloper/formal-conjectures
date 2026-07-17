@@ -13,7 +13,6 @@
 # limitations under the License.
 
 name: Voronovskaja proof verification
-# Re-run after reopening the draft proof PR.
 
 on:
   pull_request:
@@ -40,13 +39,9 @@ permissions:
   contents: read
 
 jobs:
-  diagnose:
-    name: diagnose-${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        runner: [ubuntu-slim, ubuntu-24.04-arm]
-    runs-on: ${{ matrix.runner }}
+  verify:
+    name: kernel-verify
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -85,48 +80,13 @@ jobs:
             exit 1
           fi
 
-      - name: Compile complete proof chain
+      - name: Compile exact theorem and dependencies
         shell: bash
         run: |
           set -o pipefail
-          lake build \
-            FormalConjecturesForMathlib.MeasureTheory.Measure.CharacteristicFunction.TaylorExpansion \
-            FormalConjecturesForMathlib.Order.Filter.ENNReal \
-            FormalConjecturesForMathlib.MeasureTheory.Measure.LevyConvergence \
-            FormalConjecturesForMathlib.Probability.CentralLimitTheorem \
-            FormalConjecturesForMathlib.Probability.Distributions.Bernoulli \
-            FormalConjecturesForMathlib.Probability.Distributions.Binomial \
-            FormalConjecturesForMathlib.Probability.Distributions.StandardizedBinomial \
-            FormalConjecturesForMathlib.Probability.Distributions.StandardizedBinomialTails \
-            FormalConjecturesForMathlib.Probability.Distributions.StandardizedBinomialMGF \
-            FormalConjecturesForMathlib.Probability.CDFConvergence \
-            FormalConjecturesForMathlib.Probability.Distributions.PoweredGaussian \
-            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialLimit \
-            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialTails \
-            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialMoments \
-            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialTailIntegrability \
-            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialSecondMoment \
-            FormalConjectures.Paper.VoronovskajaDefinitions \
-            FormalConjectures.Paper.VoronovskajaProof \
-            FormalConjectures.Paper.VoronovskajaAffine \
-            FormalConjectures.Paper.VoronovskajaEndpoints \
-            FormalConjectures.Paper.VoronovskajaDiscreteLaw \
-            FormalConjectures.Paper.VoronovskajaExpectation \
-            FormalConjectures.Paper.VoronovskajaMomentLimit \
-            FormalConjectures.Paper.VoronovskajaSecondMomentExpectation \
-            FormalConjectures.Paper.VoronovskajaSecondMoment \
-            FormalConjectures.Paper.VoronovskajaTaylorBound \
-            FormalConjectures.Paper.VoronovskajaRemainder \
-            FormalConjectures.Paper.VoronovskajaMain \
-            FormalConjectures.Paper.VoronovskajaClassicalMoments \
-            FormalConjectures.Paper.VoronovskajaClassicalTaylor \
-            FormalConjectures.Paper.VoronovskajaClassicalConcentration \
-            FormalConjectures.Paper.VoronovskajaClassicalRemainder \
-            FormalConjectures.Paper.VoronovskajaClassicalMain \
-            FormalConjectures.Paper.VoronovskajaTypeFormula \
-            2>&1 | tee /tmp/lean.log
+          lake build FormalConjectures.Paper.VoronovskajaTypeFormula 2>&1 | tee /tmp/lean.log
 
-      - name: Axiom audit
+      - name: Kernel axiom audit
         shell: bash
         run: |
           cat > /tmp/VoronovskajaAxioms.lean <<'EOF'
@@ -137,10 +97,14 @@ jobs:
           #print axioms VoronovskajaTypeFormula.tendsto_classical_bezierBernstein_all
           EOF
           lake env lean /tmp/VoronovskajaAxioms.lean | tee -a /tmp/lean.log
+          if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce' /tmp/lean.log; then
+            echo 'Disallowed axiom detected.' >&2
+            exit 1
+          fi
 
       - name: Upload Lean diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: voronovskaja-lean-log-${{ matrix.runner }}
+          name: voronovskaja-kernel-verification-log
           path: /tmp/lean.log
