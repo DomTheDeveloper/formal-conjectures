@@ -2,6 +2,7 @@ import FormalConjectures.Util.ProblemImports
 
 namespace BeaverMathOlympiad
 
+/-- Complete proof of the exact Formal Conjectures statement for BMO #4. -/
 @[category research solved, AMS 5 11 68]
 theorem beaver_math_olympiad_problem_4
     (a : ℕ → ℕ)
