@@ -13,6 +13,9 @@ concurrency:
   group: bmo4-proof-check
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   verify:
     runs-on: macos-latest
@@ -25,6 +28,43 @@ jobs:
           test: false
           lint: false
           build: false
-      - name: Compile exact BMO4 theorem and audit axioms
+      - name: Compile standalone exact theorem
         shell: bash
         run: lake env lean FormalConjectures/Other/BMO4Proof.lean
+      - name: Install proof into original theorem
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          proof_path = Path('FormalConjectures/Other/BMO4Proof.lean')
+          target_path = Path('FormalConjectures/Other/BeaverMathOlympiad.lean')
+          proof = proof_path.read_text()
+          target = target_path.read_text()
+
+          proof_body = proof.split(':= by\n', 1)[1].split('\n\n#print axioms', 1)[0]
+          marker = 'theorem beaver_math_olympiad_problem_4'
+          theorem_start = target.index(marker)
+          body_start = target.index(':= by\n', theorem_start) + len(':= by\n')
+          body_end = target.index('\n\n/--', body_start)
+          assert target[body_start:body_end].strip() == 'sorry'
+          target_path.write_text(target[:body_start] + proof_body + target[body_end:])
+          PY
+      - name: Compile original BMO file and audit exact theorem
+        shell: bash
+        run: |
+          lake env lean FormalConjectures/Other/BeaverMathOlympiad.lean
+          cat > BMO4AxiomAudit.lean <<'EOF'
+          import FormalConjectures.Other.BeaverMathOlympiad
+          #print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_4
+          EOF
+          lake env lean BMO4AxiomAudit.lean | tee BMO4_AXIOMS.txt
+          ! grep -q sorryAx BMO4_AXIOMS.txt
+      - name: Commit exact source proof
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add FormalConjectures/Other/BeaverMathOlympiad.lean BMO4_AXIOMS.txt
+          git commit -m 'Prove Beaver Math Olympiad problem 4 exactly [skip ci]'
+          git push
