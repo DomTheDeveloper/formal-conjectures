@@ -101,9 +101,7 @@ lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
       (((1 - (p : ℝ) : ℝ) : ℂ) + (p : ℂ) * exp (t * Complex.I)) ^ n := by
   rw [charFun_apply_real,
     integral_binomialRealMeasure n p _ (by fun_prop)]
-  rw [Fin.sum_univ_eq_sum_range (fun k : Fin (n + 1) ↦
-    (binomialPMF n p k).toReal •
-      exp ((t : ℂ) * ((k : ℝ) : ℂ) * Complex.I))]
+  rw [Fin.sum_univ_eq_sum_range]
   simp only [RCLike.real_smul_eq_coe_mul]
   conv_rhs => rw [add_comm]
   rw [add_pow]
