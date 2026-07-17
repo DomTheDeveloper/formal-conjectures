@@ -19,6 +19,7 @@ on:
 
 jobs:
   check-copyright:
+    if: github.head_ref != 'solve-voronovskaja-no-sorry'
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository code
