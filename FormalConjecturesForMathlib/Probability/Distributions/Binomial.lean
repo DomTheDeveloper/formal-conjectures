@@ -80,7 +80,8 @@ lemma integral_binomialRealMeasure
     (n : ℕ) (p : I) (f : ℝ → E) (hf : Continuous f) :
     (∫ z, f z ∂binomialRealMeasure n p) =
       ∑ k : Fin (n + 1), (binomialPMF n p k).toReal • f (k : ℝ) := by
-  rw [binomialRealMeasure, integral_map Measurable.of_discrete.aemeasurable hf.aemeasurable]
+  rw [binomialRealMeasure,
+    integral_map Measurable.of_discrete.aemeasurable hf.aestronglyMeasurable]
   exact PMF.integral_eq_sum _ _
 
 lemma integrable_binomialRealMeasure
@@ -88,7 +89,7 @@ lemma integrable_binomialRealMeasure
     (n : ℕ) (p : I) (f : ℝ → E) (hf : Continuous f) :
     Integrable f (binomialRealMeasure n p) := by
   rw [binomialRealMeasure,
-    integrable_map_measure hf.aemeasurable Measurable.of_discrete.aemeasurable]
+    integrable_map_measure hf.aestronglyMeasurable Measurable.of_discrete.aemeasurable]
   exact .of_finite
 
 lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
