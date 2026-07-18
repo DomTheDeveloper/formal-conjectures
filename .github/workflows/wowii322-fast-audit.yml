@@ -6,10 +6,12 @@ on:
       - audit/wowii322-fast-only
     paths:
       - FormalConjectures/WrittenOnTheWallII/GraphConjecture322.lean
+      - scripts/check_wowii322_small.py
       - .github/workflows/wowii322-fast-audit.yml
   pull_request:
     paths:
       - FormalConjectures/WrittenOnTheWallII/GraphConjecture322.lean
+      - scripts/check_wowii322_small.py
       - .github/workflows/wowii322-fast-audit.yml
       - .github/workflows/build-and-docs.yml
       - .github/workflows/check_copyright_header.yml
@@ -29,6 +31,9 @@ jobs:
     steps:
       - name: Check out exact audit tree
         uses: actions/checkout@v4
+
+      - name: Independently enumerate small graph cases
+        run: python3 scripts/check_wowii322_small.py
 
       - name: Install pinned Lean
         shell: bash
