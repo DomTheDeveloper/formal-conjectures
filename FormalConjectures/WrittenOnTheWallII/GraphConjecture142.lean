@@ -15,6 +15,7 @@ limitations under the License.
 -/
 
 import FormalConjecturesUtil
+import FormalConjecturesForMathlib.WrittenOnTheWallII.GraphConjecture142Proof
 
 /-!
 # Written on the Wall II - Conjecture 142
@@ -39,11 +40,11 @@ is the length of the shortest cycle ($0$ if acyclic), $B$ is the set of
 boundary vertices (those of maximum eccentricity), and $\mathrm{ecc}(B)$ is
 the eccentricity of the set $B$.
 -/
-@[category research open, AMS 5]
+@[category research solved, AMS 5]
 theorem conjecture142 (G : SimpleGraph α) [DecidableRel G.Adj] (h : G.Connected) :
     let B : Set α := (maxEccentricityVertices G : Set α)
     (2 : ℝ) / 3 * (G.girth : ℝ) + (eccSet G B : ℝ) ≤ (largestInducedTreeSize G : ℝ) := by
-  sorry
+  exact FormalProofs.WrittenOnTheWallII.GraphConjecture142.conjecture142 G h
 
 -- Sanity checks
 
