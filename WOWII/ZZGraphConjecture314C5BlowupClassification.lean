@@ -16,6 +16,7 @@ variable {α : Type*} [Fintype α] [DecidableEq α] [Nontrivial α]
 lemma fin5_common_neighbor_of_not_adj :
     ∀ i j : Fin 5, ¬(cycleGraph 5).Adj i j →
       ∃ k : Fin 5, (cycleGraph 5).Adj i k ∧ (cycleGraph 5).Adj j k := by
+  simp only [cycleGraph_adj]
   decide
 
 /-- Finite index certificate for the induced-`P₅` created by a missing edge
@@ -39,6 +40,7 @@ lemma fin5_missing_blowup_edge_pattern :
         ¬(cycleGraph 5).Adj j b ∧
         a ≠ b ∧ a ≠ d ∧ b ≠ d ∧
         i ≠ d ∧ j ≠ a := by
+  simp only [cycleGraph_adj]
   decide
 
 /-- An indexed induced five-cycle forces the complete `C₅`-blow-up
