@@ -26,6 +26,7 @@ lemma fin5_existsUnique_neighbor_pattern
     (hind : ∀ i j, (cycleGraph 5).Adj i j → ¬(P i = true ∧ P j = true))
     (htwo : ∀ i, P i = true → ∃ j, j ≠ i ∧ P j = true) :
     ∃! k : Fin 5, ∀ j : Fin 5, P j = true ↔ (cycleGraph 5).Adj k j := by
+  simp only [cycleGraph_adj] at hind ⊢
   revert P
   decide
 
@@ -61,20 +62,28 @@ lemma exists_second_cycle_neighbor
     have hmX : G.Adj x (c (k - 1)) := by simpa [hxk] using cycle_adj_minus hc k
     have hpi : k + 1 = i := honly (k + 1) hpX
     have hmi : k - 1 = i := honly (k - 1) hmX
-    have : k + 1 = k - 1 := hpi.trans hmi.symm
-    fin_cases k <;> simp_all
+    have hEq : k + 1 = k - 1 := hpi.trans hmi.symm
+    have hne : (k + 1 : Fin 5) ≠ k - 1 := by
+      fin_cases k <;> decide
+    exact hne hEq
   have hx1 : ¬G.Adj x (c (i + 1)) := by
     intro h1
-    have := honly (i + 1) h1
-    fin_cases i <;> simp_all
+    have hEq := honly (i + 1) h1
+    have hne : (i + 1 : Fin 5) ≠ i := by
+      fin_cases i <;> decide
+    exact hne hEq
   have hx2 : ¬G.Adj x (c (i + 2)) := by
     intro h2
-    have := honly (i + 2) h2
-    fin_cases i <;> simp_all
+    have hEq := honly (i + 2) h2
+    have hne : (i + 2 : Fin 5) ≠ i := by
+      fin_cases i <;> decide
+    exact hne hEq
   have hx3 : ¬G.Adj x (c (i + 3)) := by
     intro h3
-    have := honly (i + 3) h3
-    fin_cases i <;> simp_all
+    have hEq := honly (i + 3) h3
+    have hne : (i + 3 : Fin 5) ≠ i := by
+      fin_cases i <;> decide
+    exact hne hEq
   have hc02 : ¬G.Adj (c i) (c (i + 2)) := by
     rw [hc.2 i (i + 2)]
     fin_cases i <;> decide
