@@ -38,7 +38,7 @@ If `R >= 2`, then
 
 If `R=1`, some vertex is at distance at most two from every vertex of `G`, so `rad(G) <= 2` and `D <= 4`.
 
-- If `E <= 2`, then `2E <= 4 <= T(G)` (the small-diameter cases are immediate from a geodesic).
+- If `E <= 2`, then `T(G) >= D+1 >= E+2 >= 2E`, where the last inequality uses `E <= 2`.
 - If `E=3`, then necessarily `D=4`, and the diameter-four lemma gives `T(G) >= 6 = 2E`.
 
 Therefore `2E <= T(G)R`.
@@ -55,4 +55,4 @@ Suppose `L=1`, and choose a vertex `c` attaining the minimum. The neighbors of `
 
 Every non-neighbor `y` of `c` is therefore at distance exactly two from `c`: if a shortest `y-c` path had length at least three, its first two vertices would both be non-neighbors of `c` but adjacent in `G`, a contradiction. Hence `ecc_G(c) <= 2`, so `D <= 4`.
 
-As above, `E <= 2` gives `T(G) >= 2E`, while `E=3` forces `D=4` and the diameter-four lemma gives `T(G) >= 6=2E`. Since `L=1`, this is exactly `2E <= T(G)L`.
+As above, if `E <= 2`, then `T(G) >= D+1 >= E+2 >= 2E`; if `E=3`, then `D=4` and the diameter-four lemma gives `T(G) >= 6=2E`. Since `L=1`, this is exactly `2E <= T(G)L`.
