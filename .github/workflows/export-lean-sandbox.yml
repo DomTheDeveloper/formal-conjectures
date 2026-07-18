@@ -3,6 +3,8 @@ name: Export Lean sandbox
 on:
   push:
     branches: [lean-sandbox-bootstrap]
+  pull_request:
+    branches: [attack-fresh-formal-conjectures]
   workflow_dispatch:
 
 permissions:
