@@ -18,7 +18,11 @@ concurrency:
 
 jobs:
   audit:
-    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest, macos-15]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
       - name: Check out exact audit tree
@@ -72,7 +76,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wowii322-fast-audit
+          name: wowii322-fast-audit-${{ matrix.os }}
           path: |
             wowii322-build.log
             wowii322-axioms.log
