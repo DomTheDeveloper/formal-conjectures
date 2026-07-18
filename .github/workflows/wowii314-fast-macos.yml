@@ -28,6 +28,9 @@ jobs:
       - name: Check out exact audit tree
         uses: actions/checkout@v4
 
+      - name: Independently cross-check finite C5 certificates
+        run: python3 WOWII/check314_finite.py
+
       - name: Install pinned Lean
         shell: bash
         run: |
