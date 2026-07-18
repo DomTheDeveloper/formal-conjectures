@@ -1,0 +1,79 @@
+name: Exact WOWII 322 fast audit
+
+on:
+  pull_request:
+    paths:
+      - FormalConjectures/WrittenOnTheWallII/GraphConjecture322.lean
+      - .github/workflows/wowii322-fast-audit.yml
+      - .github/workflows/build-and-docs.yml
+      - .github/workflows/check_copyright_header.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: exact-wowii322-fast-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out exact audit tree
+        uses: actions/checkout@v4
+
+      - name: Install pinned Lean
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Download Mathlib cache
+        shell: bash
+        run: lake exe cache get
+
+      - name: Compile exact theorem module
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture322 2>&1 \
+            | tee wowii322-build.log
+
+      - name: Reject proof holes
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=FormalConjectures/WrittenOnTheWallII/GraphConjecture322.lean
+          if grep -InE '^[[:space:]]*(axiom|sorry|admit)([[:space:]]|$)|:= by[[:space:]]+(sorry|admit)([[:space:]]|$)|native_decide|^[[:space:]]*opaque[[:space:]]' "$file"; then
+            exit 1
+          fi
+
+      - name: Audit exact theorem axioms
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > AuditWOWII322.lean <<'EOF'
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture322
+          #check WrittenOnTheWallII.GraphConjecture322.conjecture322
+          #print axioms WrittenOnTheWallII.GraphConjecture322.conjecture322
+          EOF
+          lake env lean AuditWOWII322.lean 2>&1 | tee wowii322-axioms.log
+          if grep -q sorryAx wowii322-axioms.log; then
+            echo 'conjecture322 depends on sorryAx' >&2
+            exit 1
+          fi
+          grep -F 'WrittenOnTheWallII.GraphConjecture322.conjecture322' wowii322-axioms.log
+
+      - name: Upload exact transcripts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wowii322-fast-audit
+          path: |
+            wowii322-build.log
+            wowii322-axioms.log
+          if-no-files-found: warn
