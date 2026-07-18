@@ -61,20 +61,20 @@ lemma exists_second_cycle_neighbor
     have hmX : G.Adj x (c (k - 1)) := by simpa [hxk] using cycle_adj_minus hc k
     have hpi : k + 1 = i := honly (k + 1) hpX
     have hmi : k - 1 = i := honly (k - 1) hmX
-    have : k + 1 = k - 1 := hpi.trans hmi.symm
-    fin_cases k <;> simp_all
+    have heq : k + 1 = k - 1 := hpi.trans hmi.symm
+    exact (by fin_cases k <;> decide : (k + 1 : Fin 5) ≠ k - 1) heq
   have hx1 : ¬G.Adj x (c (i + 1)) := by
     intro h1
-    have := honly (i + 1) h1
-    fin_cases i <;> simp_all
+    have heq : i + 1 = i := honly (i + 1) h1
+    exact (by fin_cases i <;> decide : (i + 1 : Fin 5) ≠ i) heq
   have hx2 : ¬G.Adj x (c (i + 2)) := by
     intro h2
-    have := honly (i + 2) h2
-    fin_cases i <;> simp_all
+    have heq : i + 2 = i := honly (i + 2) h2
+    exact (by fin_cases i <;> decide : (i + 2 : Fin 5) ≠ i) heq
   have hx3 : ¬G.Adj x (c (i + 3)) := by
     intro h3
-    have := honly (i + 3) h3
-    fin_cases i <;> simp_all
+    have heq : i + 3 = i := honly (i + 3) h3
+    exact (by fin_cases i <;> decide : (i + 3 : Fin 5) ≠ i) heq
   have hc02 : ¬G.Adj (c i) (c (i + 2)) := by
     rw [hc.2 i (i + 2)]
     fin_cases i <;> decide
