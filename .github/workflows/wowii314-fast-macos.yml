@@ -1,6 +1,12 @@
 name: Exact WOWII 314 kernel audit
 
 on:
+  push:
+    branches:
+      - audit/wowii314-fast-only
+    paths:
+      - WOWII/**
+      - .github/workflows/wowii314-fast-macos.yml
   pull_request:
     paths:
       - WOWII/**
