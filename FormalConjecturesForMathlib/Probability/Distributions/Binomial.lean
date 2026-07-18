@@ -76,7 +76,16 @@ lemma binomialPMF_apply_toReal (n : ℕ) (p : I) (k : Fin (n + 1)) :
   have hlast :
       ((Fin.last n - k : Fin (n + 1)) : ℕ) = n - (k : ℕ) := by
     rw [Fin.val_sub, Fin.val_last]
-    omega
+    have hk_le : (k : ℕ) ≤ n := Nat.le_of_lt_succ k.isLt
+    calc
+      (n + 1 - (k : ℕ) + n) % (n + 1) =
+          ((n - (k : ℕ)) + (n + 1)) % (n + 1) := by
+            congr 1
+            omega
+      _ = (n - (k : ℕ)) % (n + 1) := by
+            rw [Nat.add_mod]
+            simp
+      _ = n - (k : ℕ) := Nat.mod_eq_of_lt (by omega)
   simp [hq, hlast]
 
 lemma integral_binomialRealMeasure
@@ -108,10 +117,14 @@ lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
   intro k hk
   rw [dif_pos (Finset.mem_range.mp hk), binomialPMF_apply_toReal]
   have hexp :
-      exp ((t : ℂ) * (k : ℂ) * Complex.I) = exp ((t : ℂ) * Complex.I) ^ k := by
+      exp ((t : ℂ) * ((k : ℝ) : ℂ) * Complex.I) =
+        exp ((t : ℂ) * Complex.I) ^ k := by
     calc
-      exp ((t : ℂ) * (k : ℂ) * Complex.I) =
-          exp ((k : ℂ) * ((t : ℂ) * Complex.I)) := by congr 1 <;> ring
+      exp ((t : ℂ) * ((k : ℝ) : ℂ) * Complex.I) =
+          exp ((k : ℂ) * ((t : ℂ) * Complex.I)) := by
+            congr 1
+            push_cast
+            ring
       _ = exp ((t : ℂ) * Complex.I) ^ k := Complex.exp_nat_mul _ _
   rw [hexp]
   push_cast
