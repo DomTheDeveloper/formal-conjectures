@@ -1,0 +1,46 @@
+name: Export Lean sandbox
+
+on:
+  push:
+    branches: [lean-sandbox-bootstrap]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install elan
+        run: |
+          set -euxo pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Fetch Mathlib cache
+        run: |
+          set -euxo pipefail
+          lake exe cache get
+      - name: Verify toolchain
+        run: |
+          lean --version
+          lake --version
+          lake env lean FormalConjectures/WrittenOnTheWallII/GraphConjecture103.lean
+      - name: Pack relocatable sandbox
+        run: |
+          set -euxo pipefail
+          cd "$GITHUB_WORKSPACE"
+          tar --zstd -cf /tmp/lean-sandbox.tar.zst \
+            --exclude=.git \
+            --exclude=docbuild/.lake \
+            -C "$HOME" .elan \
+            -C "$GITHUB_WORKSPACE" .
+          ls -lh /tmp/lean-sandbox.tar.zst
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lean-sandbox
+          path: /tmp/lean-sandbox.tar.zst
+          compression-level: 0
+          retention-days: 1
