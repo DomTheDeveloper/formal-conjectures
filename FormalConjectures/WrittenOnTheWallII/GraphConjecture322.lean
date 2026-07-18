@@ -40,8 +40,14 @@ vertices `v` of `l(v)` — the independence number of the neighborhood `N(v)` of
 
 Here `l(v) = α(G[N(v)])` is the independence number of the subgraph induced by the
 open neighborhood of `v`.
+
+The local-independence hypothesis forces every neighborhood to be a clique. Connectedness
+then forces `G` itself to be complete, and every minimal total dominating set of a complete
+graph has cardinality two. In fact, the proof does not use the hypothesis `n ≥ 5`.
 -/
-@[category research open, AMS 5]
+@[category research solved, AMS 5,
+  formal_proof using formal_conjectures at
+    "https://github.com/DomTheDeveloper/formal-conjectures/blob/271895775d9833dd8a1480126cbe112779d953ef/FormalConjectures/WrittenOnTheWallII/GraphConjecture322.lean"]
 theorem conjecture322 (G : SimpleGraph α) [DecidableRel G.Adj] (hG : G.Connected)
     (hn : 5 ≤ Fintype.card α)
     (h : ∀ v : α, indepNeighborsCard G v ≤ 1) :
