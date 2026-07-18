@@ -26,6 +26,7 @@ lemma fin5_existsUnique_neighbor_pattern
     (hind : ∀ i j, (cycleGraph 5).Adj i j → ¬(P i = true ∧ P j = true))
     (htwo : ∀ i, P i = true → ∃ j, j ≠ i ∧ P j = true) :
     ∃! k : Fin 5, ∀ j : Fin 5, P j = true ↔ (cycleGraph 5).Adj k j := by
+  simp only [cycleGraph_adj] at hind ⊢
   revert P
   decide
 
