@@ -11,6 +11,6 @@ Current mathematical results:
 - Graph Conjecture 103 is false: an 11-vertex triangle with four private leaves at each of two triangle vertices has independence number 9, largest induced bipartite order 10, and average eccentricity 30/11.
 - Graph Conjecture 109 is false: a connected 21-vertex three-gadget construction has independence number 15, largest induced bipartite order 18, and Havel--Hakimi residue 8.
 - Graph Conjectures 145 and 146 have complete human proofs reducing the only exceptional case to a six-vertex induced-tree lemma in diameter four.
-- `scripts/census_graph217.py` performs an exhaustive eight-vertex census for Graph Conjecture 217.
+- `scripts/census_graph217.py` gives a complete canonical-augmentation census through order nine. Every connected graph of order at most nine with Havel--Hakimi residue two is traceable; at order nine the script checks 3,148,230 augmentations covering every isomorphism class.
 
-Lean formalization and the remaining two number-theory problems are in progress; this file intentionally makes no kernel-checked completion claim.
+Lean formalization and the remaining number-theory problems are in progress; this file intentionally makes no kernel-checked completion claim.
