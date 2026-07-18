@@ -1,0 +1,288 @@
+status=failure
+source_commit=c67f8d87424643bdecc54553fa17394cb6c3d7fc
+--- build transcript ---
+=== Checking WOWII/ZZGraphConjecture314Core.lean ===
+WOWII/ZZGraphConjecture314Core.lean:15:0: warning: automatically included section variable(s) unused in theorem `WrittenOnTheWallII.GraphConjecture314.exists_private_neighbor_of_mem_minimalTDS`:
+  [Fintype α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+WOWII/ZZGraphConjecture314Core.lean:36:0: warning: automatically included section variable(s) unused in theorem `WrittenOnTheWallII.GraphConjecture314.totalDominatingSet_nonempty`:
+  [Fintype α]
+  [DecidableEq α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+WOWII/ZZGraphConjecture314Core.lean:44:0: warning: automatically included section variable(s) unused in theorem `WrittenOnTheWallII.GraphConjecture314.not_both_mem_minimalTDS_of_false_twins`:
+  [Fintype α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+=== Checking WOWII/ZZGraphConjecture314DominatingEdge.lean ===
+=== Checking WOWII/ZZGraphConjecture314PathTree.lean ===
+WOWII/ZZGraphConjecture314PathTree.lean:15:0: warning: automatically included section variable(s) unused in theorem `WrittenOnTheWallII.GraphConjecture314.path_toSubgraph_spanningCoe_isAcyclic`:
+  [Fintype α]
+  [DecidableEq α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+=== Checking WOWII/ZZGraphConjecture314BipartiteCommon.lean ===
+=== Checking WOWII/ZZGraphConjecture314ChainGraph.lean ===
+WOWII/ZZGraphConjecture314ChainGraph.lean:23:8: warning: automatically included section variable(s) unused in theorem `_private.WOWII.ZZGraphConjecture314ChainGraph.0.WrittenOnTheWallII.GraphConjecture314.exists_neighbor_of_connected`:
+  [Fintype α]
+  [DecidableEq α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+WOWII/ZZGraphConjecture314ChainGraph.lean:33:0: warning: automatically included section variable(s) unused in theorem `WrittenOnTheWallII.GraphConjecture314.no_FormsInducedP5_of_bipartite_nested_neighborhoods`:
+  [Fintype α]
+  [DecidableEq α]
+  [Nontrivial α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] [Nontrivial α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+=== Checking WOWII/ZZGraphConjecture314Cycle5.lean ===
+=== Checking WOWII/ZZGraphConjecture314Cycle5Blowup.lean ===
+=== Checking WOWII/ZZGraphConjecture314P5Bridge.lean ===
+WOWII/ZZGraphConjecture314P5Bridge.lean:44:12: warning: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+WOWII/ZZGraphConjecture314P5Bridge.lean:106:33: warning: Try `simp at hw` instead of `simpa using hw`
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+WOWII/ZZGraphConjecture314P5Bridge.lean:118:33: warning: Try `simp at hw` instead of `simpa using hw`
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+WOWII/ZZGraphConjecture314P5Bridge.lean:130:33: warning: Try `simp at hw` instead of `simpa using hw`
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+WOWII/ZZGraphConjecture314P5Bridge.lean:142:33: warning: Try `simp at hw` instead of `simpa using hw`
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+WOWII/ZZGraphConjecture314P5Bridge.lean:154:33: warning: Try `simp at hw` instead of `simpa using hw`
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+WOWII/ZZGraphConjecture314P5Bridge.lean:72:53: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+WOWII/ZZGraphConjecture314P5Bridge.lean:72:53: warning: 'grind' tactic does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+=== Checking WOWII/ZZGraphConjecture314ConditionalFinal.lean ===
+=== Checking WOWII/ZZGraphConjecture314GeodesicP5.lean ===
+WOWII/ZZGraphConjecture314GeodesicP5.lean:16:0: warning: automatically included section variable(s) unused in theorem `WrittenOnTheWallII.GraphConjecture314.formsInducedP5_of_geodesic_length_ge_four`:
+  [Fintype α]
+  [DecidableEq α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+=== Checking WOWII/ZZGraphConjecture314BipartiteClassification.lean ===
+WOWII/ZZGraphConjecture314BipartiteClassification.lean:21:0: warning: automatically included section variable(s) unused in theorem `WrittenOnTheWallII.GraphConjecture314.exists_common_neighbor_of_bipartite_noP5`:
+  [Nontrivial α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Nontrivial α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+=== Checking WOWII/ZZGraphConjecture314CycleDichotomy.lean ===
+WOWII/ZZGraphConjecture314CycleDichotomy.lean:22:8: warning: automatically included section variable(s) unused in theorem `_private.WOWII.ZZGraphConjecture314CycleDichotomy.0.WrittenOnTheWallII.GraphConjecture314.dist_eq_of_adj_same_distance_parity`:
+  [Fintype α]
+  [DecidableEq α]
+  [Nontrivial α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] [Nontrivial α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+WOWII/ZZGraphConjecture314CycleDichotomy.lean:58:2: warning: Try this: intro x y hxy hside
+=== Checking WOWII/ZZGraphConjecture314C5Embedding.lean ===
+WOWII/ZZGraphConjecture314C5Embedding.lean:22:0: warning: automatically included section variable(s) unused in theorem `WrittenOnTheWallII.GraphConjecture314.exists_inducedC5Embedding_of_FormsInducedC5`:
+  [Fintype α]
+  [DecidableEq α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+WOWII/ZZGraphConjecture314C5Embedding.lean:60:0: warning: automatically included section variable(s) unused in theorem `WrittenOnTheWallII.GraphConjecture314.inducedC5Embedding_adj_pred_succ`:
+  [Fintype α]
+  [DecidableEq α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+WOWII/ZZGraphConjecture314C5Embedding.lean:69:0: warning: automatically included section variable(s) unused in theorem `WrittenOnTheWallII.GraphConjecture314.inducedC5Embedding_adj_iff`:
+  [Fintype α]
+  [DecidableEq α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+=== Checking WOWII/ZZGraphConjecture314C5Dominates.lean ===
+WOWII/ZZGraphConjecture314C5Dominates.lean:15:8: warning: automatically included section variable(s) unused in theorem `_private.WOWII.ZZGraphConjecture314C5Dominates.0.WrittenOnTheWallII.GraphConjecture314.cycle_step_adj`:
+  [Fintype α]
+  [DecidableEq α]
+  [Nontrivial α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] [Nontrivial α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+WOWII/ZZGraphConjecture314C5Dominates.lean:21:8: warning: automatically included section variable(s) unused in theorem `_private.WOWII.ZZGraphConjecture314C5Dominates.0.WrittenOnTheWallII.GraphConjecture314.cycle_back_step_adj`:
+  [Fintype α]
+  [DecidableEq α]
+  [Nontrivial α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] [Nontrivial α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+WOWII/ZZGraphConjecture314C5Dominates.lean:27:8: warning: automatically included section variable(s) unused in theorem `_private.WOWII.ZZGraphConjecture314C5Dominates.0.WrittenOnTheWallII.GraphConjecture314.cycle_two_step_not_adj`:
+  [Fintype α]
+  [DecidableEq α]
+  [Nontrivial α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] [Nontrivial α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+WOWII/ZZGraphConjecture314C5Dominates.lean:34:8: warning: automatically included section variable(s) unused in theorem `_private.WOWII.ZZGraphConjecture314C5Dominates.0.WrittenOnTheWallII.GraphConjecture314.cycle_back_two_step_not_adj`:
+  [Fintype α]
+  [DecidableEq α]
+  [Nontrivial α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] [Nontrivial α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+=== Checking WOWII/ZZGraphConjecture314C5Bags.lean ===
+WOWII/ZZGraphConjecture314C5Bags.lean:30:2: error: Tactic `decide` failed for proposition
+  ∀ (P : Fin 5 → Bool),
+    (∃ i, P i = true) →
+      (∀ (i j : Fin 5), (cycleGraph 5).Adj i j → ¬(P i = true ∧ P j = true)) →
+        (∀ (i : Fin 5), P i = true → ∃ j, j ≠ i ∧ P j = true) → ∃! k, ∀ (j : Fin 5), P j = true ↔ (cycleGraph 5).Adj k j
+because its `Decidable` instance
+  Fintype.decidableForallFintype
+did not reduce to `isTrue` or `isFalse`.
+
+After unfolding the instances `_root_.decEq`, `decidable_of_decidable_of_iff`, `decidable_of_iff`, `forall_prop_decidable`, `instDecidableAnd`, `instDecidableEqBool`, `instDecidableEqFin`, `instDecidableEqNat`, `instDecidableNot`, `instDecidableOr`, `Bool.decEq`, `propDecidable`, `Finset.decidableDforallFinset`, `Fintype.decidableForallFintype`, `List.decidableBAll`, `Multiset.decidableDforallMultiset`, `Multiset.decidableForallMultiset`, `Nat.decEq`, `Nat.decLe`, `Nat.decLt`, `Nat.decidableBallLT`, `Nat.decidableExistsFin`, `Nat.decidableExistsLT`, `Nat.decidableForallFin`, `Set.decidableSingleton`, `instDecidableRelAdjCirculantGraphOfDecidableEqOfDecidablePredMemSet`, and `instDecidableRelFinAdjCycleGraph`, reduction got stuck at the `Decidable` instance
+  choice ⋯
+
+Hint: Reduction got stuck on `choice`, which indicates that a `Decidable` instance is defined using classical reasoning, proving an instance exists rather than giving a concrete construction. The `decide` tactic works by evaluating a decision procedure via reduction, and it cannot make progress with such instances. This can occur due to the `open scoped Classical` command, which enables the instance `propDecidable`.
+WOWII/ZZGraphConjecture314C5Bags.lean:32:8: warning: automatically included section variable(s) unused in theorem `_private.WOWII.ZZGraphConjecture314C5Bags.0.WrittenOnTheWallII.GraphConjecture314.cycle_adj_plus`:
+  [Fintype α]
+  [DecidableEq α]
+  [Nontrivial α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] [Nontrivial α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+WOWII/ZZGraphConjecture314C5Bags.lean:38:8: warning: automatically included section variable(s) unused in theorem `_private.WOWII.ZZGraphConjecture314C5Bags.0.WrittenOnTheWallII.GraphConjecture314.cycle_adj_minus`:
+  [Fintype α]
+  [DecidableEq α]
+  [Nontrivial α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] [Nontrivial α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+WOWII/ZZGraphConjecture314C5Bags.lean:58:46: error: unsolved goals
+case «0»
+α : Type u_1
+inst✝³ : Fintype α
+inst✝² : DecidableEq α
+inst✝¹ : Nontrivial α
+G : SimpleGraph α
+inst✝ : DecidableRel G.Adj
+hNoP5 : ∀ (x0 x1 x2 x3 x4 : α), ¬FormsInducedP5 G x0 x1 x2 x3 x4
+c : Fin 5 → α
+hc : IsInducedC5Embedding G c
+x : α
+i : Fin 5
+hxi : G.Adj (c 0) (c i)
+h : ∀ (j : Fin 5), ¬j = i → ¬G.Adj (c 0) (c j)
+honly : ∀ (j : Fin 5), G.Adj (c 0) (c j) → j = i
+hxk : x = c 0
+hpX : G.Adj (c 0) (c 1)
+hmX : G.Adj (c 0) (c (-i))
+⊢ False
+
+case «1»
+α : Type u_1
+inst✝³ : Fintype α
+inst✝² : DecidableEq α
+inst✝¹ : Nontrivial α
+G : SimpleGraph α
+inst✝ : DecidableRel G.Adj
+hNoP5 : ∀ (x0 x1 x2 x3 x4 : α), ¬FormsInducedP5 G x0 x1 x2 x3 x4
+c : Fin 5 → α
+hc : IsInducedC5Embedding G c
+x : α
+i : Fin 5
+hxi : G.Adj (c 1) (c i)
+h : ∀ (j : Fin 5), ¬j = i → ¬G.Adj (c 1) (c j)
+honly : ∀ (j : Fin 5), G.Adj (c 1) (c j) → j = i
+hxk : x = c 1
+hpX : G.Adj (c 1) (c 2)
+hmX : G.Adj (c 1) (c 0)
+⊢ False
+
+case «3»
+α : Type u_1
+inst✝³ : Fintype α
+inst✝² : DecidableEq α
+inst✝¹ : Nontrivial α
+G : SimpleGraph α
+inst✝ : DecidableRel G.Adj
+hNoP5 : ∀ (x0 x1 x2 x3 x4 : α), ¬FormsInducedP5 G x0 x1 x2 x3 x4
+c : Fin 5 → α
+hc : IsInducedC5Embedding G c
+x : α
+i : Fin 5
+hxi : G.Adj (c 3) (c i)
+h : ∀ (j : Fin 5), ¬j = i → ¬G.Adj (c 3) (c j)
+honly : ∀ (j : Fin 5), G.Adj (c 3) (c j) → j = i
+hxk : x = c 3
+hpX : G.Adj (c 3) (c 4)
+hmX : G.Adj (c 3) (c 2)
+⊢ False
+
+case «4»
+α : Type u_1
+inst✝³ : Fintype α
+inst✝² : DecidableEq α
+inst✝¹ : Nontrivial α
+G : SimpleGraph α
+inst✝ : DecidableRel G.Adj
+hNoP5 : ∀ (x0 x1 x2 x3 x4 : α), ¬FormsInducedP5 G x0 x1 x2 x3 x4
+c : Fin 5 → α
+hc : IsInducedC5Embedding G c
+x : α
+i : Fin 5
+hxi : G.Adj (c 4) (c i)
+h : ∀ (j : Fin 5), ¬j = i → ¬G.Adj (c 4) (c j)
+honly : ∀ (j : Fin 5), G.Adj (c 4) (c j) → j = i
+hxk : x = c 4
+hpX : G.Adj (c 4) (c 0)
+hmX : G.Adj (c 4) (c 3)
+⊢ False
+WOWII/ZZGraphConjecture314C5Bags.lean:69:20: error: Tactic `simp` failed with a nested error:
+maximum recursion depth has been reached
+use `set_option maxRecDepth <num>` to increase limit
+use `set_option diagnostics true` to get diagnostic information
+WOWII/ZZGraphConjecture314C5Bags.lean:73:20: error: Tactic `simp` failed with a nested error:
+maximum recursion depth has been reached
+use `set_option maxRecDepth <num>` to increase limit
+use `set_option diagnostics true` to get diagnostic information
+WOWII/ZZGraphConjecture314C5Bags.lean:77:20: error: Tactic `simp` failed with a nested error:
+maximum recursion depth has been reached
+use `set_option maxRecDepth <num>` to increase limit
+use `set_option diagnostics true` to get diagnostic information
+WOWII/ZZGraphConjecture314C5Bags.lean:159:0: warning: automatically included section variable(s) unused in theorem `WrittenOnTheWallII.GraphConjecture314.C5BagSpec_cycleVertex`:
+  [Fintype α]
+  [DecidableEq α]
+  [Nontrivial α]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Fintype α] [DecidableEq α] [Nontrivial α] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+--- axiom transcript ---
