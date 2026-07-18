@@ -112,10 +112,16 @@ lemma cdf_gaussianReal_zero_one_neg (t : ℝ) :
   let μ : Measure ℝ := gaussianReal 0 1
   have hmap : μ.map (fun z : ℝ => -z) = μ := by
     simpa [μ] using (gaussianReal_map_neg (μ := 0) (v := 1))
-  have hleft : μ.real (Iic (-t)) = μ.real (Ici t) := by
-    rw [← hmap, map_measureReal_apply measurable_neg measurableSet_Iic]
-    congr 1
+  have hpre : (fun z : ℝ => -z) ⁻¹' Iic (-t) = Ici t := by
     ext z
+    simp
+  have hleft : μ.real (Iic (-t)) = μ.real (Ici t) := by
+    calc
+      μ.real (Iic (-t)) = (μ.map (fun z : ℝ => -z)).real (Iic (-t)) := by
+        rw [hmap]
+      _ = μ.real ((fun z : ℝ => -z) ⁻¹' Iic (-t)) := by
+        rw [map_measureReal_apply measurable_neg measurableSet_Iic]
+      _ = μ.real (Ici t) := by rw [hpre]
   have hIci_measure : μ (Ici t) = μ (Ioi t) := by
     have hset : Ici t = {t} ∪ Ioi t := by
       ext z
