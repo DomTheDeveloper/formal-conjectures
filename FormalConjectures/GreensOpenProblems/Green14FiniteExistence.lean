@@ -21,7 +21,7 @@ import Mathlib.Combinatorics.HalesJewett
 # Finite existence for the mixed van der Waerden guarantee set
 
 The definition of `Green14.W` uses `sInf`, so a finite lower-bound certificate
-also needs the guarantee set to be nonempty.  This file derives that missing
+also needs the guarantee set to be nonempty. This file derives that missing
 finitary existence statement directly from the finite Hales--Jewett theorem.
 -/
 
@@ -103,7 +103,7 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
               have himem : i ∈ active := by
                 rw [hactive, Finset.mem_filter]
                 exact ⟨Finset.mem_univ _, hopt⟩
-              exact (Finset.mem_compl.mp hi) himem
+              exact ((Finset.mem_compl.mp hi) himem).elim
           | some y =>
               simp [Combinatorics.Line.coe_apply, hopt]
         _ = b := rfl
