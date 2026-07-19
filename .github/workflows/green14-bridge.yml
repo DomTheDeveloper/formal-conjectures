@@ -1,0 +1,73 @@
+# Copyright 2026 The Formal Conjectures Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Green14 finite bridge diagnostics
+
+on:
+  push:
+    branches:
+      - agent/green14-certificates-20-39
+    paths:
+      - 'FormalConjectures/GreensOpenProblems/Green14*.lean'
+      - '.github/workflows/green14-bridge.yml'
+  pull_request:
+    paths:
+      - 'FormalConjectures/GreensOpenProblems/Green14*.lean'
+      - '.github/workflows/green14-bridge.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: green14-bridge-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lean
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Fetch Mathlib cache
+        run: lake exe cache get
+      - name: Compile finite existence and certificates
+        shell: bash
+        run: |
+          set -o pipefail
+          lake env lean FormalConjectures/GreensOpenProblems/Green14FiniteExistence.lean 2>&1 | tee green14.log
+          lake env lean FormalConjectures/GreensOpenProblems/Green14Certificates.lean 2>&1 | tee -a green14.log
+      - name: Audit finite existence axioms
+        shell: bash
+        run: |
+          cat > /tmp/Green14Axioms.lean <<'EOF'
+          import FormalConjectures.GreensOpenProblems.Green14FiniteExistence
+          #print axioms Green14.mixedMonoAPGuaranteeSet_nonempty
+          EOF
+          lake env lean /tmp/Green14Axioms.lean 2>&1 | tee -a green14.log
+          if grep -q sorryAx green14.log; then
+            exit 1
+          fi
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: green14-bridge-log
+          path: green14.log
+          if-no-files-found: warn
