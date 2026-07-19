@@ -19,10 +19,12 @@ on:
     branches:
       - agent/green14-certificates-20-39
     paths:
+      - 'FormalConjectures/GreensOpenProblems/14.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14*.lean'
       - '.github/workflows/green14-bridge.yml'
   pull_request:
     paths:
+      - 'FormalConjectures/GreensOpenProblems/14.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14*.lean'
       - '.github/workflows/green14-bridge.yml'
   workflow_dispatch:
@@ -47,27 +49,39 @@ jobs:
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Fetch Mathlib cache
         run: lake exe cache get
-      - name: Compile complete certificate bridge
+      - name: Compile complete certificate and catalog chain
         shell: bash
         run: |
           set -o pipefail
-          lake env lean FormalConjectures/GreensOpenProblems/Green14FiniteExistence.lean 2>&1 | tee green14.log
+          : > green14.log
+          lake env lean FormalConjectures/GreensOpenProblems/Green14Core.lean 2>&1 | tee -a green14.log
+          lake env lean FormalConjectures/GreensOpenProblems/Green14FiniteExistence.lean 2>&1 | tee -a green14.log
           lake env lean FormalConjectures/GreensOpenProblems/Green14OrderBridge.lean 2>&1 | tee -a green14.log
           lake env lean FormalConjectures/GreensOpenProblems/Green14Certificates.lean 2>&1 | tee -a green14.log
           lake env lean FormalConjectures/GreensOpenProblems/Green14CertificateBridge.lean 2>&1 | tee -a green14.log
-      - name: Audit bridge axioms
+          lake env lean FormalConjectures/GreensOpenProblems/14.lean 2>&1 | tee -a green14.log
+      - name: Audit exact catalog theorem axioms
         shell: bash
         run: |
           cat > /tmp/Green14Axioms.lean <<'EOF'
-          import FormalConjectures.GreensOpenProblems.Green14CertificateBridge
+          import FormalConjectures.GreensOpenProblems.«14»
           #print axioms Green14.mixedMonoAPGuaranteeSet_nonempty
           #print axioms Green14.mixedMonoAPGuaranteeSet_upward
           #print axioms Green14.W_ge_succ_of_not_mem
           #print axioms Green14.CertificateBridge.W_3_20_lower_proved
           #print axioms Green14.CertificateBridge.W_3_39_lower_proved
+          #print axioms Green14.W_3_20_lower
+          #print axioms Green14.W_3_39_lower
           EOF
           lake env lean /tmp/Green14Axioms.lean 2>&1 | tee -a green14.log
           if grep -q sorryAx green14.log; then
+            exit 1
+          fi
+      - name: Reject lower-bound placeholders
+        shell: bash
+        run: |
+          if grep -nE 'theorem W_3_(2[0-9]|3[0-9])_lower.*:= sorry' \
+              FormalConjectures/GreensOpenProblems/14.lean; then
             exit 1
           fi
       - name: Upload diagnostics
