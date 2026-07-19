@@ -95,7 +95,7 @@ coercion. -/
 private lemma mem_coe_finset_set_iff {N : Nat} {s : Finset (Icc 1 N)} {z : Nat} :
     z ∈ ({(x : Nat) | x ∈ s} : Set Nat) ↔
       ∃ x ∈ s, (x : Nat) = z := by
-  rfl
+  simp
 
 /-- A negative Boolean checker excludes a monochromatic progression in the
 repository's `Set.IsAPOfLength` formulation. -/
@@ -176,8 +176,8 @@ lemma not_mem_mixed_of_checks {N r : Nat} {zeros : List Nat}
     N ∉ Green14.mixedMonoAPGuaranteeSet 3 r := by
   intro hguarantee
   rcases hguarantee (certificateColoring N zeros) with hzero | hone
-  · exact no_monoAP_of_hasAP_eq_false (k := 3) (by omega) hchecks.1 ⟨hzero⟩
-  · exact no_monoAP_of_hasAP_eq_false (k := r) hr hchecks.2 ⟨hone⟩
+  · exact no_monoAP_of_hasAP_eq_false (k := 3) (by omega) hchecks.1 hzero
+  · exact no_monoAP_of_hasAP_eq_false (k := r) hr hchecks.2 hone
 
 /-- Generic numerical lower bound obtained from one checked coloring. -/
 theorem W_ge_succ_of_checks {N r : Nat} {zeros : List Nat}
