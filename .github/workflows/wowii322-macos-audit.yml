@@ -1,0 +1,75 @@
+name: Exact WOWII 322 macOS audit
+
+on:
+  push:
+    branches:
+      - audit/wowii322-fast-only
+    paths:
+      - FormalConjectures/WrittenOnTheWallII/GraphConjecture322.lean
+      - scripts/check_wowii322_small.py
+      - .github/workflows/wowii322-macos-audit.yml
+  pull_request:
+    paths:
+      - FormalConjectures/WrittenOnTheWallII/GraphConjecture322.lean
+      - scripts/check_wowii322_small.py
+      - .github/workflows/wowii322-macos-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: exact-wowii322-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit-macos:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Independently enumerate small graph cases
+        run: python3 scripts/check_wowii322_small.py
+
+      - name: Install pinned Lean
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch Mathlib cache
+        run: lake exe cache get
+
+      - name: Build exact theorem
+        shell: bash
+        run: |
+          set -o pipefail
+          lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture322 2>&1 \
+            | tee wowii322-macos-build.log
+
+      - name: Audit exact theorem axioms
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > AuditWOWII322Mac.lean <<'EOF'
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture322
+          #check WrittenOnTheWallII.GraphConjecture322.conjecture322
+          #print axioms WrittenOnTheWallII.GraphConjecture322.conjecture322
+          EOF
+          lake env lean AuditWOWII322Mac.lean 2>&1 | tee wowii322-macos-axioms.log
+          if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce' wowii322-macos-axioms.log; then
+            exit 1
+          fi
+
+      - name: Upload transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wowii322-macos-audit
+          path: |
+            wowii322-macos-build.log
+            wowii322-macos-axioms.log
+          if-no-files-found: warn
