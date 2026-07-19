@@ -20,7 +20,7 @@ import FormalConjectures.GreensOpenProblems.Green14FiniteExistence
 # Order bridge for finite Green14 certificates
 
 A countercoloring at `N` proves `W(k,r) ≥ N+1` once two generic facts are
-available: the guarantee set is upward closed, and it is nonempty.  The latter
+available: the guarantee set is upward closed, and it is nonempty. The latter
 is supplied by `Green14FiniteExistence`.
 -/
 
@@ -42,16 +42,24 @@ theorem mixedMonoAPGuaranteeSet_upward (k r : ℕ) {M N : ℕ} (hMN : M ≤ N)
   · left
     rcases hzero with ⟨s, hsAP, hsColor⟩
     let t : Finset (Icc 1 N) := s.map emb
+    have hsets : ({(x : Nat) | x ∈ t} : Set Nat) = {(x : Nat) | x ∈ s} := by
+      ext z
+      simp [t, emb]
     refine ⟨t, ?_, ?_⟩
-    · simpa [t, emb] using hsAP
+    · rw [hsets]
+      exact hsAP
     · intro x hx
       rcases Finset.mem_map.mp hx with ⟨y, hy, rfl⟩
       simpa [restricted] using hsColor y hy
   · right
     rcases hone with ⟨s, hsAP, hsColor⟩
     let t : Finset (Icc 1 N) := s.map emb
+    have hsets : ({(x : Nat) | x ∈ t} : Set Nat) = {(x : Nat) | x ∈ s} := by
+      ext z
+      simp [t, emb]
     refine ⟨t, ?_, ?_⟩
-    · simpa [t, emb] using hsAP
+    · rw [hsets]
+      exact hsAP
     · intro x hx
       rcases Finset.mem_map.mp hx with ⟨y, hy, rfl⟩
       simpa [restricted] using hsColor y hy
