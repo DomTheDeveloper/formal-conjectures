@@ -1,4 +1,4 @@
-import FormalConjectures.WrittenOnTheWallII.GraphConjecture314
+import FormalConjectures.WrittenOnTheWallII.GraphConjecture314Core
 
 /-!
 Reusable total-domination lemmas for WOWII Graph Conjecture 314.
