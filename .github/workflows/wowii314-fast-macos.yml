@@ -4,6 +4,14 @@ on:
   pull_request:
     paths:
       - WOWII/**
+      - FormalConjectures/WrittenOnTheWallII/GraphConjecture314*.lean
+      - .github/workflows/wowii314-fast-macos.yml
+  push:
+    branches:
+      - proof/wowii314-upstream
+    paths:
+      - WOWII/**
+      - FormalConjectures/WrittenOnTheWallII/GraphConjecture314*.lean
       - .github/workflows/wowii314-fast-macos.yml
   workflow_dispatch:
 
@@ -17,7 +25,7 @@ concurrency:
 jobs:
   diagnostic:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -32,55 +40,16 @@ jobs:
       - name: Download Mathlib cache
         run: lake exe cache get
 
-      - name: Prepare exact minimal statement import
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat > WOWII/GraphConjecture314Statement.lean <<'EOF'
-          import Mathlib.Combinatorics.SimpleGraph.Acyclic
-          import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected
-          import Mathlib.Combinatorics.SimpleGraph.Metric
-          import Mathlib.Combinatorics.SimpleGraph.Circulant
-          import Mathlib.Combinatorics.SimpleGraph.Finite
-          import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.WellTotallyDominated
-          import Mathlib.Tactic.FinCases
-          import Mathlib.Tactic.IntervalCases
-          import Lean.Elab.Tactic.Omega
-          import Lean.Elab.Tactic.Grind
-
-          open Classical
-          namespace WrittenOnTheWallII.GraphConjecture314
-          open SimpleGraph
-          variable {α : Type*} [Fintype α] [DecidableEq α]
-
-          noncomputable def largestInducedPathSize
-              (G : SimpleGraph α) [DecidableRel G.Adj] : ℕ :=
-            sSup { n | ∃ s : Finset α,
-              s.card = n ∧
-              (G.induce (s : Set α)).IsTree ∧
-              ∀ v : (s : Set α), (G.induce (s : Set α)).degree v ≤ 2 }
-
-          end WrittenOnTheWallII.GraphConjecture314
-          EOF
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('WOWII/ZZGraphConjecture314Core.lean')
-          s = p.read_text().replace(
-              'import FormalConjectures.WrittenOnTheWallII.GraphConjecture314',
-              'import WOWII.GraphConjecture314Statement', 1)
-          p.write_text(s)
-          PY
-
       - name: Build exact domination definition
         run: lake build FormalConjecturesForMathlib.Combinatorics.SimpleGraph.WellTotallyDominated
 
-      - name: Compile complete proof chain
+      - name: Compile complete proof chain and exact catalog theorem
         shell: bash
         run: |
           set -euo pipefail
           : > wowii314-fast-build.log
           files=(
-            WOWII/GraphConjecture314Statement.lean
+            FormalConjectures/WrittenOnTheWallII/GraphConjecture314Core.lean
             WOWII/ZZGraphConjecture314Core.lean
             WOWII/ZZGraphConjecture314DominatingEdge.lean
             WOWII/ZZGraphConjecture314PathTree.lean
@@ -98,8 +67,10 @@ jobs:
             WOWII/ZZGraphConjecture314C5Bags.lean
             WOWII/ZZGraphConjecture314C5BlowupClassification.lean
             WOWII/ZZGraphConjecture314Final.lean
+            FormalConjectures/WrittenOnTheWallII/GraphConjecture314.lean
           )
           mkdir -p .lake/build/lib/lean/WOWII
+          mkdir -p .lake/build/lib/lean/FormalConjectures/WrittenOnTheWallII
           for file in "${files[@]}"; do
             module="${file%.lean}"
             output=".lake/build/lib/lean/${module}.olean"
@@ -107,6 +78,20 @@ jobs:
             echo "=== Checking $file ===" | tee -a wowii314-fast-build.log
             lake env lean -o "$output" "$file" 2>&1 | tee -a wowii314-fast-build.log
           done
+
+      - name: Audit exact theorem axioms
+        shell: bash
+        run: |
+          cat > /tmp/WOWII314Axioms.lean <<'EOF'
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture314
+          #print axioms WrittenOnTheWallII.GraphConjecture314.conjecture314_proved
+          #print axioms WrittenOnTheWallII.GraphConjecture314.conjecture314
+          EOF
+          lake env lean /tmp/WOWII314Axioms.lean 2>&1 | tee -a wowii314-fast-build.log
+          if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce' wowii314-fast-build.log; then
+            echo 'Disallowed axiom detected.' >&2
+            exit 1
+          fi
 
       - name: Upload diagnostic transcript
         if: always()
