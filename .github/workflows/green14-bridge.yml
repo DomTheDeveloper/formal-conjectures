@@ -37,7 +37,7 @@ concurrency:
 jobs:
   compile:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - name: Install Lean
@@ -47,21 +47,24 @@ jobs:
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Fetch Mathlib cache
         run: lake exe cache get
-      - name: Compile finite existence, order bridge, and certificates
+      - name: Compile complete certificate bridge
         shell: bash
         run: |
           set -o pipefail
           lake env lean FormalConjectures/GreensOpenProblems/Green14FiniteExistence.lean 2>&1 | tee green14.log
           lake env lean FormalConjectures/GreensOpenProblems/Green14OrderBridge.lean 2>&1 | tee -a green14.log
           lake env lean FormalConjectures/GreensOpenProblems/Green14Certificates.lean 2>&1 | tee -a green14.log
+          lake env lean FormalConjectures/GreensOpenProblems/Green14CertificateBridge.lean 2>&1 | tee -a green14.log
       - name: Audit bridge axioms
         shell: bash
         run: |
           cat > /tmp/Green14Axioms.lean <<'EOF'
-          import FormalConjectures.GreensOpenProblems.Green14OrderBridge
+          import FormalConjectures.GreensOpenProblems.Green14CertificateBridge
           #print axioms Green14.mixedMonoAPGuaranteeSet_nonempty
           #print axioms Green14.mixedMonoAPGuaranteeSet_upward
           #print axioms Green14.W_ge_succ_of_not_mem
+          #print axioms Green14.CertificateBridge.W_3_20_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_39_lower_proved
           EOF
           lake env lean /tmp/Green14Axioms.lean 2>&1 | tee -a green14.log
           if grep -q sorryAx green14.log; then
