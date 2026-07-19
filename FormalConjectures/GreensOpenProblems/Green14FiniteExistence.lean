@@ -39,7 +39,6 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
     (mixedMonoAPGuaranteeSet k r).Nonempty := by
   classical
   let m := max k r
-  have hm : 0 < m := lt_of_lt_of_le (Nat.zero_lt_one) (le_max_of_suble_left hk)
   obtain ⟨ι, instι, hι⟩ :=
     Combinatorics.Line.exists_mono_in_high_dimension (Fin m) (Fin 2)
   letI : Fintype ι := instι
@@ -104,7 +103,7 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
               have himem : i ∈ active := by
                 rw [hactive, Finset.mem_filter]
                 exact ⟨Finset.mem_univ _, hopt⟩
-              exact (Finset.notMem_compl.mpr hi) himem
+              exact (Finset.mem_compl.mp hi) himem
           | some y =>
               simp [Combinatorics.Line.coe_apply, hopt]
         _ = b := rfl
@@ -119,7 +118,8 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
       intro x y hxy
       apply Fin.ext
       dsimp only [value] at hxy
-      omega
+      have hmul : a * (x : ℕ) = a * (y : ℕ) := by omega
+      exact Nat.eq_of_mul_eq_mul_left ha hmul
 
     let point : Fin q → Icc 1 N := fun x ↦
       ⟨value x, by
