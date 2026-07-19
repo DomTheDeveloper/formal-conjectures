@@ -1,4 +1,4 @@
-import FormalConjectures.GreensOpenProblems.«14»
+import FormalConjectures.GreensOpenProblems.Green14Core
 
 /-!
 Kernel-checkable finite certificate layer for the Green14 mixed van der Waerden bounds.
