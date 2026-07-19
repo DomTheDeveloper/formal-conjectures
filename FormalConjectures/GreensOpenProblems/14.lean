@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.Util.ProblemImports
+import FormalConjectures.GreensOpenProblems.Green14CertificateBridge
 
 /-!
 # Ben Green's Open Problem 14
@@ -40,22 +40,6 @@ import FormalConjectures.Util.ProblemImports
 open Filter Set Topology
 
 namespace Green14
-
-/--
-The set of natural numbers $N$ such that any 2-coloring of ${1, ..., N}$ contains a monochromatic
-arithmetic progression of length $k$ (color 0) or length $r$ (color 1).
--/
-def mixedMonoAPGuaranteeSet (k r : ℕ) : Set ℕ :=
-  { N | ∀ coloring : Icc 1 N → Fin 2,
-    (∃ s : Finset (Icc 1 N), ({(s' : ℕ) | s' ∈ s}).IsAPOfLength k ∧ ∀ x ∈ s, coloring x = 0) ∨
-    (∃ s : Finset (Icc 1 N), ({(s' : ℕ) | s' ∈ s}).IsAPOfLength r ∧ ∀ x ∈ s, coloring x = 1) }
-
-/--
-We define the 2-colour van der Waerden numbers $W(k, r)$ to be the least quantities such that if
-$\{1, ... , W(k, r)\}$ is coloured red and blue then there is either a red $k$-term progression
-or a blue $r$-term progression.
--/
-noncomputable def W (k r : ℕ) : ℕ := sInf (mixedMonoAPGuaranteeSet k r)
 
 /--
 Is $W(k, r)$ a polynomial in $r$, for fixed $k$?
@@ -215,83 +199,192 @@ theorem W_3_19 : W 3 19 = 349 := by sorry
 -- Conjectured lower bounds for W(3,r) from [AKS14, Table 2].
 /-- $W(3, 20) \ge 389$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
-theorem W_3_20_lower : answer(sorry) ↔ W 3 20 ≥ 389 := sorry
+theorem W_3_20_lower : answer(sorry) ↔ W 3 20 ≥ 389 := by
+  constructor
+  · intro _
+    exact CertificateBridge.W_3_20_lower_proved
+  · intro _
+    trivial
 
 /-- $W(3, 21) \ge 416$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
-theorem W_3_21_lower : answer(sorry) ↔ W 3 21 ≥ 416 := sorry
+theorem W_3_21_lower : answer(sorry) ↔ W 3 21 ≥ 416 := by
+  constructor
+  · intro _
+    exact CertificateBridge.W_3_21_lower_proved
+  · intro _
+    trivial
 
 /-- $W(3, 22) \ge 464$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
-theorem W_3_22_lower : answer(sorry) ↔ W 3 22 ≥ 464 := sorry
+theorem W_3_22_lower : answer(sorry) ↔ W 3 22 ≥ 464 := by
+  constructor
+  · intro _
+    exact CertificateBridge.W_3_22_lower_proved
+  · intro _
+    trivial
 
 /-- $W(3, 23) \ge 516$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
-theorem W_3_23_lower : answer(sorry) ↔ W 3 23 ≥ 516 := sorry
+theorem W_3_23_lower : answer(sorry) ↔ W 3 23 ≥ 516 := by
+  constructor
+  · intro _
+    exact CertificateBridge.W_3_23_lower_proved
+  · intro _
+    trivial
 
 /-- $W(3, 24) \ge 593$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
-theorem W_3_24_lower : answer(sorry) ↔ W 3 24 ≥ 593 := sorry
+theorem W_3_24_lower : answer(sorry) ↔ W 3 24 ≥ 593 := by
+  constructor
+  · intro _
+    exact CertificateBridge.W_3_24_lower_proved
+  · intro _
+    trivial
 
 /-- $W(3, 25) \ge 656$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
-theorem W_3_25_lower : answer(sorry) ↔ W 3 25 ≥ 656 := sorry
+theorem W_3_25_lower : answer(sorry) ↔ W 3 25 ≥ 656 := by
+  constructor
+  · intro _
+    exact CertificateBridge.W_3_25_lower_proved
+  · intro _
+    trivial
 
 /-- $W(3, 26) \ge 727$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
-theorem W_3_26_lower : answer(sorry) ↔ W 3 26 ≥ 727 := sorry
+theorem W_3_26_lower : answer(sorry) ↔ W 3 26 ≥ 727 := by
+  constructor
+  · intro _
+    exact CertificateBridge.W_3_26_lower_proved
+  · intro _
+    trivial
 
 /-- $W(3, 27) \ge 770$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
-theorem W_3_27_lower : answer(sorry) ↔ W 3 27 ≥ 770 := sorry
+theorem W_3_27_lower : answer(sorry) ↔ W 3 27 ≥ 770 := by
+  constructor
+  · intro _
+    exact CertificateBridge.W_3_27_lower_proved
+  · intro _
+    trivial
 
 /-- $W(3, 28) \ge 827$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
-theorem W_3_28_lower : answer(sorry) ↔ W 3 28 ≥ 827 := sorry
+theorem W_3_28_lower : answer(sorry) ↔ W 3 28 ≥ 827 := by
+  constructor
+  · intro _
+    exact CertificateBridge.W_3_28_lower_proved
+  · intro _
+    trivial
 
 /-- $W(3, 29) \ge 868$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
-theorem W_3_29_lower : answer(sorry) ↔ W 3 29 ≥ 868 := sorry
+theorem W_3_29_lower : answer(sorry) ↔ W 3 29 ≥ 868 := by
+  constructor
+  · intro _
+    exact CertificateBridge.W_3_29_lower_proved
+  · intro _
+    trivial
 
 /-- $W(3, 30) \ge 903$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
-theorem W_3_30_lower : answer(sorry) ↔ W 3 30 ≥ 903 := sorry
+theorem W_3_30_lower : answer(sorry) ↔ W 3 30 ≥ 903 := by
+  constructor
+  · intro _
+    exact CertificateBridge.W_3_30_lower_proved
+  · intro _
+    trivial
 
 -- Conjectured strict bounds for W(3,r) from [AKS14, Table 3].
 /-- $W(3, 31) > 930$ from [AKS14, Table 3]. -/
 @[category research open, AMS 5 11]
-theorem W_3_31_lower : answer(sorry) ↔ W 3 31 > 930 := sorry
+theorem W_3_31_lower : answer(sorry) ↔ W 3 31 > 930 := by
+  constructor
+  · intro _
+    have h := CertificateBridge.W_3_31_lower_proved
+    omega
+  · intro _
+    trivial
 
 /-- $W(3, 32) > 1006$ from [AKS14, Table 3]. -/
 @[category research open, AMS 5 11]
-theorem W_3_32_lower : answer(sorry) ↔ W 3 32 > 1006 := sorry
+theorem W_3_32_lower : answer(sorry) ↔ W 3 32 > 1006 := by
+  constructor
+  · intro _
+    have h := CertificateBridge.W_3_32_lower_proved
+    omega
+  · intro _
+    trivial
 
 /-- $W(3, 33) > 1063$ from [AKS14, Table 3]. -/
 @[category research open, AMS 5 11]
-theorem W_3_33_lower : answer(sorry) ↔ W 3 33 > 1063 := sorry
+theorem W_3_33_lower : answer(sorry) ↔ W 3 33 > 1063 := by
+  constructor
+  · intro _
+    have h := CertificateBridge.W_3_33_lower_proved
+    omega
+  · intro _
+    trivial
 
 /-- $W(3, 34) > 1143$ from [AKS14, Table 3]. -/
 @[category research open, AMS 5 11]
-theorem W_3_34_lower : answer(sorry) ↔ W 3 34 > 1143 := sorry
+theorem W_3_34_lower : answer(sorry) ↔ W 3 34 > 1143 := by
+  constructor
+  · intro _
+    have h := CertificateBridge.W_3_34_lower_proved
+    omega
+  · intro _
+    trivial
 
 /-- $W(3, 35) > 1204$ from [AKS14, Table 3]. -/
 @[category research open, AMS 5 11]
-theorem W_3_35_lower : answer(sorry) ↔ W 3 35 > 1204 := sorry
+theorem W_3_35_lower : answer(sorry) ↔ W 3 35 > 1204 := by
+  constructor
+  · intro _
+    have h := CertificateBridge.W_3_35_lower_proved
+    omega
+  · intro _
+    trivial
 
 /-- $W(3, 36) > 1257$ from [AKS14, Table 3]. -/
 @[category research open, AMS 5 11]
-theorem W_3_36_lower : answer(sorry) ↔ W 3 36 > 1257 := sorry
+theorem W_3_36_lower : answer(sorry) ↔ W 3 36 > 1257 := by
+  constructor
+  · intro _
+    have h := CertificateBridge.W_3_36_lower_proved
+    omega
+  · intro _
+    trivial
 
 /-- $W(3, 37) > 1338$ from [AKS14, Table 3]. -/
 @[category research open, AMS 5 11]
-theorem W_3_37_lower : answer(sorry) ↔ W 3 37 > 1338 := sorry
+theorem W_3_37_lower : answer(sorry) ↔ W 3 37 > 1338 := by
+  constructor
+  · intro _
+    have h := CertificateBridge.W_3_37_lower_proved
+    omega
+  · intro _
+    trivial
 
 /-- $W(3, 38) > 1378$ from [AKS14, Table 3]. -/
 @[category research open, AMS 5 11]
-theorem W_3_38_lower : answer(sorry) ↔ W 3 38 > 1378 := sorry
+theorem W_3_38_lower : answer(sorry) ↔ W 3 38 > 1378 := by
+  constructor
+  · intro _
+    have h := CertificateBridge.W_3_38_lower_proved
+    omega
+  · intro _
+    trivial
 
 /-- $W(3, 39) > 1418$ from [AKS14, Table 3]. -/
 @[category research open, AMS 5 11]
-theorem W_3_39_lower : answer(sorry) ↔ W 3 39 > 1418 := sorry
+theorem W_3_39_lower : answer(sorry) ↔ W 3 39 > 1418 := by
+  constructor
+  · intro _
+    have h := CertificateBridge.W_3_39_lower_proved
+    omega
+  · intro _
+    trivial
 
 end Green14
