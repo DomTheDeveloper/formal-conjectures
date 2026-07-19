@@ -1,0 +1,72 @@
+name: Exact WOWII 322 Windows audit
+
+on:
+  push:
+    branches:
+      - audit/wowii322-fast-only
+    paths:
+      - FormalConjectures/WrittenOnTheWallII/GraphConjecture322.lean
+      - scripts/check_wowii322_small.py
+      - .github/workflows/wowii322-windows-audit.yml
+  pull_request:
+    paths:
+      - FormalConjectures/WrittenOnTheWallII/GraphConjecture322.lean
+      - scripts/check_wowii322_small.py
+      - .github/workflows/wowii322-windows-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: exact-wowii322-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit-windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Independently enumerate small graph cases
+        run: python scripts/check_wowii322_small.py
+
+      - name: Install pinned Lean
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/leanprover/elan/master/elan-init.ps1 -OutFile elan-init.ps1
+          & powershell -ExecutionPolicy Bypass -File .\elan-init.ps1 -y --default-toolchain none
+          "$env:USERPROFILE\.elan\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Download Mathlib cache
+        shell: pwsh
+        run: lake exe cache get
+
+      - name: Compile exact theorem module
+        shell: pwsh
+        run: |
+          lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture322 2>&1 | Tee-Object -FilePath wowii322-windows-build.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Audit exact theorem axioms
+        shell: pwsh
+        run: |
+          @'
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture322
+          #check WrittenOnTheWallII.GraphConjecture322.conjecture322
+          #print axioms WrittenOnTheWallII.GraphConjecture322.conjecture322
+          '@ | Set-Content -Encoding utf8 AuditWOWII322.lean
+          lake env lean AuditWOWII322.lean 2>&1 | Tee-Object -FilePath wowii322-windows-axioms.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (Select-String -Path wowii322-windows-axioms.log -Pattern 'sorryAx') { exit 1 }
+
+      - name: Upload exact transcripts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wowii322-windows-audit
+          path: |
+            wowii322-windows-build.log
+            wowii322-windows-axioms.log
+          if-no-files-found: warn
