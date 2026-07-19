@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.GreensOpenProblems.«14»
+import FormalConjectures.GreensOpenProblems.Green14Core
 import Mathlib.Combinatorics.HalesJewett
 
 /-!
