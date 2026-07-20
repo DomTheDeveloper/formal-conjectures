@@ -39,12 +39,13 @@ replace_once(
 replace_once(
     path,
     """  field_simp [hnR, hsqrt, hsd]
-  ring
-  positivity
+  rw [Real.sq_sqrt]
+  · ring
+  · positivity
 """,
     """  field_simp [hnR, hsqrt, hsd]
+  rw [Real.sq_sqrt (by positivity : 0 ≤ (n : ℝ))]
   ring_nf
-  positivity
 """,
-    "moment-limit terminal field normalization",
+    "moment-limit terminal square-root normalization",
 )
