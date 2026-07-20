@@ -1,0 +1,68 @@
+name: Repair Lean copyright headers
+
+on:
+  push:
+    branches:
+      - fix/lean-copyright-headers
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repair branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/lean-copyright-headers
+
+      - name: Add missing standard headers
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          header = '''/-
+          Copyright 2026 The Formal Conjectures Authors.
+
+          Licensed under the Apache License, Version 2.0 (the "License");
+          you may not use this file except in compliance with the License.
+          You may obtain a copy of the License at
+
+              https://www.apache.org/licenses/LICENSE-2.0
+
+          Unless required by applicable law or agreed to in writing, software
+          distributed under the License is distributed on an "AS IS" BASIS,
+          WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+          See the License for the specific language governing permissions and
+          limitations under the License.
+          -/'''
+
+          repaired = []
+          for path in sorted(Path('.').rglob('*.lean')):
+              if any(part in {'.git', '.lake'} for part in path.parts):
+                  continue
+              text = path.read_text(encoding='utf-8')
+              if not text.startswith('/-\nCopyright '):
+                  path.write_text(header + '\n\n' + text, encoding='utf-8')
+                  repaired.append(str(path))
+
+          print(f'Repaired {len(repaired)} Lean files')
+          for path in repaired:
+              print(path)
+          PY
+
+      - name: Commit repairs
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No missing headers remain."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- '*.lean'
+          git commit -m "Add missing Lean copyright headers"
+          git push origin HEAD:fix/lean-copyright-headers
