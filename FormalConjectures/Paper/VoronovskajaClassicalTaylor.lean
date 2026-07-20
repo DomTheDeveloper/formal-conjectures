@@ -112,7 +112,7 @@ lemma exists_global_bound_classicalSecondRemainder
       have hsecond :
           |(1 / 2 : ℝ) * iteratedDerivWithin 2 f I x * (y - x) ^ 2| =
             |(1 / 2 : ℝ) * iteratedDerivWithin 2 f I x| * (y - x) ^ 2 := by
-        rw [abs_mul, abs_pow, abs_sq]
+        rw [abs_mul, abs_pow, sq_abs]
       exact add_le_add hfirst hsecond.le
     _ = C * (y - x) ^ 2 := by
       simp [C]
