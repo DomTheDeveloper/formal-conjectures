@@ -149,12 +149,12 @@ private lemma bipartite_card_le_eighteen (S : Finset (Fin 21))
   omega
 
 private lemma empty_induced_isBipartite :
-    (counterexample.induce (∅ : Set (Fin 21))).IsBipartite := by
+    (counterexample.induce ((∅ : Finset (Fin 21)) : Set (Fin 21))).IsBipartite := by
   rw [isBipartite_iff_exists_isBipartiteWith]
   refine ⟨∅, ∅, ⟨by simp, ?_⟩⟩
   intro v w _
-  have : False := by simpa using v.property
-  exact this.elim
+  have hv : v.val ∈ ((∅ : Finset (Fin 21)) : Set (Fin 21)) := v.property
+  simp at hv
 
 private lemma largestInducedBipartiteSubgraphSize_le_eighteen :
     largestInducedBipartiteSubgraphSize counterexample ≤ 18 := by
