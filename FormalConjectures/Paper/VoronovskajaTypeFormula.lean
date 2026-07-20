@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
--- Repository-native Lean 4.27 migration audit trigger.
+-- Final repository-native macOS kernel audit trigger.
 import FormalConjectures.Paper.VoronovskajaMain
 import FormalConjectures.Paper.VoronovskajaClassicalMain
 
