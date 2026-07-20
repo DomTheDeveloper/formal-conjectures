@@ -155,12 +155,12 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
           refine ⟨x, ?_, ?_⟩
           · exact_mod_cast x.isLt
           · simp only [value, nsmul_eq_mul]
-            omega
+            ring
         · rintro ⟨n, hn, rfl⟩
           have hnq : n < q := by exact_mod_cast hn
           refine ⟨⟨n, hnq⟩, ?_⟩
           simp only [value, nsmul_eq_mul]
-          omega
+          ring
 
     have hsT : ({(z : ℕ) | z ∈ s} : Set ℕ) = T := by
       ext z
@@ -176,7 +176,7 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
         apply Subtype.ext
         dsimp only [point, value, wordPoint]
         rw [line_sum]
-        simp [liftFin, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+        simp [liftFin, Nat.add_comm]
       rw [hpoint_word]
       exact hmono (liftFin x)
 
