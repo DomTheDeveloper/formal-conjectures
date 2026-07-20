@@ -27,6 +27,9 @@ namespace WrittenOnTheWallII.GraphConjecture109
 
 open SimpleGraph
 
+set_option linter.style.ams_attribute false
+set_option linter.style.category_attribute false
+
 private def counterexampleEdges : Finset (Sym2 (Fin 21)) := {
   s(0, 1), s(1, 2), s(2, 0), s(0, 3), s(0, 4), s(1, 5), s(1, 6),
   s(7, 8), s(8, 9), s(9, 7), s(7, 10), s(7, 11), s(8, 12), s(8, 13),
@@ -47,21 +50,23 @@ private instance : DecidableRel counterexample.Adj := by
   infer_instance
 
 private lemma counterexample_connected : counterexample.Connected := by
-  decide +native
+  set_option maxHeartbeats 10000000 in
+    decide
 
 private lemma counterexample_residue : residue counterexample = 8 := by
   unfold residue counterexample
-  decide +native
+  set_option maxHeartbeats 10000000 in
+    decide
 
 private def independentWitness : Finset (Fin 21) :=
   {2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 16, 17, 18, 19, 20}
 
 private lemma independentWitness_isIndep :
     counterexample.IsIndepSet (independentWitness : Set (Fin 21)) := by
-  decide +native
+  decide
 
 private lemma independentWitness_card : independentWitness.card = 15 := by
-  decide +native
+  decide
 
 private lemma fifteen_le_indepNum : 15 ≤ counterexample.indepNum := by
   rw [← independentWitness_card]
@@ -104,9 +109,9 @@ private def triangle0 : Finset (Fin 21) := {0, 1, 2}
 private def triangle1 : Finset (Fin 21) := {7, 8, 9}
 private def triangle2 : Finset (Fin 21) := {14, 15, 16}
 
-private lemma triangle01_disjoint : Disjoint triangle0 triangle1 := by decide +native
-private lemma triangle02_disjoint : Disjoint triangle0 triangle2 := by decide +native
-private lemma triangle12_disjoint : Disjoint triangle1 triangle2 := by decide +native
+private lemma triangle01_disjoint : Disjoint triangle0 triangle1 := by decide
+private lemma triangle02_disjoint : Disjoint triangle0 triangle2 := by decide
+private lemma triangle12_disjoint : Disjoint triangle1 triangle2 := by decide
 
 /-- Every induced bipartite subgraph omits at least one vertex from each of the
 three disjoint triangles, and therefore has at most eighteen vertices. -/
@@ -185,6 +190,9 @@ private lemma counterexample_violates_bound :
     exact_mod_cast hfInt
   linarith
 
+set_option linter.style.ams_attribute true
+set_option linter.style.category_attribute true
+
 /--
 WOWII [Conjecture 109](http://cms.dt.uh.edu/faculty/delavinae/research/wowII/):
 
@@ -215,6 +223,7 @@ example (G : SimpleGraph (Fin 3)) : 0 ≤ b G := Nat.cast_nonneg _
 step gives $[0]`, leaving a single zero. -/
 @[category test, AMS 5]
 example : residue (⊤ : SimpleGraph (Fin 2)) = 1 := by
-  unfold residue; decide +native
+  unfold residue
+  decide
 
 end WrittenOnTheWallII.GraphConjecture109
