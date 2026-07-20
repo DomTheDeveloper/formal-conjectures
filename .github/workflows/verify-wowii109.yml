@@ -28,6 +28,22 @@ jobs:
         shell: bash
         run: lake exe cache get >/dev/null
 
+      - name: Test kernel residue normalization
+        id: residue
+        shell: bash
+        run: |
+          cat > WOWII109ResidueScratch.lean <<'EOF'
+          import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.Residue
+          open SimpleGraph
+          example : residueAux [5,5,5,5,5,5,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1] = 8 := by
+            norm_num [residueAux, havelHakimiStep]
+          EOF
+          set +e
+          lake env lean WOWII109ResidueScratch.lean > wowii109-residue.log 2>&1
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
       - name: Compile Conjecture 109
         id: compile
         shell: bash
@@ -68,13 +84,15 @@ jobs:
         with:
           name: lean-wowii109-audit
           path: |
+            wowii109-residue.log
             lean-wowii109.log
             wowii109-axioms.log
           if-no-files-found: warn
 
-      - name: Fail on Lean errors
-        if: steps.compile.outputs.status != '0'
+      - name: Fail on errors
+        if: steps.residue.outputs.status != '0' || steps.compile.outputs.status != '0'
         shell: bash
         run: |
-          cat lean-wowii109.log
+          cat wowii109-residue.log || true
+          cat lean-wowii109.log || true
           exit 1
