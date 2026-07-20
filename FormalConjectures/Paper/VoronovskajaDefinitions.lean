@@ -15,7 +15,7 @@ limitations under the License.
 -/
 module
 
--- Lean 4.27 repository-native verification trigger.
+-- Lean 4.27 finite-sum bridge verification trigger.
 public import FormalConjectures.Util.ProblemImports
 
 /-!
