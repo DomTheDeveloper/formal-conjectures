@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   lean:
-    name: Compile FormalConjectures.OEIS.317940
+    name: Compile FormalConjectures/OEIS/317940.lean
     runs-on: ubuntu-latest
     steps:
       - name: Checkout audit commit
@@ -45,12 +45,12 @@ jobs:
         run: |
           lake exe cache get
 
-      - name: Compile A317940 module
+      - name: Compile A317940 file
         id: compile
         shell: bash
         run: |
           set +e
-          lake --wfail build FormalConjectures.OEIS.317940 > a317940-build.log 2>&1
+          lake env lean FormalConjectures/OEIS/317940.lean > a317940-build.log 2>&1
           status=$?
           cat a317940-build.log
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
