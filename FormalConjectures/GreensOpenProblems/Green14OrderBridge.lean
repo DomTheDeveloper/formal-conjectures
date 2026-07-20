@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,10 @@ theorem mixedMonoAPGuaranteeSet_upward (k r : ℕ) {M N : ℕ} (hMN : M ≤ N)
     N ∈ mixedMonoAPGuaranteeSet k r := by
   intro coloring
   let emb : Icc 1 M ↪ Icc 1 N :=
-    ⟨fun x ↦ ⟨x, x.2.1, x.2.2.trans hMN⟩, fun x y h ↦ Subtype.ext (congrArg Subtype.val h)⟩
+    ⟨fun x ↦ ⟨x, x.2.1, x.2.2.trans hMN⟩, by
+      intro x y h
+      apply Subtype.ext
+      exact congrArg (fun z : Icc 1 N ↦ (z : Nat)) h⟩
   let restricted : Icc 1 M → Fin 2 := fun x ↦ coloring (emb x)
   rcases hM restricted with hzero | hone
   · left
@@ -45,6 +48,8 @@ theorem mixedMonoAPGuaranteeSet_upward (k r : ℕ) {M N : ℕ} (hMN : M ≤ N)
     have hsets : ({(x : Nat) | x ∈ t} : Set Nat) = {(x : Nat) | x ∈ s} := by
       ext z
       simp [t, emb]
+      intro hp hq _
+      exact ⟨hp, hq.trans hMN⟩
     refine ⟨t, ?_, ?_⟩
     · rw [hsets]
       exact hsAP
@@ -57,6 +62,8 @@ theorem mixedMonoAPGuaranteeSet_upward (k r : ℕ) {M N : ℕ} (hMN : M ≤ N)
     have hsets : ({(x : Nat) | x ∈ t} : Set Nat) = {(x : Nat) | x ∈ s} := by
       ext z
       simp [t, emb]
+      intro hp hq _
+      exact ⟨hp, hq.trans hMN⟩
     refine ⟨t, ?_, ?_⟩
     · rw [hsets]
       exact hsAP
