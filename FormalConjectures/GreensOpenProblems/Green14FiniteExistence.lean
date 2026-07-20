@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -123,9 +123,13 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
 
     let point : Fin q → Icc 1 N := fun x ↦
       ⟨value x, by
-        have hp := (wordPoint (line (liftFin x))).property
-        simpa [wordPoint, liftFin, value, line_sum, Nat.add_assoc, Nat.add_comm,
-          Nat.add_left_comm] using hp⟩
+        constructor
+        · dsimp only [value]
+          omega
+        · have hp := (wordPoint (line (liftFin x))).property.2
+          dsimp only [wordPoint] at hp
+          rw [line_sum] at hp
+          simpa [liftFin, value, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hp⟩
 
     have hpoint_inj : Function.Injective point := by
       intro x y hxy
@@ -150,13 +154,11 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
         · rintro ⟨x, rfl⟩
           refine ⟨x, ?_, ?_⟩
           · exact_mod_cast x.isLt
-          · simp [value, nsmul_eq_mul]
-            omega
+          · simpa [value, nsmul_eq_mul, Nat.mul_comm, Nat.add_assoc]
         · rintro ⟨n, hn, rfl⟩
           have hnq : n < q := by exact_mod_cast hn
           refine ⟨⟨n, hnq⟩, ?_⟩
-          simp [value, nsmul_eq_mul]
-          omega
+          simpa [value, nsmul_eq_mul, Nat.mul_comm, Nat.add_assoc]
 
     have hsT : ({(z : ℕ) | z ∈ s} : Set ℕ) = T := by
       ext z
