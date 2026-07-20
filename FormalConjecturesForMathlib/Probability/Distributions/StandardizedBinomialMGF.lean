@@ -53,7 +53,7 @@ lemma mgf_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
     (p : ℝ) ^ k * (1 - (p : ℝ)) ^ (n - k) * (n.choose k : ℝ) * exp (t * (k : ℝ)) =
       ((p : ℝ) * exp t) ^ k * (1 - (p : ℝ)) ^ (n - k) * (n.choose k : ℝ)
   rw [hexp, mul_pow]
-  ac_rfl
+  ring
 
 /-- Exact MGF of one standardized Bernoulli variable. -/
 lemma mgf_standardizedBernoulli (p : I) (t : ℝ) :
