@@ -15,6 +15,7 @@ limitations under the License.
 -/
 module
 
+-- Lean 4.27 repository-native verification trigger.
 public import FormalConjectures.Util.ProblemImports
 
 /-!
