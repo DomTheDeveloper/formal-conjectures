@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 
 def replace_once(path: Path, old: str, new: str, label: str) -> None:
@@ -65,3 +66,5 @@ replace_once(
 """,
     "tail-integrability alpha-ge-one exponential identity",
 )
+
+runpy.run_path(".github/voronovskaja_migrate_round6.py", run_name="__main__")
