@@ -13,10 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
+module
 
-import FormalConjectures.Paper.VoronovskajaDefinitions
-import FormalConjecturesForMathlib.Probability.CentralLimitTheorem
-import FormalConjecturesForMathlib.Probability.Distributions.Binomial
+public import FormalConjectures.Paper.VoronovskajaDefinitions
+public import FormalConjecturesForMathlib.Probability.CentralLimitTheorem
+public import FormalConjecturesForMathlib.Probability.Distributions.Binomial
 
 /-!
 # Proof infrastructure for the Bézier–Bernstein Voronovskaja problem
@@ -27,6 +28,8 @@ Bézier coefficients form a probability mass function, expresses their first cen
 powered-binomial-tail sum, and splits the approximation error into its linear moment and
 Taylor-remainder parts.
 -/
+
+public section
 
 open Topology Filter Real unitInterval Polynomial
 
