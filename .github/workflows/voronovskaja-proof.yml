@@ -15,6 +15,23 @@
 name: Voronovskaja proof verification
 
 on:
+  push:
+    branches:
+      - solve-voronovskaja-no-sorry
+    paths:
+      - 'FormalConjectures/Paper/Voronovskaja*.lean'
+      - 'FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean'
+      - 'FormalConjecturesForMathlib/Probability/CDFConvergence.lean'
+      - 'FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean'
+      - 'FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean'
+      - 'FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomial*.lean'
+      - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean'
+      - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomial*.lean'
+      - 'FormalConjecturesForMathlib/Order/Filter/ENNReal.lean'
+      - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
+      - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
+      - '.github/voronovskaja_migrate.py'
+      - '.github/workflows/voronovskaja-proof.yml'
   pull_request:
     paths:
       - 'FormalConjectures/Paper/Voronovskaja*.lean'
