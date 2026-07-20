@@ -15,6 +15,7 @@ limitations under the License.
 -/
 
 import FormalConjectures.Util.ProblemImports
+import WOWII.WotW316Final
 /-!
 # Written on the Wall II - Conjecture 316
 
@@ -35,11 +36,11 @@ Let `G` be a simple connected graph and let `P` denote the set of pendant vertic
 (vertices of degree 1). If `|P| ≥ deg_avg(Gᶜ)`, then `G` is well totally dominated,
 where `deg_avg(Gᶜ)` is the average degree of the complement of `G`.
 -/
-@[category research open, AMS 5]
+@[category research solved, AMS 5]
 theorem conjecture316 (G : SimpleGraph α) [DecidableRel G.Adj] (hG : G.Connected)
     (h : (averageDegree Gᶜ : ℚ) ≤ (pendantVertices G).card) :
     IsWellTotallyDominated G := by
-  sorry
+  exact conjecture316_solved G hG h
 
 -- Sanity checks
 
