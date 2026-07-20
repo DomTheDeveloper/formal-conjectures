@@ -25,22 +25,26 @@ import FormalConjectures.Util.ProblemImports
 
 namespace WrittenOnTheWallII.GraphConjecture109
 
-open Classical SimpleGraph
+open SimpleGraph
+
+private def counterexampleEdges : Finset (Sym2 (Fin 21)) := {
+  s(0, 1), s(1, 2), s(2, 0), s(0, 3), s(0, 4), s(1, 5), s(1, 6),
+  s(7, 8), s(8, 9), s(9, 7), s(7, 10), s(7, 11), s(8, 12), s(8, 13),
+  s(14, 15), s(15, 16), s(16, 14), s(14, 17), s(14, 18), s(15, 19), s(15, 20),
+  s(0, 7), s(1, 14), s(8, 15) }
 
 /--
-A counterexample built from three seven-vertex gadgets.  In gadget `i`, the
+A counterexample built from three seven-vertex gadgets. In gadget `i`, the
 vertices `7i`, `7i+1`, `7i+2` form a triangle; two leaves are attached to each
-of the first two triangle vertices.  The three gadgets are connected by the
+of the first two triangle vertices. The three gadgets are connected by the
 edges `0-7`, `1-14`, and `8-15`.
 -/
 def counterexample : SimpleGraph (Fin 21) :=
-  SimpleGraph.fromEdgeSet {
-    s(0, 1), s(1, 2), s(2, 0), s(0, 3), s(0, 4), s(1, 5), s(1, 6),
-    s(7, 8), s(8, 9), s(9, 7), s(7, 10), s(7, 11), s(8, 12), s(8, 13),
-    s(14, 15), s(15, 16), s(16, 14), s(14, 17), s(14, 18), s(15, 19), s(15, 20),
-    s(0, 7), s(1, 14), s(8, 15) }
+  SimpleGraph.fromEdgeSet (counterexampleEdges : Set (Sym2 (Fin 21)))
 
-private instance : DecidableRel counterexample.Adj := inferInstance
+private instance : DecidableRel counterexample.Adj := by
+  dsimp [counterexample]
+  infer_instance
 
 private lemma counterexample_connected : counterexample.Connected := by
   decide +native
@@ -146,7 +150,7 @@ private lemma largestInducedBipartiteSubgraphSize_le_eighteen :
     largestInducedBipartiteSubgraphSize counterexample ≤ 18 := by
   unfold largestInducedBipartiteSubgraphSize
   apply csSup_le
-  · exact ⟨0, ∅, by simp, rfl⟩
+  · exact ⟨0, ∅, by native_decide, rfl⟩
   · rintro n ⟨S, hBip, rfl⟩
     exact bipartite_card_le_eighteen S hBip
 
@@ -179,14 +183,14 @@ $\alpha(G) \le \lfloor (\mathrm{residue}(G) + 2 \cdot b(G)) / 3 \rfloor$, where
 $\mathrm{residue}(G)$ is the Havel-Hakimi residue and $b(G)$ is the size of a
 largest induced bipartite subgraph.
 
-This is false.  The explicit graph `counterexample` is connected, has an independent set of
-size 15, residue 8, and every induced bipartite subgraph has at most 18 vertices.  Thus the
+This is false. The explicit graph `counterexample` is connected, has an independent set of
+size 15, residue 8, and every induced bipartite subgraph has at most 18 vertices. Thus the
 conjectured right-hand side is at most $\lfloor(8+2\cdot18)/3\rfloor=14$.
 -/
 @[category research solved, AMS 5]
 theorem conjecture109 : answer(False) ↔
     ∀ (α : Type) [Fintype α] [DecidableEq α] [Nontrivial α]
-      (G : SimpleGraph α) [DecidableRel G.Adj] (h : G.Connected),
+      (G : SimpleGraph α) [DecidableRel G.Adj] (_h : G.Connected),
       (G.indepNum : ℝ) ≤ ⌊((residue G : ℝ) + 2 * b G) / 3⌋ :=
   ⟨False.elim, fun h =>
     counterexample_violates_bound (h (Fin 21) counterexample counterexample_connected)⟩
