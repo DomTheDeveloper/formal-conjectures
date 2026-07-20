@@ -1,0 +1,75 @@
+# Copyright 2026 The Formal Conjectures Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Green14 bv_decide kernel audit
+
+on:
+  push:
+    branches:
+      - audit/green14-bv-kernel
+    paths:
+      - '.github/workflows/green14-bv-audit.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/green14-bv-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: green14-bv-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  t20-bv:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lean
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Fetch Mathlib cache
+        run: lake exe cache get
+      - name: Build imported Green14 core
+        run: lake build FormalConjectures.GreensOpenProblems.Green14Core
+      - name: Generate bv_decide t=20 certificate
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          src = Path('FormalConjectures/GreensOpenProblems/Green14Certificates.lean').read_text()
+          src = src[:src.index('private def zeros21')]
+          src = src.replace('  native_decide', '  bv_decide')
+          src += '\n#print axioms Green14.Certificate.valid_20\n\nend Green14.Certificate\n'
+          Path('/tmp/Green14BV20.lean').write_text(src)
+          PY
+      - name: Compile reconstructed proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v lake env lean /tmp/Green14BV20.lean 2>&1 | tee green14-bv20.log
+          if grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' green14-bv20.log; then
+            exit 1
+          fi
+      - name: Upload transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: green14-bv20-log
+          path: green14-bv20.log
+          if-no-files-found: warn
