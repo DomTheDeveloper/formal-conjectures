@@ -170,6 +170,7 @@ private lemma counterexample_degree_multiset :
   rw [univ_val_eq]
   simp [allVertices, counterexample_degree, degreeFiveVertices, degreeTwoVertices,
     degreeSequence0]
+  decide
 
 private lemma counterexample_degree_sequence :
     (Finset.univ.val.map fun v : Fin 21 => counterexample.degree v).sort (· ≥ ·) =
