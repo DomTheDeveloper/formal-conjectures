@@ -154,13 +154,12 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
         · rintro ⟨x, rfl⟩
           refine ⟨x, ?_, ?_⟩
           · exact_mod_cast x.isLt
-          · simp only [value, nsmul_eq_mul]
-            ring
+          · simp [value, nsmul_eq_mul, Nat.mul_comm, Nat.add_comm,
+              Nat.add_left_comm, Nat.add_assoc]
         · rintro ⟨n, hn, rfl⟩
           have hnq : n < q := by exact_mod_cast hn
           refine ⟨⟨n, hnq⟩, ?_⟩
-          simp only [value, nsmul_eq_mul]
-          ring
+          simp [value, nsmul_eq_mul]
 
     have hsT : ({(z : ℕ) | z ∈ s} : Set ℕ) = T := by
       ext z
