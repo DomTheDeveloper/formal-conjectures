@@ -50,6 +50,10 @@ weak.linter.style.ams_attribute = true
 weak.linter.style.category_attribute = true
 weak.linter.style.moduleDocstring = true
 
+# Fork-hosted complete Lean proofs that are linked from upstream metadata.
+[[lean_lib]]
+name = "WOWII"
+
 [[lean_lib]]
 name = "FormalConjecturesAnswerPostpone"
 globs = ["FormalConjectures.+"]
