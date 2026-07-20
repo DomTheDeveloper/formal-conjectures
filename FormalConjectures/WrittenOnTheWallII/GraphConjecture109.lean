@@ -138,7 +138,7 @@ private lemma bipartite_card_le_eighteen (S : Finset (Fin 21))
   have hcomp : 3 ≤ (Finset.univ \ S).card := by
     rw [← hmissing_card]
     exact Finset.card_le_card hmissing_subset
-  have hpartition := Finset.card_sdiff_add_card (Finset.subset_univ S)
+  have hpartition := Finset.card_sdiff_add_card_eq_card (Finset.subset_univ S)
   simp at hpartition
   omega
 
