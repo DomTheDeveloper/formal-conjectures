@@ -158,7 +158,9 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
         · rintro ⟨n, hn, rfl⟩
           have hnq : n < q := by exact_mod_cast hn
           refine ⟨⟨n, hnq⟩, ?_⟩
-          simp [value, Nat.mul_comm, Nat.add_comm, Nat.add_left_comm]
+          change a * n + b + 1 = b + 1 + n * a
+          rw [Nat.mul_comm n a]
+          omega
 
     have hsT : ({(z : ℕ) | z ∈ s} : Set ℕ) = T := by
       ext z
