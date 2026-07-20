@@ -37,7 +37,7 @@ concurrency:
 jobs:
   compile:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - name: Install Lean
@@ -64,9 +64,10 @@ jobs:
           rw [Nat.mul_comm n a]
           omega
 """
-          if text.count(old) != 1:
-              raise SystemExit("expected exactly one Green14 normalization site")
-          path.write_text(text.replace(old, new))
+          if text.count(old) == 1:
+              path.write_text(text.replace(old, new))
+          elif text.count(new) != 1:
+              raise SystemExit("expected original or already-normalized Green14 site")
           PY
       - name: Compile complete certificate chain
         shell: bash
@@ -78,6 +79,12 @@ jobs:
           lake build FormalConjectures.GreensOpenProblems.Green14OrderBridge 2>&1 | tee -a green14.log
           lake build FormalConjectures.GreensOpenProblems.Green14Certificates 2>&1 | tee -a green14.log
           lake build FormalConjectures.GreensOpenProblems.Green14CertificateBridge 2>&1 | tee -a green14.log
+      - name: Compile fast kernel certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake build FormalConjectures.GreensOpenProblems.Green14FastKernel20 \
+            2>&1 | tee -a green14.log
       - name: Audit all twenty exact numerical theorem heads
         shell: bash
         run: |
@@ -110,6 +117,18 @@ jobs:
           EOF
           lake env lean /tmp/Green14Axioms.lean 2>&1 | tee -a green14.log
           if grep -q sorryAx green14.log; then
+            exit 1
+          fi
+      - name: Audit fast certificate trust base
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/Green14FastAxioms.lean <<'EOF'
+          import FormalConjectures.GreensOpenProblems.Green14FastKernel20
+          #print axioms Green14.FastKernel.valid_20
+          EOF
+          lake env lean /tmp/Green14FastAxioms.lean 2>&1 | tee -a green14.log
+          if grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' green14.log; then
             exit 1
           fi
       - name: Reject bridge placeholders
