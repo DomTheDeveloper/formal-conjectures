@@ -47,18 +47,28 @@ jobs:
           src += '\n#print axioms Green14.Certificate.valid_20\n\nend Green14.Certificate\n'
           Path('/tmp/Green14Decide20.lean').write_text(src)
           PY
-      - name: Compile kernel proof
+      - name: Compile kernel proof and capture diagnostic
+        id: compile
         shell: bash
         run: |
-          set -euo pipefail
-          /usr/bin/time -v lake env lean /tmp/Green14Decide20.lean 2>&1 | tee green14-decide20.log
-          if grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' green14-decide20.log; then
-            exit 1
-          fi
-      - name: Upload transcript
+          set +e
+          /usr/bin/time -v lake env lean /tmp/Green14Decide20.lean > green14-decide20.log 2>&1
+          code=$?
+          tail -n 160 green14-decide20.log > green14-decide20-tail.log
+          cat green14-decide20-tail.log
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload diagnostic transcript
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: green14-decide20-log
-          path: green14-decide20.log
-          if-no-files-found: warn
+          path: |
+            green14-decide20.log
+            green14-decide20-tail.log
+          if-no-files-found: error
+      - name: Enforce clean kernel result
+        shell: bash
+        run: |
+          test '${{ steps.compile.outputs.exit_code }}' = '0'
+          ! grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' green14-decide20.log
