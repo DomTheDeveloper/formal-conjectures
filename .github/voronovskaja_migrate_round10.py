@@ -1,16 +1,23 @@
 from pathlib import Path
 
 
-def replace_once(path: Path, old: str, new: str, label: str) -> None:
+def replace_once_or_already(path: Path, old: str, new: str, label: str) -> None:
     text = path.read_text()
-    count = text.count(old)
-    if count != 1:
-        raise SystemExit(f"{label}: expected one occurrence, found {count}")
-    path.write_text(text.replace(old, new, 1))
+    old_count = text.count(old)
+    new_count = text.count(new)
+    if old_count == 1:
+        path.write_text(text.replace(old, new, 1))
+        return
+    if old_count == 0 and new_count == 1:
+        return
+    raise SystemExit(
+        f"{label}: expected one old occurrence or one already-migrated occurrence, "
+        f"found old={old_count}, new={new_count}"
+    )
 
 
 path = Path("FormalConjectures/Paper/VoronovskajaRemainder.lean")
-replace_once(
+replace_once_or_already(
     path,
     """      exact mul_le_mul_of_nonneg_right hTaylor hw
 """,
@@ -18,7 +25,7 @@ replace_once(
 """,
     "remainder weighted Taylor associativity",
 )
-replace_once(
+replace_once_or_already(
     path,
     """  rw [tendsto_zero_iff_norm_tendsto_zero]
   apply squeeze_zero'
