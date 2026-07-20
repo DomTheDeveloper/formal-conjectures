@@ -54,12 +54,12 @@ jobs:
         run: |
           set -o pipefail
           : > green14.log
-          lake env lean FormalConjectures/GreensOpenProblems/Green14Core.lean 2>&1 | tee -a green14.log
-          lake env lean FormalConjectures/GreensOpenProblems/Green14FiniteExistence.lean 2>&1 | tee -a green14.log
-          lake env lean FormalConjectures/GreensOpenProblems/Green14OrderBridge.lean 2>&1 | tee -a green14.log
-          lake env lean FormalConjectures/GreensOpenProblems/Green14Certificates.lean 2>&1 | tee -a green14.log
-          lake env lean FormalConjectures/GreensOpenProblems/Green14CertificateBridge.lean 2>&1 | tee -a green14.log
-          lake env lean FormalConjectures/GreensOpenProblems/14.lean 2>&1 | tee -a green14.log
+          lake build FormalConjectures.GreensOpenProblems.Green14Core 2>&1 | tee -a green14.log
+          lake build FormalConjectures.GreensOpenProblems.Green14FiniteExistence 2>&1 | tee -a green14.log
+          lake build FormalConjectures.GreensOpenProblems.Green14OrderBridge 2>&1 | tee -a green14.log
+          lake build FormalConjectures.GreensOpenProblems.Green14Certificates 2>&1 | tee -a green14.log
+          lake build FormalConjectures.GreensOpenProblems.Green14CertificateBridge 2>&1 | tee -a green14.log
+          lake build 'FormalConjectures.GreensOpenProblems.«14»' 2>&1 | tee -a green14.log
       - name: Audit exact catalog theorem axioms
         shell: bash
         run: |
