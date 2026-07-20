@@ -102,7 +102,11 @@ theorem conjecture322 (G : SimpleGraph α) [DecidableRel G.Adj] (hG : G.Connecte
     obtain ⟨b, hbU, hab⟩ := hU.1 a
     have hab_ne : a ≠ b := hab.ne
     have hpair_subset : ({a, b} : Finset α) ⊆ U := by
-      simp [haU, hbU]
+      intro x hx
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hx
+      rcases hx with rfl | rfl
+      · exact haU
+      · exact hbU
     have hge : 2 ≤ U.card := by
       calc
         2 = ({a, b} : Finset α).card := by simp [hab_ne]
