@@ -64,11 +64,14 @@ jobs:
       - name: Compile with kernel reduction only
         shell: bash
         run: |
-          set -euo pipefail
-          /usr/bin/time -v lake env lean /tmp/Green14Kernel20.lean 2>&1 | tee green14-kernel20.log
+          set +e
+          /usr/bin/time -v lake env lean /tmp/Green14Kernel20.lean > green14-kernel20.log 2>&1
+          status=$?
+          tail -n 240 green14-kernel20.log
           if grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' green14-kernel20.log; then
             exit 1
           fi
+          exit "$status"
       - name: Upload transcript
         if: always()
         uses: actions/upload-artifact@v4
