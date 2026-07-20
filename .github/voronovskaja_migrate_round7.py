@@ -45,7 +45,6 @@ replace_once(
 """,
     """  field_simp [hnR, hsqrt, hsd]
   rw [Real.sq_sqrt (by positivity : 0 ≤ (n : ℝ))]
-  ring_nf
 """,
     "moment-limit terminal square-root normalization",
 )
