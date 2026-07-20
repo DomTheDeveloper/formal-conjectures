@@ -1,4 +1,4 @@
-# Centered-moment and remainder exposure verification trigger.
+# Moment-limit finite-sum verification trigger.
 from pathlib import Path
 import runpy
 
