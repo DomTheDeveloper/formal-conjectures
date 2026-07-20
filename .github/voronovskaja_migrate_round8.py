@@ -41,7 +41,13 @@ replace_once(
   · positivity
 """,
     """  field_simp [hnR, hsqrt, hsd]
-  rw [Real.sq_sqrt (by positivity : 0 ≤ (n : ℝ))] <;> ring
+  have hsqrt_sq : Real.sqrt (n : ℝ) ^ 2 = (n : ℝ) :=
+    Real.sq_sqrt (by positivity)
+  have hsqrt_four : Real.sqrt (n : ℝ) ^ 4 = (n : ℝ) ^ 2 := by
+    calc
+      Real.sqrt (n : ℝ) ^ 4 = (Real.sqrt (n : ℝ) ^ 2) ^ 2 := by ring
+      _ = (n : ℝ) ^ 2 := by rw [hsqrt_sq]
+  rw [hsqrt_four]
 """,
     "second-moment terminal square-root normalization",
 )
