@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 
 def replace_once(path: Path, old: str, new: str, label: str) -> None:
@@ -48,3 +49,5 @@ replace_once(
 """,
     "moment-limit terminal square-root normalization",
 )
+
+runpy.run_path(".github/voronovskaja_migrate_round8.py", run_name="__main__")
