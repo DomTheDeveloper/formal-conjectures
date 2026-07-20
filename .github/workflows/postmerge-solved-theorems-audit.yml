@@ -1,0 +1,71 @@
+name: Audit merged solved theorems
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/postmerge-solved-theorems-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out current merged main plus audit workflow
+        uses: actions/checkout@v6
+
+      - name: Install Lean
+        shell: bash
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y >/dev/null
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Mathlib cache
+        shell: bash
+        run: lake exe cache get >/dev/null
+
+      - name: Compile and axiom-audit merged theorem heads
+        shell: bash
+        run: |
+          cat > PostMergeSolvedAudit.lean <<'EOF'
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture65
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture109
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture314
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture322
+          import FormalConjectures.Other.BeaverMathOlympiad
+          import FormalConjectures.ErdosProblems.«1150»
+
+          #check WrittenOnTheWallII.GraphConjecture65.conjecture65
+          #print axioms WrittenOnTheWallII.GraphConjecture65.conjecture65
+
+          #check WrittenOnTheWallII.GraphConjecture109.conjecture109
+          #print axioms WrittenOnTheWallII.GraphConjecture109.conjecture109
+
+          #check WrittenOnTheWallII.GraphConjecture314.conjecture314
+          #print axioms WrittenOnTheWallII.GraphConjecture314.conjecture314
+
+          #check WrittenOnTheWallII.GraphConjecture322.conjecture322
+          #print axioms WrittenOnTheWallII.GraphConjecture322.conjecture322
+
+          #check BeaverMathOlympiad.beaver_math_olympiad_problem_4
+          #print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_4
+
+          #check Erdos1150.erdos_1150.variants.parseval_lower_bound
+          #print axioms Erdos1150.erdos_1150.variants.parseval_lower_bound
+          EOF
+
+          lake env lean PostMergeSolvedAudit.lean 2>&1 | tee postmerge-solved-audit.log
+          if grep -E 'sorryAx|admitAx|Lean\.trustCompiler|Lean\.ofReduceBool' postmerge-solved-audit.log; then
+            echo "Unexpected non-kernel axiom detected"
+            exit 1
+          fi
+
+      - name: Upload transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postmerge-solved-theorems-audit
+          path: postmerge-solved-audit.log
+          if-no-files-found: warn
