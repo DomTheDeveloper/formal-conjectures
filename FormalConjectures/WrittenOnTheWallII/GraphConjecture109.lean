@@ -114,8 +114,9 @@ private lemma counterexample_reachable_zero (v : Fin 21) :
   · exact r19
   · exact r20
 
-private lemma counterexample_connected : counterexample.Connected :=
-  connected_iff_exists_forall_reachable.mpr ⟨0, counterexample_reachable_zero⟩
+private lemma counterexample_connected : counterexample.Connected := by
+  rw [connected_iff_exists_forall_reachable]
+  exact ⟨0, counterexample_reachable_zero⟩
 
 private def degreeFiveVertices : Finset (Fin 21) := {0, 1, 7, 8, 14, 15}
 private def degreeTwoVertices : Finset (Fin 21) := {2, 9, 16}
@@ -158,39 +159,51 @@ private lemma counterexample_degree_sequence :
     (Finset.univ.val.map fun v : Fin 21 => counterexample.degree v).sort (· ≥ ·) =
       degreeSequence0 := by
   simp_rw [counterexample_degree]
-  set_option maxRecDepth 100000 in
-  set_option maxHeartbeats 10000000 in
-    decide
+  norm_num [degreeFiveVertices, degreeTwoVertices, degreeSequence0, Multiset.sort,
+    List.mergeSort]
 
-private lemma hhStep0 : havelHakimiStep degreeSequence0 = degreeSequence1 := by decide
-private lemma hhStep1 : havelHakimiStep degreeSequence1 = degreeSequence2 := by decide
-private lemma hhStep2 : havelHakimiStep degreeSequence2 = degreeSequence3 := by decide
-private lemma hhStep3 : havelHakimiStep degreeSequence3 = degreeSequence4 := by decide
-private lemma hhStep4 : havelHakimiStep degreeSequence4 = degreeSequence5 := by decide
-private lemma hhStep5 : havelHakimiStep degreeSequence5 = degreeSequence6 := by decide
-private lemma hhStep6 : havelHakimiStep degreeSequence6 = degreeSequence7 := by decide
-private lemma hhStep7 : havelHakimiStep degreeSequence7 = degreeSequence8 := by decide
-private lemma hhStep8 : havelHakimiStep degreeSequence8 = degreeSequence9 := by decide
-private lemma hhStep9 : havelHakimiStep degreeSequence9 = degreeSequence10 := by decide
-private lemma hhStep10 : havelHakimiStep degreeSequence10 = degreeSequence11 := by decide
-private lemma hhStep11 : havelHakimiStep degreeSequence11 = degreeSequence12 := by decide
-private lemma hhStep12 : havelHakimiStep degreeSequence12 = degreeSequence13 := by decide
+private lemma hhStep0 : havelHakimiStep degreeSequence0 = degreeSequence1 := by
+  norm_num [havelHakimiStep, degreeSequence0, degreeSequence1, List.mergeSort]
+private lemma hhStep1 : havelHakimiStep degreeSequence1 = degreeSequence2 := by
+  norm_num [havelHakimiStep, degreeSequence1, degreeSequence2, List.mergeSort]
+private lemma hhStep2 : havelHakimiStep degreeSequence2 = degreeSequence3 := by
+  norm_num [havelHakimiStep, degreeSequence2, degreeSequence3, List.mergeSort]
+private lemma hhStep3 : havelHakimiStep degreeSequence3 = degreeSequence4 := by
+  norm_num [havelHakimiStep, degreeSequence3, degreeSequence4, List.mergeSort]
+private lemma hhStep4 : havelHakimiStep degreeSequence4 = degreeSequence5 := by
+  norm_num [havelHakimiStep, degreeSequence4, degreeSequence5, List.mergeSort]
+private lemma hhStep5 : havelHakimiStep degreeSequence5 = degreeSequence6 := by
+  norm_num [havelHakimiStep, degreeSequence5, degreeSequence6, List.mergeSort]
+private lemma hhStep6 : havelHakimiStep degreeSequence6 = degreeSequence7 := by
+  norm_num [havelHakimiStep, degreeSequence6, degreeSequence7, List.mergeSort]
+private lemma hhStep7 : havelHakimiStep degreeSequence7 = degreeSequence8 := by
+  norm_num [havelHakimiStep, degreeSequence7, degreeSequence8, List.mergeSort]
+private lemma hhStep8 : havelHakimiStep degreeSequence8 = degreeSequence9 := by
+  norm_num [havelHakimiStep, degreeSequence8, degreeSequence9, List.mergeSort]
+private lemma hhStep9 : havelHakimiStep degreeSequence9 = degreeSequence10 := by
+  norm_num [havelHakimiStep, degreeSequence9, degreeSequence10, List.mergeSort]
+private lemma hhStep10 : havelHakimiStep degreeSequence10 = degreeSequence11 := by
+  norm_num [havelHakimiStep, degreeSequence10, degreeSequence11, List.mergeSort]
+private lemma hhStep11 : havelHakimiStep degreeSequence11 = degreeSequence12 := by
+  norm_num [havelHakimiStep, degreeSequence11, degreeSequence12, List.mergeSort]
+private lemma hhStep12 : havelHakimiStep degreeSequence12 = degreeSequence13 := by
+  norm_num [havelHakimiStep, degreeSequence12, degreeSequence13, List.mergeSort]
 
 private lemma counterexample_residue_aux : residueAux degreeSequence0 = 8 := by
-  rw [residueAux, hhStep0]
-  rw [residueAux, hhStep1]
-  rw [residueAux, hhStep2]
-  rw [residueAux, hhStep3]
-  rw [residueAux, hhStep4]
-  rw [residueAux, hhStep5]
-  rw [residueAux, hhStep6]
-  rw [residueAux, hhStep7]
-  rw [residueAux, hhStep8]
-  rw [residueAux, hhStep9]
-  rw [residueAux, hhStep10]
-  rw [residueAux, hhStep11]
-  rw [residueAux, hhStep12]
-  norm_num [residueAux, degreeSequence13]
+  rw [SimpleGraph.residueAux.eq_def, hhStep0]
+  rw [SimpleGraph.residueAux.eq_def, hhStep1]
+  rw [SimpleGraph.residueAux.eq_def, hhStep2]
+  rw [SimpleGraph.residueAux.eq_def, hhStep3]
+  rw [SimpleGraph.residueAux.eq_def, hhStep4]
+  rw [SimpleGraph.residueAux.eq_def, hhStep5]
+  rw [SimpleGraph.residueAux.eq_def, hhStep6]
+  rw [SimpleGraph.residueAux.eq_def, hhStep7]
+  rw [SimpleGraph.residueAux.eq_def, hhStep8]
+  rw [SimpleGraph.residueAux.eq_def, hhStep9]
+  rw [SimpleGraph.residueAux.eq_def, hhStep10]
+  rw [SimpleGraph.residueAux.eq_def, hhStep11]
+  rw [SimpleGraph.residueAux.eq_def, hhStep12]
+  norm_num [SimpleGraph.residueAux.eq_def, degreeSequence13]
 
 private lemma counterexample_residue : residue counterexample = 8 := by
   unfold residue
