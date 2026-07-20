@@ -50,13 +50,29 @@ private instance : DecidableRel counterexample.Adj := by
   infer_instance
 
 private lemma counterexample_connected : counterexample.Connected := by
+  set_option maxRecDepth 100000 in
+  set_option maxHeartbeats 10000000 in
+    decide
+
+private def counterexampleDegreeSequence : List ℕ :=
+  [5, 5, 5, 5, 5, 5, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+private lemma counterexample_degree_sequence :
+    (Finset.univ.val.map fun v : Fin 21 => counterexample.degree v).sort (· ≥ ·) =
+      counterexampleDegreeSequence := by
+  set_option maxRecDepth 100000 in
+  set_option maxHeartbeats 10000000 in
+    decide
+
+private lemma counterexample_residue_aux : residueAux counterexampleDegreeSequence = 8 := by
+  set_option maxRecDepth 100000 in
   set_option maxHeartbeats 10000000 in
     decide
 
 private lemma counterexample_residue : residue counterexample = 8 := by
-  unfold residue counterexample
-  set_option maxHeartbeats 10000000 in
-    decide
+  unfold residue
+  rw [counterexample_degree_sequence]
+  exact counterexample_residue_aux
 
 private def independentWitness : Finset (Fin 21) :=
   {2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 16, 17, 18, 19, 20}
@@ -224,6 +240,6 @@ step gives $[0]`, leaving a single zero. -/
 @[category test, AMS 5]
 example : residue (⊤ : SimpleGraph (Fin 2)) = 1 := by
   unfold residue
-  decide
+  decide +native
 
 end WrittenOnTheWallII.GraphConjecture109
