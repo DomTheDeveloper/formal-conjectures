@@ -1,0 +1,128 @@
+# Copyright 2026 The Formal Conjectures Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Green14 fast kernel certificate audit
+
+on:
+  push:
+    branches:
+      - audit/green14-fast-kernel
+    paths:
+      - '.github/workflows/green14-fast-kernel.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/green14-fast-kernel.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: green14-fast-kernel-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  t20-array:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lean and cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Fetch Mathlib cache and build core
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake exe cache get
+          lake build FormalConjectures.GreensOpenProblems.Green14Core
+      - name: Generate direct-array t=20 checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import ast
+          import re
+          from pathlib import Path
+
+          source = Path('FormalConjectures/GreensOpenProblems/Green14Certificates.lean').read_text()
+          match = re.search(r'private def zeros20 : List Nat := (\[[^\n]+\])', source)
+          if match is None:
+              raise SystemExit('zeros20 certificate not found')
+          zeros = set(ast.literal_eval(match.group(1)))
+          N = 388
+          values = ['false' if i in zeros else 'true' for i in range(1, N + 1)]
+          rows = []
+          for start in range(0, len(values), 24):
+              rows.append('    ' + ', '.join(values[start:start + 24]))
+          array_literal = '#[\n' + ',\n'.join(rows) + '\n  ]'
+          lean = f'''import FormalConjectures.GreensOpenProblems.Green14Core
+
+set_option maxHeartbeats 0
+set_option maxRecDepth 10000000
+
+namespace Green14.FastKernel
+
+private def colors20 : Array Bool := {array_literal}
+
+private def colorAt (colors : Array Bool) (i : Nat) : Bool :=
+  colors[i]!
+
+private def hasAP (N k : Nat) (colors : Array Bool) (color : Bool) : Bool :=
+  (List.range N).any fun a =>
+    (List.range N).any fun d =>
+      decide (0 < d ∧ a + (k - 1) * d < N) &&
+        (List.range k).all fun i => colorAt colors (a + i * d) == color
+
+theorem valid_20 :
+    hasAP 388 3 colors20 false = false ∧
+      hasAP 388 20 colors20 true = false := by
+  decide
+
+#print axioms Green14.FastKernel.valid_20
+
+end Green14.FastKernel
+'''
+          Path('/tmp/Green14Fast20.lean').write_text(lean)
+          PY
+      - name: Compile kernel-only certificate
+        id: compile
+        shell: bash
+        run: |
+          set +e
+          /usr/bin/time -v lake env lean /tmp/Green14Fast20.lean \
+            > green14-fast20.log 2>&1
+          code=$?
+          tail -n 160 green14-fast20.log > green14-fast20-tail.log
+          cat green14-fast20-tail.log
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: green14-fast20-log
+          path: |
+            green14-fast20.log
+            green14-fast20-tail.log
+          if-no-files-found: error
+      - name: Enforce clean kernel proof
+        shell: bash
+        run: |
+          test '${{ steps.compile.outputs.exit_code }}' = '0'
+          ! grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' green14-fast20.log
