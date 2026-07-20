@@ -32,6 +32,7 @@ on:
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
       - '.github/voronovskaja_migrate.py'
       - '.github/voronovskaja_migrate_round2.py'
+      - '.github/voronovskaja_migrate_round5.py'
       - '.github/workflows/voronovskaja-proof.yml'
   pull_request:
     paths:
@@ -48,6 +49,7 @@ on:
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
       - '.github/voronovskaja_migrate.py'
       - '.github/voronovskaja_migrate_round2.py'
+      - '.github/voronovskaja_migrate_round5.py'
       - '.github/workflows/voronovskaja-proof.yml'
   workflow_dispatch:
 
@@ -81,6 +83,7 @@ jobs:
         run: |
           python3 .github/voronovskaja_migrate.py
           python3 .github/voronovskaja_migrate_round2.py
+          python3 .github/voronovskaja_migrate_round5.py
       - name: Reject placeholders in proof sources
         shell: bash
         run: |
@@ -99,7 +102,7 @@ jobs:
               FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean; then
             exit 1
           fi
-      - name: Compile broken modules independently
+      - name: Compile repaired modules independently
         shell: bash
         run: |
           set +e
@@ -107,6 +110,7 @@ jobs:
           for target in \
             FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialMoments \
             FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialSecondMoment \
+            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialTailIntegrability \
             FormalConjectures.Paper.VoronovskajaDiscreteLaw; do
             safe=${target//./_}
             lake build "$target" > "/tmp/${safe}.log" 2>&1
@@ -148,6 +152,7 @@ jobs:
             /tmp/module-status.txt
             /tmp/FormalConjecturesForMathlib_Probability_Distributions_PoweredBinomialMoments.log
             /tmp/FormalConjecturesForMathlib_Probability_Distributions_PoweredBinomialSecondMoment.log
+            /tmp/FormalConjecturesForMathlib_Probability_Distributions_PoweredBinomialTailIntegrability.log
             /tmp/FormalConjectures_Paper_VoronovskajaDiscreteLaw.log
             /tmp/lean.log
           if-no-files-found: warn
