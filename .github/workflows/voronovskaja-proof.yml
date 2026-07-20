@@ -31,6 +31,7 @@ on:
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
       - '.github/voronovskaja_migrate.py'
+      - '.github/voronovskaja_migrate_round2.py'
       - '.github/workflows/voronovskaja-proof.yml'
   pull_request:
     paths:
@@ -46,6 +47,7 @@ on:
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
       - '.github/voronovskaja_migrate.py'
+      - '.github/voronovskaja_migrate_round2.py'
       - '.github/workflows/voronovskaja-proof.yml'
   workflow_dispatch:
 
@@ -76,7 +78,9 @@ jobs:
       - name: Fetch precompiled dependencies
         run: lake exe cache get
       - name: Apply migration candidate
-        run: python3 .github/voronovskaja_migrate.py
+        run: |
+          python3 .github/voronovskaja_migrate.py
+          python3 .github/voronovskaja_migrate_round2.py
       - name: Reject placeholders in proof sources
         shell: bash
         run: |
