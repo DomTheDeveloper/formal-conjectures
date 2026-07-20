@@ -15,6 +15,7 @@ limitations under the License.
 -/
 
 import FormalConjectures.Util.ProblemImports
+import WOWII.GraphConjecture143ZZFinal
 
 /-!
 # Written on the Wall II - Conjecture 143
@@ -40,11 +41,11 @@ $\sigma(G) = G.\mathrm{secondSmallestDegree}$ is the **second-smallest degree**
 of $G$'s degree sequence (per WOWII defEntry 65). We state the inequality in
 denominator-free form to avoid the $\sigma = 0$ corner case ($n \le 1$).
 -/
-@[category research open, AMS 5]
+@[category research solved, AMS 5]
 theorem conjecture143 (G : SimpleGraph α) [DecidableRel G.Adj] (h : G.Connected)
     (hσ : 0 < secondSmallestDegree G) :
     (G.girth : ℝ) + 1 ≤ (largestInducedTreeSize G : ℝ) * (secondSmallestDegree G : ℝ) := by
-  sorry
+  exact conjecture143_proved G h hσ
 
 -- Sanity checks
 
