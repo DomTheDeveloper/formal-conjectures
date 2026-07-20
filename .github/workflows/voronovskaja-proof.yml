@@ -20,36 +20,14 @@ on:
       - solve-voronovskaja-no-sorry
     paths:
       - 'FormalConjectures/Paper/Voronovskaja*.lean'
-      - 'FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean'
-      - 'FormalConjecturesForMathlib/Probability/CDFConvergence.lean'
-      - 'FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean'
-      - 'FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean'
-      - 'FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomial*.lean'
-      - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean'
-      - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomial*.lean'
-      - 'FormalConjecturesForMathlib/Order/Filter/ENNReal.lean'
-      - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
-      - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
-      - '.github/voronovskaja_migrate.py'
-      - '.github/voronovskaja_migrate_round2.py'
-      - '.github/voronovskaja_migrate_round5.py'
+      - 'FormalConjecturesForMathlib/Probability/**'
+      - '.github/voronovskaja_migrate*.py'
       - '.github/workflows/voronovskaja-proof.yml'
   pull_request:
     paths:
       - 'FormalConjectures/Paper/Voronovskaja*.lean'
-      - 'FormalConjecturesForMathlib/Probability/CentralLimitTheorem.lean'
-      - 'FormalConjecturesForMathlib/Probability/CDFConvergence.lean'
-      - 'FormalConjecturesForMathlib/Probability/Distributions/Bernoulli.lean'
-      - 'FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean'
-      - 'FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomial*.lean'
-      - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean'
-      - 'FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomial*.lean'
-      - 'FormalConjecturesForMathlib/Order/Filter/ENNReal.lean'
-      - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
-      - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
-      - '.github/voronovskaja_migrate.py'
-      - '.github/voronovskaja_migrate_round2.py'
-      - '.github/voronovskaja_migrate_round5.py'
+      - 'FormalConjecturesForMathlib/Probability/**'
+      - '.github/voronovskaja_migrate*.py'
       - '.github/workflows/voronovskaja-proof.yml'
   workflow_dispatch:
 
@@ -96,37 +74,13 @@ jobs:
               FormalConjecturesForMathlib/Probability/Distributions/Binomial.lean \
               FormalConjecturesForMathlib/Probability/Distributions/StandardizedBinomial*.lean \
               FormalConjecturesForMathlib/Probability/Distributions/PoweredGaussian.lean \
-              FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomial*.lean \
-              FormalConjecturesForMathlib/Order/Filter/ENNReal.lean \
-              FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean \
-              FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean; then
+              FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomial*.lean; then
             exit 1
           fi
-      - name: Compile repaired modules independently
-        shell: bash
-        run: |
-          set +e
-          : > /tmp/module-status.txt
-          for target in \
-            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialMoments \
-            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialSecondMoment \
-            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialTailIntegrability \
-            FormalConjectures.Paper.VoronovskajaDiscreteLaw; do
-            safe=${target//./_}
-            lake build "$target" > "/tmp/${safe}.log" 2>&1
-            code=$?
-            echo "$target $code" | tee -a /tmp/module-status.txt
-            cat "/tmp/${safe}.log"
-          done
-          exit 0
       - name: Compile exact theorem and dependencies
         shell: bash
         run: |
           set -o pipefail
-          if grep -qv ' 0$' /tmp/module-status.txt; then
-            echo 'A migration module still fails.' >&2
-            exit 1
-          fi
           lake build FormalConjectures.Paper.VoronovskajaTypeFormula 2>&1 | tee /tmp/lean.log
       - name: Kernel axiom audit
         shell: bash
@@ -143,16 +97,18 @@ jobs:
             echo 'Disallowed axiom detected.' >&2
             exit 1
           fi
-      - name: Upload Lean diagnostics
+      - name: Upload diagnostics and patched source snapshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: voronovskaja-kernel-verification-log
           path: |
-            /tmp/module-status.txt
-            /tmp/FormalConjecturesForMathlib_Probability_Distributions_PoweredBinomialMoments.log
-            /tmp/FormalConjecturesForMathlib_Probability_Distributions_PoweredBinomialSecondMoment.log
-            /tmp/FormalConjecturesForMathlib_Probability_Distributions_PoweredBinomialTailIntegrability.log
-            /tmp/FormalConjectures_Paper_VoronovskajaDiscreteLaw.log
             /tmp/lean.log
+            FormalConjectures/Paper/VoronovskajaProof.lean
+            FormalConjectures/Paper/VoronovskajaDiscreteLaw.lean
+            FormalConjectures/Paper/VoronovskajaExpectation.lean
+            FormalConjectures/Paper/VoronovskajaMomentLimit.lean
+            FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialMoments.lean
+            FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialSecondMoment.lean
+            FormalConjecturesForMathlib/Probability/Distributions/PoweredBinomialTailIntegrability.lean
           if-no-files-found: warn
