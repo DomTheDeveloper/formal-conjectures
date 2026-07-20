@@ -45,6 +45,8 @@ jobs:
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Fetch Mathlib cache
         run: lake exe cache get
+      - name: Build imported Green14 core
+        run: lake build FormalConjectures.GreensOpenProblems.Green14Core
       - name: Generate kernel-reduced t=20 certificate
         shell: bash
         run: |
