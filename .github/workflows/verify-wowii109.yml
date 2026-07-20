@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          lake env lean FormalConjectures/WrittenOnTheWallII/GraphConjecture109.lean > lean-wowii109.log 2>&1
+          lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture109 > lean-wowii109.log 2>&1
           status=$?
           echo "status=$status" >> "$GITHUB_OUTPUT"
           exit 0
