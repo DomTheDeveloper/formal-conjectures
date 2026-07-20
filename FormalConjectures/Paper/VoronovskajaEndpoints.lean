@@ -13,8 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
+module
 
-import FormalConjectures.Paper.VoronovskajaProof
+public import FormalConjectures.Paper.VoronovskajaProof
 
 /-!
 # Endpoint cases of the Bézier--Bernstein asymptotic
@@ -23,6 +24,8 @@ At the two endpoints the operator is exact: at zero every mass is concentrated a
 sampling point, while at one every positive-degree operator is concentrated at its final sampling
 point. Consequently the scaled approximation error vanishes identically there.
 -/
+
+public section
 
 open Topology Filter Real unitInterval Polynomial
 
