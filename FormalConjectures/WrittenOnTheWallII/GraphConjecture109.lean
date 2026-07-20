@@ -49,10 +49,81 @@ private instance : DecidableRel counterexample.Adj := by
   dsimp [counterexample]
   infer_instance
 
-private lemma counterexample_connected : counterexample.Connected := by
-  set_option maxRecDepth 100000 in
-  set_option maxHeartbeats 10000000 in
-    decide
+private lemma counterexample_reachable_zero (v : Fin 21) :
+    counterexample.Reachable 0 v := by
+  have r01 : counterexample.Reachable 0 1 :=
+    (show counterexample.Adj 0 1 by decide).reachable
+  have r02 : counterexample.Reachable 0 2 :=
+    (show counterexample.Adj 0 2 by decide).reachable
+  have r03 : counterexample.Reachable 0 3 :=
+    (show counterexample.Adj 0 3 by decide).reachable
+  have r04 : counterexample.Reachable 0 4 :=
+    (show counterexample.Adj 0 4 by decide).reachable
+  have r05 : counterexample.Reachable 0 5 :=
+    r01.trans (show counterexample.Adj 1 5 by decide).reachable
+  have r06 : counterexample.Reachable 0 6 :=
+    r01.trans (show counterexample.Adj 1 6 by decide).reachable
+  have r07 : counterexample.Reachable 0 7 :=
+    (show counterexample.Adj 0 7 by decide).reachable
+  have r08 : counterexample.Reachable 0 8 :=
+    r07.trans (show counterexample.Adj 7 8 by decide).reachable
+  have r09 : counterexample.Reachable 0 9 :=
+    r07.trans (show counterexample.Adj 7 9 by decide).reachable
+  have r10 : counterexample.Reachable 0 10 :=
+    r07.trans (show counterexample.Adj 7 10 by decide).reachable
+  have r11 : counterexample.Reachable 0 11 :=
+    r07.trans (show counterexample.Adj 7 11 by decide).reachable
+  have r12 : counterexample.Reachable 0 12 :=
+    r08.trans (show counterexample.Adj 8 12 by decide).reachable
+  have r13 : counterexample.Reachable 0 13 :=
+    r08.trans (show counterexample.Adj 8 13 by decide).reachable
+  have r14 : counterexample.Reachable 0 14 :=
+    r01.trans (show counterexample.Adj 1 14 by decide).reachable
+  have r15 : counterexample.Reachable 0 15 :=
+    r14.trans (show counterexample.Adj 14 15 by decide).reachable
+  have r16 : counterexample.Reachable 0 16 :=
+    r14.trans (show counterexample.Adj 14 16 by decide).reachable
+  have r17 : counterexample.Reachable 0 17 :=
+    r14.trans (show counterexample.Adj 14 17 by decide).reachable
+  have r18 : counterexample.Reachable 0 18 :=
+    r14.trans (show counterexample.Adj 14 18 by decide).reachable
+  have r19 : counterexample.Reachable 0 19 :=
+    r15.trans (show counterexample.Adj 15 19 by decide).reachable
+  have r20 : counterexample.Reachable 0 20 :=
+    r15.trans (show counterexample.Adj 15 20 by decide).reachable
+  fin_cases v
+  · exact .rfl
+  · exact r01
+  · exact r02
+  · exact r03
+  · exact r04
+  · exact r05
+  · exact r06
+  · exact r07
+  · exact r08
+  · exact r09
+  · exact r10
+  · exact r11
+  · exact r12
+  · exact r13
+  · exact r14
+  · exact r15
+  · exact r16
+  · exact r17
+  · exact r18
+  · exact r19
+  · exact r20
+
+private lemma counterexample_connected : counterexample.Connected :=
+  connected_iff_exists_forall_reachable.mpr ⟨0, counterexample_reachable_zero⟩
+
+private def degreeFiveVertices : Finset (Fin 21) := {0, 1, 7, 8, 14, 15}
+private def degreeTwoVertices : Finset (Fin 21) := {2, 9, 16}
+
+private lemma counterexample_degree (v : Fin 21) :
+    counterexample.degree v =
+      if v ∈ degreeFiveVertices then 5 else if v ∈ degreeTwoVertices then 2 else 1 := by
+  fin_cases v <;> decide
 
 private def counterexampleDegreeSequence : List ℕ :=
   [5, 5, 5, 5, 5, 5, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -60,14 +131,11 @@ private def counterexampleDegreeSequence : List ℕ :=
 private lemma counterexample_degree_sequence :
     (Finset.univ.val.map fun v : Fin 21 => counterexample.degree v).sort (· ≥ ·) =
       counterexampleDegreeSequence := by
-  set_option maxRecDepth 100000 in
-  set_option maxHeartbeats 10000000 in
-    decide
+  simp_rw [counterexample_degree]
+  norm_num [degreeFiveVertices, degreeTwoVertices, counterexampleDegreeSequence]
 
 private lemma counterexample_residue_aux : residueAux counterexampleDegreeSequence = 8 := by
-  set_option maxRecDepth 100000 in
-  set_option maxHeartbeats 10000000 in
-    decide
+  norm_num [counterexampleDegreeSequence, residueAux, havelHakimiStep]
 
 private lemma counterexample_residue : residue counterexample = 8 := by
   unfold residue
