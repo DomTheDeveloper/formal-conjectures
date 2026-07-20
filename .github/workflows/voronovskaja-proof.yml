@@ -30,6 +30,7 @@ on:
       - 'FormalConjecturesForMathlib/Order/Filter/ENNReal.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
+      - '.github/voronovskaja_migrate.py'
       - '.github/workflows/voronovskaja-proof.yml'
   pull_request:
     paths:
@@ -44,6 +45,7 @@ on:
       - 'FormalConjecturesForMathlib/Order/Filter/ENNReal.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/LevyConvergence.lean'
       - 'FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean'
+      - '.github/voronovskaja_migrate.py'
       - '.github/workflows/voronovskaja-proof.yml'
   workflow_dispatch:
 
@@ -58,25 +60,23 @@ jobs:
   verify:
     name: kernel-verify
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
-
       - name: Install elan
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | \
             sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-
       - name: Restore Lean dependency cache
         uses: actions/cache/restore@v3
         with:
           path: ~/.cache/mathlib
           key: voronovskaja-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lake-manifest.json') }}
-
       - name: Fetch precompiled dependencies
         run: lake exe cache get
-
+      - name: Apply migration candidate
+        run: python3 .github/voronovskaja_migrate.py
       - name: Reject placeholders in proof sources
         shell: bash
         run: |
@@ -95,13 +95,31 @@ jobs:
               FormalConjecturesForMathlib/MeasureTheory/Measure/CharacteristicFunction/TaylorExpansion.lean; then
             exit 1
           fi
-
+      - name: Compile broken modules independently
+        shell: bash
+        run: |
+          set +e
+          : > /tmp/module-status.txt
+          for target in \
+            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialMoments \
+            FormalConjecturesForMathlib.Probability.Distributions.PoweredBinomialSecondMoment \
+            FormalConjectures.Paper.VoronovskajaDiscreteLaw; do
+            safe=${target//./_}
+            lake build "$target" > "/tmp/${safe}.log" 2>&1
+            code=$?
+            echo "$target $code" | tee -a /tmp/module-status.txt
+            cat "/tmp/${safe}.log"
+          done
+          exit 0
       - name: Compile exact theorem and dependencies
         shell: bash
         run: |
           set -o pipefail
+          if grep -qv ' 0$' /tmp/module-status.txt; then
+            echo 'A migration module still fails.' >&2
+            exit 1
+          fi
           lake build FormalConjectures.Paper.VoronovskajaTypeFormula 2>&1 | tee /tmp/lean.log
-
       - name: Kernel axiom audit
         shell: bash
         run: |
@@ -117,10 +135,15 @@ jobs:
             echo 'Disallowed axiom detected.' >&2
             exit 1
           fi
-
       - name: Upload Lean diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: voronovskaja-kernel-verification-log
-          path: /tmp/lean.log
+          path: |
+            /tmp/module-status.txt
+            /tmp/FormalConjecturesForMathlib_Probability_Distributions_PoweredBinomialMoments.log
+            /tmp/FormalConjecturesForMathlib_Probability_Distributions_PoweredBinomialSecondMoment.log
+            /tmp/FormalConjectures_Paper_VoronovskajaDiscreteLaw.log
+            /tmp/lean.log
+          if-no-files-found: warn
