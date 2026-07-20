@@ -103,9 +103,7 @@ lemma tendsto_sqrt_mul_bezierTaylorRemainder
               bezierWeight n k α (x : ℝ))))
       atTop (𝓝 0) := by
     simpa using (tendsto_const_nhds.mul hsq)
-  rw [tendsto_zero_iff_norm_tendsto_zero]
-  apply squeeze_zero'
-  · exact Eventually.of_forall fun n ↦ norm_nonneg _
+  apply squeeze_zero_norm'
   · refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
     have hrem := abs_bezierTaylorRemainder_le_sq_moment
       n hn α hα f hf (x : ℝ) x.property M hM0 hM
