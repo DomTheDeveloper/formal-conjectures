@@ -26,7 +26,18 @@ jobs:
         shell: bash
         run: lake exe cache get >/dev/null
 
-      - name: Compile and axiom-audit merged theorem heads
+      - name: Build exact merged theorem modules
+        shell: bash
+        run: |
+          lake build \
+            FormalConjectures.WrittenOnTheWallII.GraphConjecture65 \
+            FormalConjectures.WrittenOnTheWallII.GraphConjecture109 \
+            FormalConjectures.WrittenOnTheWallII.GraphConjecture314 \
+            FormalConjectures.WrittenOnTheWallII.GraphConjecture322 \
+            FormalConjectures.Other.BeaverMathOlympiad \
+            FormalConjectures.ErdosProblems.1150
+
+      - name: Axiom-audit merged theorem heads
         shell: bash
         run: |
           cat > PostMergeSolvedAudit.lean <<'EOF'
