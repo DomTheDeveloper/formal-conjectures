@@ -15,17 +15,40 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          show-progress: false
 
       - name: Install elan
         shell: bash
         run: |
-          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y >/dev/null
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
       - name: Restore Mathlib cache
         shell: bash
-        run: lake exe cache get
+        run: lake exe cache get >/dev/null
 
       - name: Compile Conjecture 109
+        id: compile
         shell: bash
-        run: lake env lean FormalConjectures/WrittenOnTheWallII/GraphConjecture109.lean
+        run: |
+          set +e
+          lake env lean FormalConjectures/WrittenOnTheWallII/GraphConjecture109.lean > lean-wowii109.log 2>&1
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload Lean diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lean-wowii109-log
+          path: lean-wowii109.log
+          if-no-files-found: error
+
+      - name: Fail on Lean errors
+        if: steps.compile.outputs.status != '0'
+        shell: bash
+        run: |
+          cat lean-wowii109.log
+          exit 1
