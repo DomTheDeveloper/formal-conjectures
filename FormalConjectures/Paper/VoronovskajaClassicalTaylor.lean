@@ -21,7 +21,7 @@ public import Mathlib.Analysis.Calculus.Taylor
 /-!
 # Second-order Taylor remainder for the classical Bernstein theorem
 
-At a fixed point `x`, the second-order remainder is little-o of `(y-x)^2`.  A global quadratic bound
+At a fixed point `x`, the second-order remainder is little-o of `(y-x)^2`. A global quadratic bound
 also follows from the bounded second within-derivative established in the Bézier proof.
 -/
 
@@ -72,7 +72,10 @@ lemma eventually_abs_classicalSecondRemainder_le
     (hf : ContDiffOn ℝ 2 f I) {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ y in 𝓝[I] x,
       |classicalSecondRemainder f x y| ≤ ε * (y - x) ^ 2 := by
-  have hratio := (tendsto_classicalSecondRemainder_div_sq f x hx hf).abs
+  have hratio : Tendsto
+      (fun y : ℝ ↦ |classicalSecondRemainder f x y / (y - x) ^ 2|)
+      (𝓝[I] x) (𝓝 0) := by
+    simpa using (tendsto_classicalSecondRemainder_div_sq f x hx hf).abs
   have hev : ∀ᶠ y in 𝓝[I] x,
       |classicalSecondRemainder f x y / (y - x) ^ 2| < ε :=
     hratio.eventually_lt_const hε
@@ -106,9 +109,11 @@ lemma exists_global_bound_classicalSecondRemainder
       abs_sub _ _
     _ ≤ M * (y - x) ^ 2 +
         |(1 / 2 : ℝ) * iteratedDerivWithin 2 f I x| * (y - x) ^ 2 := by
-      gcongr
-      · exact hfirst
-      · rw [abs_mul, abs_pow, abs_sq]
+      have hsecond :
+          |(1 / 2 : ℝ) * iteratedDerivWithin 2 f I x * (y - x) ^ 2| =
+            |(1 / 2 : ℝ) * iteratedDerivWithin 2 f I x| * (y - x) ^ 2 := by
+        rw [abs_mul, abs_pow, abs_sq]
+      exact add_le_add hfirst hsecond.le
     _ = C * (y - x) ^ 2 := by
       simp [C]
       ring
