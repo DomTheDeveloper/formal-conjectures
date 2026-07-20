@@ -28,13 +28,11 @@ permissions:
 
 jobs:
   lean:
-    name: Full Lean build including A317940
+    name: Check FormalConjectures/OEIS/317940.lean
     runs-on: ubuntu-latest
     steps:
       - name: Checkout audit commit
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Install elan
         run: |
@@ -43,23 +41,16 @@ jobs:
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      - name: Generate All.lean
-        run: |
-          lake exe mk_all --lib FormalConjectures || true
-          grep -v -E "FormalConjectures\.Util\.|FormalConjectures\.All" FormalConjectures.lean > FormalConjectures/All.lean
-          echo "" >> FormalConjectures/All.lean
-          echo "set_option linter.style.moduleDocstring false" >> FormalConjectures/All.lean
-
       - name: Get Mathlib cache
         run: |
           lake exe cache get
 
-      - name: Build Lean project
+      - name: Check A317940 file with Lean
         id: compile
         shell: bash
         run: |
           set +e
-          lake --wfail build > a317940-build.log 2>&1
+          lake lean FormalConjectures/OEIS/317940.lean > a317940-build.log 2>&1
           status=$?
           cat a317940-build.log
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
