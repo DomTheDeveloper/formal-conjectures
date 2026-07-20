@@ -27,9 +27,11 @@ lemma fin5_existsUnique_neighbor_pattern
     (htwo : ∀ i, P i = true → ∃ j, j ≠ i ∧ P j = true) :
     ∃! k : Fin 5, ∀ j : Fin 5, P j = true ↔ (cycleGraph 5).Adj k j := by
   simp only [cycleGraph_adj] at hind ⊢
-  obtain ⟨i, hi⟩ := hne
-  obtain ⟨j, hji, hj⟩ := htwo i hi
-  fin_cases i <;> fin_cases j <;>
+  cases h0 : P 0 <;>
+  cases h1 : P 1 <;>
+  cases h2 : P 2 <;>
+  cases h3 : P 3 <;>
+  cases h4 : P 4 <;>
     simp_all [Fin.forall_fin_succ, Fin.exists_fin_succ]
 
 private lemma cycle_adj_plus
