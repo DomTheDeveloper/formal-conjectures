@@ -38,13 +38,39 @@ jobs:
           echo "status=$status" >> "$GITHUB_OUTPUT"
           exit 0
 
+      - name: Axiom audit
+        if: steps.compile.outputs.status == '0'
+        shell: bash
+        run: |
+          cat > WOWII109AxiomAudit.lean <<'EOF'
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture109
+          #print axioms WrittenOnTheWallII.GraphConjecture109.conjecture109
+          EOF
+          lake env lean WOWII109AxiomAudit.lean > wowii109-axioms.log 2>&1
+          cat wowii109-axioms.log
+          if grep -E 'sorryAx|admitAx' wowii109-axioms.log; then
+            echo "Unexpected placeholder axiom detected"
+            exit 1
+          fi
+
+      - name: Source placeholder audit
+        if: steps.compile.outputs.status == '0'
+        shell: bash
+        run: |
+          if grep -nE '\b(sorry|admit)\b' FormalConjectures/WrittenOnTheWallII/GraphConjecture109.lean; then
+            echo "Placeholder token detected"
+            exit 1
+          fi
+
       - name: Upload Lean diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lean-wowii109-log
-          path: lean-wowii109.log
-          if-no-files-found: error
+          name: lean-wowii109-audit
+          path: |
+            lean-wowii109.log
+            wowii109-axioms.log
+          if-no-files-found: warn
 
       - name: Fail on Lean errors
         if: steps.compile.outputs.status != '0'
