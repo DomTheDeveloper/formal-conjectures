@@ -7,12 +7,12 @@ on:
     paths:
       - '.github/workflows/import-wowii143-proof.yml'
       - 'WOWII/GraphConjecture143*.lean'
-      - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture143.lean'
+      - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture143*.lean'
   pull_request:
     paths:
       - '.github/workflows/import-wowii143-proof.yml'
       - 'WOWII/GraphConjecture143*.lean'
-      - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture143.lean'
+      - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture143*.lean'
 
 permissions:
   contents: write
@@ -30,24 +30,41 @@ jobs:
         with:
           ref: merge/wowii143-full-proof
 
-      - name: Remove archived catalog import cycle
+      - name: Normalize proof modules into the FormalConjectures package
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
-          path = Path('WOWII/GraphConjecture143Proof.lean')
-          text = path.read_text(encoding='utf-8')
+
+          source_dir = Path('WOWII')
+          target_dir = Path('FormalConjectures/WrittenOnTheWallII')
+          target_dir.mkdir(parents=True, exist_ok=True)
+
+          for source in sorted(source_dir.glob('GraphConjecture143*.lean')):
+              text = source.read_text(encoding='utf-8')
+              text = text.replace(
+                  'import FormalConjectures.WrittenOnTheWallII.GraphConjecture143',
+                  'import FormalConjectures.Util.ProblemImports',
+                  1) if source.name == 'GraphConjecture143Proof.lean' else text
+              text = text.replace(
+                  'import WOWII.GraphConjecture143',
+                  'import FormalConjectures.WrittenOnTheWallII.GraphConjecture143')
+              (target_dir / source.name).write_text(text, encoding='utf-8')
+              source.unlink()
+
+          catalog = target_dir / 'GraphConjecture143.lean'
+          text = catalog.read_text(encoding='utf-8')
           text = text.replace(
-              'import FormalConjectures.WrittenOnTheWallII.GraphConjecture143',
-              'import FormalConjectures.Util.ProblemImports',
-              1)
-          path.write_text(text, encoding='utf-8')
+              'import WOWII.GraphConjecture143ZZFinal',
+              'import FormalConjectures.WrittenOnTheWallII.GraphConjecture143ZZFinal')
+          catalog.write_text(text, encoding='utf-8')
           PY
-          if ! git diff --quiet -- WOWII/GraphConjecture143Proof.lean; then
+
+          if ! git diff --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add WOWII/GraphConjecture143Proof.lean
-            git commit -m "Remove WOWII 143 catalog import cycle"
+            git add -A WOWII FormalConjectures/WrittenOnTheWallII
+            git commit -m "Place WOWII 143 proof modules in the package namespace"
             git push origin HEAD:merge/wowii143-full-proof
           fi
 
@@ -64,7 +81,13 @@ jobs:
       - name: Reject proof holes
         shell: bash
         run: |
-          if grep -RInE '\b(sorry|admit)\b|^[[:space:]]*axiom[[:space:]]' WOWII/GraphConjecture143*.lean; then
+          if grep -RInE '\b(sorry|admit)\b|^[[:space:]]*axiom[[:space:]]' \
+              FormalConjectures/WrittenOnTheWallII/GraphConjecture143Proof.lean \
+              FormalConjectures/WrittenOnTheWallII/GraphConjecture143Next.lean \
+              FormalConjectures/WrittenOnTheWallII/GraphConjecture143Leaves.lean \
+              FormalConjectures/WrittenOnTheWallII/GraphConjecture143Boundary.lean \
+              FormalConjectures/WrittenOnTheWallII/GraphConjecture143CycleAttach.lean \
+              FormalConjectures/WrittenOnTheWallII/GraphConjecture143ZZFinal.lean; then
             echo "Proof hole or custom axiom found"
             exit 1
           fi
