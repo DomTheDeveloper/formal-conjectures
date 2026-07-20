@@ -60,10 +60,12 @@ private lemma independentWitness_isIndep :
     counterexample.IsIndepSet (independentWitness : Set (Fin 21)) := by
   decide +native
 
+private lemma independentWitness_card : independentWitness.card = 15 := by
+  decide +native
+
 private lemma fifteen_le_indepNum : 15 ≤ counterexample.indepNum := by
-  have h := independentWitness_isIndep.card_le_indepNum
-  norm_num [independentWitness] at h ⊢
-  exact h
+  rw [← independentWitness_card]
+  exact independentWitness_isIndep.card_le_indepNum
 
 /-- A bipartite induced subgraph cannot contain all three vertices of a triangle. -/
 private lemma misses_triangle (S : Finset (Fin 21))
@@ -146,11 +148,19 @@ private lemma bipartite_card_le_eighteen (S : Finset (Fin 21))
   simp at hpartition
   omega
 
+private lemma empty_induced_isBipartite :
+    (counterexample.induce (∅ : Set (Fin 21))).IsBipartite := by
+  rw [isBipartite_iff_exists_isBipartiteWith]
+  refine ⟨∅, ∅, ⟨by simp, ?_⟩⟩
+  intro v w _
+  have : False := by simpa using v.property
+  exact this.elim
+
 private lemma largestInducedBipartiteSubgraphSize_le_eighteen :
     largestInducedBipartiteSubgraphSize counterexample ≤ 18 := by
   unfold largestInducedBipartiteSubgraphSize
   apply csSup_le
-  · exact ⟨0, ∅, by native_decide, rfl⟩
+  · exact ⟨0, ∅, empty_induced_isBipartite, rfl⟩
   · rintro n ⟨S, hBip, rfl⟩
     exact bipartite_card_le_eighteen S hBip
 
@@ -201,8 +211,8 @@ theorem conjecture109 : answer(False) ↔
 @[category test, AMS 5]
 example (G : SimpleGraph (Fin 3)) : 0 ≤ b G := Nat.cast_nonneg _
 
-/-- The residue of $K_2$ equals $1$: degree sequence is $[1, 1]$; one Havel-Hakimi
-step gives $[0]$, leaving a single zero. -/
+/-- The residue of $K_2$ equals $1$: degree sequence is $[1, 1]`; one Havel-Hakimi
+step gives $[0]`, leaving a single zero. -/
 @[category test, AMS 5]
 example : residue (⊤ : SimpleGraph (Fin 2)) = 1 := by
   unfold residue; decide +native
