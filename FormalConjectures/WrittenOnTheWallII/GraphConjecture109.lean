@@ -126,6 +126,15 @@ private lemma counterexample_degree (v : Fin 21) :
       if v ∈ degreeFiveVertices then 5 else if v ∈ degreeTwoVertices then 2 else 1 := by
   fin_cases v <;> decide
 
+private def allVertices : List (Fin 21) :=
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+private lemma univ_val_eq :
+    Finset.univ.val = (allVertices : Multiset (Fin 21)) := by
+  apply Multiset.ext.mpr
+  intro v
+  fin_cases v <;> decide
+
 private def degreeSequence0 : List ℕ :=
   [5, 5, 5, 5, 5, 5, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 private def degreeSequence1 : List ℕ :=
@@ -155,12 +164,19 @@ private def degreeSequence12 : List ℕ :=
 private def degreeSequence13 : List ℕ :=
   [0, 0, 0, 0, 0, 0, 0, 0]
 
+private lemma counterexample_degree_multiset :
+    Finset.univ.val.map (fun v : Fin 21 => counterexample.degree v) =
+      (degreeSequence0 : Multiset ℕ) := by
+  rw [univ_val_eq]
+  simp [allVertices, counterexample_degree, degreeFiveVertices, degreeTwoVertices,
+    degreeSequence0]
+
 private lemma counterexample_degree_sequence :
     (Finset.univ.val.map fun v : Fin 21 => counterexample.degree v).sort (· ≥ ·) =
       degreeSequence0 := by
-  simp_rw [counterexample_degree]
-  norm_num [degreeFiveVertices, degreeTwoVertices, degreeSequence0, Multiset.sort,
-    List.mergeSort]
+  rw [counterexample_degree_multiset]
+  rw [Multiset.coe_sort]
+  exact List.mergeSort_eq_self (fun x y : ℕ => x ≥ y) (by norm_num [degreeSequence0])
 
 private lemma hhStep0 : havelHakimiStep degreeSequence0 = degreeSequence1 := by
   norm_num [havelHakimiStep, degreeSequence0, degreeSequence1, List.mergeSort]
@@ -190,20 +206,47 @@ private lemma hhStep12 : havelHakimiStep degreeSequence12 = degreeSequence13 := 
   norm_num [havelHakimiStep, degreeSequence12, degreeSequence13, List.mergeSort]
 
 private lemma counterexample_residue_aux : residueAux degreeSequence0 = 8 := by
-  rw [SimpleGraph.residueAux.eq_def, hhStep0]
-  rw [SimpleGraph.residueAux.eq_def, hhStep1]
-  rw [SimpleGraph.residueAux.eq_def, hhStep2]
-  rw [SimpleGraph.residueAux.eq_def, hhStep3]
-  rw [SimpleGraph.residueAux.eq_def, hhStep4]
-  rw [SimpleGraph.residueAux.eq_def, hhStep5]
-  rw [SimpleGraph.residueAux.eq_def, hhStep6]
-  rw [SimpleGraph.residueAux.eq_def, hhStep7]
-  rw [SimpleGraph.residueAux.eq_def, hhStep8]
-  rw [SimpleGraph.residueAux.eq_def, hhStep9]
-  rw [SimpleGraph.residueAux.eq_def, hhStep10]
-  rw [SimpleGraph.residueAux.eq_def, hhStep11]
-  rw [SimpleGraph.residueAux.eq_def, hhStep12]
-  norm_num [SimpleGraph.residueAux.eq_def, degreeSequence13]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence0) = 8
+  rw [hhStep0]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence1) = 8
+  rw [hhStep1]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence2) = 8
+  rw [hhStep2]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence3) = 8
+  rw [hhStep3]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence4) = 8
+  rw [hhStep4]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence5) = 8
+  rw [hhStep5]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence6) = 8
+  rw [hhStep6]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence7) = 8
+  rw [hhStep7]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence8) = 8
+  rw [hhStep8]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence9) = 8
+  rw [hhStep9]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence10) = 8
+  rw [hhStep10]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence11) = 8
+  rw [hhStep11]
+  rw [SimpleGraph.residueAux.eq_def]
+  change residueAux (havelHakimiStep degreeSequence12) = 8
+  rw [hhStep12]
+  rw [SimpleGraph.residueAux.eq_def]
+  norm_num [degreeSequence13]
 
 private lemma counterexample_residue : residue counterexample = 8 := by
   unfold residue
