@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 
 def replace_once(path: Path, old: str, new: str, label: str) -> None:
@@ -99,3 +100,5 @@ replace_once(
 """,
     "expectation layer-cake normalization",
 )
+
+runpy.run_path(".github/voronovskaja_migrate_round7.py", run_name="__main__")
