@@ -128,6 +128,6 @@ lemma charFun_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
       _ = exp ((t : ℂ) * Complex.I) ^ k := Complex.exp_nat_mul _ _
   rw [hexp]
   push_cast
-  ring_nf
+  ac_rfl
 
 end ProbabilityTheory
