@@ -47,13 +47,28 @@ jobs:
         run: lake exe cache get
       - name: Build imported Green14 core
         run: lake build FormalConjectures.GreensOpenProblems.Green14Core
-      - name: Generate kernel-reduced t=20 certificate
+      - name: Generate bounded kernel-reduced t=20 certificate
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           src = Path('FormalConjectures/GreensOpenProblems/Green14Certificates.lean').read_text()
           src = src[:src.index('private def zeros21')]
+          old = '''private def hasAP (N k : Nat) (zeros : List Nat) (color : Bool) : Bool :=
+            (List.range N).any fun a =>
+              (List.range N).any fun d =>
+                decide (0 < d ∧ a + (k - 1) * d < N) &&
+                  (List.range k).all fun i => colorAt zeros (a + i * d) == color
+          '''
+          new = '''private def hasAP (N k : Nat) (zeros : List Nat) (color : Bool) : Bool :=
+            (List.range N).any fun a =>
+              (List.range (N / (k - 1) + 1)).any fun d =>
+                decide (0 < d ∧ a + (k - 1) * d < N) &&
+                  (List.range k).all fun i => colorAt zeros (a + i * d) == color
+          '''
+          if old not in src:
+              raise SystemExit('Green14 hasAP definition not found')
+          src = src.replace(old, new, 1)
           src = src.replace('  native_decide', '  decide')
           src = src.replace(
               'import FormalConjectures.GreensOpenProblems.Green14Core\n',
@@ -61,7 +76,7 @@ jobs:
           src += '\n#print axioms Green14.Certificate.valid_20\n\nend Green14.Certificate\n'
           Path('/tmp/Green14Kernel20.lean').write_text(src)
           PY
-      - name: Compile with kernel reduction only
+      - name: Compile with bounded kernel reduction
         shell: bash
         run: |
           set +e
