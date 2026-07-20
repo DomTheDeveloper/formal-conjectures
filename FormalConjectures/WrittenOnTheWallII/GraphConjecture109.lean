@@ -125,17 +125,72 @@ private lemma counterexample_degree (v : Fin 21) :
       if v ∈ degreeFiveVertices then 5 else if v ∈ degreeTwoVertices then 2 else 1 := by
   fin_cases v <;> decide
 
-private def counterexampleDegreeSequence : List ℕ :=
+private def degreeSequence0 : List ℕ :=
   [5, 5, 5, 5, 5, 5, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+private def degreeSequence1 : List ℕ :=
+  [4, 4, 4, 4, 4, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+private def degreeSequence2 : List ℕ :=
+  [3, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+private def degreeSequence3 : List ℕ :=
+  [2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+private def degreeSequence4 : List ℕ :=
+  [2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+private def degreeSequence5 : List ℕ :=
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+private def degreeSequence6 : List ℕ :=
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]
+private def degreeSequence7 : List ℕ :=
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0]
+private def degreeSequence8 : List ℕ :=
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0]
+private def degreeSequence9 : List ℕ :=
+  [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0]
+private def degreeSequence10 : List ℕ :=
+  [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0]
+private def degreeSequence11 : List ℕ :=
+  [1, 1, 1, 1, 0, 0, 0, 0, 0, 0]
+private def degreeSequence12 : List ℕ :=
+  [1, 1, 0, 0, 0, 0, 0, 0, 0]
+private def degreeSequence13 : List ℕ :=
+  [0, 0, 0, 0, 0, 0, 0, 0]
 
 private lemma counterexample_degree_sequence :
     (Finset.univ.val.map fun v : Fin 21 => counterexample.degree v).sort (· ≥ ·) =
-      counterexampleDegreeSequence := by
+      degreeSequence0 := by
   simp_rw [counterexample_degree]
-  norm_num [degreeFiveVertices, degreeTwoVertices, counterexampleDegreeSequence]
+  set_option maxRecDepth 100000 in
+  set_option maxHeartbeats 10000000 in
+    decide
 
-private lemma counterexample_residue_aux : residueAux counterexampleDegreeSequence = 8 := by
-  norm_num [counterexampleDegreeSequence, residueAux, havelHakimiStep]
+private lemma hhStep0 : havelHakimiStep degreeSequence0 = degreeSequence1 := by decide
+private lemma hhStep1 : havelHakimiStep degreeSequence1 = degreeSequence2 := by decide
+private lemma hhStep2 : havelHakimiStep degreeSequence2 = degreeSequence3 := by decide
+private lemma hhStep3 : havelHakimiStep degreeSequence3 = degreeSequence4 := by decide
+private lemma hhStep4 : havelHakimiStep degreeSequence4 = degreeSequence5 := by decide
+private lemma hhStep5 : havelHakimiStep degreeSequence5 = degreeSequence6 := by decide
+private lemma hhStep6 : havelHakimiStep degreeSequence6 = degreeSequence7 := by decide
+private lemma hhStep7 : havelHakimiStep degreeSequence7 = degreeSequence8 := by decide
+private lemma hhStep8 : havelHakimiStep degreeSequence8 = degreeSequence9 := by decide
+private lemma hhStep9 : havelHakimiStep degreeSequence9 = degreeSequence10 := by decide
+private lemma hhStep10 : havelHakimiStep degreeSequence10 = degreeSequence11 := by decide
+private lemma hhStep11 : havelHakimiStep degreeSequence11 = degreeSequence12 := by decide
+private lemma hhStep12 : havelHakimiStep degreeSequence12 = degreeSequence13 := by decide
+
+private lemma counterexample_residue_aux : residueAux degreeSequence0 = 8 := by
+  rw [residueAux, hhStep0]
+  rw [residueAux, hhStep1]
+  rw [residueAux, hhStep2]
+  rw [residueAux, hhStep3]
+  rw [residueAux, hhStep4]
+  rw [residueAux, hhStep5]
+  rw [residueAux, hhStep6]
+  rw [residueAux, hhStep7]
+  rw [residueAux, hhStep8]
+  rw [residueAux, hhStep9]
+  rw [residueAux, hhStep10]
+  rw [residueAux, hhStep11]
+  rw [residueAux, hhStep12]
+  norm_num [residueAux, degreeSequence13]
 
 private lemma counterexample_residue : residue counterexample = 8 := by
   unfold residue
