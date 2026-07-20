@@ -112,7 +112,24 @@ lemma sum_sq_centered_bezierWeight_one
         simp only [bernstein.z]
         ring
       _ = (x : ℝ) * (1 - (x : ℝ)) / (n : ℝ) := hvar
-  rw [Fin.sum_univ_eq_sum_range] at hfin
-  simpa using hfin
+  have hsum :
+      (∑ k : Fin (n + 1),
+        ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2) *
+          bezierWeight n (k : ℕ) 1 (x : ℝ)) =
+        ∑ k ∈ Finset.range (n + 1),
+          ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2) *
+            bezierWeight n k 1 (x : ℝ) := by
+    simpa using (Fin.sum_univ_eq_sum_range
+      (f := fun k : ℕ =>
+        ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2) *
+          bezierWeight n k 1 (x : ℝ)) (n + 1))
+  calc
+    (∑ k ∈ Finset.range (n + 1),
+        ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2) *
+          bezierWeight n k 1 (x : ℝ)) =
+        ∑ k : Fin (n + 1),
+          ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2) *
+            bezierWeight n (k : ℕ) 1 (x : ℝ) := hsum.symm
+    _ = (x : ℝ) * (1 - (x : ℝ)) / (n : ℝ) := hfin
 
 end VoronovskajaTypeFormula
