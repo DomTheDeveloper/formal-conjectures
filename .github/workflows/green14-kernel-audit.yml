@@ -20,6 +20,9 @@ on:
       - agent/green14-certificates-20-39
     paths:
       - '.github/workflows/green14-kernel-audit.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/green14-kernel-audit.yml'
   workflow_dispatch:
 
 permissions:
