@@ -81,6 +81,7 @@ lemma bezierCenteredMoment_one_eq_zero
       _ = (n : ℝ) * x := sum_cast_mul_bernsteinPolynomial_eval n x
   rw [hweights]
   field_simp [show (n : ℝ) ≠ 0 by exact_mod_cast hn.ne']
+  ring
 
 lemma sum_sq_centered_bezierWeight_one
     (n : ℕ) (hn : 0 < n) (x : I) :
@@ -111,18 +112,7 @@ lemma sum_sq_centered_bezierWeight_one
         simp only [bernstein.z]
         ring
       _ = (x : ℝ) * (1 - (x : ℝ)) / (n : ℝ) := hvar
-  calc
-    (∑ k ∈ Finset.range (n + 1),
-        ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2) *
-          bezierWeight n k 1 (x : ℝ)) =
-        ∑ k : Fin (n + 1),
-          ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2) *
-            bezierWeight n (k : ℕ) 1 (x : ℝ) := by
-      rw [Fin.sum_univ_eq_sum_range]
-      apply Finset.sum_congr rfl
-      intro k hk
-      have hklt : k < n + 1 := Finset.mem_range.mp hk
-      simp [Nat.mod_eq_of_lt hklt]
-    _ = (x : ℝ) * (1 - (x : ℝ)) / (n : ℝ) := hfin
+  rw [Fin.sum_univ_eq_sum_range] at hfin
+  simpa using hfin
 
 end VoronovskajaTypeFormula
