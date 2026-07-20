@@ -154,11 +154,13 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
         · rintro ⟨x, rfl⟩
           refine ⟨x, ?_, ?_⟩
           · exact_mod_cast x.isLt
-          · simpa [value, nsmul_eq_mul, Nat.mul_comm, Nat.add_assoc]
+          · simp only [value, nsmul_eq_mul]
+            omega
         · rintro ⟨n, hn, rfl⟩
           have hnq : n < q := by exact_mod_cast hn
           refine ⟨⟨n, hnq⟩, ?_⟩
-          simpa [value, nsmul_eq_mul, Nat.mul_comm, Nat.add_assoc]
+          simp only [value, nsmul_eq_mul]
+          omega
 
     have hsT : ({(z : ℕ) | z ∈ s} : Set ℕ) = T := by
       ext z
@@ -169,8 +171,14 @@ theorem mixedMonoAPGuaranteeSet_nonempty (k r : ℕ) (hk : 1 ≤ k) (hr : 1 ≤ 
       exact ⟨b + 1, a, hT⟩
     · intro z hz
       rcases Finset.mem_map.mp hz with ⟨x, -, rfl⟩
-      simpa [emb, point, wordPoint, liftFin, value, line_sum, Nat.add_assoc,
-        Nat.add_comm, Nat.add_left_comm] using hmono (liftFin x)
+      change coloring (point x) = color
+      have hpoint_word : point x = wordPoint (line (liftFin x)) := by
+        apply Subtype.ext
+        dsimp only [point, value, wordPoint]
+        rw [line_sum]
+        simp [liftFin, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+      rw [hpoint_word]
+      exact hmono (liftFin x)
 
   fin_cases color
   · exact Or.inl (build_progression k hk (le_max_left k r))
