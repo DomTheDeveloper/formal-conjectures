@@ -36,3 +36,15 @@ replace_once(
 """,
     "moment-limit Fin-to-range sum",
 )
+replace_once(
+    path,
+    """  field_simp [hnR, hsqrt, hsd]
+  ring
+  positivity
+""",
+    """  field_simp [hnR, hsqrt, hsd]
+  ring_nf
+  positivity
+""",
+    "moment-limit terminal field normalization",
+)
