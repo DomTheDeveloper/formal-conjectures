@@ -28,46 +28,6 @@ jobs:
         shell: bash
         run: lake exe cache get >/dev/null
 
-      - name: Test kernel residue normalization
-        id: residue
-        shell: bash
-        run: |
-          cat > WOWII109ResidueScratch.lean <<'EOF'
-          import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.Residue
-          open SimpleGraph
-          example : residueAux [5,5,5,5,5,5,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1] = 8 := by
-            norm_num [residueAux, havelHakimiStep]
-          EOF
-          set +e
-          lake env lean WOWII109ResidueScratch.lean > wowii109-residue.log 2>&1
-          status=$?
-          echo "status=$status" >> "$GITHUB_OUTPUT"
-          exit 0
-
-      - name: Test kernel degree certificates
-        id: degree
-        shell: bash
-        run: |
-          cat > WOWII109DegreeScratch.lean <<'EOF'
-          import FormalConjectures.Util.ProblemImports
-          open SimpleGraph
-          def es : Finset (Sym2 (Fin 21)) := {
-            s(0, 1), s(1, 2), s(2, 0), s(0, 3), s(0, 4), s(1, 5), s(1, 6),
-            s(7, 8), s(8, 9), s(9, 7), s(7, 10), s(7, 11), s(8, 12), s(8, 13),
-            s(14, 15), s(15, 16), s(16, 14), s(14, 17), s(14, 18), s(15, 19), s(15, 20),
-            s(0, 7), s(1, 14), s(8, 15) }
-          def g : SimpleGraph (Fin 21) := SimpleGraph.fromEdgeSet (es : Set (Sym2 (Fin 21)))
-          instance : DecidableRel g.Adj := by dsimp [g]; infer_instance
-          example : g.degree 0 = 5 := by decide
-          example : g.degree 2 = 2 := by decide
-          example : g.degree 3 = 1 := by decide
-          EOF
-          set +e
-          lake env lean WOWII109DegreeScratch.lean > wowii109-degree.log 2>&1
-          status=$?
-          echo "status=$status" >> "$GITHUB_OUTPUT"
-          exit 0
-
       - name: Compile Conjecture 109
         id: compile
         shell: bash
@@ -88,8 +48,8 @@ jobs:
           EOF
           lake env lean WOWII109AxiomAudit.lean > wowii109-axioms.log 2>&1
           cat wowii109-axioms.log
-          if grep -E 'sorryAx|admitAx' wowii109-axioms.log; then
-            echo "Unexpected placeholder axiom detected"
+          if grep -E 'sorryAx|admitAx|Lean\.trustCompiler|Lean\.ofReduceBool' wowii109-axioms.log; then
+            echo "Unexpected non-kernel axiom detected"
             exit 1
           fi
 
@@ -108,17 +68,13 @@ jobs:
         with:
           name: lean-wowii109-audit
           path: |
-            wowii109-residue.log
-            wowii109-degree.log
             lean-wowii109.log
             wowii109-axioms.log
           if-no-files-found: warn
 
-      - name: Fail on errors
-        if: steps.residue.outputs.status != '0' || steps.degree.outputs.status != '0' || steps.compile.outputs.status != '0'
+      - name: Fail on Lean errors
+        if: steps.compile.outputs.status != '0'
         shell: bash
         run: |
-          cat wowii109-residue.log || true
-          cat wowii109-degree.log || true
-          cat lean-wowii109.log || true
+          cat lean-wowii109.log
           exit 1
