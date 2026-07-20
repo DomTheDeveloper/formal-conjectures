@@ -1,0 +1,91 @@
+name: Import complete WOWII 316 proof
+
+on:
+  push:
+    branches:
+      - merge/wowii316-full-proof
+
+permissions:
+  contents: write
+
+jobs:
+  import-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Formal Conjectures branch
+        uses: actions/checkout@v6
+        with:
+          ref: merge/wowii316-full-proof
+
+      - name: Check out pinned CRL proof archive
+        uses: actions/checkout@v6
+        with:
+          repository: DomTheDeveloper/crl
+          ref: 4505f2d40e1fa16c9d323e26d0e6e1506b8c0032
+          path: crl-proof
+
+      - name: Import proof modules and wire catalog theorem
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p WOWII
+          cp crl-proof/proofs/lean/WotW316/*.lean WOWII/
+          python - <<'PY'
+          from pathlib import Path
+
+          header = '''/-
+          Copyright 2026 The Formal Conjectures Authors.
+
+          Licensed under the Apache License, Version 2.0 (the "License");
+          you may not use this file except in compliance with the License.
+          You may obtain a copy of the License at
+
+              https://www.apache.org/licenses/LICENSE-2.0
+
+          Unless required by applicable law or agreed to in writing, software
+          distributed under the License is distributed on an "AS IS" BASIS,
+          WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+          See the License for the specific language governing permissions and
+          limitations under the License.
+          -/'''
+
+          for path in sorted(Path('WOWII').glob('WotW316*.lean')):
+              text = path.read_text(encoding='utf-8')
+              text = text.replace(
+                  'import FormalConjectures.WrittenOnTheWallII.GraphConjecture316',
+                  'import FormalConjectures.Util.ProblemImports')
+              text = text.replace('import WotW316', 'import WOWII.WotW316')
+              if not text.startswith('/-\nCopyright '):
+                  text = header + '\n\n' + text
+              path.write_text(text, encoding='utf-8')
+
+          catalog = Path('FormalConjectures/WrittenOnTheWallII/GraphConjecture316.lean')
+          text = catalog.read_text(encoding='utf-8')
+          text = text.replace(
+              'import FormalConjectures.Util.ProblemImports\n',
+              'import FormalConjectures.Util.ProblemImports\nimport WOWII.WotW316Final\n',
+              1)
+          text = text.replace('@[category research open, AMS 5]', '@[category research solved, AMS 5]', 1)
+          old = '''    (h : (averageDegree Gᶜ : ℚ) ≤ (pendantVertices G).card) :
+              IsWellTotallyDominated G := by
+            sorry'''
+          new = '''    (h : (averageDegree Gᶜ : ℚ) ≤ (pendantVertices G).card) :
+              IsWellTotallyDominated G := by
+            exact conjecture316_solved G hG h'''
+          if old not in text:
+              raise SystemExit('Could not locate the exact conjecture316 placeholder')
+          catalog.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Commit imported proof
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add WOWII FormalConjectures/WrittenOnTheWallII/GraphConjecture316.lean
+          if git diff --cached --quiet; then
+            echo "Proof already imported."
+            exit 0
+          fi
+          git commit -m "Import complete Lean proof of WOWII 316"
+          git push origin HEAD:merge/wowii316-full-proof
