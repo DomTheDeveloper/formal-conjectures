@@ -23,7 +23,7 @@ replace_once(
               (∑ k : Fin (n + 1), bezierWeight n (k : ℕ) α (x : ℝ)) =
                 ∑ k ∈ Finset.range (n + 1), bezierWeight n k α (x : ℝ) := by
             simpa using (Fin.sum_univ_eq_sum_range
-              (f := fun k : Fin (n + 1) => bezierWeight n (k : ℕ) α (x : ℝ)))
+              (f := fun k : ℕ => bezierWeight n k α (x : ℝ)))
           rw [hsum]
           exact sum_bezierWeight n hα (x : ℝ)
 """,
@@ -46,7 +46,7 @@ replace_once(
         ∑ k ∈ Finset.range (n + 1),
           if P k then (bernsteinPolynomial ℝ n k).eval (x : ℝ) else 0 := by
       simpa using (Fin.sum_univ_eq_sum_range
-        (f := fun k : Fin (n + 1) =>
+        (f := fun k : ℕ =>
           if P k then (bernsteinPolynomial ℝ n k).eval (x : ℝ) else 0))
     rw [hsum, ← Finset.sum_filter, hfilter]
     exact sum_bernsteinPolynomial_range n m hm (x : ℝ)
@@ -68,8 +68,7 @@ replace_once(
         (∑ k : Fin (n + 1), if P k then bezierWeight n k α (x : ℝ) else 0) =
         ∑ k ∈ Finset.range (n + 1), if P k then bezierWeight n k α (x : ℝ) else 0 := by
       simpa using (Fin.sum_univ_eq_sum_range
-        (f := fun k : Fin (n + 1) =>
-          if P k then bezierWeight n k α (x : ℝ) else 0))
+        (f := fun k : ℕ => if P k then bezierWeight n k α (x : ℝ) else 0))
     rw [hsum, ← Finset.sum_filter, hfilter]
     exact sum_bezierWeight_range n m α (x : ℝ)
 """,
