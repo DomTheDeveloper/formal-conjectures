@@ -1,5 +1,6 @@
 name: Import and verify complete WOWII 316 proof
 
+# Trusted retrigger after the archived proof payload reached the branch.
 on:
   push:
     branches:
