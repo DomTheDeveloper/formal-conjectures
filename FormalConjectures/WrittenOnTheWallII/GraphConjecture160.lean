@@ -57,13 +57,19 @@ where:
 - $\max_v l(v)$ is the maximum local independence number over vertices,
 - $\max_v T(v)$ is the maximum number of triangles incident to any vertex,
 - $c_{C_4}(G)$ is the number of induced 4-cycles in $G$.
+
+The conjecture is false. A counterexample is obtained from $K_{2,3}$ by adding one
+edge inside the part of size three.
 -/
-@[category research open, AMS 5]
-theorem conjecture160 (G : SimpleGraph α) [DecidableRel G.Adj] (h : G.Connected) :
-    let maxL := (Finset.univ.image (indepNeighborsCard G)).max' (by simp)
-    let maxT := maxTrianglesAtVertex G
-    let cC4 := countInducedC4 G
-    (maxL : ℝ) + (maxT : ℝ) * (cC4 : ℝ) ≤ Ls G := by
+@[category research solved, AMS 5,
+  formal_proof using lean4 at "https://github.com/DomTheDeveloper/formal-conjectures/blob/ee646195c4c73cd724a1a689d1f015ebc3295eb8/ExternalProofs/WrittenOnTheWallII/GraphConjecture160.lean"]
+theorem conjecture160 : answer(False) ↔
+    ∀ (α : Type) [Fintype α] [DecidableEq α] [Nontrivial α]
+      (G : SimpleGraph α) [DecidableRel G.Adj] (_ : G.Connected),
+      let maxL := (Finset.univ.image (indepNeighborsCard G)).max' (by simp)
+      let maxT := maxTrianglesAtVertex G
+      let cC4 := countInducedC4 G
+      (maxL : ℝ) + (maxT : ℝ) * (cC4 : ℝ) ≤ Ls G := by
   sorry
 
 -- Sanity checks
