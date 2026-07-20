@@ -47,6 +47,27 @@ jobs:
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Fetch Mathlib cache
         run: lake exe cache get
+      - name: Apply final arithmetic normalization patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("FormalConjectures/GreensOpenProblems/Green14FiniteExistence.lean")
+          text = path.read_text()
+          old = """          refine ⟨⟨n, hnq⟩, ?_⟩
+          simp [value, Nat.mul_comm, Nat.add_comm, Nat.add_left_comm]
+"""
+          new = """          refine ⟨⟨n, hnq⟩, ?_⟩
+          change a * n + b + 1 = b + 1 + n * a
+          rw [Nat.mul_comm n a]
+          omega
+"""
+          if text.count(old) != 1:
+              raise SystemExit("expected exactly one Green14 normalization site")
+          path.write_text(text.replace(old, new))
+          PY
       - name: Compile complete certificate chain
         shell: bash
         run: |
