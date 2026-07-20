@@ -19,6 +19,10 @@ def C5BagSpec (G : SimpleGraph α) (c : Fin 5 → α) (x : α) (i : Fin 5) : Pro
 
 set_option maxHeartbeats 0
 
+section FinitePattern
+
+local attribute [-instance] Classical.propDecidable
+
 /-- A finite truth-table lemma: a nonempty subset of `C₅` containing no
 adjacent pair and having no isolated chosen element is the neighborhood of a
 unique cycle vertex. -/
@@ -39,6 +43,8 @@ lemma fin5_existsUnique_neighbor_pattern
   fin_cases i <;> fin_cases j <;>
     simp_all [Fin.forall_fin_succ, Fin.exists_fin_succ] <;>
     decide
+
+end FinitePattern
 
 private lemma cycle_adj_plus
     {G : SimpleGraph α} {c : Fin 5 → α}
