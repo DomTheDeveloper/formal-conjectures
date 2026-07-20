@@ -61,8 +61,8 @@ lemma hasWOWII314StructuralClassification_of_inducedC5Embedding
       (existsUnique_C5BagSpec G hG hTriFree hNoP5 c hc x)).1
   have hbagUnique : ∀ x : α, ∀ i : Fin 5, C5BagSpec G c x i → bag x = i := by
     intro x i hi
-    exact (Classical.choose_spec
-      (existsUnique_C5BagSpec G hG hTriFree hNoP5 c hc x)).2 i hi
+    exact ((Classical.choose_spec
+      (existsUnique_C5BagSpec G hG hTriFree hNoP5 c hc x)).2 i hi).symm
   have hcycleBag : ∀ i : Fin 5, bag (c i) = i := by
     intro i
     exact hbagUnique (c i) i (C5BagSpec_cycleVertex G c hc i)
