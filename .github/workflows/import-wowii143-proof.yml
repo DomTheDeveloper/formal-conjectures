@@ -15,7 +15,7 @@ on:
       - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture143.lean'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: wowii143-final-${{ github.ref }}
@@ -27,6 +27,29 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: merge/wowii143-full-proof
+
+      - name: Remove archived catalog import cycle
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('WOWII/GraphConjecture143Proof.lean')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace(
+              'import FormalConjectures.WrittenOnTheWallII.GraphConjecture143',
+              'import FormalConjectures.Util.ProblemImports',
+              1)
+          path.write_text(text, encoding='utf-8')
+          PY
+          if ! git diff --quiet -- WOWII/GraphConjecture143Proof.lean; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add WOWII/GraphConjecture143Proof.lean
+            git commit -m "Remove WOWII 143 catalog import cycle"
+            git push origin HEAD:merge/wowii143-full-proof
+          fi
 
       - name: Install Lean
         shell: bash
