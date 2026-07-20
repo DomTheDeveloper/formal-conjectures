@@ -22,6 +22,24 @@ replace_once(
 """,
     "export discrete-law declarations",
 )
+replace_once(
+    discrete,
+    """noncomputable def standardizedBezierPMF
+""",
+    """@[expose]
+noncomputable def standardizedBezierPMF
+""",
+    "expose standardized Bezier PMF",
+)
+replace_once(
+    discrete,
+    """noncomputable def standardizedBezierMeasure
+""",
+    """@[expose]
+noncomputable def standardizedBezierMeasure
+""",
+    "expose standardized Bezier measure",
+)
 
 expectation = Path("FormalConjectures/Paper/VoronovskajaExpectation.lean")
 replace_once(
