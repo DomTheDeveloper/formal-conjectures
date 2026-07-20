@@ -49,9 +49,11 @@ lemma mgf_map_cast_binomial (n : ℕ) (p : I) (t : ℝ) :
     calc
       exp (t * (k : ℝ)) = exp ((k : ℝ) * t) := by congr 1 <;> ring
       _ = exp t ^ k := Real.exp_nat_mul _ _
-  rw [hexp]
-  push_cast
-  ring
+  change
+    (p : ℝ) ^ k * (1 - (p : ℝ)) ^ (n - k) * (n.choose k : ℝ) * exp (t * (k : ℝ)) =
+      ((p : ℝ) * exp t) ^ k * (1 - (p : ℝ)) ^ (n - k) * (n.choose k : ℝ)
+  rw [hexp, mul_pow]
+  ac_rfl
 
 /-- Exact MGF of one standardized Bernoulli variable. -/
 lemma mgf_standardizedBernoulli (p : I) (t : ℝ) :
@@ -59,8 +61,8 @@ lemma mgf_standardizedBernoulli (p : I) (t : ℝ) :
       (p : ℝ) * exp (t * ((1 - (p : ℝ)) / bernoulliStdDev p)) +
         (1 - (p : ℝ)) * exp (t * (-(p : ℝ) / bernoulliStdDev p)) := by
   rw [mgf, integral_bernoulliMeasure]
-  simp only [smul_eq_mul, standardizedBernoulli, sub_zero, zero_sub]
-  congr 1 <;> ring
+  simp only [smul_eq_mul, standardizedBernoulli]
+  congr 1 <;> ring_nf
 
 /-- The standardized binomial MGF is an `n`th power of the standardized Bernoulli MGF. -/
 lemma mgf_standardizedBinomialMeasure (n : ℕ) (p : I) (t : ℝ) :
