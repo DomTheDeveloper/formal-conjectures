@@ -27,7 +27,7 @@ replace_once(
     """  obtain ⟨y, hy, hmax⟩ :=
     isCompact_Icc.exists_isMaxOn nonempty_Icc hcont
 """,
-    """  have hnonempty : I.Nonempty := nonempty_Icc.mpr zero_le_one
+    """  have hnonempty : Set.Nonempty I := nonempty_Icc.mpr zero_le_one
   obtain ⟨y, hy, hmax⟩ :=
     isCompact_Icc.exists_isMaxOn hnonempty hcont
 """,
