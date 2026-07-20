@@ -1,3 +1,4 @@
+# Expectation-layer verification trigger.
 from pathlib import Path
 import runpy
 
