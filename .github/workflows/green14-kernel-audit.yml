@@ -38,6 +38,7 @@ concurrency:
 
 jobs:
   certificate:
+    name: kernel certificate t=${{ matrix.t }}
     strategy:
       fail-fast: false
       max-parallel: 20
