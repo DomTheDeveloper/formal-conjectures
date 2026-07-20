@@ -15,7 +15,7 @@ limitations under the License.
 -/
 
 import FormalConjectures.Util.ProblemImports
-import WOWII.GraphConjecture143ZZFinal
+import FormalConjectures.WrittenOnTheWallII.GraphConjecture143ZZFinal
 
 /-!
 # Written on the Wall II - Conjecture 143
