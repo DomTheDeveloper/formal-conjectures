@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - merge/wowii316-full-proof
+  pull_request:
+    paths:
+      - ".github/workflows/import-wowii316-proof.yml"
 
 permissions:
   contents: write
