@@ -77,7 +77,7 @@ lemma abs_bezierTaylorRemainder_le_sq_moment
       have hTaylor := norm_sub_linearization_le_sq f hf M hM0 hM hx hy
       rw [Real.norm_eq_abs] at hTaylor
       rw [abs_mul, abs_of_nonneg hw]
-      exact mul_le_mul_of_nonneg_right hTaylor hw
+      simpa [mul_assoc] using mul_le_mul_of_nonneg_right hTaylor hw
     _ = M *
         (∑ k ∈ Finset.range (n + 1),
           ((((k : ℝ) / (n : ℝ)) - x) ^ 2) * bezierWeight n k α x) := by
@@ -104,6 +104,11 @@ lemma tendsto_sqrt_mul_bezierTaylorRemainder
       atTop (𝓝 0) := by
     simpa using (tendsto_const_nhds.mul hsq)
   apply squeeze_zero_norm'
+    (a := fun n : ℕ ↦ M *
+      (Real.sqrt n *
+        (∑ k ∈ Finset.range (n + 1),
+          ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2) *
+            bezierWeight n k α (x : ℝ))))
   · refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
     have hrem := abs_bezierTaylorRemainder_le_sq_moment
       n hn α hα f hf (x : ℝ) x.property M hM0 hM
