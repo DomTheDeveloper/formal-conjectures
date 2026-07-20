@@ -244,7 +244,7 @@ theorem bezierBernstein_sub_eq_moment_add_remainder
                 rw [sum_bezierWeight n hα x, mul_one]
         _ = ∑ k ∈ Finset.range (n + 1),
             (f ((k : ℝ) / (n : ℝ)) - f x) * bezierWeight n k α x := by
-              rw [← Finset.sum_sub_distrib]
+              rw [Finset.mul_sum, ← Finset.sum_sub_distrib]
               apply Finset.sum_congr rfl
               intro k hk
               ring
