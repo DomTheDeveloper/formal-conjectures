@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import WOWII.WotW316Bounds
-import WOWII.WotW316Partitions
+import FormalConjectures.WrittenOnTheWallII.WotW316Bounds
+import FormalConjectures.WrittenOnTheWallII.WotW316Partitions
 
 /-!
 # The three-vertex core case for Conjecture 316

@@ -15,7 +15,7 @@ limitations under the License.
 -/
 
 import FormalConjectures.Util.ProblemImports
-import WOWII.WotW316Final
+import FormalConjectures.WrittenOnTheWallII.WotW316Final
 /-!
 # Written on the Wall II - Conjecture 316
 

@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import WOWII.WotW316Count
-import WOWII.WotW316StructureExtra
+import FormalConjectures.WrittenOnTheWallII.WotW316Count
+import FormalConjectures.WrittenOnTheWallII.WotW316StructureExtra
 
 /-!
 # Complement-degree bounds for Conjecture 316

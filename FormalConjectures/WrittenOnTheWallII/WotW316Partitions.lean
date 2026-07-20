@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import WOWII.WotW316Count
+import FormalConjectures.WrittenOnTheWallII.WotW316Count
 
 /-!
 # Exact neighborhood decompositions for Conjecture 316

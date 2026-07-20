@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import WOWII.WotW316Clique2
-import WOWII.WotW316Clique3
-import WOWII.WotW316StructureExtra
+import FormalConjectures.WrittenOnTheWallII.WotW316Clique2
+import FormalConjectures.WrittenOnTheWallII.WotW316Clique3
+import FormalConjectures.WrittenOnTheWallII.WotW316StructureExtra
 
 /-!
 # Complete proof of Written on the Wall II, Conjecture 316
