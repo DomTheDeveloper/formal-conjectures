@@ -61,7 +61,6 @@ lemma tendsto_cdf_standardizedBinomialProbability
   have hweak := tendsto_standardizedBinomialProbability p hp0 hp1
   have hnull : standardGaussianProbability (frontier (Iic x)) = 0 := by
     rw [frontier_Iic]
-    apply ProbabilityMeasure.null_iff_toMeasure_null.mpr
     change gaussianReal 0 1 {x} = 0
     letI : NoAtoms (gaussianReal 0 1) := noAtoms_gaussianReal (by norm_num)
     simp
@@ -91,7 +90,10 @@ lemma tendsto_poweredStandardizedBinomialProbability
       (fun n ↦ (1 - cdf (standardizedBinomialMeasure n p) x) ^ α) atTop
       (𝓝 ((1 - cdf (gaussianReal 0 1) x) ^ α)) :=
     hbase.rpow_const (.inr hα.le)
-  have hfinal := tendsto_const_nhds.sub hpow
+  have hfinal : Tendsto
+      (fun n ↦ 1 - (1 - cdf (standardizedBinomialMeasure n p) x) ^ α) atTop
+      (𝓝 (1 - (1 - cdf (gaussianReal 0 1) x) ^ α)) :=
+    tendsto_const_nhds.sub hpow
   simpa only [poweredStandardizedBinomialProbability, poweredProbability,
     poweredGaussianProbability, ProbabilityMeasure.coe_mk,
     cdf_poweredMeasure, poweredCDF_apply, cdf_poweredGaussianMeasure] using hfinal
