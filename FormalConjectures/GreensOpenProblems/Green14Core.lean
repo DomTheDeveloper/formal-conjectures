@@ -21,7 +21,8 @@ import FormalConjectures.Util.ProblemImports
 
 This dependency-light module lets finite certificate proofs use the exact
 catalog definitions without importing the catalog theorem file back into
-itself.
+itself. The separate kernel audit reuses these definitions with direct Boolean
+arrays, avoiding any native-evaluation trust assumption.
 -/
 
 open Filter Set Topology
