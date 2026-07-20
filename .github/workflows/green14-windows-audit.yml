@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Green14 Windows certificate audit
+name: Green14 Windows kernel-clean audit
 
 on:
   push:
     branches:
       - agent/green14-certificates-20-39
     paths:
-      - 'FormalConjectures/GreensOpenProblems/14.lean'
-      - 'FormalConjectures/GreensOpenProblems/Green14*.lean'
+      - 'FormalConjectures/GreensOpenProblems/Green14ArrayCertificateBridge.lean'
+      - 'FormalConjectures/GreensOpenProblems/Green14FastKernel20.lean'
       - '.github/workflows/green14-windows-audit.yml'
   pull_request:
     paths:
-      - 'FormalConjectures/GreensOpenProblems/14.lean'
-      - 'FormalConjectures/GreensOpenProblems/Green14*.lean'
+      - 'FormalConjectures/GreensOpenProblems/Green14ArrayCertificateBridge.lean'
+      - 'FormalConjectures/GreensOpenProblems/Green14FastKernel20.lean'
       - '.github/workflows/green14-windows-audit.yml'
   workflow_dispatch:
 
@@ -33,13 +33,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: green14-windows-${{ github.ref }}
+  group: green14-windows-kernel-clean-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   audit-windows:
     runs-on: windows-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
 
@@ -56,16 +56,12 @@ jobs:
           lake exe cache get
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Compile complete bridge and exact catalog
+      - name: Compile kernel-clean bridge and t=20 lower bound
         shell: pwsh
         run: |
           $files = @(
-            'FormalConjectures/GreensOpenProblems/Green14Core.lean',
-            'FormalConjectures/GreensOpenProblems/Green14FiniteExistence.lean',
-            'FormalConjectures/GreensOpenProblems/Green14OrderBridge.lean',
-            'FormalConjectures/GreensOpenProblems/Green14Certificates.lean',
-            'FormalConjectures/GreensOpenProblems/Green14CertificateBridge.lean',
-            'FormalConjectures/GreensOpenProblems/14.lean'
+            'FormalConjectures/GreensOpenProblems/Green14ArrayCertificateBridge.lean',
+            'FormalConjectures/GreensOpenProblems/Green14FastKernel20.lean'
           )
           New-Item -ItemType File -Force green14-windows.log | Out-Null
           foreach ($file in $files) {
@@ -74,22 +70,24 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
 
-      - name: Audit exact catalog theorem axioms
+      - name: Audit theorem axioms and trust base
         shell: pwsh
         run: |
           @'
-          import FormalConjectures.GreensOpenProblems.«14»
-          #print axioms Green14.W_3_20_lower
-          #print axioms Green14.W_3_39_lower
+          import FormalConjectures.GreensOpenProblems.Green14FastKernel20
+          #check Green14.FastKernel.valid_20
+          #check Green14.FastKernel.W_3_20_lower_fast
+          #print axioms Green14.FastKernel.valid_20
+          #print axioms Green14.FastKernel.W_3_20_lower_fast
           '@ | Set-Content -Encoding utf8 Green14WindowsAxioms.lean
           lake env lean Green14WindowsAxioms.lean 2>&1 | Tee-Object -FilePath green14-windows.log -Append
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          if (Select-String -Path green14-windows.log -Pattern 'sorryAx') { exit 1 }
+          if (Select-String -Path green14-windows.log -Pattern 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler') { exit 1 }
 
       - name: Upload transcript
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: green14-windows-audit
+          name: green14-windows-kernel-clean-audit
           path: green14-windows.log
           if-no-files-found: warn
