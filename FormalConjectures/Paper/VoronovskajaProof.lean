@@ -69,7 +69,10 @@ theorem bernsteinTail_eval_eq_sum (n k : ℕ) (x : ℝ) :
     (bernsteinTail n k).eval x =
       ∑ j ∈ Finset.Icc k n,
         (n.choose j : ℝ) * x ^ j * (1 - x) ^ (n - j) := by
-  simp [bernsteinTail, bernsteinPolynomial]
+  rw [bernsteinTail, Polynomial.eval_finset_sum]
+  apply Finset.sum_congr rfl
+  intro j hj
+  simp [bernsteinPolynomial]
 
 /-- A Bernstein tail is its first basis term plus the following tail. -/
 @[category API, AMS 26 40 47]
@@ -206,7 +209,7 @@ theorem bezierCenteredMoment_eq_tail_sum (n : ℕ) {α : ℝ} (hα : 0 < α) (x 
       (∑ k ∈ Finset.range n, (bernsteinTail n (k + 1)).eval x ^ α) / (n : ℝ) - x := by
   rw [bezierCenteredMoment]
   simp_rw [sub_mul, div_mul_eq_mul_div]
-  rw [Finset.sum_sub_distrib, Finset.sum_div, ← Finset.mul_sum,
+  rw [Finset.sum_sub_distrib, ← Finset.sum_div, ← Finset.mul_sum,
     sum_cast_mul_bezierWeight n hα x, sum_bezierWeight n hα x, mul_one]
 
 /-- The weighted first-order Taylor remainder of `f` at `x`. -/
@@ -229,8 +232,22 @@ theorem bezierBernstein_sub_eq_moment_add_remainder
         ∑ k ∈ Finset.range (n + 1),
           (f ((k : ℝ) / (n : ℝ)) - f x) * bezierWeight n k α x := by
       rw [bezierBernstein_uses_real_division]
-      simp_rw [bezierWeight, sub_mul]
-      rw [Finset.sum_sub_distrib, ← Finset.mul_sum, sum_bezierWeight n hα x, mul_one]
+      change
+        (∑ k ∈ Finset.range (n + 1),
+          f ((k : ℝ) / (n : ℝ)) * bezierWeight n k α x) - f x = _
+      calc
+        (∑ k ∈ Finset.range (n + 1),
+            f ((k : ℝ) / (n : ℝ)) * bezierWeight n k α x) - f x =
+            (∑ k ∈ Finset.range (n + 1),
+              f ((k : ℝ) / (n : ℝ)) * bezierWeight n k α x) -
+              f x * (∑ k ∈ Finset.range (n + 1), bezierWeight n k α x) := by
+                rw [sum_bezierWeight n hα x, mul_one]
+        _ = ∑ k ∈ Finset.range (n + 1),
+            (f ((k : ℝ) / (n : ℝ)) - f x) * bezierWeight n k α x := by
+              rw [← Finset.sum_sub_distrib]
+              apply Finset.sum_congr rfl
+              intro k hk
+              ring
     _ = ∑ k ∈ Finset.range (n + 1),
           (slope * ((((k : ℝ) / (n : ℝ)) - x) * bezierWeight n k α x) +
             (f ((k : ℝ) / (n : ℝ)) - f x -
@@ -240,7 +257,7 @@ theorem bezierBernstein_sub_eq_moment_add_remainder
       ring
     _ = slope * bezierCenteredMoment n α x +
         bezierTaylorRemainder n α f x slope := by
-      rw [Finset.sum_add_distrib, Finset.mul_sum]
+      rw [Finset.sum_add_distrib, ← Finset.mul_sum]
       rfl
 
 end VoronovskajaTypeFormula
