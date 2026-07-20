@@ -52,7 +52,7 @@ jobs:
       - name: Compile complete certificate and catalog chain
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           : > green14.log
           lake build FormalConjectures.GreensOpenProblems.Green14Core 2>&1 | tee -a green14.log
           lake build FormalConjectures.GreensOpenProblems.Green14FiniteExistence 2>&1 | tee -a green14.log
@@ -63,6 +63,7 @@ jobs:
       - name: Audit exact catalog theorem axioms
         shell: bash
         run: |
+          set -euo pipefail
           cat > /tmp/Green14Axioms.lean <<'EOF'
           import FormalConjectures.GreensOpenProblems.«14»
           #print axioms Green14.mixedMonoAPGuaranteeSet_nonempty
