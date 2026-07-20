@@ -37,8 +37,37 @@ lemma fin5_existsUnique_neighbor_pattern
   obtain ⟨i, hi⟩ := hne
   obtain ⟨j, hji, hj⟩ := htwo i hi
   fin_cases i <;> fin_cases j <;>
-    simp_all [Fin.forall_fin_succ, Fin.exists_fin_succ] <;>
-    decide
+    simp_all [Fin.forall_fin_succ, Fin.exists_fin_succ]
+  · refine ⟨(1 : Fin 5), by decide, ?_⟩
+    intro y hy
+    fin_cases y <;> simp_all
+  · refine ⟨(4 : Fin 5), by decide, ?_⟩
+    intro y hy
+    fin_cases y <;> simp_all
+  · refine ⟨(2 : Fin 5), by decide, ?_⟩
+    intro y hy
+    fin_cases y <;> simp_all
+  · refine ⟨(0 : Fin 5), by decide, ?_⟩
+    intro y hy
+    fin_cases y <;> simp_all
+  · refine ⟨(1 : Fin 5), by decide, ?_⟩
+    intro y hy
+    fin_cases y <;> simp_all
+  · refine ⟨(3 : Fin 5), by decide, ?_⟩
+    intro y hy
+    fin_cases y <;> simp_all
+  · refine ⟨(4 : Fin 5), by decide, ?_⟩
+    intro y hy
+    fin_cases y <;> simp_all
+  · refine ⟨(2 : Fin 5), by decide, ?_⟩
+    intro y hy
+    fin_cases y <;> simp_all
+  · refine ⟨(0 : Fin 5), by decide, ?_⟩
+    intro y hy
+    fin_cases y <;> simp_all
+  · refine ⟨(3 : Fin 5), by decide, ?_⟩
+    intro y hy
+    fin_cases y <;> simp_all
 
 private lemma cycle_adj_plus
     {G : SimpleGraph α} {c : Fin 5 → α}
