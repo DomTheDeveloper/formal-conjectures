@@ -1,4 +1,4 @@
-# Expectation-layer verification trigger.
+# Centered-moment and remainder exposure verification trigger.
 from pathlib import Path
 import runpy
 
