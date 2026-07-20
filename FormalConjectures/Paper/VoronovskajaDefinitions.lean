@@ -15,7 +15,7 @@ limitations under the License.
 -/
 module
 
--- Lean 4.27 explicit-bound finite-sum verification trigger.
+-- Lean 4.27 normalized moment-limit verification trigger.
 public import FormalConjectures.Util.ProblemImports
 
 /-!
