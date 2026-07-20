@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,7 +66,7 @@ lemma exists_mismatch_of_hasAP_eq_false {N k : Nat} {zeros : List Nat} {color : 
   by_contra hnone
   push_neg at hnone
   have hall : (List.range k).all fun i => colorAt zeros (a + i * d) == color := by
-    rw [List.all_iff_forall_prop]
+    rw [List.all_eq_true]
     intro i hi
     have hik : i < k := by simpa using hi
     simp [hnone i hik]
@@ -86,7 +86,7 @@ lemma exists_mismatch_of_hasAP_eq_false {N k : Nat} {zeros : List Nat} {color : 
             (List.range k).all fun i => colorAt zeros (a' + i * d') == color :=
     List.any_of_mem (by simpa using ha) hinner
   have : hasAP N k zeros color = true := by
-    exact Bool.eq_true_iff.mpr (by simpa [hasAP] using houter)
+    simpa [hasAP] using houter
   rw [hcheck] at this
   contradiction
 
