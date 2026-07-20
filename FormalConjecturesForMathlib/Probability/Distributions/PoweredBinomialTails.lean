@@ -64,7 +64,7 @@ lemma one_sub_cdf_eq_measureReal_Ioi (μ : Measure ℝ) [IsProbabilityMeasure μ
     1 - cdf μ x = μ.real (Ioi x) := by
   have hsum : μ.real (Iic x) + μ.real (Ioi x) = 1 := by
     simpa using (measureReal_add_measureReal_compl (μ := μ) measurableSet_Iic)
-  rw [← cdf_eq_real μ x]
+  rw [cdf_eq_real μ x]
   linarith
 
 /-- Exact left-tail formula for the powered-survival probability measure. -/
@@ -128,9 +128,12 @@ lemma measureReal_Iic_standardizedBinomialMeasure_le_exp
       exp (-t ^ 2 / (2 * (standardizedBernoulliSubgaussianParameter p : ℝ))) := by
   have h :=
     ((hasSubgaussianMGF_standardizedBinomialMeasure n hn p hp0 hp1).neg).measure_ge_le ht
-  convert h using 1
-  ext z
-  simp
+  have hset : Iic (-t) = {z : ℝ | t ≤ (-id) z} := by
+    ext z
+    simp only [mem_Iic, Pi.neg_apply, id_eq, mem_setOf_eq]
+    constructor <;> intro hz <;> linarith
+  rw [hset]
+  exact h
 
 /-- The right tail of every powered standardized binomial law has a uniform Gaussian bound. -/
 lemma measureReal_Ioi_poweredStandardizedBinomialProbability_le_exp_rpow
