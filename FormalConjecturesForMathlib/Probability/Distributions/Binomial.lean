@@ -22,7 +22,7 @@ public import Mathlib.Probability.ProbabilityMassFunction.Integrals
 /-!
 # Finite binomial PMFs and their real-valued pushforwards
 
-The pinned mathlib release supplies the finite binomial PMF on `Fin (n + 1)`.  This file packages
+The pinned mathlib release supplies the finite binomial PMF on `Fin (n + 1)`. This file packages
 its pushforwards to `ℕ` and `ℝ`, records their probability-measure instances, and proves the finite
 sum formulas needed for characteristic functions and moment-generating functions.
 -/
@@ -65,7 +65,7 @@ lemma binomial_eq_binomialPMF_toMeasure_map_val (n : ℕ) (p : I) :
 lemma binomialPMF_apply_toReal (n : ℕ) (p : I) (k : Fin (n + 1)) :
     ((binomialPMF n p) k).toReal =
       (p : ℝ) ^ (k : ℕ) *
-        (1 - (p : ℝ)) ^ ((Fin.last n - k : Fin (n + 1)) : ℕ) *
+        (1 - (p : ℝ)) ^ (n - (k : ℕ)) *
           (n.choose (k : ℕ) : ℝ) := by
   rw [binomialPMF, PMF.binomial_apply]
   have hq : ((1 : ℝ≥0∞) - (toNNReal p : ℝ≥0∞)).toReal = 1 - (p : ℝ) := by
