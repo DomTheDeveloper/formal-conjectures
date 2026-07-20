@@ -240,3 +240,4 @@ replace_once(
 )
 
 runpy.run_path(".github/voronovskaja_migrate_round3.py", run_name="__main__")
+runpy.run_path(".github/voronovskaja_migrate_round4.py", run_name="__main__")
