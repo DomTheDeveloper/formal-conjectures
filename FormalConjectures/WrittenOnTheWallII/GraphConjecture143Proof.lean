@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.WrittenOnTheWallII.GraphConjecture143
+import FormalConjectures.Util.ProblemImports
 
 /-!
 Development of a proof of WOWII Graph Conjecture 143.

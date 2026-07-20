@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import WOWII.GraphConjecture143Proof
-import WOWII.GraphConjecture143Next
-import WOWII.GraphConjecture143Leaves
-import WOWII.GraphConjecture143Boundary
-import WOWII.GraphConjecture143CycleAttach
+import FormalConjectures.WrittenOnTheWallII.GraphConjecture143Proof
+import FormalConjectures.WrittenOnTheWallII.GraphConjecture143Next
+import FormalConjectures.WrittenOnTheWallII.GraphConjecture143Leaves
+import FormalConjectures.WrittenOnTheWallII.GraphConjecture143Boundary
+import FormalConjectures.WrittenOnTheWallII.GraphConjecture143CycleAttach
 
 /-!
 A complete modular, sorry-free proof of WOWII Graph Conjecture 143,
