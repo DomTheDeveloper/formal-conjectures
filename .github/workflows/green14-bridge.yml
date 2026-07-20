@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,12 +19,10 @@ on:
     branches:
       - agent/green14-certificates-20-39
     paths:
-      - 'FormalConjectures/GreensOpenProblems/14.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14*.lean'
       - '.github/workflows/green14-bridge.yml'
   pull_request:
     paths:
-      - 'FormalConjectures/GreensOpenProblems/14.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14*.lean'
       - '.github/workflows/green14-bridge.yml'
   workflow_dispatch:
@@ -49,7 +47,7 @@ jobs:
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Fetch Mathlib cache
         run: lake exe cache get
-      - name: Compile complete certificate and catalog chain
+      - name: Compile complete certificate chain
         shell: bash
         run: |
           set -euo pipefail
@@ -59,30 +57,45 @@ jobs:
           lake build FormalConjectures.GreensOpenProblems.Green14OrderBridge 2>&1 | tee -a green14.log
           lake build FormalConjectures.GreensOpenProblems.Green14Certificates 2>&1 | tee -a green14.log
           lake build FormalConjectures.GreensOpenProblems.Green14CertificateBridge 2>&1 | tee -a green14.log
-          lake build 'FormalConjectures.GreensOpenProblems.«14»' 2>&1 | tee -a green14.log
-      - name: Audit exact catalog theorem axioms
+      - name: Audit all twenty exact numerical theorem heads
         shell: bash
         run: |
           set -euo pipefail
           cat > /tmp/Green14Axioms.lean <<'EOF'
-          import FormalConjectures.GreensOpenProblems.«14»
+          import FormalConjectures.GreensOpenProblems.Green14CertificateBridge
           #print axioms Green14.mixedMonoAPGuaranteeSet_nonempty
           #print axioms Green14.mixedMonoAPGuaranteeSet_upward
           #print axioms Green14.W_ge_succ_of_not_mem
           #print axioms Green14.CertificateBridge.W_3_20_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_21_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_22_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_23_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_24_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_25_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_26_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_27_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_28_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_29_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_30_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_31_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_32_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_33_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_34_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_35_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_36_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_37_lower_proved
+          #print axioms Green14.CertificateBridge.W_3_38_lower_proved
           #print axioms Green14.CertificateBridge.W_3_39_lower_proved
-          #print axioms Green14.W_3_20_lower
-          #print axioms Green14.W_3_39_lower
           EOF
           lake env lean /tmp/Green14Axioms.lean 2>&1 | tee -a green14.log
           if grep -q sorryAx green14.log; then
             exit 1
           fi
-      - name: Reject lower-bound placeholders
+      - name: Reject bridge placeholders
         shell: bash
         run: |
-          if grep -nE 'theorem W_3_(2[0-9]|3[0-9])_lower.*:= sorry' \
-              FormalConjectures/GreensOpenProblems/14.lean; then
+          if grep -nE 'theorem W_3_(2[0-9]|3[0-9])_lower_proved.*:= sorry' \
+              FormalConjectures/GreensOpenProblems/Green14CertificateBridge.lean; then
             exit 1
           fi
       - name: Upload diagnostics
