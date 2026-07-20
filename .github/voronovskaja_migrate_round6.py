@@ -9,6 +9,26 @@ def replace_once(path: Path, old: str, new: str, label: str) -> None:
     path.write_text(text.replace(old, new, 1))
 
 
+proof = Path("FormalConjectures/Paper/VoronovskajaProof.lean")
+replace_once(
+    proof,
+    """noncomputable def bezierCenteredMoment (n : ℕ) (α x : ℝ) : ℝ :=
+""",
+    """@[expose]
+noncomputable def bezierCenteredMoment (n : ℕ) (α x : ℝ) : ℝ :=
+""",
+    "expose centered Bezier moment",
+)
+replace_once(
+    proof,
+    """noncomputable def bezierTaylorRemainder
+""",
+    """@[expose]
+noncomputable def bezierTaylorRemainder
+""",
+    "expose Bezier Taylor remainder",
+)
+
 discrete = Path("FormalConjectures/Paper/VoronovskajaDiscreteLaw.lean")
 replace_once(
     discrete,
