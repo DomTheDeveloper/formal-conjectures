@@ -17,10 +17,13 @@ variable {α : Type*} [Fintype α] [DecidableEq α] [Nontrivial α]
 def C5BagSpec (G : SimpleGraph α) (c : Fin 5 → α) (x : α) (i : Fin 5) : Prop :=
   ∀ j : Fin 5, G.Adj x (c j) ↔ (cycleGraph 5).Adj i j
 
+section FinitePattern
+
+local attribute [-instance] Classical.propDecidable
+
 /-- A finite truth-table lemma: a nonempty subset of `C₅` containing no
 adjacent pair and having no isolated chosen element is the neighborhood of a
 unique cycle vertex. -/
-attribute [-instance] Classical.propDecidable in
 lemma fin5_existsUnique_neighbor_pattern
     (P : Fin 5 → Bool)
     (hne : ∃ i, P i = true)
@@ -30,6 +33,8 @@ lemma fin5_existsUnique_neighbor_pattern
   simp only [cycleGraph_adj] at hind ⊢
   revert P
   decide
+
+end FinitePattern
 
 private lemma cycle_adj_plus
     {G : SimpleGraph α} {c : Fin 5 → α}
