@@ -33,10 +33,12 @@ open Topology Filter Real unitInterval Polynomial
 namespace VoronovskajaTypeFormula
 
 /-- Cumulative Bernstein sum `J_{n,k}(x) = ∑_{j=k}^n p_{n,j}(x)`. -/
+@[expose]
 noncomputable def bernsteinTail (n k : ℕ) : Polynomial ℝ :=
   ∑ j ∈ Finset.Icc k n, bernsteinPolynomial ℝ n j
 
 /-- Bézier-type Bernstein operator. -/
+@[expose]
 noncomputable def bezierBernstein (n : ℕ) (α : ℝ) (f : ℝ → ℝ) (x : ℝ) : ℝ :=
   ∑ k ∈ Finset.range (n + 1),
     f ((k : ℝ) / (n : ℝ)) *
