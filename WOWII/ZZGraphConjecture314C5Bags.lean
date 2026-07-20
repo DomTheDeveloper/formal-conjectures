@@ -40,34 +40,34 @@ lemma fin5_existsUnique_neighbor_pattern
     simp_all [Fin.forall_fin_succ, Fin.exists_fin_succ]
   · refine ⟨(1 : Fin 5), by decide, ?_⟩
     intro y hy
-    fin_cases y <;> simp_all
+    fin_cases y <;> simp_all [Fin.neg_def, Fin.sub]
   · refine ⟨(4 : Fin 5), by decide, ?_⟩
     intro y hy
-    fin_cases y <;> simp_all
+    fin_cases y <;> simp_all [Fin.neg_def, Fin.sub]
   · refine ⟨(2 : Fin 5), by decide, ?_⟩
     intro y hy
-    fin_cases y <;> simp_all
+    fin_cases y <;> simp_all [Fin.neg_def, Fin.sub]
   · refine ⟨(0 : Fin 5), by decide, ?_⟩
     intro y hy
-    fin_cases y <;> simp_all
+    fin_cases y <;> simp_all [Fin.neg_def, Fin.sub]
   · refine ⟨(1 : Fin 5), by decide, ?_⟩
     intro y hy
-    fin_cases y <;> simp_all
+    fin_cases y <;> simp_all [Fin.neg_def, Fin.sub]
   · refine ⟨(3 : Fin 5), by decide, ?_⟩
     intro y hy
-    fin_cases y <;> simp_all
+    fin_cases y <;> simp_all [Fin.neg_def, Fin.sub]
   · refine ⟨(4 : Fin 5), by decide, ?_⟩
     intro y hy
-    fin_cases y <;> simp_all
+    fin_cases y <;> simp_all [Fin.neg_def, Fin.sub]
   · refine ⟨(2 : Fin 5), by decide, ?_⟩
     intro y hy
-    fin_cases y <;> simp_all
+    fin_cases y <;> simp_all [Fin.neg_def, Fin.sub]
   · refine ⟨(0 : Fin 5), by decide, ?_⟩
     intro y hy
-    fin_cases y <;> simp_all
+    fin_cases y <;> simp_all [Fin.neg_def, Fin.sub]
   · refine ⟨(3 : Fin 5), by decide, ?_⟩
     intro y hy
-    fin_cases y <;> simp_all
+    fin_cases y <;> simp_all [Fin.neg_def, Fin.sub]
 
 private lemma cycle_adj_plus
     {G : SimpleGraph α} {c : Fin 5 → α}
