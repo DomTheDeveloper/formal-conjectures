@@ -64,7 +64,10 @@ lemma tendsto_cdf_standardizedBinomialProbability
     have hgauss : gaussianReal 0 1 {x} = 0 := by
       letI : NoAtoms (gaussianReal 0 1) := noAtoms_gaussianReal (by norm_num)
       simp
-    simpa [standardGaussianProbability] using hgauss
+    rw [standardGaussianProbability]
+    change ((gaussianReal 0 1) {x}).toNNReal = 0
+    rw [hgauss]
+    rfl
   have hmass :=
     ProbabilityMeasure.tendsto_measure_of_null_frontier_of_tendsto hweak hnull
   have hreal : Tendsto
