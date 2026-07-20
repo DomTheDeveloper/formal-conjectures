@@ -18,6 +18,9 @@ on:
   push:
     branches:
       - a317940-lean-audit
+  pull_request:
+    branches:
+      - a317940-lean-audit-base
   workflow_dispatch:
 
 permissions:
