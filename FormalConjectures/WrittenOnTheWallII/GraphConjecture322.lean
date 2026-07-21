@@ -14,13 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.Util.ProblemImports
+import FormalConjecturesUtil
 
 /-!
 # Written on the Wall II - Conjecture 322
 
 *Reference:*
-[E. DeLaVina, Written on the Wall II, Conjectures of Graffiti.pc](http://cms.dt.uh.edu/faculty/delavinae/research/wowII/)
+[E. DeLaViña, Written on the Wall II, Conjectures of Graffiti.pc](http://cms.uhd.edu/faculty/delavinae/research/wowII/open.html#conj322)
+
+The source applies the local-independence hypothesis to the complement graph. The correction and
+proof below follow the argument first submitted by Samuel Schlesinger in
+[Formal Conjectures PR #4430](https://github.com/google-deepmind/formal-conjectures/pull/4430).
 -/
 
 open Classical
@@ -32,103 +36,78 @@ open SimpleGraph
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
 /--
-WOWII [Conjecture 322](http://cms.dt.uh.edu/faculty/delavinae/research/wowII/)
+WOWII [Conjecture 322](http://cms.uhd.edu/faculty/delavinae/research/wowII/open.html#conj322)
 
 Let `G` be a simple connected graph on `n ≥ 5` vertices. If the maximum over all
-vertices `v` of `l(v)` — the independence number of the neighborhood `N(v)` of `v`
-— is at most 1, then `G` is well totally dominated.
+vertices `v` of `l(v)` in the complement graph `Gᶜ`—the independence number of
+the neighborhood `N(v)` of `v`—is at most 1, then `G` is well totally dominated.
 
-Here `l(v) = α(G[N(v)])` is the independence number of the subgraph induced by the
-open neighborhood of `v`.
+Here `l(v) = α(Gᶜ[N(v)])` is the independence number of the subgraph induced by the
+open neighborhood of `v` in `Gᶜ`.
 -/
 @[category research solved, AMS 5]
-theorem conjecture322 (G : SimpleGraph α) [DecidableRel G.Adj] (hG : G.Connected)
+theorem conjecture322 (G : SimpleGraph α) [DecidableRel G.Adj] (_hG : G.Connected)
     (hn : 5 ≤ Fintype.card α)
-    (h : ∀ v : α, indepNeighborsCard G v ≤ 1) :
+    (h : ∀ v : α, indepNeighborsCard Gᶜ v ≤ 1) :
     IsWellTotallyDominated G := by
-  have adjacent_of_two_neighbors {u v w : α} (hvu : G.Adj v u) (hvw : G.Adj v w)
-      (huw : u ≠ w) : G.Adj u w := by
-    by_contra hnuw
-    let u' : G.neighborSet v := ⟨u, hvu⟩
-    let w' : G.neighborSet v := ⟨w, hvw⟩
-    have hu'w' : u' ≠ w' := by
+  have adj_of_local_independence_one (H : SimpleGraph α) {v x y : α}
+      (hv : indepNeighborsCard H v ≤ 1) (hx : H.Adj v x) (hy : H.Adj v y)
+      (hxy : x ≠ y) : H.Adj x y := by
+    by_contra hnxy
+    let x' : H.neighborSet v := ⟨x, hx⟩
+    let y' : H.neighborSet v := ⟨y, hy⟩
+    have hne : x' ≠ y' := by
       intro heq
-      exact huw (congrArg Subtype.val heq)
-    have hs :
-        (G.induce (G.neighborSet v)).IsIndepSet
-          ({u', w'} : Finset (G.neighborSet v)) := by
+      exact hxy (congrArg Subtype.val heq)
+    have hind : (H.induce (H.neighborSet v)).IsIndepSet ({x', y'} : Finset _) := by
       rw [isIndepSet_iff]
-      intro x hx y hy hxy
-      simp only [Finset.mem_coe, Finset.mem_insert, Finset.mem_singleton] at hx hy
-      rcases hx with rfl | rfl
-      · rcases hy with rfl | rfl
-        · exact (hxy rfl).elim
-        · change ¬G.Adj u w
-          exact hnuw
-      · rcases hy with rfl | rfl
-        · change ¬G.Adj w u
-          exact fun hwu => hnuw hwu.symm
-        · exact (hxy rfl).elim
-    have htwo : 2 ≤ (G.induce (G.neighborSet v)).indepNum := by
-      have hcard := hs.card_le_indepNum
-      simpa [u', w', hu'w'] using hcard
-    have hone := h v
-    unfold indepNeighborsCard at hone
-    omega
-  have transGen_adj : ∀ {u w : α}, Relation.TransGen G.Adj u w → u ≠ w → G.Adj u w := by
-    intro u w huw
-    induction huw with
-    | single hadj =>
-        intro _
-        exact hadj
-    | @tail v w _ hvw ih =>
-        intro huw_ne
-        by_cases huv : u = v
-        · subst v
-          exact hvw
-        · exact adjacent_of_two_neighbors (ih huv).symm hvw huw_ne
-  have hcomplete : ∀ {u w : α}, u ≠ w → G.Adj u w := by
-    intro u w huw
-    have hreach : Relation.ReflTransGen G.Adj u w :=
-      (reachable_iff_reflTransGen u w).mp (hG u w)
-    rcases Relation.reflTransGen_iff_eq_or_transGen.mp hreach with hwu | htrans
-    · exact (huw hwu.symm).elim
-    · exact transGen_adj htrans huw
+      intro a ha b hb hab
+      simp only [Finset.mem_coe, Finset.mem_insert, Finset.mem_singleton] at ha hb
+      rcases ha with (rfl | rfl) <;> rcases hb with (rfl | rfl)
+      · exact (hab rfl).elim
+      · exact hnxy
+      · exact fun hyx ↦ hnxy hyx.symm
+      · exact (hab rfl).elim
+    have hle := hind.card_le_indepNum
+    have hcard : ({x', y'} : Finset _).card = 2 := by simp [hne]
+    rw [hcard] at hle
+    exact (by omega : ¬(2 ≤ indepNeighborsCard H v)) hle
+  have edge_total {x y : α} (hxy : G.Adj x y) : IsTotalDominatingSet G {x, y} := by
+    intro v
+    by_cases hvx : G.Adj v x
+    · exact ⟨x, by simp, hvx⟩
+    by_cases hvy : G.Adj v y
+    · exact ⟨y, by simp, hvy⟩
+    exfalso
+    have hvx_ne : v ≠ x := by
+      rintro rfl
+      exact hvy hxy
+    have hvy_ne : v ≠ y := by
+      rintro rfl
+      exact hvx hxy.symm
+    have hvx_compl : Gᶜ.Adj v x := (G.compl_adj v x).2 ⟨hvx_ne, hvx⟩
+    have hvy_compl : Gᶜ.Adj v y := (G.compl_adj v y).2 ⟨hvy_ne, hvy⟩
+    have hxy_compl : Gᶜ.Adj x y :=
+      adj_of_local_independence_one Gᶜ (h v) hvx_compl hvy_compl hxy.ne
+    exact ((G.compl_adj x y).1 hxy_compl).2 hxy
+  have minimal_card_two {S : Finset α} (hS : IsMinimalTotalDominatingSet G S) :
+      S.card = 2 := by
+    have hcardpos : 0 < Fintype.card α := by omega
+    let v : α := Classical.choice (Fintype.card_pos_iff.mp hcardpos)
+    obtain ⟨w, hwS, _⟩ := hS.1 v
+    obtain ⟨x, hxS, hwx⟩ := hS.1 w
+    have hpair_subset : ({w, x} : Finset α) ⊆ S := by
+      simpa only [Finset.insert_subset_iff, Finset.singleton_subset_iff] using
+        (And.intro hwS hxS)
+    have hpair_not_ssubset : ¬({w, x} : Finset α) ⊂ S := by
+      intro hss
+      exact hS.2 {w, x} hss (edge_total hwx)
+    have hpair_eq : ({w, x} : Finset α) = S :=
+      hpair_subset.eq_of_not_ssubset hpair_not_ssubset
+    rw [← hpair_eq]
+    simp [hwx.ne]
   intro S T hS hT
-  have minimal_card_two (U : Finset α) (hU : IsMinimalTotalDominatingSet G U) :
-      U.card = 2 := by
-    let v : α := Classical.choice hG.nonempty
-    obtain ⟨a, haU, hva⟩ := hU.1 v
-    obtain ⟨b, hbU, hab⟩ := hU.1 a
-    have hab_ne : a ≠ b := hab.ne
-    have hpair_subset : ({a, b} : Finset α) ⊆ U := by
-      intro x hx
-      simp only [Finset.mem_insert, Finset.mem_singleton] at hx
-      rcases hx with rfl | rfl
-      · exact haU
-      · exact hbU
-    have hge : 2 ≤ U.card := by
-      calc
-        2 = ({a, b} : Finset α).card := by simp [hab_ne]
-        _ ≤ U.card := Finset.card_le_card hpair_subset
-    have hle : U.card ≤ 2 := by
-      by_contra hnot
-      have hgt : 2 < U.card := by omega
-      have hpair_ne : ({a, b} : Finset α) ≠ U := by
-        intro heq
-        have heq_card := congrArg Finset.card heq
-        simp [hab_ne] at heq_card
-        omega
-      have hproper : ({a, b} : Finset α) ⊂ U :=
-        Finset.ssubset_iff_subset_ne.mpr ⟨hpair_subset, hpair_ne⟩
-      have hpair_dom : IsTotalDominatingSet G ({a, b} : Finset α) := by
-        intro x
-        by_cases hxa : x = a
-        · exact ⟨b, by simp, hcomplete (hxa.trans_ne hab_ne)⟩
-        · exact ⟨a, by simp, hcomplete hxa⟩
-      exact hU.2 _ hproper hpair_dom
-    omega
-  rw [minimal_card_two S hS, minimal_card_two T hT]
+  rw [minimal_card_two hS, minimal_card_two hT]
 
 -- Sanity checks
 
@@ -139,5 +118,7 @@ example : (⊤ : SimpleGraph (Fin 4)).maxDegree = 3 := by decide +native
 /-- In the edgeless graph `⊥` on 5 vertices, the minimum degree is 0. -/
 @[category test, AMS 5]
 example : (⊥ : SimpleGraph (Fin 5)).minDegree = 0 := by decide +native
+
+#print axioms conjecture322
 
 end WrittenOnTheWallII.GraphConjecture322
