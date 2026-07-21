@@ -7,6 +7,10 @@ on:
   push:
     branches:
       - audit/voronovskaja-minimal-target
+  pull_request:
+    paths:
+      - 'FormalConjectures/Paper/VoronovskajaTypeFormula.lean'
+      - '.github/workflows/voronovskaja-minimal-submission.yml'
   workflow_dispatch:
 
 permissions:
