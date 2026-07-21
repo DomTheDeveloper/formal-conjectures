@@ -9,16 +9,17 @@ import FormalConjectures.WrittenOnTheWallII.GraphConjecture145
 /-!
 # WOWII Conjecture 145
 
-This module proves the exact Formal Conjectures statement.  The only exceptional
+This module proves the exact Formal Conjectures statement. The only exceptional
 six-vertex induced-tree construction is reused, with attribution, from the
 Apache-licensed and separately kernel-verified WOWII 146 formalization at
-`akakabrian/WOW-146`.  The reduction from the complement local-independence
+`akakabrian/WOW-146`. The reduction from the complement local-independence
 invariant in Conjecture 145 is new here.
 -/
 
 open Classical
 open SimpleGraph
 open WrittenOnTheWallII.GraphConjecture145
+open WrittenOnTheWallII.GraphConjecture146
 
 namespace WOW145
 
@@ -37,7 +38,7 @@ lemma dist_le_two_of_comp_indepNeighborsCard_eq_one
   by_cases hadj : G.Adj v w
   · rw [dist_eq_one_iff_adj.mpr hadj]
     omega
-  obtain ⟨p, hpPath, hpLen⟩ := hG.exists_path_of_dist v w
+  obtain ⟨p, -, hpLen⟩ := hG.exists_path_of_dist v w
   have hpPos : 0 < p.length := by
     rw [hpLen]
     exact hG.pos_dist_of_ne hvw
@@ -46,11 +47,10 @@ lemma dist_le_two_of_comp_indepNeighborsCard_eq_one
   have hzw : G.Adj z w := by
     simpa [z] using p.adj_penultimate hpNotNil
   by_cases hvz : G.Adj v z
-  · exact dist_le_two_of_adj_adj G hvz hzw
+  · exact WOW146.dist_le_two_of_adj_adj G hvz hzw
   have hvzNe : v ≠ z := by
     intro h
-    subst z
-    exact hadj hzw
+    exact hadj (h ▸ hzw)
   have hvwN : w ∈ Gᶜ.neighborSet v := by
     simp only [mem_neighborSet, compl_adj]
     exact ⟨hvw, hadj⟩
@@ -67,9 +67,13 @@ lemma dist_le_two_of_comp_indepNeighborsCard_eq_one
       ((Gᶜ).induce (Gᶜ.neighborSet v)).IsIndepSet
         ({z', w'} : Finset (Gᶜ.neighborSet v)) := by
     rw [← isClique_compl]
-    rw [isClique_pair]
+    apply (isClique_pair (G := ((Gᶜ).induce (Gᶜ.neighborSet v))ᶜ)).2
     intro _
-    simpa [z', w', induce_adj, compl_adj] using hzw
+    rw [compl_adj]
+    refine ⟨hzwNe, ?_⟩
+    change ¬Gᶜ.Adj z w
+    intro hcomp
+    exact (compl_adj.mp hcomp).2 hzw
   have hcard : ({z', w'} : Finset (Gᶜ.neighborSet v)).card = 2 := by
     simp [hzwNe]
   have htwo := hpair.card_le_indepNum
@@ -93,7 +97,7 @@ lemma graphSquareRadius_eq_one_of_localIndependenceMin_compl_eq_one
     dist_le_two_of_comp_indepNeighborsCard_eq_one hG hvOne
   obtain ⟨w, hw⟩ := G.exists_edist_eq_eccent_of_finite v
   have heccNat : (G.eccent v).toNat = G.dist v w := by
-    unfold dist
+    unfold SimpleGraph.dist
     rw [hw]
   have heccLe : (G.eccent v).toNat ≤ 2 := by
     rw [heccNat]
@@ -102,8 +106,7 @@ lemma graphSquareRadius_eq_one_of_localIndependenceMin_compl_eq_one
   have heccFinite : G.eccent v ≠ ⊤ := by
     intro heccTop
     apply hedFinite
-    apply top_unique
-    simpa [heccTop] using (eccent_le_ediam (G := G) (u := v))
+    exact top_unique (heccTop ▸ (eccent_le_ediam (G := G) (u := v)))
   have hradLe : G.radius.toNat ≤ 2 := by
     exact (ENat.toNat_le_toNat (radius_le_eccent (G := G) (u := v)) heccFinite).trans heccLe
   have hradFinite : G.radius ≠ ⊤ := radius_ne_top_iff.mpr hG
@@ -139,7 +142,8 @@ theorem conjecture145_proof [DecidableRel G.Adj] (hG : G.Connected)
       _ = t * q := Nat.mul_comm _ _
   · have hqOne : q = 1 := by omega
     have hrho : graphSquareRadius G = 1 :=
-      graphSquareRadius_eq_one_of_localIndependenceMin_compl_eq_one hG (by simpa [q] using hqOne)
+      graphSquareRadius_eq_one_of_localIndependenceMin_compl_eq_one hG
+        (by simpa [q] using hqOne)
     have hdLeFour : d ≤ 4 := by
       simpa [d] using WOW146.diam_le_four_of_graphSquareRadius_eq_one G hG hrho
     have hpLeThree : p ≤ 3 := by omega
