@@ -6,6 +6,9 @@ on:
       - agent/wowii-145-proof
     paths-ignore:
       - WOW145Proof/lean-ci.log
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -46,11 +49,16 @@ jobs:
           echo "exit_status=$status" >> "$GITHUB_OUTPUT"
           exit 0
 
-      - name: Publish compiler log
+      - name: Upload compiler log
         if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wow145-lean-log-${{ github.run_id }}
+          path: WOW145Proof/lean-ci.log
+
+      - name: Publish compiler log on branch pushes
+        if: github.event_name == 'push'
         run: |
-          cp WOW145Proof/lean-ci.log WOW145Proof/lean-ci.log.tmp
-          mv WOW145Proof/lean-ci.log.tmp WOW145Proof/lean-ci.log
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -f WOW145Proof/lean-ci.log
