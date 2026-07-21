@@ -119,8 +119,10 @@ theorem conjecture100
     exact maxLocalIndependence_le_indepNum G
   have hGlocal (t : α) : (S.filter (G.Adj t)).card ≤ L := by
     apply le_trans (card_filter_adj_le_indepNeighborsCard G S hS.isIndepSet t)
+    change indepNeighborsCard G t ≤
+      (Finset.univ.image (indepNeighborsCard G)).max' (by simp)
     apply Finset.le_max'
-    simp [L]
+    simp
   have hGabove : ∀ s ∈ S, 1 ≤ (T.bipartiteAbove G.Adj s).card := by
     intro s hs
     have hdeg : 0 < G.degree s := h.preconnected.degree_pos_of_nontrivial s
@@ -141,18 +143,25 @@ theorem conjecture100
     have hdc := Finset.card_mul_le_card_mul (r := G.Adj) (s := S) (t := T)
       (m := 1) (n := L) hGabove hGbelow
     simpa [A] using hdc
-  have hL : 1 ≤ L := by omega
+  have hL : 1 ≤ L := by
+    by_contra hnot
+    have hzero : L = 0 := Nat.eq_zero_of_not_pos hnot
+    rw [hzero] at hAm
+    simp at hAm
+    omega
   have hCeq (t : α) (ht : t ∈ T) :
       S.bipartiteBelow H.Adj t = S.filter (fun s => ¬G.Adj t s) := by
     ext s
     have htS : t ∉ S := by simpa [T] using ht
     by_cases hs : s ∈ S
     · have hne : t ≠ s := fun hts => htS (hts ▸ hs)
-      simp [Finset.bipartiteBelow, H, hs, hne, G.adj_comm]
+      simp [Finset.bipartiteBelow, H, hs, hne.symm, G.adj_comm]
     · simp [Finset.bipartiteBelow, hs]
   have hCpart (t : α) (ht : t ∈ T) :
       (S.filter (G.Adj t)).card + c t = A := by
-    rw [c, hCeq t ht]
+    change (S.filter (G.Adj t)).card +
+      (S.bipartiteBelow H.Adj t).card = A
+    rw [hCeq t ht]
     let P := S.filter (G.Adj t)
     let Q := S.filter (fun s => ¬G.Adj t s)
     have hdisj : Disjoint P Q := by
@@ -178,7 +187,8 @@ theorem conjecture100
     omega
   have hC_degree : ∀ t ∈ T, c t ≤ H.degree t := by
     intro t ht
-    rw [c, hCeq t ht]
+    change (S.bipartiteBelow H.Adj t).card ≤ H.degree t
+    rw [hCeq t ht]
     apply Finset.card_le_card
     intro s hs
     rcases Finset.mem_filter.mp hs with ⟨hsS, hnot⟩
@@ -215,9 +225,11 @@ theorem conjecture100
       rw [Finset.disjoint_left]
       intro x hxP hxQ
       have hxS : x ∈ S := (Finset.mem_erase.mp hxP).2
-      have hxT : x ∈ T := by
+      have hxQ' : x ∈ T ∧ H.Adj s x := by
         simpa [Q, Finset.bipartiteAbove] using hxQ
-      simpa [T, hxS] using hxT
+      have hxT : x ∈ T := hxQ'.1
+      have hxNotS : x ∉ S := by simpa [T] using hxT
+      exact hxNotS hxS
     have hsub : P ∪ Q ⊆ H.neighborFinset s := Finset.union_subset hPsub hQsub
     have hcard := Finset.card_le_card hsub
     have hscard : P.card = A - 1 := by
@@ -229,7 +241,6 @@ theorem conjecture100
       (A - 1) ^ 2 + (2 * A - 1) * r s ≤ (H.degree s) ^ 2 := by
     intro s hs
     have hd := hR_degree s hs
-    have hAone : 1 ≤ A := le_trans (by decide) hA
     have hcoeff : 2 * A - 1 = 2 * (A - 1) + 1 := by omega
     have hrsq : r s ≤ (r s) ^ 2 := by nlinarith [Nat.zero_le (r s)]
     have hpow : (A - 1 + r s) ^ 2 ≤ (H.degree s) ^ 2 := by gcongr
@@ -242,8 +253,7 @@ theorem conjecture100
   have hSexpand :
       (∑ s ∈ S, ((A - 1) ^ 2 + (2 * A - 1) * r s)) =
         A * (A - 1) ^ 2 + (2 * A - 1) * (∑ s ∈ S, r s) := by
-    simp [A, Finset.mul_sum]
-    ring
+    simp [Finset.sum_add_distrib, A, Finset.mul_sum, Nat.mul_comm]
   rw [hSexpand] at hSpointSum
   have hcrossMul :
       (2 * A - 1) * (T.card * D) ≤ (2 * A - 1) * (∑ s ∈ S, r s) :=
@@ -263,7 +273,11 @@ theorem conjecture100
   have hpartition :
       (∑ s ∈ S, (H.degree s) ^ 2) + (∑ t ∈ T, (H.degree t) ^ 2) =
         ∑ v, (H.degree v) ^ 2 := by
-    have hdisj : Disjoint S T := by simp [T]
+    have hdisj : Disjoint S T := by
+      rw [Finset.disjoint_left]
+      intro x hxS hxT
+      have hxNotS : x ∉ S := by simpa [T] using hxT
+      exact hxNotS hxS
     calc
       (∑ s ∈ S, (H.degree s) ^ 2) + (∑ t ∈ T, (H.degree t) ^ 2)
           = ∑ v ∈ S ∪ T, (H.degree v) ^ 2 := (Finset.sum_union hdisj).symm
@@ -277,15 +291,27 @@ theorem conjecture100
           ≤ (∑ s ∈ S, (H.degree s) ^ 2) + (∑ t ∈ T, (H.degree t) ^ 2) :=
             Nat.add_le_add hSsum hTsum
       _ = ∑ v, (H.degree v) ^ 2 := hpartition
+  have hAcast : ((A - 1 : ℕ) : ℝ) = (A : ℝ) - 1 := by
+    rw [Nat.cast_sub (by omega : 1 ≤ A)]
+    norm_num
+  have hCoeffCast : ((2 * A - 1 : ℕ) : ℝ) = 2 * (A : ℝ) - 1 := by
+    rw [Nat.cast_sub (by omega : 1 ≤ 2 * A)]
+    norm_num
+  have hDcast : (D : ℝ) = (A : ℝ) - (L : ℝ) := by
+    dsimp [D]
+    rw [Nat.cast_sub hLA]
+  have hRealNat :
+      (A : ℝ) * (((A - 1 : ℕ) : ℝ)) ^ 2
+        + (((2 * A - 1 : ℕ) : ℝ)) * ((T.card : ℝ) * (D : ℝ))
+        + (T.card : ℝ) * (D : ℝ) ^ 2 ≤
+          ∑ v, ((H.degree v : ℝ) ^ 2) := by
+    exact_mod_cast hNat
   have hReal :
       (A : ℝ) * ((A : ℝ) - 1) ^ 2
         + (2 * (A : ℝ) - 1) * (T.card : ℝ) * ((A : ℝ) - (L : ℝ))
         + (T.card : ℝ) * ((A : ℝ) - (L : ℝ)) ^ 2 ≤
           ∑ v, ((H.degree v : ℝ) ^ 2) := by
-    have hD : (D : ℤ) = (A : ℤ) - (L : ℤ) := by
-      dsimp [D]
-      exact_mod_cast Nat.sub_eq_iff_eq_add hLA
-    exact_mod_cast hNat
+    simpa [hAcast, hCoeffCast, hDcast, mul_assoc] using hRealNat
   have harith :=
     GraphConjecture100ForkProof.arithmetic_ceiling_bound
       A L T.card (∑ v, ((H.degree v : ℝ) ^ 2)) hA hL hLA hAm hReal
