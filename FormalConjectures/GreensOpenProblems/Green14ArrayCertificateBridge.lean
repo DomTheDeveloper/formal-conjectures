@@ -13,39 +13,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
-module
 
-public import FormalConjectures.GreensOpenProblems.Green14OrderBridge
+import FormalConjectures.GreensOpenProblems.Green14OrderBridge
 
 /-!
 # Kernel-clean array certificate bridge for Green14
 
-This module reflects a negative direct-array arithmetic-progression checker
-into the repository's `Set.IsAPOfLength` formulation. It is independent of
-`native_decide`: concrete certificate modules may prove the Boolean equality
-with kernel `decide` and then obtain the numerical `W(3,r)` lower bound here.
+This file reflects a negative direct-array arithmetic-progression checker into
+the repository's `Set.IsAPOfLength` formulation. It is independent of
+`native_decide`: concrete certificate files may prove the Boolean equality with
+kernel `decide` and then obtain the numerical `W(3,r)` lower bound here.
 -/
-
-public section
 
 open Set
 open scoped Classical
 
 namespace Green14.ArrayCertificateBridge
 
-/-- Boolean color at zero-based position `i`. -/
-def colorAt (colors : Array Bool) (i : Nat) : Bool :=
-  colors[i]!
+def colorAt (colors : Array Bool) (i : Nat) : Bool := colors[i]!
 
-/-- Exhaustive checker using only positive differences whose final term is in
-bounds. The range length is the exact largest admissible difference. -/
 def hasAP (N k : Nat) (colors : Array Bool) (color : Bool) : Bool :=
   (List.range N).any fun a =>
     (List.range ((N - 1 - a) / (k - 1))).any fun d0 =>
       let d := d0 + 1
       (List.range k).all fun i => colorAt colors (a + i * d) == color
 
-/-- Embed a Boolean color into `Fin 2`. -/
 def boolColor : Bool → Fin 2
   | false => 0
   | true => 1
@@ -54,12 +46,9 @@ lemma boolColor_injective : Function.Injective boolColor := by
   intro x y h
   cases x <;> cases y <;> simp_all [boolColor]
 
-/-- Coloring of `{1, ..., N}` represented by a direct Boolean array. -/
 def certificateColoring (N : Nat) (colors : Array Bool) : Icc 1 N → Fin 2 :=
   fun x => boolColor (colorAt colors (x.1 - 1))
 
-/-- A false bounded checker result supplies a mismatching term for every
-admissible progression. -/
 lemma exists_mismatch_of_hasAP_eq_false
     {N k : Nat} {colors : Array Bool} {color : Bool}
     (hk : 2 ≤ k) (hcheck : hasAP N k colors color = false)
@@ -102,12 +91,9 @@ lemma exists_mismatch_of_hasAP_eq_false
   contradiction
 
 private lemma mem_coe_finset_set_iff {N : Nat} {s : Finset (Icc 1 N)} {z : Nat} :
-    z ∈ ({(x : Nat) | x ∈ s} : Set Nat) ↔
-      ∃ x ∈ s, (x : Nat) = z := by
+    z ∈ ({(x : Nat) | x ∈ s} : Set Nat) ↔ ∃ x ∈ s, (x : Nat) = z := by
   simp
 
-/-- A negative array checker excludes a monochromatic progression in the
-catalog's `Set.IsAPOfLength` formulation. -/
 lemma no_monoAP_of_hasAP_eq_false
     {N k : Nat} {colors : Array Bool} {color : Bool}
     (hk : 2 ≤ k) (hcheck : hasAP N k colors color = false) :
@@ -118,25 +104,18 @@ lemma no_monoAP_of_hasAP_eq_false
   rcases hAP with ⟨start, step, hWith⟩
   let T : Set Nat := {(x : Nat) | x ∈ s}
   have hT : T.IsAPOfLengthWith k start step := hWith
-
   have term_mem (i : Nat) (hi : i < k) : start + i * step ∈ T := by
     rw [hT.2]
     refine ⟨i, ?_, ?_⟩
     · exact_mod_cast hi
     · simp [nsmul_eq_mul]
-
-  have start_mem : start ∈ T := by
-    simpa using term_mem 0 (by omega)
-  have last_mem : start + (k - 1) * step ∈ T :=
-    term_mem (k - 1) (by omega)
-
+  have start_mem : start ∈ T := by simpa using term_mem 0 (by omega)
+  have last_mem : start + (k - 1) * step ∈ T := term_mem (k - 1) (by omega)
   rcases (mem_coe_finset_set_iff.mp start_mem) with ⟨x0, hx0s, hx0⟩
   rcases (mem_coe_finset_set_iff.mp last_mem) with ⟨xlast, hxlasts, hxlast⟩
   have hstart_lo : 1 ≤ start := by simpa [hx0] using x0.2.1
   have hstart_hi : start ≤ N := by simpa [hx0] using x0.2.2
-  have hlast_hi : start + (k - 1) * step ≤ N := by
-    simpa [hxlast] using xlast.2.2
-
+  have hlast_hi : start + (k - 1) * step ≤ N := by simpa [hxlast] using xlast.2.2
   have hstep_pos : 0 < step := by
     by_contra hnot
     have hstep : step = 0 := Nat.eq_zero_of_not_pos hnot
@@ -156,10 +135,8 @@ lemma no_monoAP_of_hasAP_eq_false
       simp
     have : k = 1 := by exact_mod_cast hcard
     omega
-
   have ha0_ltN : start - 1 < N := by omega
   have hend0 : start - 1 + (k - 1) * step < N := by omega
-
   obtain ⟨i, hi, hmismatch⟩ :=
     exists_mismatch_of_hasAP_eq_false hk hcheck ha0_ltN hstep_pos hend0
   have hiterm : start + i * step ∈ T := term_mem i hi
@@ -173,24 +150,20 @@ lemma no_monoAP_of_hasAP_eq_false
     simpa [certificateColoring, hxindex] using hcolor
   exact hmismatch hbool
 
-/-- A pair of clean kernel checker results yields the exact bad coloring. -/
 lemma not_mem_mixed_of_checks
     {N r : Nat} {colors : Array Bool}
     (hr : 2 ≤ r)
-    (hchecks : hasAP N 3 colors false = false ∧
-      hasAP N r colors true = false) :
+    (hchecks : hasAP N 3 colors false = false ∧ hasAP N r colors true = false) :
     N ∉ Green14.mixedMonoAPGuaranteeSet 3 r := by
   intro hguarantee
   rcases hguarantee (certificateColoring N colors) with hzero | hone
   · exact no_monoAP_of_hasAP_eq_false (k := 3) (by omega) hchecks.1 hzero
   · exact no_monoAP_of_hasAP_eq_false (k := r) hr hchecks.2 hone
 
-/-- Numerical Green14 lower bound obtained from one direct-array certificate. -/
 theorem W_ge_succ_of_checks
     {N r : Nat} {colors : Array Bool}
     (hr : 2 ≤ r)
-    (hchecks : hasAP N 3 colors false = false ∧
-      hasAP N r colors true = false) :
+    (hchecks : hasAP N 3 colors false = false ∧ hasAP N r colors true = false) :
     N + 1 ≤ Green14.W 3 r := by
   apply Green14.W_ge_succ_of_not_mem 3 r N (by omega) (by omega)
   exact not_mem_mixed_of_checks hr hchecks
