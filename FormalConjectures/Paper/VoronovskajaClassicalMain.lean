@@ -42,7 +42,7 @@ private lemma bezierTaylorRemainder_one_eq_second
           ((((k : ℝ) / (n : ℝ)) - x) ^ 2) * bezierWeight n k 1 x) +
       classicalSecondRemainderSum n f x := by
   rw [bezierTaylorRemainder, classicalSecondRemainderSum]
-  rw [← Finset.mul_sum, ← Finset.sum_add_distrib]
+  rw [Finset.mul_sum, ← Finset.sum_add_distrib]
   apply Finset.sum_congr rfl
   intro k hk
   rw [classicalSecondRemainder]
