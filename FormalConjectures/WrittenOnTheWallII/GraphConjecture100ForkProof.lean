@@ -51,6 +51,55 @@ private theorem card_filter_adj_le_indepNeighborsCard
   rw [← hmap, Finset.card_map]
   exact hU.card_le_indepNum
 
+private theorem maximumIndepSet_card_le_compl_mul_maxLocal
+    [Nontrivial α] (G : SimpleGraph α) [DecidableRel G.Adj]
+    (hconn : G.Connected) (S : Finset α) (hS : G.IsMaximumIndepSet S) :
+    S.card ≤ Sᶜ.card *
+      (Finset.univ.image (indepNeighborsCard G)).max' (by simp) := by
+  let locals := Finset.univ.image (indepNeighborsCard G)
+  let L := locals.max' (by simp [locals])
+  have hex : ∀ s : S, ∃ t : α, G.Adj s t := by
+    intro s
+    obtain ⟨z, hz⟩ := exists_ne (s : α)
+    exact G.degree_pos_iff_exists_adj.mp
+      ((hconn.preconnected (s : α) z).degree_pos_left hz)
+  choose f hf using hex
+  have hfout (s : S) : f s ∉ S := by
+    intro hmem
+    exact (hS.isIndepSet s.property hmem (G.ne_of_adj (hf s))) (hf s)
+  let fT : S → Sᶜ := fun s => ⟨f s, by simpa using hfout s⟩
+  have hfiber (y : Sᶜ) :
+      (Finset.univ.filter (fun x : S => fT x = y)).card ≤ L := by
+    let N : Finset S := Finset.univ.filter (fun x => G.Adj (y : α) (x : α))
+    have hsub :
+        Finset.univ.filter (fun x : S => fT x = y) ⊆ N := by
+      intro x hx
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hx ⊢
+      have hval : f x = (y : α) := congrArg Subtype.val hx
+      simpa [hval] using (hf x).symm
+    have hNcard : N.card = (S.filter (G.Adj (y : α))).card := by
+      let e : S ↪ α := ⟨Subtype.val, Subtype.val_injective⟩
+      have hmap : N.map e = S.filter (G.Adj (y : α)) := by
+        ext x
+        simp [N, e]
+      rw [← hmap, Finset.card_map]
+    calc
+      (Finset.univ.filter (fun x : S => fT x = y)).card ≤ N.card :=
+        Finset.card_le_card hsub
+      _ = (S.filter (G.Adj (y : α))).card := hNcard
+      _ ≤ indepNeighborsCard G (y : α) :=
+        card_filter_adj_le_indepNeighborsCard G S hS.isIndepSet (y : α)
+      _ ≤ L := by
+        apply Finset.le_max'
+        simp [locals]
+  change S.card ≤ Sᶜ.card * L
+  by_contra hnot
+  have hlt : Fintype.card Sᶜ * L < Fintype.card S := by
+    simpa using (Nat.lt_of_not_ge hnot)
+  obtain ⟨y, hy⟩ :=
+    Fintype.exists_lt_card_fiber_of_mul_lt_card (f := fT) hlt
+  exact (not_lt_of_ge (hfiber y)) hy
+
 /-- The numerical inequality used in the proof of the exact Formal Conjectures
 statement of WOWII Conjecture 100. -/
 theorem arithmetic_ceiling_bound
