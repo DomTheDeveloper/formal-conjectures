@@ -6,7 +6,7 @@ on:
   pull_request:
     paths:
       - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean'
-      - '.github/wowii146-fix1.patch.part*'
+      - '.github/wowii146-source.part*'
       - '.github/workflows/check-wowii146.yml'
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ~/.cache/mathlib
-          key: wowii146-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean', '.github/wowii146-fix1.patch.part*') }}
+          key: wowii146-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('.github/wowii146-source.part*') }}
           restore-keys: |
             oleans-${{ hashFiles('lake-manifest.json') }}-
             oleans-
@@ -40,15 +40,11 @@ jobs:
           lake exe cache unpack
           lake exe cache get
 
-      - name: Apply diagnostic patch
+      - name: Assemble exact proof source
         run: |
-          set +e
-          cat .github/wowii146-fix1.patch.part* > /tmp/wowii146-fix1.patch
-          patch --verbose -d FormalConjectures/WrittenOnTheWallII -p1 < /tmp/wowii146-fix1.patch > wowii146-patch.log 2>&1
-          status=$?
-          cat wowii146-patch.log
-          printf '%s\n' "$status" > wowii146-patch.status
-          exit "$status"
+          cat .github/wowii146-source.part* > FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean
+          wc -c FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean
+          sha256sum FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean | tee wowii146-source.sha256
 
       - name: Compile exact proof module
         run: |
@@ -65,8 +61,7 @@ jobs:
         with:
           name: wowii146-diagnostics
           path: |
-            wowii146-patch.log
-            wowii146-patch.status
+            wowii146-source.sha256
             wowii146.log
             wowii146.status
           if-no-files-found: warn
