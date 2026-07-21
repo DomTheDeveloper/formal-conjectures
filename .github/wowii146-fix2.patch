@@ -1,0 +1,136 @@
+--- a/GraphConjecture146Proof.lean
++++ b/GraphConjecture146Proof.lean
+@@ -16,11 +16,6 @@
+ 
+ import FormalConjectures.WrittenOnTheWallII.GraphConjecture146
+ 
+-set_option linter.style.ams_attribute false
+-set_option linter.style.category_attribute false
+-set_option linter.unusedSectionVars false
+-set_option linter.unusedSimpArgs false
+-
+ /-!
+ # A proof of Written on the Wall II, Conjecture 146
+ 
+@@ -38,6 +33,11 @@
+ pair have mutual distances `3, 3, 4`.  Two length-three geodesics then contain
+ an induced tree on at least six vertices.
+ -/
++
++set_option linter.style.ams_attribute false
++set_option linter.style.category_attribute false
++set_option linter.unusedSectionVars false
++set_option linter.unusedSimpArgs false
+ 
+ namespace SimpleGraph
+ 
+@@ -524,53 +524,50 @@
+     simp [r, hxv] at hr
+   have hcb_eq_ne : c ≠ b := by
+     intro hEq
+-    subst c
+-    let r : G.Walk u v := .cons hbu.symm (.cons hcd (.cons hdv .nil))
++    have hbd' : G.Adj b d := by simpa [hEq] using hcd
++    let r : G.Walk u v := .cons hbu.symm (.cons hbd' (.cons hdv .nil))
+     have hr := G.dist_le r
+     simp [r, huv] at hr
+   have hcu_eq_ne : c ≠ u := by
+     intro hEq
+-    subst c
+-    let r : G.Walk u v := .cons hcd (.cons hdv .nil)
++    have hud' : G.Adj u d := by simpa [hEq] using hcd
++    let r : G.Walk u v := .cons hud' (.cons hdv .nil)
+     have hr := G.dist_le r
+     simp [r, huv] at hr
+   have hda_eq_ne : d ≠ a := by
+     intro hEq
+-    subst d
+-    let r : G.Walk u v := .cons hbu.symm (.cons hab.symm (.cons hdv .nil))
++    have hav' : G.Adj a v := by simpa [hEq] using hdv
++    let r : G.Walk u v := .cons hbu.symm (.cons hab.symm (.cons hav' .nil))
+     have hr := G.dist_le r
+     simp [r, huv] at hr
+   have hdb_eq_ne : d ≠ b := by
+     intro hEq
+-    subst d
+-    let r : G.Walk u v := .cons hbu.symm (.cons hdv .nil)
++    have hbv' : G.Adj b v := by simpa [hEq] using hdv
++    let r : G.Walk u v := .cons hbu.symm (.cons hbv' .nil)
+     have hr := G.dist_le r
+     simp [r, huv] at hr
+   have hdu_eq_ne : d ≠ u := by
+     intro hEq
+-    subst d
+-    have huv1 := dist_eq_one_iff_adj.mpr hdv
+-    omega
++    have huvAdj : G.Adj u v := by simpa [hEq] using hdv
++    exact huv_ne huvAdj
+   have hva_eq_ne : v ≠ a := by
+     intro hEq
+-    subst v
++    have hua4 : G.dist u a = 4 := by simpa [hEq] using huv
+     let r : G.Walk u a := .cons hbu.symm (.cons hab.symm .nil)
+     have hr := G.dist_le r
+-    simp [r, huv] at hr
++    simp [r, hua4] at hr
+   have hvb_eq_ne : v ≠ b := by
+     intro hEq
+-    subst v
+-    have huv1 := dist_eq_one_iff_adj.mpr hbu.symm
+-    omega
++    have huvAdj : G.Adj u v := by simpa [hEq] using hbu.symm
++    exact huv_ne huvAdj
+   have hvu_eq_ne : v ≠ u := by
+     intro hEq
+-    subst v
+-    simp at huv
++    have huu4 : G.dist u u = 4 := by simpa [hEq] using huv
++    simp at huu4
+   have hvc_eq_ne : v ≠ c := by
+     intro hEq
+-    subst v
+-    have hxv1 := dist_eq_one_iff_adj.mpr hxc
+-    omega
++    have hxvAdj : G.Adj x v := by simpa [hEq] using hxc
++    exact hxv_ne hxvAdj
+ 
+   have hxa_ne : x ≠ a := hxa.ne
+   have hab_ne : a ≠ b := hab.ne
+@@ -696,7 +693,7 @@
+         have hle := htree.card_le_largestInducedTreeSize_146
+         omega
+       · by_cases hacEq : a = c
+-        · subst c
++        · have hadEq : G.Adj a d := by simpa [hacEq] using hcd
+           let A : Finset α := P.support.toFinset
+           have hAtree : (G.induce (A : Set α)).IsTree :=
+             P.induce_support_isTree_of_length_eq_dist_146 hP
+@@ -710,7 +707,7 @@
+             · rfl
+             · exact (hbd hdy.symm).elim
+             · exact (hud hdy.symm).elim
+-          have hTd := hAtree.induce_insert_of_unique_adj_146 hdA (by simp [A, P]) hcd.symm
++          have hTd := hAtree.induce_insert_of_unique_adj_146 hdA (by simp [A, P]) hadEq.symm
+             hdaUnique
+           have hvAd : v ∉ insert d A := by
+             simp [A, P, hdv.ne.symm, hxv_eq_ne.symm, hva_eq_ne, hvb_eq_ne, hvu_eq_ne]
+@@ -738,7 +735,7 @@
+           have hAtree : (G.induce (A : Set α)).IsTree :=
+             P.induce_support_isTree_of_length_eq_dist_146 hP
+           have hcA : c ∉ A := by
+-            simp [A, P, hxc.ne.symm, hacEq.symm, hcb_eq_ne, hcu_eq_ne]
++            simp [A, P, hxc.ne.symm, Ne.symm hacEq, hcb_eq_ne, hcu_eq_ne]
+           have hcxUnique : ∀ ⦃y : α⦄, y ∈ A → G.Adj c y → y = x := by
+             intro y hy hcy
+             simp [A, P] at hy
+@@ -826,8 +823,8 @@
+         have huB : u ∈ maxEccentricityVertices G :=
+           h.mem_maxEccentricityVertices_of_dist_eq_diam_146 huvD
+         have hvB : v ∈ maxEccentricityVertices G := by
+-          apply h.mem_maxEccentricityVertices_of_dist_eq_diam_146
+-          simpa [SimpleGraph.dist_comm] using huvD
++          exact h.mem_maxEccentricityVertices_of_dist_eq_diam_146
++            (u := v) (v := u) (by simpa only [SimpleGraph.dist_comm] using huvD)
+         have hxuSet : G.distToSet x (maxEccentricityVertices G : Set α) ≤ G.dist x u :=
+           distToSet_le_dist_of_mem_146 (G := G) (S := maxEccentricityVertices G)
+             x (s := u) huB
