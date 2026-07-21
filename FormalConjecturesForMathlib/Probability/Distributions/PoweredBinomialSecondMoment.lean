@@ -63,17 +63,22 @@ private lemma standardizedBernoulliSubgaussianParameter_pos_second
     ring
   rw [standardizedBernoulliSubgaussianParameter]
   simp only [hwidth]
+  have hinv : 0 < 1 / bernoulliStdDev p := one_div_pos.mpr hs
+  have hnormNN : 0 < ‖(1 / bernoulliStdDev p : ℝ)‖₊ := by
+    exact_mod_cast (norm_pos_iff.mpr (one_div_ne_zero (ne_of_gt hs)))
   positivity
 
 private lemma secondMoment_event_subset_tails {t z : ℝ} (ht : 0 ≤ t) (hz : t < z ^ 2) :
     z ∈ Ioi (Real.sqrt t) ∪ Iic (-Real.sqrt t) := by
   by_cases hright : Real.sqrt t < z
   · exact Or.inl hright
-  · right
-    have hzle : z ≤ Real.sqrt t := le_of_not_gt hright
-    have hsqrt : 0 ≤ Real.sqrt t := Real.sqrt_nonneg t
-    have hsquare : (Real.sqrt t) ^ 2 = t := Real.sq_sqrt ht
-    nlinarith
+  · by_cases hleft : z ≤ -Real.sqrt t
+    · exact Or.inr hleft
+    · have hzle : z ≤ Real.sqrt t := le_of_not_gt hright
+      have hleft' : -Real.sqrt t < z := lt_of_not_ge hleft
+      have hsquare : (Real.sqrt t) ^ 2 = t := Real.sq_sqrt ht
+      exfalso
+      nlinarith
 
 private lemma secondMomentTail_le_add_tails
     (n : ℕ) (p : I) (α : ℝ) (hα : 0 < α) (t : ℝ) (ht : 0 ≤ t) :
@@ -95,7 +100,6 @@ private lemma exp_rpow_secondTail_eq
   rw [← Real.exp_mul]
   congr 1
   field_simp [hc]
-  ring
 
 private lemma integrableOn_exp_neg_mul_linear {b : ℝ} (hb : 0 < b) :
     IntegrableOn (fun t : ℝ ↦ exp (-b * t)) (Ioi 0) := by
@@ -156,8 +160,10 @@ private lemma secondMomentTail_le_exp_of_one_le_alpha
   let q : ℝ := exp (-t / (2 * c))
   have hq0 : 0 ≤ q := exp_nonneg _
   have hq1 : q ≤ 1 := by
-    rw [q, exp_le_one_iff]
-    positivity
+    dsimp [q]
+    exact exp_le_one_iff.mpr (by
+      have hfrac : 0 ≤ t / (2 * c) := by positivity
+      simpa [neg_div] using neg_nonpos.mpr hfrac)
   have hright :
       (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real
           (Ioi (Real.sqrt t)) ≤ q := by
@@ -174,7 +180,7 @@ private lemma secondMomentTail_le_exp_of_one_le_alpha
             (Iic (-Real.sqrt t)) :=
       secondMomentTail_le_add_tails n p α hα t ht
     _ ≤ q + α * q := add_le_add hright (by simpa [q, c, hsquare] using hleft)
-    _ = (1 + α) * exp (-(1 / (2 * c)) * t) := by rw [q]; ring_nf
+    _ = (1 + α) * exp (-(1 / (2 * c)) * t) := by dsimp [q]; ring_nf
     _ = (1 + α) *
         exp (-(1 / (2 * (standardizedBernoulliSubgaussianParameter p : ℝ))) * t) := by
       rfl
@@ -212,13 +218,18 @@ lemma tendsto_inv_sqrt_mul_integral_poweredStandardizedBinomialSecondMomentTail
     have hb : 0 < b := div_pos hα (mul_pos two_pos hc)
     let g : ℝ → ℝ := fun t ↦ 2 * exp (-b * t)
     have hg : Integrable g (volume.restrict (Ioi 0)) := by
-      exact (integrableOn_exp_neg_mul_linear hb).const_mul 2
-    refine tendsto_integral_filter_of_dominated_convergence
-      (μ := volume.restrict (Ioi 0)) g ?_ ?_ hg ?_
-    · exact Eventually.of_forall fun n ↦
+      simpa [g] using (integrableOn_exp_neg_mul_linear hb).const_mul 2
+    have hmeas : ∀ᶠ n : ℕ in atTop,
+        AEStronglyMeasurable
+          (fun t : ℝ ↦ (Real.sqrt n)⁻¹ *
+            poweredStandardizedBinomialSecondMomentTail n p α hα t)
+          (volume.restrict (Ioi 0)) :=
+      Eventually.of_forall fun n ↦
         ((measurable_const.mul
           (measurable_poweredStandardizedBinomialSecondMomentTail n p α hα))).aestronglyMeasurable
-    · refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
+    have hbound : ∀ᶠ n : ℕ in atTop, ∀ᵐ t ∂volume.restrict (Ioi 0),
+        ‖(Real.sqrt n)⁻¹ * poweredStandardizedBinomialSecondMomentTail n p α hα t‖ ≤ g t := by
+      refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
       filter_upwards [self_mem_ae_restrict measurableSet_Ioi] with t ht
       have hn0 : 0 < n := hn
       have ht0 : 0 ≤ t := le_of_lt ht
@@ -226,10 +237,12 @@ lemma tendsto_inv_sqrt_mul_integral_poweredStandardizedBinomialSecondMomentTail
         rw [← Real.sqrt_one]
         gcongr
         exact_mod_cast hn
-      have hinv_one : (Real.sqrt (n : ℝ))⁻¹ ≤ 1 := by
-        exact inv_le_one_of_one_le₀ hsqrt_one
-      rw [Real.norm_eq_abs, abs_of_nonneg
-        (mul_nonneg (inv_nonneg.mpr (Real.sqrt_nonneg n)) measureReal_nonneg)]
+      have hinv_one : (Real.sqrt (n : ℝ))⁻¹ ≤ 1 :=
+        inv_le_one_of_one_le₀ hsqrt_one
+      have hprod0 : 0 ≤ (Real.sqrt n)⁻¹ *
+          poweredStandardizedBinomialSecondMomentTail n p α hα t :=
+        mul_nonneg (inv_nonneg.mpr (Real.sqrt_nonneg n)) measureReal_nonneg
+      rw [Real.norm_eq_abs, abs_of_nonneg hprod0]
       calc
         (Real.sqrt n)⁻¹ * poweredStandardizedBinomialSecondMomentTail n p α hα t ≤
             poweredStandardizedBinomialSecondMomentTail n p α hα t := by
@@ -241,20 +254,36 @@ lemma tendsto_inv_sqrt_mul_integral_poweredStandardizedBinomialSecondMomentTail
             secondMomentTail_le_exp_of_alpha_le_one
               n hn0 p hp0 hp1 α hα hα1 t ht0
         _ = g t := rfl
-    · exact ae_of_all _ hpoint
+    have hlim : ∀ᵐ t ∂volume.restrict (Ioi 0), Tendsto
+        (fun n : ℕ ↦ (Real.sqrt n)⁻¹ *
+          poweredStandardizedBinomialSecondMomentTail n p α hα t)
+        atTop (𝓝 0) := ae_of_all _ hpoint
+    simpa using
+      (tendsto_integral_filter_of_dominated_convergence
+        (l := atTop)
+        (F := fun n : ℕ ↦ fun t : ℝ ↦ (Real.sqrt n)⁻¹ *
+          poweredStandardizedBinomialSecondMomentTail n p α hα t)
+        (f := fun _ : ℝ ↦ 0)
+        (μ := volume.restrict (Ioi 0))
+        g hmeas hbound hg hlim)
   · let b : ℝ := 1 / (2 * (standardizedBernoulliSubgaussianParameter p : ℝ))
     have hc : 0 < (standardizedBernoulliSubgaussianParameter p : ℝ) :=
       standardizedBernoulliSubgaussianParameter_pos_second p hp0 hp1
     have hb : 0 < b := one_div_pos.mpr (mul_pos two_pos hc)
     let g : ℝ → ℝ := fun t ↦ (1 + α) * exp (-b * t)
     have hg : Integrable g (volume.restrict (Ioi 0)) := by
-      exact (integrableOn_exp_neg_mul_linear hb).const_mul (1 + α)
-    refine tendsto_integral_filter_of_dominated_convergence
-      (μ := volume.restrict (Ioi 0)) g ?_ ?_ hg ?_
-    · exact Eventually.of_forall fun n ↦
+      simpa [g] using (integrableOn_exp_neg_mul_linear hb).const_mul (1 + α)
+    have hmeas : ∀ᶠ n : ℕ in atTop,
+        AEStronglyMeasurable
+          (fun t : ℝ ↦ (Real.sqrt n)⁻¹ *
+            poweredStandardizedBinomialSecondMomentTail n p α hα t)
+          (volume.restrict (Ioi 0)) :=
+      Eventually.of_forall fun n ↦
         ((measurable_const.mul
           (measurable_poweredStandardizedBinomialSecondMomentTail n p α hα))).aestronglyMeasurable
-    · refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
+    have hbound : ∀ᶠ n : ℕ in atTop, ∀ᵐ t ∂volume.restrict (Ioi 0),
+        ‖(Real.sqrt n)⁻¹ * poweredStandardizedBinomialSecondMomentTail n p α hα t‖ ≤ g t := by
+      refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
       filter_upwards [self_mem_ae_restrict measurableSet_Ioi] with t ht
       have hn0 : 0 < n := hn
       have ht0 : 0 ≤ t := le_of_lt ht
@@ -262,10 +291,12 @@ lemma tendsto_inv_sqrt_mul_integral_poweredStandardizedBinomialSecondMomentTail
         rw [← Real.sqrt_one]
         gcongr
         exact_mod_cast hn
-      have hinv_one : (Real.sqrt (n : ℝ))⁻¹ ≤ 1 := by
-        exact inv_le_one_of_one_le₀ hsqrt_one
-      rw [Real.norm_eq_abs, abs_of_nonneg
-        (mul_nonneg (inv_nonneg.mpr (Real.sqrt_nonneg n)) measureReal_nonneg)]
+      have hinv_one : (Real.sqrt (n : ℝ))⁻¹ ≤ 1 :=
+        inv_le_one_of_one_le₀ hsqrt_one
+      have hprod0 : 0 ≤ (Real.sqrt n)⁻¹ *
+          poweredStandardizedBinomialSecondMomentTail n p α hα t :=
+        mul_nonneg (inv_nonneg.mpr (Real.sqrt_nonneg n)) measureReal_nonneg
+      rw [Real.norm_eq_abs, abs_of_nonneg hprod0]
       calc
         (Real.sqrt n)⁻¹ * poweredStandardizedBinomialSecondMomentTail n p α hα t ≤
             poweredStandardizedBinomialSecondMomentTail n p α hα t := by
@@ -277,6 +308,17 @@ lemma tendsto_inv_sqrt_mul_integral_poweredStandardizedBinomialSecondMomentTail
             secondMomentTail_le_exp_of_one_le_alpha
               n hn0 p hp0 hp1 α hα h1α t ht0
         _ = g t := rfl
-    · exact ae_of_all _ hpoint
+    have hlim : ∀ᵐ t ∂volume.restrict (Ioi 0), Tendsto
+        (fun n : ℕ ↦ (Real.sqrt n)⁻¹ *
+          poweredStandardizedBinomialSecondMomentTail n p α hα t)
+        atTop (𝓝 0) := ae_of_all _ hpoint
+    simpa using
+      (tendsto_integral_filter_of_dominated_convergence
+        (l := atTop)
+        (F := fun n : ℕ ↦ fun t : ℝ ↦ (Real.sqrt n)⁻¹ *
+          poweredStandardizedBinomialSecondMomentTail n p α hα t)
+        (f := fun _ : ℝ ↦ 0)
+        (μ := volume.restrict (Ioi 0))
+        g hmeas hbound hg hlim)
 
 end ProbabilityTheory
