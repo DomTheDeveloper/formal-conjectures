@@ -21,16 +21,22 @@ jobs:
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Get Mathlib cache
-        run: lake exe cache get
+        run: lake exe cache get >/dev/null
       - name: Build proof module
-        run: lake --wfail build FormalConjectures.WrittenOnTheWallII.GraphConjecture100ForkProof
+        run: |
+          set +e
+          lake --wfail build FormalConjectures.WrittenOnTheWallII.GraphConjecture100ForkProof > lean-build.log 2>&1
+          status=$?
+          tail -n 240 lean-build.log
+          exit $status
       - name: Audit theorem axioms
         run: |
           cat > AxiomAudit.lean <<'EOF'
           import FormalConjectures.WrittenOnTheWallII.GraphConjecture100ForkProof
           #print axioms WrittenOnTheWallII.GraphConjecture100ForkProof.conjecture100
           EOF
-          lake env lean AxiomAudit.lean | tee axiom-audit.txt
+          lake env lean AxiomAudit.lean > axiom-audit.txt 2>&1
+          cat axiom-audit.txt
           ! grep -q 'sorryAx' axiom-audit.txt
           ! grep -q 'Lean.trustCompiler' axiom-audit.txt
           ! grep -q 'Lean.ofReduce' axiom-audit.txt
