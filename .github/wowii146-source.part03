@@ -1,0 +1,193 @@
+          rw [List.toFinset_card_of_nodup htailPath.support_nodup, P.tail.length_support]
+          simp [A, P]
+        have hcCard : (insert c A).card = 4 := by rw [Finset.card_insert_of_notMem hcA, hcardA]
+        have hdCard : (insert d (insert c A)).card = 5 := by
+          rw [Finset.card_insert_of_notMem hdAc, hcCard]
+        have hvCard : (insert v (insert d (insert c A))).card = 6 := by
+          rw [Finset.card_insert_of_notMem hvAcd, hdCard]
+        have hle := htree.card_le_largestInducedTreeSize_146
+        omega
+      · by_cases hacEq : a = c
+        · subst c
+          let A : Finset α := P.support.toFinset
+          have hAtree : (G.induce (A : Set α)).IsTree :=
+            P.induce_support_isTree_of_length_eq_dist_146 hP
+          have hdA : d ∉ A := by
+            simp [A, P, hxd_eq_ne.symm, hda_eq_ne, hdb_eq_ne, hdu_eq_ne]
+          have hdaUnique : ∀ ⦃y : α⦄, y ∈ A → G.Adj d y → y = a := by
+            intro y hy hdy
+            simp [A, P] at hy
+            rcases hy with rfl | rfl | rfl | rfl
+            · exact (hxd_ne hdy.symm).elim
+            · rfl
+            · exact (hbd hdy.symm).elim
+            · exact (hud hdy.symm).elim
+          have hTd := hAtree.induce_insert_of_unique_adj_146 hdA (by simp [A, P]) hcd.symm
+            hdaUnique
+          have hvAd : v ∉ insert d A := by
+            simp [A, P, hdv.ne.symm, hxv_eq_ne.symm, hva_eq_ne, hvb_eq_ne, hvu_eq_ne]
+          have hvdUnique : ∀ ⦃y : α⦄, y ∈ insert d A → G.Adj v y → y = d := by
+            intro y hy hvy
+            simp [A, P] at hy
+            rcases hy with rfl | rfl | rfl | rfl | rfl
+            · rfl
+            · exact (hxv_ne hvy.symm).elim
+            · exact (hav hvy.symm).elim
+            · exact (hbv hvy.symm).elim
+            · exact (huv_ne hvy.symm).elim
+          have htree := hTd.induce_insert_of_unique_adj_146 hvAd (by simp) hdv.symm hvdUnique
+          have hcardA : A.card = 4 := by
+            have hPPath := P.isPath_of_length_eq_dist hP
+            rw [List.toFinset_card_of_nodup hPPath.support_nodup, P.length_support]
+            simp [A, P]
+          have hdCard : (insert d A).card = 5 := by
+            rw [Finset.card_insert_of_notMem hdA, hcardA]
+          have hvCard : (insert v (insert d A)).card = 6 := by
+            rw [Finset.card_insert_of_notMem hvAd, hdCard]
+          have hle := htree.card_le_largestInducedTreeSize_146
+          omega
+        · let A : Finset α := P.support.toFinset
+          have hAtree : (G.induce (A : Set α)).IsTree :=
+            P.induce_support_isTree_of_length_eq_dist_146 hP
+          have hcA : c ∉ A := by
+            simp [A, P, hxc.ne.symm, hacEq.symm, hcb_eq_ne, hcu_eq_ne]
+          have hcxUnique : ∀ ⦃y : α⦄, y ∈ A → G.Adj c y → y = x := by
+            intro y hy hcy
+            simp [A, P] at hy
+            rcases hy with rfl | rfl | rfl | rfl
+            · rfl
+            · exact (hac hcy.symm).elim
+            · exact (hcb hcy).elim
+            · exact (huc hcy.symm).elim
+          have hTc := hAtree.induce_insert_of_unique_adj_146 hcA (by simp [A, P]) hxc.symm
+            hcxUnique
+          have hdAc : d ∉ insert c A := by
+            simp [A, P, hcd.ne.symm, hxd_eq_ne.symm, hda_eq_ne, hdb_eq_ne, hdu_eq_ne]
+          have hdcUnique : ∀ ⦃y : α⦄, y ∈ insert c A → G.Adj d y → y = c := by
+            intro y hy hdy
+            simp [A, P] at hy
+            rcases hy with rfl | rfl | rfl | rfl | rfl
+            · rfl
+            · exact (hxd_ne hdy.symm).elim
+            · exact (had hdy.symm).elim
+            · exact (hbd hdy.symm).elim
+            · exact (hud hdy.symm).elim
+          have hTcd := hTc.induce_insert_of_unique_adj_146 hdAc (by simp) hcd.symm hdcUnique
+          have hvAcd : v ∉ insert d (insert c A) := by
+            simp [A, P, hdv.ne.symm, hvc_eq_ne, hxv_eq_ne.symm, hva_eq_ne, hvb_eq_ne,
+              hvu_eq_ne]
+          have hvdUnique : ∀ ⦃y : α⦄, y ∈ insert d (insert c A) → G.Adj v y → y = d := by
+            intro y hy hvy
+            simp [A, P] at hy
+            rcases hy with rfl | rfl | rfl | rfl | rfl | rfl
+            · rfl
+            · exact (hcv hvy.symm).elim
+            · exact (hxv_ne hvy.symm).elim
+            · exact (hav hvy.symm).elim
+            · exact (hbv hvy.symm).elim
+            · exact (huv_ne hvy.symm).elim
+          have htree := hTcd.induce_insert_of_unique_adj_146 hvAcd (by simp) hdv.symm hvdUnique
+          have hcardA : A.card = 4 := by
+            have hPPath := P.isPath_of_length_eq_dist hP
+            rw [List.toFinset_card_of_nodup hPPath.support_nodup, P.length_support]
+            simp [A, P]
+          have hcCard : (insert c A).card = 5 := by rw [Finset.card_insert_of_notMem hcA, hcardA]
+          have hdCard : (insert d (insert c A)).card = 6 := by
+            rw [Finset.card_insert_of_notMem hdAc, hcCard]
+          have hvCard : (insert v (insert d (insert c A))).card = 7 := by
+            rw [Finset.card_insert_of_notMem hvAcd, hdCard]
+          have hle := htree.card_le_largestInducedTreeSize_146
+          omega
+
+/-- Exact theorem, with the statement from `GraphConjecture146.lean` unchanged. -/
+@[category API, AMS 5]
+theorem conjecture146_proved (G : SimpleGraph α) [DecidableRel G.Adj] (h : G.Connected)
+    (hrad : 0 < graphSquareRadius G) :
+    2 * eccSet G (maxEccentricityVertices G : Set α) ≤
+    largestInducedTreeSize G * graphSquareRadius G := by
+  let e := eccSet G (maxEccentricityVertices G : Set α)
+  let T := largestInducedTreeSize G
+  let D := G.diam
+  let q := graphSquareRadius G
+  have hT : D + 1 ≤ T := by
+    simpa [D, T] using h.diam_add_one_le_largestInducedTreeSize_146
+  have he : e ≤ D - 1 := by
+    simpa [e, D] using h.eccSet_maxEccentricityVertices_le_diam_sub_one_146
+  have hDq : D ≤ 4 * q := by
+    simpa [D, q] using h.diam_le_four_mul_graphSquareRadius_146
+  have hD0 : D ≠ 0 := by
+    simpa [D] using (connected_iff_diam_ne_zero.mp h)
+  have hq : 0 < q := by simpa [q] using hrad
+  change 2 * e ≤ T * q
+  by_cases hq1 : q = 1
+  · have hD4 : D ≤ 4 := by omega
+    by_cases hD_eq : D = 4
+    · by_cases he2 : e ≤ 2
+      · have hsmall : 2 * e ≤ T := by omega
+        simpa [hq1] using hsmall
+      · have he3 : e = 3 := by omega
+        obtain ⟨x, hx⟩ := exists_distToSet_eq_eccSet_146 G
+          (maxEccentricityVertices G : Set α)
+        have hx3 : G.distToSet x (maxEccentricityVertices G : Set α) = 3 := by
+          simpa [e, he3] using hx
+        obtain ⟨u, v, huvD⟩ := G.exists_dist_eq_diam
+        have huv4 : G.dist u v = 4 := by
+          calc
+            G.dist u v = D := by simpa [D] using huvD
+            _ = 4 := hD_eq
+        have huB : u ∈ maxEccentricityVertices G :=
+          h.mem_maxEccentricityVertices_of_dist_eq_diam_146 huvD
+        have hvB : v ∈ maxEccentricityVertices G := by
+          apply h.mem_maxEccentricityVertices_of_dist_eq_diam_146
+          simpa [SimpleGraph.dist_comm] using huvD
+        have hxuSet : G.distToSet x (maxEccentricityVertices G : Set α) ≤ G.dist x u :=
+          distToSet_le_dist_of_mem_146 (G := G) (S := maxEccentricityVertices G)
+            x (s := u) huB
+        have hxvSet : G.distToSet x (maxEccentricityVertices G : Set α) ≤ G.dist x v :=
+          distToSet_le_dist_of_mem_146 (G := G) (S := maxEccentricityVertices G)
+            x (s := v) hvB
+        have htop : G.ediam ≠ ⊤ := (connected_iff_ediam_ne_top).mp h
+        have hxuLe : G.dist x u ≤ 4 := by
+          have hle := dist_le_diam (G := G) (u := x) (v := u) htop
+          have hD4eq : G.diam = 4 := by simpa [D] using hD_eq
+          omega
+        have hxvLe : G.dist x v ≤ 4 := by
+          have hle := dist_le_diam (G := G) (u := x) (v := v) htop
+          have hD4eq : G.diam = 4 := by simpa [D] using hD_eq
+          omega
+        have hxu4ne : G.dist x u ≠ 4 := by
+          intro hxu4
+          have hxB : x ∈ maxEccentricityVertices G := by
+            apply h.mem_maxEccentricityVertices_of_dist_eq_diam_146
+            calc
+              G.dist x u = 4 := hxu4
+              _ = G.diam := by simpa [D] using hD_eq.symm
+          have hx0 := distToSet_eq_zero_of_mem_146 (G := G) hxB
+          omega
+        have hxv4ne : G.dist x v ≠ 4 := by
+          intro hxv4
+          have hxB : x ∈ maxEccentricityVertices G := by
+            apply h.mem_maxEccentricityVertices_of_dist_eq_diam_146
+            calc
+              G.dist x v = 4 := hxv4
+              _ = G.diam := by simpa [D] using hD_eq.symm
+          have hx0 := distToSet_eq_zero_of_mem_146 (G := G) hxB
+          omega
+        have hxu3 : G.dist x u = 3 := by omega
+        have hxv3 : G.dist x v = 3 := by omega
+        have h6 := six_le_largestInducedTreeSize_of_dist_three_three_four G h hxu3 hxv3 huv4
+        have hmain : 2 * e ≤ T := by simpa [T, he3] using h6
+        simpa [hq1] using hmain
+    · have hD3 : D ≤ 3 := by omega
+      have hmain : 2 * e ≤ T := by omega
+      simpa [hq1] using hmain
+  · have hq2 : 2 ≤ q := by omega
+    have heT : e ≤ T := by omega
+    calc
+      2 * e ≤ 2 * T := Nat.mul_le_mul_left 2 heT
+      _ = T * 2 := by omega
+      _ ≤ T * q := Nat.mul_le_mul_left T hq2
+
+#print axioms conjecture146_proved
+
+end WrittenOnTheWallII.GraphConjecture146
