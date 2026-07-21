@@ -13,17 +13,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
+module
 
-import FormalConjectures.GreensOpenProblems.Green14OrderBridge
+public import FormalConjectures.GreensOpenProblems.Green14OrderBridge
 
 /-!
 # Kernel-clean array certificate bridge for Green14
 
 This module reflects a negative direct-array arithmetic-progression checker
-into the repository's `Set.IsAPOfLength` formulation.  It is independent of
+into the repository's `Set.IsAPOfLength` formulation. It is independent of
 `native_decide`: concrete certificate modules may prove the Boolean equality
 with kernel `decide` and then obtain the numerical `W(3,r)` lower bound here.
 -/
+
+public section
 
 open Set
 open scoped Classical
@@ -35,7 +38,7 @@ def colorAt (colors : Array Bool) (i : Nat) : Bool :=
   colors[i]!
 
 /-- Exhaustive checker using only positive differences whose final term is in
-bounds.  The range length is the exact largest admissible difference. -/
+bounds. The range length is the exact largest admissible difference. -/
 def hasAP (N k : Nat) (colors : Array Bool) (color : Bool) : Bool :=
   (List.range N).any fun a =>
     (List.range ((N - 1 - a) / (k - 1))).any fun d0 =>
