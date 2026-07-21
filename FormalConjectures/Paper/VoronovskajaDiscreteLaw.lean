@@ -20,6 +20,8 @@ public import FormalConjecturesForMathlib.Probability.Distributions.PoweredBinom
 public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 public import Mathlib.Probability.ProbabilityMassFunction.Integrals
 
+public section
+
 /-!
 # The discrete probability law of Bézier--Bernstein weights
 
@@ -46,10 +48,7 @@ private theorem sum_range_sub_succ (a : ℕ → ℝ) (m : ℕ) :
 private theorem sum_bezierWeight_range (n m : ℕ) (α x : ℝ) :
     ∑ k ∈ Finset.range m, bezierWeight n k α x =
       1 - (bernsteinTail n m).eval x ^ α := by
-  rw [show (∑ k ∈ Finset.range m, bezierWeight n k α x) =
-      ∑ k ∈ Finset.range m,
-        ((bernsteinTail n k).eval x ^ α -
-          (bernsteinTail n (k + 1)).eval x ^ α) by rfl]
+  simp only [bezierWeight]
   rw [sum_range_sub_succ]
   simp [bernsteinTail_zero]
 
@@ -66,13 +65,18 @@ noncomputable def bezierPMF
         ∑ k : Fin (n + 1), ENNReal.ofReal (bezierWeight n k α (x : ℝ)) =
             ENNReal.ofReal (∑ k : Fin (n + 1), bezierWeight n k α (x : ℝ)) := by
           symm
-          simpa only [Finset.sum_univ] using
+          simpa using
             (ENNReal.ofReal_sum_of_nonneg (s := Finset.univ)
               (f := fun k : Fin (n + 1) => bezierWeight n k α (x : ℝ))
               (fun k _ => hnonneg k))
         _ = ENNReal.ofReal 1 := by
           congr 1
-          rw [Fin.sum_univ_eq_sum_range]
+          have hsum :
+              (∑ k : Fin (n + 1), bezierWeight n (k : ℕ) α (x : ℝ)) =
+                ∑ k ∈ Finset.range (n + 1), bezierWeight n k α (x : ℝ) := by
+            simpa using (Fin.sum_univ_eq_sum_range
+              (f := fun k : ℕ => bezierWeight n k α (x : ℝ)) (n + 1))
+          rw [hsum]
           exact sum_bezierWeight n hα (x : ℝ)
         _ = 1 := by simp)
 
@@ -81,11 +85,13 @@ noncomputable def bezierPMF
     bezierPMF n α hα x k = ENNReal.ofReal (bezierWeight n k α (x : ℝ)) := by
   rfl
 
+@[expose]
 noncomputable def standardizedBezierPMF
     (n : ℕ) (α : ℝ) (hα : 0 < α) (x : I) : PMF ℝ :=
   (bezierPMF n α hα x).map
-    (fun k => standardizeBinomial n x ((k : ℕ) : ℝ))
+    (fun k : Fin (n + 1) => standardizeBinomial n x ((k : ℕ) : ℝ))
 
+@[expose]
 noncomputable def standardizedBezierMeasure
     (n : ℕ) (α : ℝ) (hα : 0 < α) (x : I) : Measure ℝ :=
   (standardizedBezierPMF n α hα x).toMeasure
@@ -98,7 +104,7 @@ instance (n : ℕ) (α : ℝ) (hα : 0 < α) (x : I) :
 private theorem monotone_standardizeBinomial_nat (n : ℕ) (x : I) :
     Monotone (fun k : ℕ => standardizeBinomial n x (k : ℝ)) := by
   intro a b hab
-  unfold standardizeBinomial
+  dsimp [standardizeBinomial]
   have hsqrt : 0 ≤ (Real.sqrt (n : ℝ))⁻¹ := inv_nonneg.mpr (Real.sqrt_nonneg _)
   have hsd : 0 ≤ (bernoulliStdDev x)⁻¹ := inv_nonneg.mpr (Real.sqrt_nonneg _)
   rw [div_eq_mul_inv, div_eq_mul_inv]
@@ -121,7 +127,8 @@ private theorem exists_filter_range_eq_range_of_antitone
         exact hP (Nat.le_of_lt_succ (Finset.mem_range.mp hi)) hN
       · obtain ⟨m, hm, hfilter⟩ := ih
         refine ⟨m, hm.trans (Nat.le_succ N), ?_⟩
-        simp [Finset.range_succ, hN, hfilter]
+        rw [Finset.range_add_one, Finset.filter_insert]
+        simp [hN, hfilter]
 
 private theorem cdf_pmf_map_eq_sum
     {ι : Type*} [Fintype ι] [MeasurableSpace ι] [MeasurableSingletonClass ι]
@@ -141,31 +148,24 @@ private theorem binomialPMF_toReal_eq_bernstein
     (n : ℕ) (x : I) (k : Fin (n + 1)) :
     ((binomialPMF n x) k).toReal =
       (bernsteinPolynomial ℝ n k).eval (x : ℝ) := by
-  simp only [binomialPMF, PMF.binomial_apply, bernsteinPolynomial,
-    Polynomial.eval_mul, Polynomial.eval_natCast, Polynomial.eval_pow,
-    Polynomial.eval_X, Polynomial.eval_sub, Polynomial.eval_one]
-  have hq : ((1 : ℝ≥0∞) - (toNNReal x : ℝ≥0∞)).toReal = 1 - (x : ℝ) := by
-    rw [ENNReal.toReal_sub_of_le]
-    · simp
-    · simpa using x.2.2
-    · simp
-  simp [hq]
-  ring
+  rw [binomialPMF_apply_toReal]
+  simp [bernsteinPolynomial]
+  ring_nf
 
 private theorem standardizedBinomialMeasure_eq_pmf_map
     (n : ℕ) (x : I) :
     standardizedBinomialMeasure n x =
       ((binomialPMF n x).map
-        (fun k => standardizeBinomial n x ((k : ℕ) : ℝ))).toMeasure := by
+        (fun k : Fin (n + 1) => standardizeBinomial n x ((k : ℕ) : ℝ))).toMeasure := by
   have hcast : Measurable (fun k : Fin (n + 1) ↦ (k : ℝ)) := .of_discrete
   have hstd : Measurable (standardizeBinomial n x) :=
     (continuous_standardizeBinomial n x).measurable
   rw [standardizedBinomialMeasure, binomialRealMeasure]
   rw [Measure.map_map hstd hcast]
   simpa [Function.comp_def] using
-    (PMF.toMeasure_map (p := binomialPMF n x)
-      (f := fun k : Fin (n + 1) =>
-        standardizeBinomial n x ((k : ℕ) : ℝ)) (.of_discrete))
+    (PMF.toMeasure_map
+      (fun k : Fin (n + 1) => standardizeBinomial n x ((k : ℕ) : ℝ))
+      (binomialPMF n x) Measurable.of_discrete)
 
 private theorem cdf_standardizedBezierMeasure_eq_sum
     (n : ℕ) (α : ℝ) (hα : 0 < α) (x : I) (t : ℝ) :
@@ -174,9 +174,10 @@ private theorem cdf_standardizedBezierMeasure_eq_sum
         if standardizeBinomial n x ((k : ℕ) : ℝ) ≤ t then
           bezierWeight n k α (x : ℝ)
         else 0 := by
-  rw [standardizedBezierMeasure, standardizedBezierPMF,
-    cdf_pmf_map_eq_sum (bezierPMF n α hα x)
-      (fun k => standardizeBinomial n x ((k : ℕ) : ℝ)) Measurable.of_discrete]
+  rw [standardizedBezierMeasure, standardizedBezierPMF]
+  rw [cdf_pmf_map_eq_sum (bezierPMF n α hα x)
+    (fun k : Fin (n + 1) => standardizeBinomial n x ((k : ℕ) : ℝ))
+    Measurable.of_discrete]
   apply Finset.sum_congr rfl
   intro k hk
   by_cases hkt : standardizeBinomial n x ((k : ℕ) : ℝ) ≤ t
@@ -191,9 +192,10 @@ private theorem cdf_standardizedBinomialMeasure_eq_sum
         if standardizeBinomial n x ((k : ℕ) : ℝ) ≤ t then
           (bernsteinPolynomial ℝ n k).eval (x : ℝ)
         else 0 := by
-  rw [standardizedBinomialMeasure_eq_pmf_map,
-    cdf_pmf_map_eq_sum (binomialPMF n x)
-      (fun k => standardizeBinomial n x ((k : ℕ) : ℝ)) Measurable.of_discrete]
+  rw [standardizedBinomialMeasure_eq_pmf_map]
+  rw [cdf_pmf_map_eq_sum (binomialPMF n x)
+    (fun k : Fin (n + 1) => standardizeBinomial n x ((k : ℕ) : ℝ))
+    Measurable.of_discrete]
   apply Finset.sum_congr rfl
   intro k hk
   by_cases hkt : standardizeBinomial n x ((k : ℕ) : ℝ) ≤ t
@@ -235,16 +237,25 @@ private theorem exists_common_cdf_cutoff
   · rw [cdf_standardizedBinomialMeasure_eq_sum]
     change (∑ k : Fin (n + 1),
       if P k then (bernsteinPolynomial ℝ n k).eval (x : ℝ) else 0) = _
-    rw [Fin.sum_univ_eq_sum_range]
-    rw [← Finset.sum_filter]
-    rw [hfilter]
+    have hsum :
+        (∑ k : Fin (n + 1),
+          if P k then (bernsteinPolynomial ℝ n k).eval (x : ℝ) else 0) =
+        ∑ k ∈ Finset.range (n + 1),
+          if P k then (bernsteinPolynomial ℝ n k).eval (x : ℝ) else 0 := by
+      simpa using (Fin.sum_univ_eq_sum_range
+        (f := fun k : ℕ =>
+          if P k then (bernsteinPolynomial ℝ n k).eval (x : ℝ) else 0) (n + 1))
+    rw [hsum, ← Finset.sum_filter, hfilter]
     exact sum_bernsteinPolynomial_range n m hm (x : ℝ)
   · intro α hα
     rw [cdf_standardizedBezierMeasure_eq_sum]
     change (∑ k : Fin (n + 1), if P k then bezierWeight n k α (x : ℝ) else 0) = _
-    rw [Fin.sum_univ_eq_sum_range]
-    rw [← Finset.sum_filter]
-    rw [hfilter]
+    have hsum :
+        (∑ k : Fin (n + 1), if P k then bezierWeight n k α (x : ℝ) else 0) =
+        ∑ k ∈ Finset.range (n + 1), if P k then bezierWeight n k α (x : ℝ) else 0 := by
+      simpa using (Fin.sum_univ_eq_sum_range
+        (f := fun k : ℕ => if P k then bezierWeight n k α (x : ℝ) else 0) (n + 1))
+    rw [hsum, ← Finset.sum_filter, hfilter]
     exact sum_bezierWeight_range n m α (x : ℝ)
 
 @[category API, AMS 26 40 47]
@@ -261,10 +272,11 @@ theorem standardizedBezierMeasure_eq_poweredStandardizedBinomial
     (n : ℕ) (α : ℝ) (hα : 0 < α) (x : I) :
     standardizedBezierMeasure n α hα x =
       (poweredStandardizedBinomialProbability n x α hα : Measure ℝ) := by
-  apply Measure.eq_of_cdf
-  funext t
+  apply Measure.eq_of_cdf _ _
+  ext t
   rw [cdf_standardizedBezierMeasure]
   simp only [poweredStandardizedBinomialProbability, poweredProbability,
-    ProbabilityMeasure.coe_mk, cdf_poweredMeasure, poweredCDF_apply]
+    standardizedBinomialProbability, ProbabilityMeasure.coe_mk,
+    cdf_poweredMeasure, poweredCDF_apply]
 
 end VoronovskajaTypeFormula
