@@ -3,16 +3,15 @@
 name: Finalize WOWII 146 proof
 
 on:
-  push:
-    branches:
-      - solve-wowii-146
+  pull_request:
+    types:
+      - ready_for_review
 
 permissions:
   contents: write
 
 jobs:
   finalize-wowii146:
-    if: ${{ !contains(github.event.head_commit.message, '[finalized-146]') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout proof branch
