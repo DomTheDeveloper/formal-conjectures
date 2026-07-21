@@ -1,0 +1,65 @@
+# Copyright 2025 The Formal Conjectures Authors.
+
+name: Audit numbered WOWII 100 proof
+
+on:
+  pull_request:
+    paths:
+      - 'FormalConjectures/WrittenOnTheWallII/100.lean'
+      - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture100Complete.lean'
+      - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture100ForkProof.lean'
+      - '.github/workflows/audit-wowii100-numbered.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit-wowii100:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Mathlib cache
+        run: |
+          lake exe cache get
+
+      - name: Reject placeholders in numbered entry
+        run: |
+          if grep -nE '\b(sorry|admit)\b' FormalConjectures/WrittenOnTheWallII/100.lean; then
+            echo 'placeholder found in 100.lean'
+            exit 1
+          fi
+
+      - name: Compile exact numbered module
+        run: |
+          lake env lean FormalConjectures/WrittenOnTheWallII/100.lean 2>&1 | tee wowii100-build.log
+
+      - name: Audit exact theorem axioms
+        run: |
+          cat > WOWII100AxiomAudit.lean <<'EOF'
+          import FormalConjectures.WrittenOnTheWallII.«100»
+          #print axioms WrittenOnTheWallII.GraphConjecture100.conjecture100
+          EOF
+          lake env lean WOWII100AxiomAudit.lean 2>&1 | tee wowii100-axioms.log
+          if grep -E 'sorryAx|Lean\.ofReduce|Lean\.trustCompiler' wowii100-axioms.log; then
+            echo 'disallowed axiom found'
+            exit 1
+          fi
+
+      - name: Upload audit logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wowii100-numbered-audit
+          path: |
+            wowii100-build.log
+            wowii100-axioms.log
+          if-no-files-found: warn
