@@ -33,7 +33,6 @@ jobs:
         run: |
           lake update
           lake exe cache get
-          lake build wow_146:WOW146
 
       - name: Verify proof and axiom audit
         id: verify
@@ -42,11 +41,20 @@ jobs:
         run: |
           set +e
           {
-            echo '$ lake env lean -DwarningAsError=true WOW145/Conjecture145.lean'
-            lake env lean -DwarningAsError=true WOW145/Conjecture145.lean
+            echo '$ lake build WOW145'
+            lake build WOW145
+            build_status=$?
+            if [ "$build_status" -eq 0 ]; then
+              echo '$ lake env lean -DwarningAsError=true WOW145/Conjecture145.lean'
+              lake env lean -DwarningAsError=true WOW145/Conjecture145.lean
+              status=$?
+            else
+              status=$build_status
+            fi
+            printf '\nEXIT_STATUS=%s\n' "$status"
+            exit "$status"
           } > lean-ci.log 2>&1
           status=$?
-          printf '\nEXIT_STATUS=%s\n' "$status" >> lean-ci.log
           echo "exit_status=$status" >> "$GITHUB_OUTPUT"
           exit 0
 
