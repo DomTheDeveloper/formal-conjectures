@@ -1,0 +1,25 @@
+Set_eq_zero_of_mem_146 (G := G) hxB
+           omega
+         have hxv4ne : G.dist x v ≠ 4 := by
+           intro hxv4
+           have hxB : x ∈ maxEccentricityVertices G := by
+             apply h.mem_maxEccentricityVertices_of_dist_eq_diam_146
+-            simpa using hxv4
++            calc
++              G.dist x v = 4 := hxv4
++              _ = G.diam := by simpa [D] using hD_eq.symm
+           have hx0 := distToSet_eq_zero_of_mem_146 (G := G) hxB
+           omega
+         have hxu3 : G.dist x u = 3 := by omega
+         have hxv3 : G.dist x v = 3 := by omega
+         have h6 := six_le_largestInducedTreeSize_of_dist_three_three_four G h hxu3 hxv3 huv4
+-        simpa [T, he3] using h6
++        have hmain : 2 * e ≤ T := by simpa [T, he3] using h6
++        simpa [hq1] using hmain
+     · have hD3 : D ≤ 3 := by omega
+-      omega
++      have hmain : 2 * e ≤ T := by omega
++      simpa [hq1] using hmain
+   · have hq2 : 2 ≤ q := by omega
+     have heT : e ≤ T := by omega
+     calc
