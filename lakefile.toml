@@ -11,7 +11,7 @@
 
 name = "formal_conjectures"
 keywords = ["math"]
-defaultTargets = ["FormalConjectures"]
+defaultTargets = ["FormalConjectures", "WOW145"]
 testDriver = "FormalConjecturesTest"
 
 [leanOptions]
@@ -28,6 +28,12 @@ weak.linter.style.namespace = true
 name = "mathlib"
 scope = "leanprover-community"
 rev = "v4.27.0"
+
+# Audit-only pinned dependency. This branch is never submitted upstream.
+[[require]]
+name = "wow_146"
+git = "https://github.com/akakabrian/WOW-146.git"
+rev = "18201d492b52a2f82a2966551aed1640c45ec13b"
 
 # We make this a separate library so that we can apply different lean options.
 [[lean_lib]]
@@ -54,6 +60,11 @@ weak.linter.style.moduleDocstring = true
 [[lean_lib]]
 name = "WOWII"
 
+# Temporary audit target for the exact WOWII 145 proof.
+[[lean_lib]]
+name = "WOW145"
+srcDir = "Proofs/WOW145"
+
 [[lean_lib]]
 name = "FormalConjecturesAnswerPostpone"
 globs = ["FormalConjectures.+"]
@@ -65,7 +76,6 @@ weak.linter.style.ams_attribute = true
 weak.linter.style.category_attribute = true
 weak.linter.style.moduleDocstring = true
 weak.google.answer = "postpone"
-
 
 [[lean_exe]]
 name = "extract_names"
