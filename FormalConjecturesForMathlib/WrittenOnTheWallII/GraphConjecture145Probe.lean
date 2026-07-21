@@ -3,6 +3,7 @@ import FormalConjecturesForMathlib.WrittenOnTheWallII.GraphConjecture142Proof
 
 open Classical SimpleGraph
 
+-- Branch-only API audit for the exact pinned toolchain.
 #check Finset.exists_mem_eq_inf'
 #check Finset.inf'_mem
 #check Finset.inf'_le
