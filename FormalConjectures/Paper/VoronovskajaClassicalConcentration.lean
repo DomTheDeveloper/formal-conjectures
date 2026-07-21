@@ -21,7 +21,7 @@ public import FormalConjecturesForMathlib.Probability.Distributions.PoweredBinom
 /-!
 # Exponential concentration of classical Bernstein weights
 
-For an interior parameter `x`, the standardized classical Bernstein law is sub-Gaussian.  Hence the
+For an interior parameter `x`, the standardized classical Bernstein law is sub-Gaussian. Hence the
 mass of sampling points outside any fixed neighborhood of `x` decays exponentially, and multiplying
 that mass by `n` still gives a sequence tending to zero.
 -/
@@ -53,11 +53,10 @@ private lemma standardizeBinomial_eq_scale_frequency
   have hsqrt : Real.sqrt (n : ℝ) ≠ 0 := by
     rw [Real.sqrt_ne_zero']
     exact_mod_cast hn
+  have hn0 : 0 ≤ (n : ℝ) := by positivity
   rw [standardizeBinomial]
-  field_simp [hnR, hsqrt]
-  rw [Real.sq_sqrt]
-  · ring
-  · positivity
+  field_simp [hnR, hsqrt, Real.sq_sqrt hn0]
+  ring_nf
 
 private lemma far_index_maps_to_two_tails
     (n : ℕ) (hn : 0 < n)
@@ -78,26 +77,36 @@ private lemma far_index_maps_to_two_tails
     rw [abs_mul, abs_of_pos hscale]
     have := mul_le_mul_of_nonneg_left hk hscale.le
     convert this using 1 <;> field_simp [hs.ne'] <;> ring
+  have hhalf :
+      Real.sqrt n * δ / (2 * bernoulliStdDev x) <
+        Real.sqrt n * δ / bernoulliStdDev x := by
+    have hp : 0 < Real.sqrt n * δ / bernoulliStdDev x := by positivity
+    have heq :
+        Real.sqrt n * δ / (2 * bernoulliStdDev x) =
+          (Real.sqrt n * δ / bernoulliStdDev x) / 2 := by
+      field_simp [hs.ne']
+      ring
+    rw [heq]
+    linarith
   by_cases hz : Real.sqrt n / bernoulliStdDev x *
       (((k : ℝ) / (n : ℝ)) - (x : ℝ)) > 0
   · left
     rw [abs_of_pos hz] at habs
-    have hhalf :
-        Real.sqrt n * δ / (2 * bernoulliStdDev x) <
-          Real.sqrt n * δ / bernoulliStdDev x := by
-      have hp : 0 < Real.sqrt n * δ / bernoulliStdDev x := by positivity
-      linarith
     exact hhalf.trans_le habs
   · right
     have hz0 : Real.sqrt n / bernoulliStdDev x *
         (((k : ℝ) / (n : ℝ)) - (x : ℝ)) ≤ 0 := le_of_not_gt hz
     rw [abs_of_nonpos hz0] at habs
-    have hhalf :
-        Real.sqrt n * δ / (2 * bernoulliStdDev x) <
-          Real.sqrt n * δ / bernoulliStdDev x := by
-      have hp : 0 < Real.sqrt n * δ / bernoulliStdDev x := by positivity
+    have hzle :
+        Real.sqrt n / bernoulliStdDev x *
+            (((k : ℝ) / (n : ℝ)) - (x : ℝ)) ≤
+          -(Real.sqrt n * δ / bernoulliStdDev x) := by
       linarith
-    linarith
+    have hneg :
+        -(Real.sqrt n * δ / bernoulliStdDev x) ≤
+          -(Real.sqrt n * δ / (2 * bernoulliStdDev x)) := by
+      linarith
+    exact hzle.trans hneg
 
 private lemma classicalFarMass_le_measure_tails
     (n : ℕ) (hn : 0 < n)
@@ -107,6 +116,9 @@ private lemma classicalFarMass_le_measure_tails
       (standardizedBezierMeasure n 1 one_pos x).real
         (Ioi (Real.sqrt n * δ / (2 * bernoulliStdDev x)) ∪
           Iic (-(Real.sqrt n * δ / (2 * bernoulliStdDev x)))) := by
+  let tails : Set ℝ :=
+    Ioi (Real.sqrt n * δ / (2 * bernoulliStdDev x)) ∪
+      Iic (-(Real.sqrt n * δ / (2 * bernoulliStdDev x)))
   rw [classicalFarMass, standardizedBezierMeasure, standardizedBezierPMF,
     measureReal_def]
   rw [PMF.toMeasure_map_apply _ _ _ (by fun_prop)
@@ -116,16 +128,24 @@ private lemma classicalFarMass_le_measure_tails
     intro k hk
     by_cases hfar : δ ≤ |((k : ℝ) / (n : ℝ)) - (x : ℝ)|
     · have hmem := far_index_maps_to_two_tails n hn x hx0 hx1 hδ k hfar
+      have hpre : k ∈ (fun j : Fin (n + 1) ↦
+          standardizeBinomial n x ((j : ℕ) : ℝ)) ⁻¹' tails := hmem
       have hw : 0 ≤ bezierWeight n k 1 (x : ℝ) :=
         bezierWeight_nonneg n k (Nat.le_of_lt_succ k.isLt) one_pos x.property
-      simp [hfar, hmem, bezierPMF_apply, ENNReal.toReal_ofReal hw]
-    · simp [hfar]
+      rw [if_pos hfar, Set.indicator_of_mem hpre]
+      simp [bezierPMF_apply, ENNReal.toReal_ofReal hw]
+    · rw [if_neg hfar]
+      exact measureReal_nonneg
   · intro k hk
-    by_cases hmem : standardizeBinomial n x ((k : ℕ) : ℝ) ∈
-        Ioi (Real.sqrt n * δ / (2 * bernoulliStdDev x)) ∪
-          Iic (-(Real.sqrt n * δ / (2 * bernoulliStdDev x)))
-    · simp [hmem, (bezierPMF n 1 one_pos x).apply_ne_top]
-    · simp [hmem]
+    by_cases hmem : standardizeBinomial n x ((k : ℕ) : ℝ) ∈ tails
+    · have hpre : k ∈ (fun j : Fin (n + 1) ↦
+          standardizeBinomial n x ((j : ℕ) : ℝ)) ⁻¹' tails := hmem
+      rw [Set.indicator_of_mem hpre]
+      exact (bezierPMF n 1 one_pos x).apply_ne_top k
+    · have hpre : k ∉ (fun j : Fin (n + 1) ↦
+          standardizeBinomial n x ((j : ℕ) : ℝ)) ⁻¹' tails := hmem
+      rw [Set.indicator_of_not_mem hpre]
+      simp
 
 private lemma classicalFarMass_le_exp
     (n : ℕ) (hn : 0 < n)
@@ -137,6 +157,7 @@ private lemma classicalFarMass_le_exp
           (8 * (standardizedBernoulliSubgaussianParameter x : ℝ) *
             (bernoulliStdDev x) ^ 2))) := by
   let t : ℝ := Real.sqrt n * δ / (2 * bernoulliStdDev x)
+  have hspos : 0 < bernoulliStdDev x := bernoulliStdDev_pos x hx0 hx1
   have ht : 0 ≤ t := by
     dsimp [t]
     positivity
@@ -151,18 +172,25 @@ private lemma classicalFarMass_le_exp
   have hunion := measureReal_union_le
     (μ := (poweredStandardizedBinomialProbability n x 1 one_pos : Measure ℝ))
     (Ioi t) (Iic (-t))
-  have hs : bernoulliStdDev x ≠ 0 := (bernoulliStdDev_pos x hx0 hx1).ne'
-  have hc : (standardizedBernoulliSubgaussianParameter x : ℝ) ≠ 0 := by
-    have hp : 0 < (standardizedBernoulliSubgaussianParameter x : ℝ) := by
-      rw [standardizedBernoulliSubgaussianParameter]
-      positivity
-    exact hp.ne'
+  have hs : bernoulliStdDev x ≠ 0 := hspos.ne'
+  have hwidth :
+      ((1 - (x : ℝ)) / bernoulliStdDev x) -
+          (-(x : ℝ) / bernoulliStdDev x) =
+        1 / bernoulliStdDev x := by
+    field_simp [hs]
+    ring
+  have hcpos : 0 < (standardizedBernoulliSubgaussianParameter x : ℝ) := by
+    rw [standardizedBernoulliSubgaussianParameter]
+    simp only [hwidth]
+    have hinv : 0 < 1 / bernoulliStdDev x := one_div_pos.mpr hspos
+    positivity
+  have hc : (standardizedBernoulliSubgaussianParameter x : ℝ) ≠ 0 := hcpos.ne'
   have hsquare : t ^ 2 =
       (n : ℝ) * δ ^ 2 / (4 * (bernoulliStdDev x) ^ 2) := by
     dsimp [t]
     rw [div_pow, mul_pow, Real.sq_sqrt]
     · field_simp [hs]
-      ring
+      ring_nf
     · positivity
   calc
     classicalFarMass n x δ ≤
@@ -183,7 +211,7 @@ private lemma classicalFarMass_le_exp
       rw [Real.rpow_one, hsquare]
       congr 1
       field_simp [hc, hs]
-      ring
+      ring_nf
 
 /-- Multiplying the far mass by `n` still gives a sequence tending to zero. -/
 lemma tendsto_nat_mul_classicalFarMass
@@ -193,10 +221,18 @@ lemma tendsto_nat_mul_classicalFarMass
   let r : ℝ := δ ^ 2 /
     (8 * (standardizedBernoulliSubgaussianParameter x : ℝ) *
       (bernoulliStdDev x) ^ 2)
+  have hs : 0 < bernoulliStdDev x := bernoulliStdDev_pos x hx0 hx1
+  have hwidth :
+      ((1 - (x : ℝ)) / bernoulliStdDev x) -
+          (-(x : ℝ) / bernoulliStdDev x) =
+        1 / bernoulliStdDev x := by
+    field_simp [hs.ne']
+    ring
   have hc : 0 < (standardizedBernoulliSubgaussianParameter x : ℝ) := by
     rw [standardizedBernoulliSubgaussianParameter]
+    simp only [hwidth]
+    have hinv : 0 < 1 / bernoulliStdDev x := one_div_pos.mpr hs
     positivity
-  have hs : 0 < bernoulliStdDev x := bernoulliStdDev_pos x hx0 hx1
   have hr : 0 < r := by
     dsimp [r]
     positivity
@@ -207,17 +243,27 @@ lemma tendsto_nat_mul_classicalFarMass
     refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
     have hn0 : 0 < n := hn
     have hmass := classicalFarMass_le_exp n hn0 x hx0 hx1 hδ
+    have hmass' : classicalFarMass n x δ ≤ 2 * exp (-r * (n : ℝ)) := by
+      convert hmass using 1
+      dsimp [r]
+      ring_nf
     constructor
-    · exact mul_nonneg (Nat.cast_nonneg n) <| Finset.sum_nonneg fun k hk ↦ by
-        split_ifs <;> positivity
+    · have hfar0 : 0 ≤ classicalFarMass n x δ := by
+        apply Finset.sum_nonneg
+        intro k hk
+        split_ifs
+        · exact bezierWeight_nonneg n k (Nat.le_of_lt_succ k.isLt) one_pos x.property
+        · exact le_rfl
+      exact mul_nonneg (Nat.cast_nonneg n) hfar0
     · calc
         (n : ℝ) * classicalFarMass n x δ ≤
             (n : ℝ) * (2 * exp (-r * (n : ℝ))) :=
-          mul_le_mul_of_nonneg_left (by simpa [r] using hmass) (Nat.cast_nonneg n)
+          mul_le_mul_of_nonneg_left hmass' (Nat.cast_nonneg n)
         _ = 2 * ((n : ℝ) * exp (-r * (n : ℝ))) := by ring
   have hgeom : Tendsto
       (fun n : ℕ ↦ (n : ℝ) * exp (-r * (n : ℝ))) atTop (𝓝 0) := by
-    exact (Real.summable_pow_mul_exp_neg_nat_mul 1 hr).tendsto_atTop_zero
+    simpa [pow_one] using
+      (Real.summable_pow_mul_exp_neg_nat_mul 1 hr).tendsto_atTop_zero
   apply squeeze_zero'
   · exact hbound.mono fun n hn ↦ hn.1
   · exact hbound.mono fun n hn ↦ hn.2
