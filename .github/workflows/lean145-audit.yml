@@ -1,0 +1,55 @@
+name: Lean 145 branch audit
+
+on:
+  push:
+    branches:
+      - solve-wowii-145-geodesic
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Mathlib cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.cache/mathlib
+          key: lean145-${{ hashFiles('lake-manifest.json') }}
+          restore-keys: |
+            oleans-${{ hashFiles('lake-manifest.json') }}-
+            oleans-
+
+      - name: Get olean cache
+        run: |
+          lake exe cache unpack || true
+          lake exe cache get
+
+      - name: Run pinned Lean and record output
+        run: |
+          mkdir -p verification
+          set +e
+          lake env lean FormalConjecturesForMathlib/WrittenOnTheWallII/GraphConjecture145Probe.lean > verification/lean145.log 2>&1
+          status=$?
+          echo "exit_status=$status" > verification/status.txt
+          cat verification/lean145.log
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add verification/lean145.log verification/status.txt
+          git commit -m "Record Lean 145 audit [skip ci]" || true
+          git push
+          exit $status
