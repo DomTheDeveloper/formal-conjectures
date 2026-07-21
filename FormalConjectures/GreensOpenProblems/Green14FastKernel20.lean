@@ -14,19 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-module
-
-public import FormalConjectures.GreensOpenProblems.Green14ArrayCertificateBridge
+import FormalConjectures.GreensOpenProblems.Green14ArrayCertificateBridge
 
 /-!
 # Fast kernel proof for the Green14 t=20 certificate
 
 The coloring is stored as a Boolean array and the admissible-difference checker
-is reduced by the Lean kernel.  The generic array reflection bridge then proves
+is reduced by the Lean kernel. The generic array reflection bridge then proves
 the actual catalog inequality `W(3,20) ≥ 389`, without `native_decide`.
 -/
-
-public section
 
 set_option maxHeartbeats 0
 set_option maxRecDepth 10000000
