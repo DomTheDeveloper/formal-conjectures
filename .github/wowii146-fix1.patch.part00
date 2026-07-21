@@ -1,0 +1,230 @@
+--- a/GraphConjecture146Proof.lean
++++ b/GraphConjecture146Proof.lean
+@@ -16,6 +16,11 @@
+ 
+ import FormalConjectures.WrittenOnTheWallII.GraphConjecture146
+ 
++set_option linter.style.ams_attribute false
++set_option linter.style.category_attribute false
++set_option linter.unusedSectionVars false
++set_option linter.unusedSimpArgs false
++
+ /-!
+ # A proof of Written on the Wall II, Conjecture 146
+ 
+@@ -38,7 +43,7 @@
+ 
+ open Classical
+ 
+-variable {α : Type*} [Fintype α] [DecidableEq α]
++variable {α : Type*} [Fintype α] [DecidableEq α] [Nontrivial α]
+ variable {G : SimpleGraph α}
+ 
+ /- The following four generic induced-tree helpers are adapted from the
+@@ -325,7 +330,7 @@
+   have htop : G.ediam ≠ ⊤ := (connected_iff_ediam_ne_top).mp h
+   have hed : G.edist u v = G.ediam := by
+     rw [← (h.preconnected u v).coe_dist_eq_edist, huv, diam,
+-      ENat.natCast_toNat htop]
++      ENat.coe_toNat htop]
+   change G.eccent u = G.ediam
+   exact le_antisymm eccent_le_ediam (hed ▸ edist_le_eccent)
+ 
+@@ -361,8 +366,8 @@
+   intro u v huv
+   exact ⟨huv.ne, by rw [dist_eq_one_iff_adj.mpr huv]; omega⟩
+ 
++omit [Fintype α] [DecidableEq α] in
+ /-- A square-graph walk of length `m` spans original distance at most `2m`. -/
+-omit [Fintype α] [DecidableEq α] in
+ lemma Connected.dist_le_two_mul_length_of_graphSquare_walk_146
+     (h : G.Connected) {u v : α} (p : (graphSquare G).Walk u v) :
+     G.dist u v ≤ 2 * p.length := by
+@@ -394,7 +399,7 @@
+   let H := graphSquare G
+   have hH : H.Connected := h.mono (le_graphSquare_146 G)
+   have hrTop : H.radius ≠ ⊤ := (radius_ne_top_iff).mpr hH
+-  have htworTop : 2 * H.radius ≠ ⊤ := by simp [hrTop]
++  have htworTop : 2 * H.radius ≠ ⊤ := WithTop.mul_ne_top (by simp) hrTop
+   have hrad : H.diam ≤ 2 * H.radius.toNat := by
+     have hnat := ENat.toNat_le_toNat H.ediam_le_two_mul_radius htworTop
+     simpa [diam, ENat.toNat_mul] using hnat
+@@ -443,13 +448,17 @@
+   have hab : G.Adj a b := by
+     simpa [a, b] using p.adj_getVert_succ (show 1 < p.length by omega)
+   have hbu : G.Adj b u := by
+-    simpa [b, hp3] using p.adj_getVert_succ (show 2 < p.length by omega)
++    have hstep := p.adj_getVert_succ (show 2 < p.length by omega)
++    have hend : p.getVert 3 = u := by simpa [hp3] using p.getVert_length
++    simpa [b, hend] using hstep
+   have hxc : G.Adj x c := by
+     simpa [c] using q.adj_getVert_succ (show 0 < q.length by omega)
+   have hcd : G.Adj c d := by
+     simpa [c, d] using q.adj_getVert_succ (show 1 < q.length by omega)
+   have hdv : G.Adj d v := by
+-    simpa [d, hq3] using q.adj_getVert_succ (show 2 < q.length by omega)
++    have hstep := q.adj_getVert_succ (show 2 < q.length by omega)
++    have hend : q.getVert 3 = v := by simpa [hq3] using q.getVert_length
++    simpa [d, hend] using hstep
+   let P : G.Walk x u := .cons hxa (.cons hab (.cons hbu .nil))
+   let Q : G.Walk x v := .cons hxc (.cons hcd (.cons hdv .nil))
+   have hP : P.length = G.dist x u := by simp [P, hxu]
+@@ -508,6 +517,61 @@
+     have := G.dist_le r
+     simp [r, huv] at this
+ 
++  have hcv : ¬G.Adj c v := by
++    intro hcv
++    let r : G.Walk x v := .cons hxc (.cons hcv .nil)
++    have hr := G.dist_le r
++    simp [r, hxv] at hr
++  have hcb_eq_ne : c ≠ b := by
++    intro hEq
++    subst c
++    let r : G.Walk u v := .cons hbu.symm (.cons hcd (.cons hdv .nil))
++    have hr := G.dist_le r
++    simp [r, huv] at hr
++  have hcu_eq_ne : c ≠ u := by
++    intro hEq
++    subst c
++    let r : G.Walk u v := .cons hcd (.cons hdv .nil)
++    have hr := G.dist_le r
++    simp [r, huv] at hr
++  have hda_eq_ne : d ≠ a := by
++    intro hEq
++    subst d
++    let r : G.Walk u v := .cons hbu.symm (.cons hab.symm (.cons hdv .nil))
++    have hr := G.dist_le r
++    simp [r, huv] at hr
++  have hdb_eq_ne : d ≠ b := by
++    intro hEq
++    subst d
++    let r : G.Walk u v := .cons hbu.symm (.cons hdv .nil)
++    have hr := G.dist_le r
++    simp [r, huv] at hr
++  have hdu_eq_ne : d ≠ u := by
++    intro hEq
++    subst d
++    have huv1 := dist_eq_one_iff_adj.mpr hdv
++    omega
++  have hva_eq_ne : v ≠ a := by
++    intro hEq
++    subst v
++    let r : G.Walk u a := .cons hbu.symm (.cons hab.symm .nil)
++    have hr := G.dist_le r
++    simp [r, huv] at hr
++  have hvb_eq_ne : v ≠ b := by
++    intro hEq
++    subst v
++    have huv1 := dist_eq_one_iff_adj.mpr hbu.symm
++    omega
++  have hvu_eq_ne : v ≠ u := by
++    intro hEq
++    subst v
++    simp at huv
++  have hvc_eq_ne : v ≠ c := by
++    intro hEq
++    subst v
++    have hxv1 := dist_eq_one_iff_adj.mpr hxc
++    omega
++
+   have hxa_ne : x ≠ a := hxa.ne
+   have hab_ne : a ≠ b := hab.ne
+   have hbu_ne : b ≠ u := hbu.ne
+@@ -530,8 +594,6 @@
+     intro hEq
+     rw [← hEq] at hxv
+     simp at hxv
+-  have hacross : a ≠ c ∨ a = c := ne_or_eq a c
+-
+   by_cases had : G.Adj a d
+   · let r : G.Walk u v := .cons hbu.symm (.cons hab.symm (.cons had (.cons hdv .nil)))
+     have hr : r.length = G.dist u v := by simp [r, huv]
+@@ -558,7 +620,8 @@
+     omega
+   · by_cases hcb : G.Adj c b
+     · let r : G.Walk v u := .cons hdv.symm (.cons hcd.symm (.cons hcb (.cons hbu .nil)))
+-      have hr : r.length = G.dist v u := by simp [r, dist_comm, huv]
++      have hr : r.length = G.dist v u := by
++        simp [r, SimpleGraph.dist_comm, huv]
+       have hrTree := r.induce_support_isTree_of_length_eq_dist_146 hr
+       have hrPath := r.isPath_of_length_eq_dist hr
+       have hxnot : x ∉ r.support.toFinset := by
+@@ -581,79 +644,148 @@
+       have hle := htree.card_le_largestInducedTreeSize_146
+       omega
+     · by_cases hac : G.Adj a c
+-      · let A : Finset α := (P.tail.support.toFinset)
+-        let R : G.Walk c v := .cons hcd (.cons hdv .nil)
++      · let A : Finset α := P.tail.support.toFinset
+         have hAtree : (G.induce (A : Set α)).IsTree := by
+           have htail : P.tail.length = G.dist a u :=
+             length_eq_dist_of_subwalk hP (Walk.isSubwalk_cons P.tail hxa)
+           exact P.tail.induce_support_isTree_of_length_eq_dist_146 htail
+-        have hR : R.length = G.dist c v :=
+-          length_eq_dist_of_subwalk hQ (Walk.isSubwalk_cons R hxc)
+-        have hRPath := R.isPath_of_length_eq_dist hR
+-        have hRchord : ∀ ⦃z y : α⦄, z ∈ R.support → y ∈ R.support →
+-            G.Adj z y → s(z, y) ∈ R.edges := by
+-          intro z y hz hy hzy
+-          exact R.chordless_of_length_eq_dist_146 hR hz hy hzy
+-        have hdisj : ∀ ⦃z : α⦄, z ∈ R.support → z ∉ A := by
+-          intro z hz hzA
+-          simp [R] at hz
+-          simp [A, P] at hzA
+-          rcases hz with rfl | rfl | rfl <;> rcases hzA with rfl | rfl | rfl
+-          all_goals simp_all
+-        have hcross : ∀ ⦃z y : α⦄, z ∈ R.support → y ∈ A → G.Adj z y →
+-            z = c ∧ y = a := by
+-          intro z y hz hy hzy
+-          simp [R] at hz
++        have hcA : c ∉ A := by
++          simp [A, P, hac.ne.symm, hcb_eq_ne, hcu_eq_ne]
++        have hcaUnique : ∀ ⦃y : α⦄, y ∈ A → G.Adj c y → y = a := by
++          intro y hy hcy
+           simp [A, P] at hy
+-          rcases hz with rfl | rfl | rfl <;> rcases hy with rfl | rfl | rfl
+-          all_goals simp_all [adj_comm]
+-        have htree := hRPath.induce_union_isTree_of_unique_attachment_146 R hAtree hdisj
+-          hRchord (by simp [A, P]) hac.symm hcross
++          rcases hy with rfl | rfl | rfl
++          · rfl
++          · exact (hcb hcy).elim
++          · exact (huc hcy.symm).elim
++        have hTc := hAtree.induce_insert_of_unique_adj_146 hcA (by simp [A, P]) hac.symm
++          hcaUnique
++        have hdAc : d ∉ insert c A := by
++          simp [A, P, hcd.ne.symm, hda_eq_ne, hdb_eq_ne, hdu_eq_ne]
++        have hdcUnique : ∀ ⦃y : α⦄, y ∈ insert c A → G.Adj d y → y = c := by
++          intro y hy hdy
++          simp [A, P] at hy
++          rcases hy with rfl | rfl | rfl | rfl
++          · rfl
++          · exact (had hdy.symm).elim
++          · exact (hbd hdy.symm).elim
++          · exact (hud hdy.symm).elim
++        have hTcd := hTc.induce_insert_of_unique_adj_146 hdAc (by simp) hcd.symm hdcUnique
++        have hvAcd : v ∉ insert d (insert c A) := by
++          simp [A, P, hdv.ne.symm, hvc_eq_ne, hva_eq_ne, hvb_eq_ne, hvu_eq_ne]
++        have hvdUnique : ∀ ⦃y : α⦄, y ∈ insert d (insert c A) → G.Adj v y → y = d := by
++          intro y hy hvy
++          simp [A, P] at hy
++          rcases hy with rfl | rfl | rfl | rfl | rfl
++          · rfl
++          · exact (hcv hvy.symm).elim
++          · exact (hav hvy.symm).elim
++          · exact (hbv hvy.symm).elim
++          · exact (huv_ne hvy.symm).elim
++        have htree := hTcd.induce_insert_of_unique_adj_146 hvAcd (by simp) hdv.symm hvdUnique
+         have hcardA : A.card = 3 := by
+           have htailPath := P.tail.isPath_of_length_eq_dist
+             (length_eq_dist_of_subwalk hP (Walk.isSubwalk_cons P.tail hxa))
+           rw [List.toFinset_card_of_nodup htailPath.support_nodup, P.tail.length_support]
+           simp [A, P]
+-        have hcard := hRPath.card_union_support_of_disjoint_146 R hdisj
++        have hcCard : (insert c A).card = 4 := by rw [Finset.card_insert_of_notMem hcA, hcardA]
++        have hdCard : (insert d (insert c A)).card = 5 := by
++          rw [Finset.card_insert_of_notMem hdAc, hcCard]
++        have hvCard : (insert v (insert d (insert c A))).card = 6 := by
++          rw [Finset.card_insert_of_notMem hvAcd, hdCard]
+         have hle := htree.card_le
