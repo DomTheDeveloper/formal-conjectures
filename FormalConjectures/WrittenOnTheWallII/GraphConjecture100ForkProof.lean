@@ -89,7 +89,16 @@ private theorem one_le_maxLocalIndependence
   have hsingle : G.IsIndepSet (({c} : Finset α) : Set α) := by simp
   have hlocal : 1 ≤ indepNeighborsCard G a := by
     have hcard := card_filter_adj_le_indepNeighborsCard G {c} hsingle a
-    convert hcard using 1 <;> simp [hac]
+    have heq : ({c} : Finset α).filter (G.Adj a) = {c} := by
+      ext x
+      simp only [Finset.mem_filter, Finset.mem_singleton]
+      constructor
+      · exact fun hx => hx.1
+      · intro hxc
+        subst x
+        exact ⟨rfl, hac⟩
+    rw [heq] at hcard
+    simpa using hcard
   apply le_trans hlocal
   apply Finset.le_max'
   simp
@@ -219,23 +228,28 @@ theorem arithmetic_ceiling_bound
       by_cases hLone : L = 1
       · subst L
         have hmA : (A : ℝ) ≤ m := by simpa using hAmr
-        have hcoef :
-            0 ≤ (2 * (A : ℝ) - 1) * ((A : ℝ) - 1) + ((A : ℝ) - 1) ^ 2 := by
-          positivity
-        have hmono : 0 ≤ ((m : ℝ) - A) *
-            ((2 * (A : ℝ) - 1) * ((A : ℝ) - 1) + ((A : ℝ) - 1) ^ 2) :=
-          mul_nonneg (sub_nonneg.mpr hmA) hcoef
-        have hmin :
-            (A : ℝ) * ((A : ℝ) - 1) ^ 2
-              + (2 * (A : ℝ) - 1) * (A : ℝ) * ((A : ℝ) - 1)
-              + (A : ℝ) * ((A : ℝ) - 1) ^ 2 ≤ q ^ 2 := by
-          nlinarith
+        have hA1 : 0 ≤ (A : ℝ) - 1 := by nlinarith
+        have h2A1 : 0 ≤ 2 * (A : ℝ) - 1 := by nlinarith
+        let C : ℝ :=
+          (2 * (A : ℝ) - 1) * ((A : ℝ) - 1) + ((A : ℝ) - 1) ^ 2
+        have hcoef : 0 ≤ C := by
+          dsimp [C]
+          exact add_nonneg (mul_nonneg h2A1 hA1) (sq_nonneg _)
+        have hq2C :
+            (A : ℝ) * ((A : ℝ) - 1) ^ 2 + (m : ℝ) * C ≤ q ^ 2 := by
+          dsimp [C]
+          nlinarith [hq2]
+        have hminC :
+            (A : ℝ) * ((A : ℝ) - 1) ^ 2 + (A : ℝ) * C ≤ q ^ 2 := by
+          calc
+            (A : ℝ) * ((A : ℝ) - 1) ^ 2 + (A : ℝ) * C
+                ≤ (A : ℝ) * ((A : ℝ) - 1) ^ 2 + (m : ℝ) * C := by
+                  gcongr
+            _ ≤ q ^ 2 := hq2C
         have hx : 0 ≤ (A : ℝ) - 2 := by nlinarith
-        have hpoly : T ^ 2 <
-            (A : ℝ) * ((A : ℝ) - 1) ^ 2
-              + (2 * (A : ℝ) - 1) * (A : ℝ) * ((A : ℝ) - 1)
-              + (A : ℝ) * ((A : ℝ) - 1) ^ 2 := by
-          dsimp [T]
+        have hpolyC : T ^ 2 <
+            (A : ℝ) * ((A : ℝ) - 1) ^ 2 + (A : ℝ) * C := by
+          dsimp [T, C]
           have hx3 : 0 ≤ ((A : ℝ) - 2) ^ 3 := pow_nonneg hx 3
           have hx2 : 0 ≤ ((A : ℝ) - 2) ^ 2 := sq_nonneg _
           nlinarith
@@ -244,7 +258,12 @@ theorem arithmetic_ceiling_bound
         have hmtwo : 2 ≤ m := by
           by_contra hm
           have hmle : m ≤ 1 := by omega
-          interval_cases m <;> simp_all
+          have hm_cases : m = 0 ∨ m = 1 := by omega
+          rcases hm_cases with rfl | rfl
+          · norm_num at hAm
+            omega
+          · norm_num at hAm
+            omega
         have hmtwor : (2 : ℝ) ≤ m := by exact_mod_cast hmtwo
         have hcoef :
             0 ≤ (2 * (A : ℝ) - 1) * ((A : ℝ) - L) + ((A : ℝ) - L) ^ 2 := by
@@ -257,7 +276,8 @@ theorem arithmetic_ceiling_bound
               + 2 * (2 * (A : ℝ) - 1) * ((A : ℝ) - L)
               + 2 * ((A : ℝ) - L) ^ 2 ≤ q ^ 2 := by
           nlinarith
-        have hp : 0 ≤ (L : ℝ) - 2 := by exact_mod_cast hLtwo
+        have hLtwoR : (2 : ℝ) ≤ L := by exact_mod_cast hLtwo
+        have hp : 0 ≤ (L : ℝ) - 2 := sub_nonneg.mpr hLtwoR
         by_cases hDone : A = L + 1
         · subst A
           have hpoly : T ^ 2 <
