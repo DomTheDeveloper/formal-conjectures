@@ -27,20 +27,30 @@ jobs:
           curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Restore mathlib cache
-        run: lake exe cache get
-      - name: Build imported project module
-        run: lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture145
-      - name: Verify proof and axioms
+      - name: Build and verify with pinned Lean
         run: |
           set +e
-          lake env lean Proofs/145.lean > Proofs/145.verify.log 2>&1
-          status=$?
+          : > Proofs/145.verify.log
+          echo '=== lean --version ===' >> Proofs/145.verify.log
+          lake env lean --version >> Proofs/145.verify.log 2>&1
+          echo '=== cache ===' >> Proofs/145.verify.log
+          lake exe cache get >> Proofs/145.verify.log 2>&1
+          cache_status=$?
+          echo "cache_status=$cache_status" >> Proofs/145.verify.log
+          echo '=== project module build ===' >> Proofs/145.verify.log
+          lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture145 >> Proofs/145.verify.log 2>&1
+          build_status=$?
+          echo "build_status=$build_status" >> Proofs/145.verify.log
+          echo '=== proof compile and #print axioms ===' >> Proofs/145.verify.log
+          lake env lean Proofs/145.lean >> Proofs/145.verify.log 2>&1
+          lean_status=$?
+          echo "lean_status=$lean_status" >> Proofs/145.verify.log
+          status=$lean_status
+          if [ "$cache_status" -ne 0 ] || [ "$build_status" -ne 0 ]; then status=1; fi
           if grep -q 'sorryAx' Proofs/145.verify.log; then
             echo 'Unexpected sorryAx in proof theorem' >> Proofs/145.verify.log
             status=1
           fi
-          set -e
           cat Proofs/145.verify.log
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
