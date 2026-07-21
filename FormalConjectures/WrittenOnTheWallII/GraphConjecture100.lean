@@ -72,7 +72,8 @@ that `diam(Gᶜ)` is finite (otherwise `Gᶜ.ediam = ⊤` and
 `Gᶜ.ediam.toNat` collapses silently to `0`); see the module
 docstring above.
 -/
-@[category research open, AMS 5]
+@[category research solved, AMS 5,
+  formal_proof using lean4 at "https://github.com/DomTheDeveloper/formal-conjectures/blob/3ef37a1eb2f13e164ddb663c408ceb20e8411c30/FormalConjectures/WrittenOnTheWallII/GraphConjecture100Complete.lean"]
 theorem conjecture100 (G : SimpleGraph α) [DecidableRel G.Adj] (h : G.Connected)
     (hGc : Gᶜ.Connected) :
     let maxL := (Finset.univ.image (indepNeighborsCard G)).max' (by simp)
