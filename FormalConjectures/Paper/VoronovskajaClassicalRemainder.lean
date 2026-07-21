@@ -144,7 +144,11 @@ private lemma abs_classicalSecondRemainderSum_le
         apply Finset.sum_congr rfl
         intro k hk
         ring
-      · rw [classicalFarMass, Fin.sum_univ_eq_sum_range, Finset.mul_sum]
+      · rw [classicalFarMass, Finset.mul_sum]
+        exact (Fin.sum_univ_eq_sum_range
+          (fun k : ℕ ↦ C *
+            (if δ ≤ |((k : ℝ) / (n : ℝ)) - (x : ℝ)| then
+              bezierWeight n k 1 (x : ℝ) else 0)) (n + 1)).symm
 
 /-- The `n`-scaled second-order Taylor remainder tends to zero at every interior point. -/
 lemma tendsto_nat_mul_classicalSecondRemainderSum
@@ -194,7 +198,6 @@ lemma tendsto_nat_mul_classicalSecondRemainderSum
     _ = ε * ((x : ℝ) * (1 - (x : ℝ))) +
         C * ((n : ℝ) * classicalFarMass n x δ) := by
       field_simp [show (n : ℝ) ≠ 0 by exact_mod_cast hn0.ne']
-      ring
     _ ≤ η / 2 + |C * ((n : ℝ) * classicalFarMass n x δ)| := by
       have hnear : ε * ((x : ℝ) * (1 - (x : ℝ))) ≤ η / 2 := by
         dsimp [ε]
