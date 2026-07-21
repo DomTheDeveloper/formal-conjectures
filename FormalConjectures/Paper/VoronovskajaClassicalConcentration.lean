@@ -55,8 +55,9 @@ private lemma standardizeBinomial_eq_scale_frequency
     exact_mod_cast hn
   have hn0 : 0 ≤ (n : ℝ) := by positivity
   rw [standardizeBinomial]
-  field_simp [hnR, hsqrt, Real.sq_sqrt hn0]
-  ring_nf
+  field_simp [hnR, hsqrt]
+  rw [Real.sq_sqrt hn0]
+  ring
 
 private lemma far_index_maps_to_two_tails
     (n : ℕ) (hn : 0 < n)
@@ -85,7 +86,6 @@ private lemma far_index_maps_to_two_tails
         Real.sqrt n * δ / (2 * bernoulliStdDev x) =
           (Real.sqrt n * δ / bernoulliStdDev x) / 2 := by
       field_simp [hs.ne']
-      ring
     rw [heq]
     linarith
   by_cases hz : Real.sqrt n / bernoulliStdDev x *
@@ -135,17 +135,36 @@ private lemma classicalFarMass_le_measure_tails
       rw [if_pos hfar, Set.indicator_of_mem hpre]
       simp [bezierPMF_apply, ENNReal.toReal_ofReal hw]
     · rw [if_neg hfar]
-      exact measureReal_nonneg
+      exact ENNReal.toReal_nonneg
   · intro k hk
     by_cases hmem : standardizeBinomial n x ((k : ℕ) : ℝ) ∈ tails
     · have hpre : k ∈ (fun j : Fin (n + 1) ↦
           standardizeBinomial n x ((j : ℕ) : ℝ)) ⁻¹' tails := hmem
       rw [Set.indicator_of_mem hpre]
       exact (bezierPMF n 1 one_pos x).apply_ne_top k
-    · have hpre : k ∉ (fun j : Fin (n + 1) ↦
-          standardizeBinomial n x ((j : ℕ) : ℝ)) ⁻¹' tails := hmem
-      rw [Set.indicator_of_not_mem hpre]
-      simp
+    · simp [hmem]
+
+private lemma standardizedBernoulliSubgaussianParameter_pos
+    (x : I) (hx0 : 0 < (x : ℝ)) (hx1 : (x : ℝ) < 1) :
+    0 < (standardizedBernoulliSubgaussianParameter x : ℝ) := by
+  have hs : 0 < bernoulliStdDev x := bernoulliStdDev_pos x hx0 hx1
+  have hwidth :
+      ((1 - (x : ℝ)) / bernoulliStdDev x) -
+          (-(x : ℝ) / bernoulliStdDev x) =
+        1 / bernoulliStdDev x := by
+    field_simp [hs.ne']
+    ring
+  have hdiff :
+      ((1 - (x : ℝ)) / bernoulliStdDev x) -
+          (-(x : ℝ) / bernoulliStdDev x) ≠ 0 := by
+    rw [hwidth]
+    exact one_div_ne_zero hs.ne'
+  have hnorm :
+      0 < ‖((1 - (x : ℝ)) / bernoulliStdDev x) -
+          (-(x : ℝ) / bernoulliStdDev x)‖₊ :=
+    nnnorm_pos.mpr hdiff
+  rw [standardizedBernoulliSubgaussianParameter]
+  exact_mod_cast (sq_pos_of_pos (div_pos hnorm (by norm_num : (0 : ℝ≥0) < 2)))
 
 private lemma classicalFarMass_le_exp
     (n : ℕ) (hn : 0 < n)
@@ -173,17 +192,7 @@ private lemma classicalFarMass_le_exp
     (μ := (poweredStandardizedBinomialProbability n x 1 one_pos : Measure ℝ))
     (Ioi t) (Iic (-t))
   have hs : bernoulliStdDev x ≠ 0 := hspos.ne'
-  have hwidth :
-      ((1 - (x : ℝ)) / bernoulliStdDev x) -
-          (-(x : ℝ) / bernoulliStdDev x) =
-        1 / bernoulliStdDev x := by
-    field_simp [hs]
-    ring
-  have hcpos : 0 < (standardizedBernoulliSubgaussianParameter x : ℝ) := by
-    rw [standardizedBernoulliSubgaussianParameter]
-    simp only [hwidth]
-    have hinv : 0 < 1 / bernoulliStdDev x := one_div_pos.mpr hspos
-    positivity
+  have hcpos := standardizedBernoulliSubgaussianParameter_pos x hx0 hx1
   have hc : (standardizedBernoulliSubgaussianParameter x : ℝ) ≠ 0 := hcpos.ne'
   have hsquare : t ^ 2 =
       (n : ℝ) * δ ^ 2 / (4 * (bernoulliStdDev x) ^ 2) := by
@@ -222,17 +231,7 @@ lemma tendsto_nat_mul_classicalFarMass
     (8 * (standardizedBernoulliSubgaussianParameter x : ℝ) *
       (bernoulliStdDev x) ^ 2)
   have hs : 0 < bernoulliStdDev x := bernoulliStdDev_pos x hx0 hx1
-  have hwidth :
-      ((1 - (x : ℝ)) / bernoulliStdDev x) -
-          (-(x : ℝ) / bernoulliStdDev x) =
-        1 / bernoulliStdDev x := by
-    field_simp [hs.ne']
-    ring
-  have hc : 0 < (standardizedBernoulliSubgaussianParameter x : ℝ) := by
-    rw [standardizedBernoulliSubgaussianParameter]
-    simp only [hwidth]
-    have hinv : 0 < 1 / bernoulliStdDev x := one_div_pos.mpr hs
-    positivity
+  have hc := standardizedBernoulliSubgaussianParameter_pos x hx0 hx1
   have hr : 0 < r := by
     dsimp [r]
     positivity
