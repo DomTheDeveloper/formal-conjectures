@@ -98,7 +98,7 @@ private theorem arithmetic_ceiling_bound_pos
       exact hq2
     have hqnon : 0 ≤ Real.sqrt q2 := Real.sqrt_nonneg _
     have hxpos :
-        0 < (((1 : ℝ) + (1 / 2) * Real.sqrt q2) / 2) := by
+        0 < (1 : ℝ) + (1 / 2) * Real.sqrt q2 := by
       nlinarith
     have hz :
         (1 : ℤ) ≤ ⌈(((1 : ℝ) + (1 / 2) * Real.sqrt q2) / 2)⌉ := by
