@@ -5,6 +5,10 @@ on:
     branches:
       - audit/base-wowii-100
 
+concurrency:
+  group: wowii100-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
