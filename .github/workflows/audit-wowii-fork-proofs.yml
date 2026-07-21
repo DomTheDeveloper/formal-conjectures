@@ -18,9 +18,6 @@ on:
   push:
     branches:
       - audit/wowii-fork-proof-main
-  pull_request:
-    paths:
-      - '.github/workflows/audit-wowii-fork-proofs.yml'
 
 permissions:
   contents: read
@@ -31,8 +28,49 @@ concurrency:
 
 jobs:
   audit:
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - label: wowii65
+            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture65
+            module: FormalConjectures.WrittenOnTheWallII.GraphConjecture65
+            theorem: WrittenOnTheWallII.GraphConjecture65.conjecture65
+          - label: wowii109
+            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture109
+            module: FormalConjectures.WrittenOnTheWallII.GraphConjecture109
+            theorem: WrittenOnTheWallII.GraphConjecture109.conjecture109
+          - label: wowii143
+            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture143ForkProof
+            module: FormalConjectures.WrittenOnTheWallII.GraphConjecture143ForkProof
+            theorem: WrittenOnTheWallII.GraphConjecture143.conjecture143_fork_proof
+          - label: wowii314
+            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture314
+            module: FormalConjectures.WrittenOnTheWallII.GraphConjecture314
+            theorem: WrittenOnTheWallII.GraphConjecture314.conjecture314
+          - label: wowii316
+            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture316ForkProof
+            module: FormalConjectures.WrittenOnTheWallII.GraphConjecture316ForkProof
+            theorem: WrittenOnTheWallII.GraphConjecture316.conjecture316_fork_proof
+          - label: wowii322
+            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture322
+            module: FormalConjectures.WrittenOnTheWallII.GraphConjecture322
+            theorem: WrittenOnTheWallII.GraphConjecture322.conjecture322
+          - label: bmo4
+            target: FormalConjectures.Other.BeaverMathOlympiad
+            module: FormalConjectures.Other.BeaverMathOlympiad
+            theorem: BeaverMathOlympiad.beaver_math_olympiad_problem_4
+          - label: erdos602
+            target: FormalConjectures.ErdosProblems.Erdos602Countable
+            module: FormalConjectures.ErdosProblems.Erdos602Countable
+            theorem: Erdos602.countable_index_proof
+          - label: erdos1150
+            target: FormalConjectures.ErdosProblems.Erdos1150Parseval
+            module: FormalConjectures.ErdosProblems.Erdos1150Parseval
+            theorem: Erdos1150Parseval.parseval_lower_bound
     runs-on: macos-15
-    timeout-minutes: 90
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
 
@@ -46,46 +84,20 @@ jobs:
         shell: bash
         run: lake exe cache get >/dev/null
 
-      - name: Build exact candidate modules
+      - name: Build exact candidate module
         shell: bash
-        run: |
-          lake build \
-            FormalConjectures.WrittenOnTheWallII.GraphConjecture65 \
-            FormalConjectures.WrittenOnTheWallII.GraphConjecture109 \
-            FormalConjectures.WrittenOnTheWallII.GraphConjecture143ForkProof \
-            FormalConjectures.WrittenOnTheWallII.GraphConjecture314 \
-            FormalConjectures.WrittenOnTheWallII.GraphConjecture316ForkProof \
-            FormalConjectures.WrittenOnTheWallII.GraphConjecture322 \
-            FormalConjectures.Other.BeaverMathOlympiad \
-            FormalConjectures.ErdosProblems.Erdos602Countable \
-            FormalConjectures.ErdosProblems.«1150»
+        run: lake build '${{ matrix.target }}'
 
       - name: Audit exact theorem axioms
         shell: bash
+        env:
+          MODULE: ${{ matrix.module }}
+          THEOREM: ${{ matrix.theorem }}
+          LABEL: ${{ matrix.label }}
         run: |
-          cat > MergedCandidateAudit.lean <<'EOF'
-          import FormalConjectures.WrittenOnTheWallII.GraphConjecture65
-          import FormalConjectures.WrittenOnTheWallII.GraphConjecture109
-          import FormalConjectures.WrittenOnTheWallII.GraphConjecture143ForkProof
-          import FormalConjectures.WrittenOnTheWallII.GraphConjecture314
-          import FormalConjectures.WrittenOnTheWallII.GraphConjecture316ForkProof
-          import FormalConjectures.WrittenOnTheWallII.GraphConjecture322
-          import FormalConjectures.Other.BeaverMathOlympiad
-          import FormalConjectures.ErdosProblems.Erdos602Countable
-          import FormalConjectures.ErdosProblems.«1150»
-
-          #print axioms WrittenOnTheWallII.GraphConjecture65.conjecture65
-          #print axioms WrittenOnTheWallII.GraphConjecture109.conjecture109
-          #print axioms WrittenOnTheWallII.GraphConjecture143.conjecture143_fork_proof
-          #print axioms WrittenOnTheWallII.GraphConjecture314.conjecture314
-          #print axioms WrittenOnTheWallII.GraphConjecture316.conjecture316_fork_proof
-          #print axioms WrittenOnTheWallII.GraphConjecture322.conjecture322
-          #print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_4
-          #print axioms Erdos602.countable_index_proof
-          #print axioms Erdos1150.erdos_1150.variants.parseval_lower_bound
-          EOF
-          lake env lean MergedCandidateAudit.lean 2>&1 | tee merged-candidate-audit.log
-          if grep -E 'sorryAx|admitAx|Lean\.trustCompiler|Lean\.ofReduceBool' merged-candidate-audit.log; then
+          printf 'import %s\n#print axioms %s\n' "$MODULE" "$THEOREM" > "Audit-${LABEL}.lean"
+          lake env lean "Audit-${LABEL}.lean" 2>&1 | tee "audit-${LABEL}.log"
+          if grep -E 'sorryAx|admitAx|Lean\.trustCompiler|Lean\.ofReduceBool' "audit-${LABEL}.log"; then
             echo "Unexpected non-kernel axiom detected"
             exit 1
           fi
@@ -94,6 +106,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: merged-upstream-candidate-audit
-          path: merged-candidate-audit.log
+          name: upstream-candidate-${{ matrix.label }}-audit
+          path: audit-${{ matrix.label }}.log
           if-no-files-found: warn
