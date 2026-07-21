@@ -20,6 +20,8 @@ namespace WrittenOnTheWallII.GraphConjecture100ForkProof
 
 open Classical SimpleGraph
 
+-- This module proves the exact `degreeL2Norm` statement currently in Formal Conjectures.
+
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
 private theorem indepNum_induce_le (G : SimpleGraph α) (U : Set α) :
