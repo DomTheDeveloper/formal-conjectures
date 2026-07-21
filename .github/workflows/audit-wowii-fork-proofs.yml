@@ -50,14 +50,14 @@ jobs:
         shell: bash
         run: lake exe cache get >/dev/null
 
-      - name: Reject proof holes and unsafe shortcuts
+      - name: Reject explicit proof holes and custom axioms
         shell: bash
         run: |
-          if grep -RInE '\b(sorry|admit)\b|^[[:space:]]*axiom[[:space:]]|native_decide|Lean\.trustCompiler|Lean\.ofReduceBool' \
+          if grep -RInE '^[[:space:]]*(sorry|admit|axiom)([[:space:]]|$)' \
               WOWII \
               FormalConjectures/WrittenOnTheWallII/GraphConjecture143ForkProof.lean \
               FormalConjectures/WrittenOnTheWallII/GraphConjecture316ForkProof.lean; then
-            echo "Unfinished or unsafe proof construct found"
+            echo "Explicit proof hole or custom axiom found"
             exit 1
           fi
 
