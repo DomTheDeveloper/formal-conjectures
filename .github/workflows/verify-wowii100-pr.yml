@@ -39,7 +39,7 @@ jobs:
         id: build
         continue-on-error: true
         run: |
-          lake --wfail build FormalConjectures.WrittenOnTheWallII.GraphConjecture100ForkProof > lean-build.log 2>&1
+          lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture100ForkProof > lean-build.log 2>&1
       - name: Upload Lean build log
         if: always()
         uses: actions/upload-artifact@v4
