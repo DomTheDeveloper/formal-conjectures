@@ -51,6 +51,36 @@ private theorem card_filter_adj_le_indepNeighborsCard
   rw [← hmap, Finset.card_map]
   exact hU.card_le_indepNum
 
+private theorem maxLocalIndependence_le_indepNum (G : SimpleGraph α) :
+    (Finset.univ.image (indepNeighborsCard G)).max' (by simp) ≤ G.indepNum := by
+  apply Finset.max'_le
+  intro n hn
+  obtain ⟨v, -, rfl⟩ := Finset.mem_image.mp hn
+  exact indepNum_induce_le G (G.neighborSet v)
+
+private theorem one_le_maxLocalIndependence
+    [Nontrivial α] (G : SimpleGraph α) [DecidableRel G.Adj] (hconn : G.Connected) :
+    1 ≤ (Finset.univ.image (indepNeighborsCard G)).max' (by simp) := by
+  obtain ⟨a, b, hab⟩ := exists_pair_ne α
+  obtain ⟨c, hac⟩ := (hconn.preconnected a b).nonempty_neighborSet_left hab
+  have hsingle : G.IsIndepSet ({c} : Set α) := by simp
+  have hlocal : 1 ≤ indepNeighborsCard G a := by
+    have hcard := card_filter_adj_le_indepNeighborsCard G {c} hsingle a
+    simpa [hac] using hcard
+  exact hlocal.trans (Finset.le_max' _ (by simp))
+
+private theorem two_le_maximumIndepSet_card
+    [Nontrivial α] (G : SimpleGraph α) [DecidableRel G.Adj]
+    (hGc : Gᶜ.Connected) (S : Finset α) (hS : G.IsMaximumIndepSet S) :
+    2 ≤ S.card := by
+  obtain ⟨a, b, hab⟩ := exists_pair_ne α
+  obtain ⟨c, hac⟩ := (hGc.preconnected a b).nonempty_neighborSet_left hab
+  have hp : G.IsIndepSet ({a, c} : Finset α) := by
+    rw [← SimpleGraph.isClique_compl]
+    exact SimpleGraph.isClique_pair.mpr (fun _ => hac)
+  have hle := hS.maximum ({a, c} : Finset α) hp
+  simpa [(Gᶜ).ne_of_adj hac] using hle
+
 private theorem maximumIndepSet_card_le_compl_mul_maxLocal
     [Nontrivial α] (G : SimpleGraph α) [DecidableRel G.Adj]
     (hconn : G.Connected) (S : Finset α) (hS : G.IsMaximumIndepSet S) :
