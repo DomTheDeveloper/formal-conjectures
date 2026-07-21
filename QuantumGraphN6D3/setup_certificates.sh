@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 
+proof_directory=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 asset_name=quantum-graph-n6d3-clrat-v1.tar.zst
 asset_url=https://github.com/infinityscroll/formal-conjectures/releases/download/quantum-graph-n6d3-int-v1/$asset_name
 expected_sha256=c8855196dd1014ea59508078ed3e1f37f91dfff4e06e93317c98ef60a512f7c8
@@ -20,7 +21,5 @@ if [ "$actual_sha256" != "$expected_sha256" ]; then
   exit 1
 fi
 
-mkdir -p certificates
-zstd --decompress --stdout "$temporary_file" | tar -xf -
+zstd --decompress --stdout "$temporary_file" | tar -xf - -C "$proof_directory"
 printf '%s\n' "verified and extracted $asset_name"
-

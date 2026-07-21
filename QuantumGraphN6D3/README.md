@@ -22,8 +22,8 @@ The 47 compact LRAT certificates are distributed as the release asset
 ./setup_certificates.sh
 ```
 
-The script downloads the immutable tagged asset, verifies its SHA-256 digest,
-and extracts it into `certificates/`.
+The script downloads the versioned release asset, verifies its fixed SHA-256
+digest, and extracts it into this directory's `certificates/` subdirectory.
 
 ## Verification
 
@@ -47,4 +47,3 @@ The axiom audit contains no `sorryAx`.  The LRAT certificates and finite orbit
 tables are evaluated by Lean's native reflected machinery, so the audit lists
 `Lean.ofReduceBool` and `Lean.trustCompiler` in addition to the usual logical
 axioms.
-
