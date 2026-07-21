@@ -238,7 +238,7 @@ theorem arithmetic_ceiling_bound
         have hq2C :
             (A : ℝ) * ((A : ℝ) - 1) ^ 2 + (m : ℝ) * C ≤ q ^ 2 := by
           dsimp [C]
-          nlinarith [hq2]
+          convert hq2 using 1 <;> ring
         have hminC :
             (A : ℝ) * ((A : ℝ) - 1) ^ 2 + (A : ℝ) * C ≤ q ^ 2 := by
           calc
