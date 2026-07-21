@@ -11,7 +11,7 @@
 
 name = "formal_conjectures"
 keywords = ["math"]
-defaultTargets = ["FormalConjectures", "WOW145"]
+defaultTargets = ["WOW145"]
 testDriver = "FormalConjecturesTest"
 
 [leanOptions]
