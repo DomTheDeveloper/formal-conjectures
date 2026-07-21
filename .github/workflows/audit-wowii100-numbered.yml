@@ -38,28 +38,24 @@ jobs:
             exit 1
           fi
 
-      - name: Compile exact numbered module
+      - name: Build proof dependencies
         run: |
-          lake env lean FormalConjectures/WrittenOnTheWallII/100.lean 2>&1 | tee wowii100-build.log
+          lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture100Complete
 
-      - name: Audit exact theorem axioms
+      - name: Compile and audit exact numbered theorem
         run: |
-          cat > WOWII100AxiomAudit.lean <<'EOF'
-          import FormalConjectures.WrittenOnTheWallII.«100»
-          #print axioms WrittenOnTheWallII.GraphConjecture100.conjecture100
-          EOF
-          lake env lean WOWII100AxiomAudit.lean 2>&1 | tee wowii100-axioms.log
-          if grep -E 'sorryAx|Lean\.ofReduce|Lean\.trustCompiler' wowii100-axioms.log; then
-            echo 'disallowed axiom found'
+          set -o pipefail
+          lake env lean FormalConjectures/WrittenOnTheWallII/100.lean 2>&1 | tee wowii100-audit.log
+          if grep -E 'sorryAx|Lean\.ofReduce|Lean\.trustCompiler|error:' wowii100-audit.log; then
+            echo 'disallowed axiom or compiler error found'
             exit 1
           fi
+          grep -F "WrittenOnTheWallII.GraphConjecture100.conjecture100' depends on axioms:" wowii100-audit.log
 
-      - name: Upload audit logs
+      - name: Upload audit log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: wowii100-numbered-audit
-          path: |
-            wowii100-build.log
-            wowii100-axioms.log
+          path: wowii100-audit.log
           if-no-files-found: warn
