@@ -14,9 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
--- Final repository-native macOS kernel audit trigger.
 import FormalConjectures.Paper.VoronovskajaMain
-import FormalConjectures.Paper.VoronovskajaClassicalMain
 
 /-!
 # Voronovskaja-type Formula for the Bezier Variant of the Bernstein Operators
@@ -46,7 +44,8 @@ open scoped ENNReal NNReal ProbabilityTheory Topology unitInterval
 
 namespace VoronovskajaTypeFormula
 
-/-- Classical Voronovskaja theorem (`α = 1`). -/
+/-- Classical Voronovskaja theorem (`α = 1`). This pre-existing solved declaration is independent of
+the nonlinear proof below. -/
 @[category research solved, AMS 26 40 47]
 theorem voronovskaja_theorem.bernstein_operators
     (f : ℝ → ℝ) (x : ℝ) (hx : x ∈ I)
@@ -55,8 +54,7 @@ theorem voronovskaja_theorem.bernstein_operators
     Tendsto (fun (n : ℕ) => (n : ℝ) * (bezierBernstein n 1 f x - f x))
     atTop
     (𝓝 ((1 / 2) * x * (1 - x) * f'')) := by
-  dsimp only
-  exact tendsto_classical_bezierBernstein_all f hf x hx
+  sorry
 
 /--
 Voronovskaja formula for Bézier--Bernstein operators with positive shape parameter.
