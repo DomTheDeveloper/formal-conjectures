@@ -16,11 +16,22 @@ limitations under the License.
 
 import FormalConjecturesUtil
 
+/-!
+# Exact proof infrastructure for WOWII Conjecture 100
+
+This module develops the proof of the exact theorem currently encoded in
+`GraphConjecture100.lean`, whose right-hand side uses the degree `L²` norm of
+the complement graph. It does not claim to prove the differently documented
+diameter formulation.
+-/
+
 namespace WrittenOnTheWallII.GraphConjecture100ForkProof
 
 open Classical SimpleGraph
 
--- This module proves the exact `degreeL2Norm` statement currently in Formal Conjectures.
+set_option linter.style.ams_attribute false
+set_option linter.style.category_attribute false
+set_option maxHeartbeats 2000000
 
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
@@ -29,7 +40,7 @@ private theorem indepNum_induce_le (G : SimpleGraph α) (U : Set α) :
   obtain ⟨s, hs⟩ := (G.induce U).exists_isNIndepSet_indepNum
   let e : U ↪ α := ⟨Subtype.val, Subtype.val_injective⟩
   have hs' : G.IsNIndepSet (G.induce U).indepNum (s.map e) := by
-    exact (SimpleGraph.isNIndepSet_induce).mp hs
+    exact (SimpleGraph.isNIndepSet_induce (G := G)).mp hs
   have hcard := hs'.isIndepSet.card_le_indepNum
   simpa [Finset.card_map, hs.card_eq] using hcard
 
@@ -53,7 +64,7 @@ private theorem card_filter_adj_le_indepNeighborsCard
   rw [← hmap, Finset.card_map]
   exact hU.card_le_indepNum
 
-private theorem maxLocalIndependence_le_indepNum (G : SimpleGraph α) :
+private theorem maxLocalIndependence_le_indepNum [Nonempty α] (G : SimpleGraph α) :
     (Finset.univ.image (indepNeighborsCard G)).max' (by simp) ≤ G.indepNum := by
   apply Finset.max'_le
   intro n hn
@@ -64,7 +75,8 @@ private theorem one_le_maxLocalIndependence
     [Nontrivial α] (G : SimpleGraph α) [DecidableRel G.Adj] (hconn : G.Connected) :
     1 ≤ (Finset.univ.image (indepNeighborsCard G)).max' (by simp) := by
   obtain ⟨a, b, hab⟩ := exists_pair_ne α
-  obtain ⟨c, hac⟩ := (hconn.preconnected a b).nonempty_neighborSet_left hab
+  have hdeg : 0 < G.degree a := (hconn.preconnected a b).degree_pos_left hab
+  obtain ⟨c, hac⟩ := (G.degree_pos_iff_exists_adj (v := a)).mp hdeg
   have hsingle : G.IsIndepSet ({c} : Set α) := by simp
   have hlocal : 1 ≤ indepNeighborsCard G a := by
     have hcard := card_filter_adj_le_indepNeighborsCard G {c} hsingle a
@@ -76,7 +88,8 @@ private theorem two_le_maximumIndepSet_card
     (hGc : Gᶜ.Connected) (S : Finset α) (hS : G.IsMaximumIndepSet S) :
     2 ≤ S.card := by
   obtain ⟨a, b, hab⟩ := exists_pair_ne α
-  obtain ⟨c, hac⟩ := (hGc.preconnected a b).nonempty_neighborSet_left hab
+  have hdeg : 0 < (Gᶜ).degree a := (hGc.preconnected a b).degree_pos_left hab
+  obtain ⟨c, hac⟩ := ((Gᶜ).degree_pos_iff_exists_adj (v := a)).mp hdeg
   have hp : G.IsIndepSet ({a, c} : Finset α) := by
     rw [← SimpleGraph.isClique_compl]
     exact SimpleGraph.isClique_pair.mpr (fun _ => hac)
@@ -86,21 +99,22 @@ private theorem two_le_maximumIndepSet_card
 private theorem maximumIndepSet_card_le_compl_mul_maxLocal
     [Nontrivial α] (G : SimpleGraph α) [DecidableRel G.Adj]
     (hconn : G.Connected) (S : Finset α) (hS : G.IsMaximumIndepSet S) :
-    S.card ≤ Sᶜ.card *
+    S.card ≤ (Sᶜ).card *
       (Finset.univ.image (indepNeighborsCard G)).max' (by simp) := by
   let locals := Finset.univ.image (indepNeighborsCard G)
   let L := locals.max' (by simp [locals])
   have hex : ∀ s : S, ∃ t : α, G.Adj s t := by
     intro s
     obtain ⟨z, hz⟩ := exists_ne (s : α)
-    exact G.degree_pos_iff_exists_adj.mp
-      ((hconn.preconnected (s : α) z).degree_pos_left hz)
+    have hdeg : 0 < G.degree (s : α) :=
+      (hconn.preconnected (s : α) z).degree_pos_left hz
+    exact (G.degree_pos_iff_exists_adj (v := (s : α))).mp hdeg
   choose f hf using hex
   have hfout (s : S) : f s ∉ S := by
     intro hmem
     exact (hS.isIndepSet s.property hmem (G.ne_of_adj (hf s))) (hf s)
-  let fT : S → Sᶜ := fun s => ⟨f s, by simpa using hfout s⟩
-  have hfiber (y : Sᶜ) :
+  let fT : ↥S → ↥(Sᶜ) := fun s => ⟨f s, by simpa using hfout s⟩
+  have hfiber (y : ↥(Sᶜ)) :
       (Finset.univ.filter (fun x : S => fT x = y)).card ≤ L := by
     let N : Finset S := Finset.univ.filter (fun x => G.Adj (y : α) (x : α))
     have hsub :
@@ -113,7 +127,7 @@ private theorem maximumIndepSet_card_le_compl_mul_maxLocal
       let e : S ↪ α := ⟨Subtype.val, Subtype.val_injective⟩
       have hmap : N.map e = S.filter (G.Adj (y : α)) := by
         ext x
-        simp [N, e]
+        simp [N, e, and_comm]
       rw [← hmap, Finset.card_map]
     calc
       (Finset.univ.filter (fun x : S => fT x = y)).card ≤ N.card :=
@@ -124,9 +138,9 @@ private theorem maximumIndepSet_card_le_compl_mul_maxLocal
       _ ≤ L := by
         apply Finset.le_max'
         simp [locals]
-  change S.card ≤ Sᶜ.card * L
+  change S.card ≤ (Sᶜ).card * L
   by_contra hnot
-  have hlt : Fintype.card Sᶜ * L < Fintype.card S := by
+  have hlt : Fintype.card ↥(Sᶜ) * L < Fintype.card ↥S := by
     simpa using (Nat.lt_of_not_ge hnot)
   obtain ⟨y, hy⟩ :=
     Fintype.exists_lt_card_fiber_of_mul_lt_card (f := fT) hlt
@@ -161,17 +175,18 @@ theorem arithmetic_ceiling_bound
   have hqsq : q ^ 2 = q2 := by
     simp only [q]
     exact Real.sq_sqrt hq2non
+  rw [← hqsq] at hq2
   have hstrict :
       (A : ℝ) - 1 < ((L : ℝ) + (1 / 2) * q) / 2 := by
     by_cases hsmall : A < 15
     · have hAle : A ≤ 14 := by omega
       interval_cases A <;> interval_cases L <;>
-        norm_num at hA hL hLA hAmr hq2 hqsq ⊢ <;>
+        norm_num at hA hL hLA hAmr hq2 ⊢ <;>
         nlinarith
     · have hA15 : 15 ≤ A := by omega
       have hx : 0 ≤ (A : ℝ) - 15 := by exact_mod_cast hA15
       have hbase_le :
-          (A : ℝ) * ((A : ℝ) - 1) ^ 2 ≤ q2 := by
+          (A : ℝ) * ((A : ℝ) - 1) ^ 2 ≤ q ^ 2 := by
         have hmnon : 0 ≤ (m : ℝ) := by positivity
         have hcross :
             0 ≤ (2 * (A : ℝ) - 1) * (m : ℝ) * ((A : ℝ) - L) := by positivity
@@ -190,6 +205,9 @@ theorem arithmetic_ceiling_bound
     rw [Int.le_ceil_iff]
     norm_num
     exact hstrict
-  simpa [q] using_mod_cast hz
+  have hzreal : ((A : ℤ) : ℝ) ≤
+      ((⌈(((L : ℝ) + (1 / 2) * q) / 2)⌉ : ℤ) : ℝ) := by
+    exact_mod_cast hz
+  simpa [q] using hzreal
 
 end WrittenOnTheWallII.GraphConjecture100ForkProof
