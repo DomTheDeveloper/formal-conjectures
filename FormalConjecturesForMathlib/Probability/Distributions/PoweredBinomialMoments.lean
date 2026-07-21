@@ -126,6 +126,9 @@ private lemma standardizedBernoulliSubgaussianParameter_pos
     ring
   rw [standardizedBernoulliSubgaussianParameter]
   simp only [hwidth]
+  have hinv : 0 < 1 / bernoulliStdDev p := one_div_pos.mpr hs
+  have hnormNN : 0 < ‖(1 / bernoulliStdDev p : ℝ)‖₊ := by
+    exact_mod_cast (norm_pos_iff.mpr (one_div_ne_zero (ne_of_gt hs)))
   positivity
 
 private lemma tendsto_poweredStandardizedBinomialTailDifference
@@ -157,7 +160,11 @@ private lemma tendsto_poweredStandardizedBinomialTailDifference
         atTop (𝓝 (1 - cdf (gaussianReal 0 1) (-t))) :=
       tendsto_const_nhds.sub hcdfLeft
     have hpow := hbase.rpow_const (.inr hα.le)
-    have hfinal := tendsto_const_nhds.sub hpow
+    have hfinal : Tendsto
+        (fun n ↦ 1 - (1 - cdf (standardizedBinomialMeasure n p) (-t)) ^ α)
+        atTop
+        (𝓝 (1 - (1 - cdf (gaussianReal 0 1) (-t)) ^ α)) :=
+      tendsto_const_nhds.sub hpow
     simpa only [measureReal_Iic_poweredStandardizedBinomialProbability,
       cdf_gaussianReal_zero_one_neg, sub_sub_cancel] using hfinal
   change Tendsto
@@ -165,7 +172,7 @@ private lemma tendsto_poweredStandardizedBinomialTailDifference
       (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Ioi t) -
         (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Iic (-t)))
     atTop _
-  convert hright.sub hleft using 1 <;> ring
+  convert hright.sub hleft using 1 <;> ring_nf
 
 private lemma exp_rpow_tail_eq
     {c α t : ℝ} (hc : c ≠ 0) :
@@ -174,7 +181,6 @@ private lemma exp_rpow_tail_eq
   rw [← Real.exp_mul]
   congr 1
   field_simp [hc]
-  ring
 
 private lemma abs_tailDifference_le_add
     (n : ℕ) (p : I) (α : ℝ) (hα : 0 < α) (t : ℝ) :
@@ -231,7 +237,7 @@ lemma tendsto_integral_poweredStandardizedBinomialTailDifference
           abs_tailDifference_le_add n p α hα t
         _ ≤ (exp (-t ^ 2 / (2 * c))) ^ α +
               (exp (-t ^ 2 / (2 * c))) ^ α := add_le_add hright hleft
-        _ = g t := by rw [heq]; simp [g]
+        _ = g t := by rw [heq]; simp [g]; ring
     · exact ae_of_all _ fun t ↦
         tendsto_poweredStandardizedBinomialTailDifference p hp0 hp1 α hα t
   · let b : ℝ := 1 / (2 * c)
@@ -250,8 +256,10 @@ lemma tendsto_integral_poweredStandardizedBinomialTailDifference
       let q : ℝ := exp (-t ^ 2 / (2 * c))
       have hq0 : 0 ≤ q := exp_nonneg _
       have hq1 : q ≤ 1 := by
-        rw [q, exp_le_one_iff]
-        positivity
+        dsimp [q]
+        exact exp_le_one_iff.mpr (by
+          have hfrac : 0 ≤ t ^ 2 / (2 * c) := by positivity
+          simpa [neg_div] using neg_nonpos.mpr hfrac)
       have hright0 :=
         measureReal_Ioi_poweredStandardizedBinomialProbability_le_exp_rpow
           n hn0 p hp0 hp1 α hα t ht0
@@ -263,8 +271,8 @@ lemma tendsto_integral_poweredStandardizedBinomialTailDifference
           n hn0 p hp0 hp1 α hα h1α t ht0
       have heq : exp (-t ^ 2 / (2 * c)) = exp (-b * t ^ 2) := by
         congr 1
+        dsimp [b]
         field_simp [hc0]
-        ring
       rw [Real.norm_eq_abs]
       calc
         |poweredStandardizedBinomialTailDifference n p α hα t| ≤
@@ -272,7 +280,7 @@ lemma tendsto_integral_poweredStandardizedBinomialTailDifference
               (poweredStandardizedBinomialProbability n p α hα : Measure ℝ).real (Iic (-t)) :=
           abs_tailDifference_le_add n p α hα t
         _ ≤ q + α * q := add_le_add hright (by simpa [q] using hleft)
-        _ = g t := by rw [q, heq]; simp [g]; ring
+        _ = g t := by dsimp [q]; rw [heq]; simp [g]; ring
     · exact ae_of_all _ fun t ↦
         tendsto_poweredStandardizedBinomialTailDifference p hp0 hp1 α hα t
 
