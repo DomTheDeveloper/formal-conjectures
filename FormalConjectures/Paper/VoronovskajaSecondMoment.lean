@@ -71,9 +71,12 @@ lemma sqrt_mul_sum_sq_centered_bezierWeight_eq
   have hsd : bernoulliStdDev x ≠ 0 := (bernoulliStdDev_pos x hx0 hx1).ne'
   rw [standardizeBinomial]
   field_simp [hnR, hsqrt, hsd]
-  rw [Real.sq_sqrt]
-  · ring
-  · positivity
+  have hsqrt4 : (Real.sqrt (n : ℝ)) ^ 4 = (n : ℝ) ^ 2 := by
+    calc
+      (Real.sqrt (n : ℝ)) ^ 4 = ((Real.sqrt (n : ℝ)) ^ 2) ^ 2 := by ring
+      _ = (n : ℝ) ^ 2 := by
+        rw [Real.sq_sqrt (by positivity : 0 ≤ (n : ℝ))]
+  rw [hsqrt4]
 
 lemma tendsto_sqrt_mul_sum_sq_centered_bezierWeight
     (x : I) (hx0 : 0 < (x : ℝ)) (hx1 : (x : ℝ) < 1)
