@@ -1,24 +1,25 @@
 # Copyright 2025 The Formal Conjectures Authors.
 
-name: Check WOWII 146 proof
+name: Finalize WOWII 146 proof
 
 on:
   pull_request:
     paths:
-      - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean'
       - '.github/wowii146-source.part*'
       - '.github/wowii146-fix2.patch'
       - '.github/workflows/check-wowii146.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  check-wowii146:
+  finalize-wowii146:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout project
+      - name: Checkout proof branch
         uses: actions/checkout@v6
+        with:
+          ref: solve-wowii-146
 
       - name: Install elan
         run: |
@@ -31,7 +32,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ~/.cache/mathlib
-          key: wowii146-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('.github/wowii146-source.part*', '.github/wowii146-fix2.patch') }}
+          key: wowii146-final-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('.github/wowii146-source.part*', '.github/wowii146-fix2.patch') }}
           restore-keys: |
             oleans-${{ hashFiles('lake-manifest.json') }}-
             oleans-
@@ -41,29 +42,62 @@ jobs:
           lake exe cache unpack
           lake exe cache get
 
-      - name: Assemble exact proof source
+      - name: Assemble numbered proof file
         run: |
-          cat .github/wowii146-source.part* > FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean
+          cat .github/wowii146-source.part* > /tmp/146.lean
+          cp /tmp/146.lean FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean
           patch -d FormalConjectures/WrittenOnTheWallII -p1 < .github/wowii146-fix2.patch
-          wc -c FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean
-          sha256sum FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean | tee wowii146-source.sha256
+          mv FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean \
+            FormalConjectures/WrittenOnTheWallII/146.lean
+          python3 - <<'PY'
+          from pathlib import Path
 
-      - name: Compile exact proof module
+          path = Path('FormalConjectures/WrittenOnTheWallII/146.lean')
+          text = path.read_text()
+          text = text.replace(
+              'import FormalConjectures.WrittenOnTheWallII.GraphConjecture146',
+              'import FormalConjecturesUtil',
+              1,
+          )
+          definition = '''namespace WrittenOnTheWallII.GraphConjecture146
+
+open Classical SimpleGraph
+
+variable {α : Type*} [Fintype α] [DecidableEq α] [Nontrivial α]
+
+/-- The radius of the square graph. -/
+noncomputable def graphSquareRadius (G : SimpleGraph α) : ℕ :=
+  (graphSquare G).radius.toNat
+
+end WrittenOnTheWallII.GraphConjecture146
+
+namespace SimpleGraph
+'''
+          text = text.replace('namespace SimpleGraph\n', definition, 1)
+          text = text.replace('conjecture146_proved', 'conjecture146')
+          text = text.replace('@[category API, AMS 5]', '@[category research solved, AMS 5]', 1)
+          path.write_text(text)
+          PY
+          test ! -e FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean
+          grep -n '^theorem conjecture146' FormalConjectures/WrittenOnTheWallII/146.lean
+          tail -n 5 FormalConjectures/WrittenOnTheWallII/146.lean
+
+      - name: Compile numbered proof file
         run: |
-          set +e
-          lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture146Proof > wowii146.log 2>&1
-          status=$?
-          cat wowii146.log
-          printf '%s\n' "$status" > wowii146.status
-          exit "$status"
+          lake build FormalConjectures.WrittenOnTheWallII.146 2>&1 | tee wowii146-final.log
 
-      - name: Upload diagnostics
+      - name: Commit numbered proof file
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add FormalConjectures/WrittenOnTheWallII/146.lean
+          git commit -m 'Add verified proof of WOWII 146'
+          git push origin HEAD:solve-wowii-146
+
+      - name: Upload final compiler log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wowii146-diagnostics
-          path: |
-            wowii146-source.sha256
-            wowii146.log
-            wowii146.status
+          name: wowii146-final-log
+          path: wowii146-final.log
           if-no-files-found: warn
