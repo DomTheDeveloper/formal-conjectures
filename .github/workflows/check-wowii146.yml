@@ -1,6 +1,6 @@
 # Copyright 2025 The Formal Conjectures Authors.
 
-name: Finalize WOWII 146 proof
+name: Export verified WOWII 146 proof
 
 on:
   pull_request:
@@ -8,16 +8,14 @@ on:
       - synchronize
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  finalize-wowii146:
+  export-wowii146:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout proof branch
+      - name: Checkout pull request
         uses: actions/checkout@v6
-        with:
-          ref: solve-wowii-146
 
       - name: Install elan
         run: |
@@ -30,7 +28,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ~/.cache/mathlib
-          key: wowii146-final-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('.github/wowii146-source.part*', '.github/wowii146-fix2.patch') }}
+          key: wowii146-export-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('.github/wowii146-source.part*', '.github/wowii146-fix2.patch') }}
           restore-keys: |
             oleans-${{ hashFiles('lake-manifest.json') }}-
             oleans-
@@ -83,18 +81,12 @@ namespace SimpleGraph
         run: |
           lake build FormalConjectures.WrittenOnTheWallII.146 2>&1 | tee wowii146-final.log
 
-      - name: Commit numbered proof file
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add FormalConjectures/WrittenOnTheWallII/146.lean
-          git commit -m 'Add verified proof of WOWII 146 [finalized-146]'
-          git push origin HEAD:solve-wowii-146
-
-      - name: Upload final compiler log
+      - name: Upload verified source and log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wowii146-final-log
-          path: wowii146-final.log
-          if-no-files-found: warn
+          name: wowii146-verified-source
+          path: |
+            FormalConjectures/WrittenOnTheWallII/146.lean
+            wowii146-final.log
+          if-no-files-found: error
