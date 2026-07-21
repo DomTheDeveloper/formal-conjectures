@@ -63,6 +63,9 @@ private lemma standardizedBernoulliSubgaussianParameter_pos'
     ring
   rw [standardizedBernoulliSubgaussianParameter]
   simp only [hwidth]
+  have hinv : 0 < 1 / bernoulliStdDev p := one_div_pos.mpr hs
+  have hnormNN : 0 < ‖(1 / bernoulliStdDev p : ℝ)‖₊ := by
+    exact_mod_cast (norm_pos_iff.mpr (one_div_ne_zero (ne_of_gt hs)))
   positivity
 
 private lemma exp_rpow_tail_eq'
@@ -72,7 +75,6 @@ private lemma exp_rpow_tail_eq'
   rw [← Real.exp_mul]
   congr 1
   field_simp [hc]
-  ring
 
 /-- The right-tail function of a powered standardized-binomial law is integrable on the positive
 half-line. -/
@@ -157,8 +159,8 @@ lemma integrable_poweredStandardizedBinomialLeftTail
       simpa [c] using htail
     have heq : exp (-t ^ 2 / (2 * c)) = exp (-b * t ^ 2) := by
       congr 1
+      dsimp [b]
       field_simp [hc0]
-      ring
     rw [Real.norm_eq_abs, abs_of_nonneg measureReal_nonneg]
     exact htail'.trans_eq (by rw [heq])
 
