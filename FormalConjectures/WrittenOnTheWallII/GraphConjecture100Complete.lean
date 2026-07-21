@@ -168,6 +168,7 @@ theorem conjecture100
       rw [Finset.disjoint_left]
       intro x hxP hxQ
       simp [P, Q] at hxP hxQ
+      exact hxQ.2 hxP.2
     have hunion : P ∪ Q = S := by
       ext x
       by_cases hx : x ∈ S
@@ -195,7 +196,7 @@ theorem conjecture100
     have htS : t ∉ S := by simpa [T] using ht
     have hne : t ≠ s := fun hts => htS (hts ▸ hsS)
     simp only [SimpleGraph.mem_neighborFinset]
-    simp [H, hne, hnot, G.adj_comm]
+    simp [H, hne, hnot]
   have hdouble : (∑ s ∈ S, r s) = ∑ t ∈ T, c t := by
     simpa [r, c] using
       (Finset.sum_card_bipartiteAbove_eq_sum_card_bipartiteBelow
