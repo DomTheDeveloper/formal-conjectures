@@ -1,0 +1,62 @@
+name: Verify WOWII 145 proof
+
+on:
+  push:
+    branches:
+      - agent/wowii-145-proof
+    paths-ignore:
+      - WOW145Proof/lean-ci.log
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install elan
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve dependencies and cache
+        working-directory: WOW145Proof
+        run: |
+          lake update
+          lake exe cache get
+
+      - name: Verify proof and axiom audit
+        id: verify
+        working-directory: WOW145Proof
+        shell: bash
+        run: |
+          set +e
+          {
+            echo '$ lake env lean -DwarningAsError=true WOW145/Conjecture145.lean'
+            lake env lean -DwarningAsError=true WOW145/Conjecture145.lean
+          } > lean-ci.log 2>&1
+          status=$?
+          printf '\nEXIT_STATUS=%s\n' "$status" >> lean-ci.log
+          echo "exit_status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Publish compiler log
+        if: always()
+        run: |
+          cp WOW145Proof/lean-ci.log WOW145Proof/lean-ci.log.tmp
+          mv WOW145Proof/lean-ci.log.tmp WOW145Proof/lean-ci.log
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -f WOW145Proof/lean-ci.log
+          git commit -m "ci: publish WOWII 145 Lean log" || true
+          git push origin HEAD:${GITHUB_REF_NAME}
+
+      - name: Fail when Lean failed
+        if: steps.verify.outputs.exit_status != '0'
+        run: exit 1
