@@ -20,7 +20,9 @@ import FormalConjecturesUtil
 # Written on the Wall II - Conjecture 322
 
 *Reference:*
-[E. DeLaVina, Written on the Wall II, Conjectures of Graffiti.pc](http://cms.dt.uh.edu/faculty/delavinae/research/wowII/)
+[E. DeLaViña, Written on the Wall II, Conjectures of Graffiti.pc](http://cms.uhd.edu/faculty/delavinae/research/wowII/open.html#conj322)
+
+The historical source applies the local-independence hypothesis to the complement graph.
 -/
 
 open Classical
@@ -32,19 +34,20 @@ open SimpleGraph
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
 /--
-WOWII [Conjecture 322](http://cms.dt.uh.edu/faculty/delavinae/research/wowII/)
+WOWII [Conjecture 322](http://cms.uhd.edu/faculty/delavinae/research/wowII/open.html#conj322)
 
 Let `G` be a simple connected graph on `n ≥ 5` vertices. If the maximum over all
-vertices `v` of `l(v)` — the independence number of the neighborhood `N(v)` of `v`
-— is at most 1, then `G` is well totally dominated.
+vertices `v` of `l(v)` in the complement graph `Gᶜ` — the independence number of
+the neighborhood `N(v)` of `v` — is at most 1, then `G` is well totally dominated.
 
-Here `l(v) = α(G[N(v)])` is the independence number of the subgraph induced by the
-open neighborhood of `v`.
+Here `l(v) = α(Gᶜ[N(v)])` is the independence number of the subgraph induced by the
+open neighborhood of `v` in `Gᶜ`.
 -/
-@[category research open, AMS 5]
-theorem conjecture322 (G : SimpleGraph α) [DecidableRel G.Adj] (hG : G.Connected)
+@[category research solved, AMS 5, formal_proof using formal_conjectures at
+  "https://github.com/DomTheDeveloper/formal-conjectures/blob/24bf0e034072c8ee86f7804be2c7af8cc8e0aae0/FormalConjectures/WrittenOnTheWallII/GraphConjecture322.lean"]
+theorem conjecture322 (G : SimpleGraph α) [DecidableRel G.Adj] (_hG : G.Connected)
     (hn : 5 ≤ Fintype.card α)
-    (h : ∀ v : α, indepNeighborsCard G v ≤ 1) :
+    (h : ∀ v : α, indepNeighborsCard Gᶜ v ≤ 1) :
     IsWellTotallyDominated G := by
   sorry
 
