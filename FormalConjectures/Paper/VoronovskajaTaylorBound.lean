@@ -146,8 +146,7 @@ lemma norm_sub_linearization_le_sq
       intro z hz
       have hzI : z ∈ I := hsub (Ico_subset_Icc_self hz)
       have hL := norm_iteratedDerivWithin_one_sub_le f hf M hM0 hM hx hzI
-      have hzx : ‖z - x‖ = z - x := by
-        rw [Real.norm_eq_abs, abs_of_nonneg (sub_nonneg.mpr hz.1)]
+      have hzx : |z - x| = z - x := abs_of_nonneg (sub_nonneg.mpr hz.1)
       dsimp [d] at hL
       rw [hzx] at hL
       exact hL.trans (mul_le_mul_of_nonneg_left (sub_le_sub_right hz.2.le x) hM0)
@@ -171,8 +170,8 @@ lemma norm_sub_linearization_le_sq
       intro z hz
       have hzI : z ∈ I := hsub (Ico_subset_Icc_self hz)
       have hL := norm_iteratedDerivWithin_one_sub_le f hf M hM0 hM hx hzI
-      have hzx : ‖z - x‖ = x - z := by
-        rw [Real.norm_eq_abs, abs_of_nonpos (sub_nonpos.mpr hz.2.le)]
+      have hzx : |z - x| = x - z := by
+        rw [abs_of_nonpos (sub_nonpos.mpr hz.2.le)]
         ring
       dsimp [d] at hL
       rw [hzx] at hL
