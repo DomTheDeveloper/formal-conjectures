@@ -40,9 +40,8 @@ private lemma derivWithin_iteratedDerivWithin_one_eq_two
     (f : ℝ → ℝ) (y : ℝ) :
     derivWithin (iteratedDerivWithin 1 f I) I y =
       iteratedDerivWithin 2 f I y := by
-  have h := congrFun (iteratedDerivWithin_succ (n := 1) (f := f) (s := I)) y
-  norm_num at h ⊢
-  exact h.symm
+  simpa using
+    (iteratedDerivWithin_succ (n := 1) (f := f) (s := I) (x := y)).symm
 
 /-- The second within-derivative of a `C^2` function is uniformly bounded on `[0,1]`. -/
 lemma exists_bound_iteratedDerivWithin_two
@@ -54,7 +53,7 @@ lemma exists_bound_iteratedDerivWithin_two
       (fun y : ℝ ↦ ‖iteratedDerivWithin 2 f I y‖) I :=
     (hf.continuousOn_iteratedDerivWithin (by norm_num) hI).norm
   obtain ⟨y, hy, hmax⟩ :=
-    isCompact_Icc.exists_isMaxOn nonempty_Icc hcont
+    isCompact_Icc.exists_isMaxOn (nonempty_Icc.mpr zero_le_one) hcont
   refine ⟨‖iteratedDerivWithin 2 f I y‖, norm_nonneg _, ?_⟩
   intro z hz
   exact hmax hz
@@ -149,7 +148,8 @@ lemma norm_sub_linearization_le_sq
       have hL := norm_iteratedDerivWithin_one_sub_le f hf M hM0 hM hx hzI
       have hzx : ‖z - x‖ = z - x := by
         rw [Real.norm_eq_abs, abs_of_nonneg (sub_nonneg.mpr hz.1)]
-      rw [d, hzx] at hL
+      dsimp [d] at hL
+      rw [hzx] at hL
       exact hL.trans (mul_le_mul_of_nonneg_left (sub_le_sub_right hz.2.le x) hM0)
     have h := norm_image_sub_le_of_norm_deriv_le_segment'
       hg hbound y (right_mem_Icc.2 hxy)
@@ -174,13 +174,17 @@ lemma norm_sub_linearization_le_sq
       have hzx : ‖z - x‖ = x - z := by
         rw [Real.norm_eq_abs, abs_of_nonpos (sub_nonpos.mpr hz.2.le)]
         ring
-      rw [d, hzx] at hL
+      dsimp [d] at hL
+      rw [hzx] at hL
       exact hL.trans (mul_le_mul_of_nonneg_left (sub_le_sub_left hz.1 x) hM0)
     have h := norm_image_sub_le_of_norm_deriv_le_segment'
       hg hbound x (right_mem_Icc.2 hyx)
     have hgx : g x = 0 := by simp [g]
     rw [hgx, zero_sub, norm_neg] at h
-    have hsquare : (x - y) * (x - y) = (y - x) ^ 2 := by ring
-    simpa [g, d, pow_two, hsquare] using h
+    calc
+      ‖f y - f x - iteratedDerivWithin 1 f I x * (y - x)‖ ≤
+          M * (x - y) * (x - y) := by
+        simpa [g, d] using h
+      _ = M * (y - x) ^ 2 := by ring
 
 end VoronovskajaTypeFormula
