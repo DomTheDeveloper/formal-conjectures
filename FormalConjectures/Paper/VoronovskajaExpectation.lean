@@ -44,7 +44,7 @@ private lemma setOf_lt_coe_toNNReal_eq_Ioi {t : ℝ} (ht : 0 < t) :
   · intro h
     rcases lt_max_iff.mp h with h | h
     · exact h
-    · exact (ht.not_lt h).elim
+    · exact (lt_asymm ht h).elim
   · intro h
     exact h.trans_le (le_max_left z 0)
 
@@ -142,10 +142,19 @@ lemma integral_id_poweredStandardizedBinomial_eq_tailDifference
     _ =
         (∫ t in Ioi 0, μ.real {z : ℝ | t < (Real.toNNReal z : ℝ)}) -
           ∫ t in Ioi 0, μ.real {z : ℝ | t ≤ (Real.toNNReal (-z) : ℝ)} := by
-      rw [(hid.real_toNNReal).integral_eq_integral_meas_lt
-          (Eventually.of_forall fun z ↦ by positivity)]
-      rw [(hid.neg.real_toNNReal).integral_eq_integral_meas_le
-          (Eventually.of_forall fun z ↦ by positivity)]
+      have hposLayer :
+          (∫ z : ℝ, (Real.toNNReal z : ℝ) ∂μ) =
+            ∫ t in Ioi 0, μ.real {z : ℝ | t < (Real.toNNReal z : ℝ)} := by
+        simpa using
+          (hid.real_toNNReal).integral_eq_integral_meas_lt
+            (Eventually.of_forall fun z ↦ by positivity)
+      have hnegLayer :
+          (∫ z : ℝ, (Real.toNNReal (-z) : ℝ) ∂μ) =
+            ∫ t in Ioi 0, μ.real {z : ℝ | t ≤ (Real.toNNReal (-z) : ℝ)} := by
+        simpa only [Pi.neg_apply] using
+          (hid.neg.real_toNNReal).integral_eq_integral_meas_le
+            (Eventually.of_forall fun z ↦ by positivity)
+      rw [hposLayer, hnegLayer]
     _ = (∫ t in Ioi 0, μ.real (Ioi t)) -
           ∫ t in Ioi 0, μ.real (Iic (-t)) := by
       rw [integral_congr_ae hposEq, integral_congr_ae hnegEq]
