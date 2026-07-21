@@ -26,12 +26,6 @@ name = "mathlib"
 scope = "leanprover-community"
 rev = "v4.27.0"
 
-# Audit-only pinned dependency; not part of the upstream patch.
-[[require]]
-name = "wow_146"
-git = "https://github.com/akakabrian/WOW-146.git"
-rev = "18201d492b52a2f82a2966551aed1640c45ec13b"
-
 [[lean_lib]]
 name = "FormalConjecturesForMathlib"
 
@@ -52,7 +46,10 @@ weak.linter.style.moduleDocstring = true
 [[lean_lib]]
 name = "WOWII"
 
-# Temporary exact-proof audit target.
+# Temporary audit-only libraries vendored from pinned Apache-licensed source.
+[[lean_lib]]
+name = "WOW146"
+
 [[lean_lib]]
 name = "WOW145"
 
