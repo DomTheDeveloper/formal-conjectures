@@ -32,7 +32,7 @@ noncomputable section
 
 open Topology Filter Real unitInterval Polynomial
 open MeasureTheory ProbabilityTheory Set
-open scoped ENNREAL NNReal ProbabilityTheory Topology unitInterval
+open scoped ENNReal NNReal ProbabilityTheory Topology unitInterval
 
 namespace VoronovskajaTypeFormula
 
@@ -55,6 +55,7 @@ private lemma standardizeBinomial_eq_scale_frequency
     exact_mod_cast hn
   rw [standardizeBinomial]
   field_simp [hnR, hsqrt]
+  rw [Real.sq_sqrt (Nat.cast_nonneg n)]
 
 private lemma far_index_maps_to_two_tails
     (n : ℕ) (hn : 0 < n)
@@ -142,7 +143,7 @@ private lemma classicalFarMass_le_measure_tails
     · have hpre : k ∉ (fun j : Fin (n + 1) ↦
           standardizeBinomial n x ((j : ℕ) : ℝ)) ⁻¹' tails := by
         simpa using hmem
-      rw [Set.indicator_of_not_mem hpre]
+      rw [Set.indicator_of_notMem hpre]
       simp
 
 private lemma standardizedBernoulliSubgaussianParameter_pos
