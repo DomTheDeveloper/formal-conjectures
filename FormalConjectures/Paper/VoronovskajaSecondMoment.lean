@@ -49,7 +49,18 @@ lemma sqrt_mul_sum_sq_centered_bezierWeight_eq
             ∂(poweredStandardizedBinomialProbability n x α hα : Measure ℝ))) := by
   rw [← standardizedBezierMeasure_eq_poweredStandardizedBinomial n α hα x]
   rw [integral_sq_standardizedBezierMeasure_eq_sum]
-  rw [Fin.sum_univ_eq_sum_range]
+  have hsum :
+      (∑ k : Fin (n + 1),
+        bezierWeight n (k : ℕ) α (x : ℝ) *
+          (standardizeBinomial n x ((k : ℕ) : ℝ)) ^ 2) =
+        ∑ k ∈ Finset.range (n + 1),
+          bezierWeight n k α (x : ℝ) *
+            (standardizeBinomial n x (k : ℝ)) ^ 2 := by
+    simpa using (Fin.sum_univ_eq_sum_range
+      (f := fun k : ℕ =>
+        bezierWeight n k α (x : ℝ) *
+          (standardizeBinomial n x (k : ℝ)) ^ 2) (n + 1))
+  rw [hsum]
   rw [Finset.mul_sum, Finset.mul_sum, Finset.mul_sum]
   apply Finset.sum_congr rfl
   intro k hk
