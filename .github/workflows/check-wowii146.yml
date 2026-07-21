@@ -3,17 +3,16 @@
 name: Finalize WOWII 146 proof
 
 on:
-  pull_request:
-    paths:
-      - '.github/wowii146-source.part*'
-      - '.github/wowii146-fix2.patch'
-      - '.github/workflows/check-wowii146.yml'
+  push:
+    branches:
+      - solve-wowii-146
 
 permissions:
   contents: write
 
 jobs:
   finalize-wowii146:
+    if: ${{ !contains(github.event.head_commit.message, '[finalized-146]') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout proof branch
@@ -44,8 +43,7 @@ jobs:
 
       - name: Assemble numbered proof file
         run: |
-          cat .github/wowii146-source.part* > /tmp/146.lean
-          cp /tmp/146.lean FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean
+          cat .github/wowii146-source.part* > FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean
           patch -d FormalConjectures/WrittenOnTheWallII -p1 < .github/wowii146-fix2.patch
           mv FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean \
             FormalConjectures/WrittenOnTheWallII/146.lean
@@ -91,7 +89,7 @@ namespace SimpleGraph
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add FormalConjectures/WrittenOnTheWallII/146.lean
-          git commit -m 'Add verified proof of WOWII 146'
+          git commit -m 'Add verified proof of WOWII 146 [finalized-146]'
           git push origin HEAD:solve-wowii-146
 
       - name: Upload final compiler log
