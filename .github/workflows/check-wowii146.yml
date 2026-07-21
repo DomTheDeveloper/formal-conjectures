@@ -5,7 +5,7 @@ name: Finalize WOWII 146 proof
 on:
   pull_request:
     types:
-      - ready_for_review
+      - synchronize
 
 permissions:
   contents: write
