@@ -20,6 +20,37 @@ namespace WrittenOnTheWallII.GraphConjecture100ForkProof
 
 open Classical SimpleGraph
 
+variable {α : Type*} [Fintype α] [DecidableEq α]
+
+private theorem indepNum_induce_le (G : SimpleGraph α) (U : Set α) :
+    (G.induce U).indepNum ≤ G.indepNum := by
+  obtain ⟨s, hs⟩ := (G.induce U).exists_isNIndepSet_indepNum
+  let e : U ↪ α := ⟨Subtype.val, Subtype.val_injective⟩
+  have hs' : G.IsNIndepSet (G.induce U).indepNum (s.map e) := by
+    exact (SimpleGraph.isNIndepSet_induce).mp hs
+  have hcard := hs'.isIndepSet.card_le_indepNum
+  simpa [Finset.card_map, hs.card_eq] using hcard
+
+private theorem card_filter_adj_le_indepNeighborsCard
+    (G : SimpleGraph α) [DecidableRel G.Adj]
+    (S : Finset α) (hS : G.IsIndepSet (S : Set α)) (v : α) :
+    (S.filter (G.Adj v)).card ≤ indepNeighborsCard G v := by
+  let U : Finset (G.neighborSet v) :=
+    Finset.univ.filter (fun x => (x : α) ∈ S)
+  have hU : (G.induce (G.neighborSet v)).IsIndepSet (U : Set _) := by
+    rintro x hx y hy hxy hxyAdj
+    apply hS
+    · simpa [U] using hx
+    · simpa [U] using hy
+    · exact fun h => hxy (Subtype.ext h)
+    · exact hxyAdj
+  let e : G.neighborSet v ↪ α := ⟨Subtype.val, Subtype.val_injective⟩
+  have hmap : U.map e = S.filter (G.Adj v) := by
+    ext x
+    simp [U, e]
+  rw [← hmap, Finset.card_map]
+  exact hU.card_le_indepNum
+
 /-- The numerical inequality used in the proof of the exact Formal Conjectures
 statement of WOWII Conjecture 100. -/
 theorem arithmetic_ceiling_bound
