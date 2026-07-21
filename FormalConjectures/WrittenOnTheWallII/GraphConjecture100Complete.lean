@@ -18,11 +18,11 @@ import FormalConjectures.WrittenOnTheWallII.GraphConjecture100ForkProof
 import Mathlib.Combinatorics.Enumerative.DoubleCounting
 
 /-!
-# Complete proof of the exact Formal Conjectures statement of WOWII 100
+# Complete proof of the source-aligned Formal Conjectures statement of WOWII 100
 
-The encoded theorem uses the degree `L²` norm of the complement. This file
-proves that exact statement. It does not claim the separately documented
-formulation involving the complement diameter.
+The encoded invariant `degreeL2Norm Gᶜ` is the square root of the sum of the
+squares of the complement degrees, matching the WOWII definition of graph
+length. No connectedness assumption on the complement is needed.
 -/
 
 namespace WrittenOnTheWallII.GraphConjecture100Complete
@@ -80,24 +80,43 @@ private theorem maxLocalIndependence_le_indepNum [Nonempty α] (G : SimpleGraph 
   obtain ⟨v, -, rfl⟩ := Finset.mem_image.mp hn
   exact indepNum_induce_le G (G.neighborSet v)
 
-private theorem two_le_maximumIndepSet_card
-    [Nontrivial α] (G : SimpleGraph α) [DecidableRel G.Adj]
-    (hGc : Gᶜ.Connected) (S : Finset α) (hS : G.IsMaximumIndepSet S) :
-    2 ≤ S.card := by
-  obtain ⟨a, b, hab⟩ := exists_pair_ne α
-  have hdeg : 0 < (Gᶜ).degree a := hGc.preconnected.degree_pos_of_nontrivial a
-  obtain ⟨c, hac⟩ := ((Gᶜ).degree_pos_iff_exists_adj (v := a)).mp hdeg
-  have hp : G.IsIndepSet ((({a, c} : Finset α) : Set α)) := by
-    rw [← SimpleGraph.isClique_compl]
-    simpa only [Finset.coe_insert, Finset.coe_singleton] using
-      (SimpleGraph.isClique_pair.mpr (fun _ => hac))
-  have hle := hS.maximum ({a, c} : Finset α) hp
-  simpa [(Gᶜ).ne_of_adj hac] using hle
+private theorem arithmetic_ceiling_bound_pos
+    (A L m : ℕ) (q2 : ℝ)
+    (hA : 1 ≤ A) (hL : 1 ≤ L) (hLA : L ≤ A) (hAm : A ≤ m * L)
+    (hq2 :
+      (A : ℝ) * ((A : ℝ) - 1) ^ 2
+        + (2 * (A : ℝ) - 1) * (m : ℝ) * ((A : ℝ) - (L : ℝ))
+        + (m : ℝ) * ((A : ℝ) - (L : ℝ)) ^ 2 ≤ q2) :
+    (A : ℝ) ≤
+      ((⌈(((L : ℝ) + (1 / 2) * Real.sqrt q2) / 2)⌉ : ℤ) : ℝ) := by
+  by_cases hAone : A = 1
+  · have hLone : L = 1 := by omega
+    subst A
+    subst L
+    have hq2non : 0 ≤ q2 := by
+      norm_num at hq2
+      exact hq2
+    have hqnon : 0 ≤ Real.sqrt q2 := Real.sqrt_nonneg _
+    have hxpos :
+        0 < (((1 : ℝ) + (1 / 2) * Real.sqrt q2) / 2) := by
+      nlinarith
+    have hz :
+        (1 : ℤ) ≤ ⌈(((1 : ℝ) + (1 / 2) * Real.sqrt q2) / 2)⌉ := by
+      rw [Int.le_ceil_iff]
+      norm_num
+      exact hxpos
+    have hzreal :
+        ((1 : ℤ) : ℝ) ≤
+          ((⌈(((1 : ℝ) + (1 / 2) * Real.sqrt q2) / 2)⌉ : ℤ) : ℝ) := by
+      exact_mod_cast hz
+    simpa using hzreal
+  · exact GraphConjecture100ForkProof.arithmetic_ceiling_bound
+      A L m q2 (by omega) hL hLA hAm hq2
 
-/-- The exact `degreeL2Norm` theorem currently encoded as WOWII Conjecture 100. -/
+/-- The exact source-aligned `degreeL2Norm` theorem encoded as WOWII Conjecture 100. -/
 theorem conjecture100
     [Nontrivial α] (G : SimpleGraph α) [DecidableRel G.Adj]
-    (h : G.Connected) (hGc : Gᶜ.Connected) :
+    (h : G.Connected) :
     let maxL := (Finset.univ.image (indepNeighborsCard G)).max' (by simp)
     (G.indepNum : ℝ) ≤
       ⌈((maxL : ℝ) + (1 / 2) * (degreeL2Norm Gᶜ : ℝ)) / 2⌉ := by
@@ -112,8 +131,11 @@ theorem conjecture100
   let c : α → ℕ := fun t => (S.bipartiteBelow H.Adj t).card
   have hAeq : A = G.indepNum := by
     exact G.maximumIndepSet_card_eq_indepNum S hS
-  have hA : 2 ≤ A := by
-    exact two_le_maximumIndepSet_card G hGc S hS
+  have hApos : 1 ≤ A := by
+    let v : α := Classical.choice (inferInstance : Nonempty α)
+    have hv : G.IsIndepSet ((({v} : Finset α) : Set α)) := by simp
+    have hle := hS.maximum ({v} : Finset α) hv
+    simpa [A] using hle
   have hLA : L ≤ A := by
     rw [hAeq]
     exact maxLocalIndependence_le_indepNum G
@@ -293,7 +315,7 @@ theorem conjecture100
             Nat.add_le_add hSsum hTsum
       _ = ∑ v, (H.degree v) ^ 2 := hpartition
   have hAcast : ((A - 1 : ℕ) : ℝ) = (A : ℝ) - 1 := by
-    rw [Nat.cast_sub (by omega : 1 ≤ A)]
+    rw [Nat.cast_sub hApos]
     norm_num
   have hCoeffCast : ((2 * A - 1 : ℕ) : ℝ) = 2 * (A : ℝ) - 1 := by
     rw [Nat.cast_sub (by omega : 1 ≤ 2 * A)]
@@ -314,8 +336,8 @@ theorem conjecture100
           ∑ v, ((H.degree v : ℝ) ^ 2) := by
     simpa [hAcast, hCoeffCast, hDcast, mul_assoc] using hRealNat
   have harith :=
-    GraphConjecture100ForkProof.arithmetic_ceiling_bound
-      A L T.card (∑ v, ((H.degree v : ℝ) ^ 2)) hA hL hLA hAm hReal
+    arithmetic_ceiling_bound_pos
+      A L T.card (∑ v, ((H.degree v : ℝ) ^ 2)) hApos hL hLA hAm hReal
   simpa [A, L, H, degreeL2Norm, hAeq] using harith
 
 end WrittenOnTheWallII.GraphConjecture100Complete
