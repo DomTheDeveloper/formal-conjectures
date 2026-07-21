@@ -1,0 +1,44 @@
+# Copyright 2025 The Formal Conjectures Authors.
+
+name: Check WOWII 146 proof
+
+on:
+  pull_request:
+    paths:
+      - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean'
+      - '.github/workflows/check-wowii146.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check-wowii146:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v6
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+
+      - name: Restore mathlib cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.cache/mathlib
+          key: wowii146-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean') }}
+          restore-keys: |
+            oleans-${{ hashFiles('lake-manifest.json') }}-
+            oleans-
+
+      - name: Get olean cache
+        run: |
+          lake exe cache unpack
+          lake exe cache get
+
+      - name: Compile exact proof file
+        run: |
+          lake env lean FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean
