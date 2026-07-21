@@ -39,10 +39,10 @@ jobs:
           lake exe cache unpack
           lake exe cache get
 
-      - name: Compile exact proof file
+      - name: Compile exact proof module
         run: |
           set +e
-          lake env lean FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean > wowii146.log 2>&1
+          lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture146Proof > wowii146.log 2>&1
           status=$?
           cat wowii146.log
           printf '%s\n' "$status" > wowii146.status
