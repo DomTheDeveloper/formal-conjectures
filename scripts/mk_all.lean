@@ -1,4 +1,4 @@
-import Lean
+import Std
 
 /-- Temporary wrapper used only to export the checked numbered WOWII 146 proof. -/
 def main (_args : List String) : IO UInt32 := do
