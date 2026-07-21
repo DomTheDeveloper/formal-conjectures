@@ -39,6 +39,7 @@ jobs:
           fi
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
+      # Revision 3: verify the exact two-lemma reduction and terminal theorem.
       - name: Build exact standalone project and record audit
         run: |
           mkdir -p verification
