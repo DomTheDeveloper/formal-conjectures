@@ -32,7 +32,7 @@ open Classical SimpleGraph
 set_option linter.style.ams_attribute false
 set_option linter.style.category_attribute false
 set_option linter.unusedSectionVars false
-set_option maxHeartbeats 2000000
+set_option maxHeartbeats 1000000
 
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
@@ -201,48 +201,109 @@ theorem arithmetic_ceiling_bound
     have hqT : q ≤ T := by
       dsimp [T]
       nlinarith
-    by_cases hsmall : A < 15
-    · have hAle : A ≤ 14 := by omega
-      interval_cases A <;> interval_cases L <;>
-        norm_num at hA hL hLA hAmr hq2 hnot'
-      all_goals
-        have hTnon' : 0 ≤ 4 * (A : ℝ) - 4 - 2 * (L : ℝ) := by norm_num
-        have hqT' : q ≤ 4 * (A : ℝ) - 4 - 2 * (L : ℝ) := by nlinarith
-        have hsq' : q ^ 2 ≤ (4 * (A : ℝ) - 4 - 2 * (L : ℝ)) ^ 2 := by
-          have h1 : 0 ≤ q * ((4 * (A : ℝ) - 4 - 2 * (L : ℝ)) - q) :=
-            mul_nonneg hqnon (sub_nonneg.mpr hqT')
-          have h2 : 0 ≤ (4 * (A : ℝ) - 4 - 2 * (L : ℝ)) *
-              ((4 * (A : ℝ) - 4 - 2 * (L : ℝ)) - q) :=
-            mul_nonneg hTnon' (sub_nonneg.mpr hqT')
-          nlinarith
-        nlinarith
-    · have hA15 : 15 ≤ A := by omega
-      have hA15r : (15 : ℝ) ≤ A := by exact_mod_cast hA15
-      have hbase_le :
-          (A : ℝ) * ((A : ℝ) - 1) ^ 2 ≤ q ^ 2 := by
-        have hmnon : 0 ≤ (m : ℝ) := by positivity
-        have hcross :
-            0 ≤ (2 * (A : ℝ) - 1) * (m : ℝ) * ((A : ℝ) - L) := by positivity
-        have hout : 0 ≤ (m : ℝ) * ((A : ℝ) - L) ^ 2 := by positivity
-        linarith
-      have hpoly :
-          (4 * (A : ℝ) - 6) ^ 2 < (A : ℝ) * ((A : ℝ) - 1) ^ 2 := by
-        have hx : 0 ≤ (A : ℝ) - 15 := sub_nonneg.mpr hA15r
-        have hcub : 0 ≤ ((A : ℝ) - 15) ^ 3 := pow_nonneg hx 3
-        have hsqx : 0 ≤ ((A : ℝ) - 15) ^ 2 := sq_nonneg _
-        nlinarith
-      have hTle : T ≤ 4 * (A : ℝ) - 6 := by
+    have hsq : q ^ 2 ≤ T ^ 2 := by
+      have h1 : 0 ≤ q * (T - q) := mul_nonneg hqnon (sub_nonneg.mpr hqT)
+      have h2 : 0 ≤ T * (T - q) := mul_nonneg hTnon (sub_nonneg.mpr hqT)
+      nlinarith
+    by_cases hEq : L = A
+    · subst L
+      have hbase : (A : ℝ) * ((A : ℝ) - 1) ^ 2 ≤ q ^ 2 := by
+        simpa using hq2
+      have hx : 0 ≤ (A : ℝ) - 2 := by nlinarith
+      have hpoly : T ^ 2 < (A : ℝ) * ((A : ℝ) - 1) ^ 2 := by
         dsimp [T]
-        nlinarith
-      have hTsq : T ^ 2 ≤ (4 * (A : ℝ) - 6) ^ 2 := by
-        have hbig : 0 ≤ 4 * (A : ℝ) - 6 := by nlinarith
-        nlinarith [mul_nonneg hTnon (sub_nonneg.mpr hTle),
-          mul_nonneg hbig (sub_nonneg.mpr hTle)]
-      have hsq : q ^ 2 ≤ T ^ 2 := by
-        have h1 : 0 ≤ q * (T - q) := mul_nonneg hqnon (sub_nonneg.mpr hqT)
-        have h2 : 0 ≤ T * (T - q) := mul_nonneg hTnon (sub_nonneg.mpr hqT)
+        have hx3 : 0 ≤ ((A : ℝ) - 2) ^ 3 := pow_nonneg hx 3
         nlinarith
       nlinarith
+    · have hLlt : L < A := lt_of_le_of_ne hLA hEq
+      by_cases hLone : L = 1
+      · subst L
+        have hmA : (A : ℝ) ≤ m := by simpa using hAmr
+        have hcoef :
+            0 ≤ (2 * (A : ℝ) - 1) * ((A : ℝ) - 1) + ((A : ℝ) - 1) ^ 2 := by
+          positivity
+        have hmono : 0 ≤ ((m : ℝ) - A) *
+            ((2 * (A : ℝ) - 1) * ((A : ℝ) - 1) + ((A : ℝ) - 1) ^ 2) :=
+          mul_nonneg (sub_nonneg.mpr hmA) hcoef
+        have hmin :
+            (A : ℝ) * ((A : ℝ) - 1) ^ 2
+              + (2 * (A : ℝ) - 1) * (A : ℝ) * ((A : ℝ) - 1)
+              + (A : ℝ) * ((A : ℝ) - 1) ^ 2 ≤ q ^ 2 := by
+          nlinarith
+        have hx : 0 ≤ (A : ℝ) - 2 := by nlinarith
+        have hpoly : T ^ 2 <
+            (A : ℝ) * ((A : ℝ) - 1) ^ 2
+              + (2 * (A : ℝ) - 1) * (A : ℝ) * ((A : ℝ) - 1)
+              + (A : ℝ) * ((A : ℝ) - 1) ^ 2 := by
+          dsimp [T]
+          have hx3 : 0 ≤ ((A : ℝ) - 2) ^ 3 := pow_nonneg hx 3
+          have hx2 : 0 ≤ ((A : ℝ) - 2) ^ 2 := sq_nonneg _
+          nlinarith
+        nlinarith
+      · have hLtwo : 2 ≤ L := by omega
+        have hmtwo : 2 ≤ m := by
+          by_contra hm
+          have hmle : m ≤ 1 := by omega
+          interval_cases m <;> simp_all
+        have hmtwor : (2 : ℝ) ≤ m := by exact_mod_cast hmtwo
+        have hcoef :
+            0 ≤ (2 * (A : ℝ) - 1) * ((A : ℝ) - L) + ((A : ℝ) - L) ^ 2 := by
+          positivity
+        have hmono : 0 ≤ ((m : ℝ) - 2) *
+            ((2 * (A : ℝ) - 1) * ((A : ℝ) - L) + ((A : ℝ) - L) ^ 2) :=
+          mul_nonneg (sub_nonneg.mpr hmtwor) hcoef
+        have hmin :
+            (A : ℝ) * ((A : ℝ) - 1) ^ 2
+              + 2 * (2 * (A : ℝ) - 1) * ((A : ℝ) - L)
+              + 2 * ((A : ℝ) - L) ^ 2 ≤ q ^ 2 := by
+          nlinarith
+        have hp : 0 ≤ (L : ℝ) - 2 := by exact_mod_cast hLtwo
+        by_cases hDone : A = L + 1
+        · subst A
+          have hpoly : T ^ 2 <
+              ((L + 1 : ℕ) : ℝ) * (((L + 1 : ℕ) : ℝ) - 1) ^ 2
+                + 2 * (2 * ((L + 1 : ℕ) : ℝ) - 1) * (((L + 1 : ℕ) : ℝ) - L)
+                + 2 * (((L + 1 : ℕ) : ℝ) - L) ^ 2 := by
+            dsimp [T]
+            have hp3 : 0 ≤ ((L : ℝ) - 2) ^ 3 := pow_nonneg hp 3
+            have hp2 : 0 ≤ ((L : ℝ) - 2) ^ 2 := sq_nonneg _
+            norm_num at *
+            nlinarith
+          nlinarith
+        · by_cases hDtwo : A = L + 2
+          · subst A
+            have hpoly : T ^ 2 <
+                ((L + 2 : ℕ) : ℝ) * (((L + 2 : ℕ) : ℝ) - 1) ^ 2
+                  + 2 * (2 * ((L + 2 : ℕ) : ℝ) - 1) * (((L + 2 : ℕ) : ℝ) - L)
+                  + 2 * (((L + 2 : ℕ) : ℝ) - L) ^ 2 := by
+              dsimp [T]
+              have hp3 : 0 ≤ ((L : ℝ) - 2) ^ 3 := pow_nonneg hp 3
+              have hp2 : 0 ≤ ((L : ℝ) - 2) ^ 2 := sq_nonneg _
+              norm_num at *
+              nlinarith
+            nlinarith
+          · have hDthree : L + 3 ≤ A := by omega
+            have hDthreeR : (L : ℝ) + 3 ≤ A := by exact_mod_cast hDthree
+            have hd0 : 0 ≤ (A : ℝ) - L - 1 := by nlinarith
+            have hd1 : 0 ≤ (A : ℝ) - L - 2 := by nlinarith
+            have hd2 : 0 ≤ (A : ℝ) - L - 3 := by nlinarith
+            have hprod : 0 ≤ ((A : ℝ) - L - 1) * ((A : ℝ) - L - 2) *
+                ((A : ℝ) - L - 3) := by positivity
+            have hpoly : T ^ 2 <
+                (A : ℝ) * ((A : ℝ) - 1) ^ 2
+                  + 2 * (2 * (A : ℝ) - 1) * ((A : ℝ) - L)
+                  + 2 * ((A : ℝ) - L) ^ 2 := by
+              dsimp [T]
+              have hp3 : 0 ≤ ((L : ℝ) - 2) ^ 3 := pow_nonneg hp 3
+              have hp2 : 0 ≤ ((L : ℝ) - 2) ^ 2 := sq_nonneg _
+              have hmix1 : 0 ≤ ((A : ℝ) - L - 1) ^ 2 * ((L : ℝ) - 2) := by
+                positivity
+              have hmix2 : 0 ≤ ((A : ℝ) - L - 1) * ((L : ℝ) - 2) ^ 2 := by
+                positivity
+              have hmix3 : 0 ≤ ((A : ℝ) - L - 1) * ((L : ℝ) - 2) := by
+                positivity
+              nlinarith
+            nlinarith
   have hz : (A : ℤ) ≤ ⌈(((L : ℝ) + (1 / 2) * q) / 2)⌉ := by
     rw [Int.le_ceil_iff]
     norm_num
