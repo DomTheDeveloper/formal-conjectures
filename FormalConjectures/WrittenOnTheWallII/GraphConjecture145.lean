@@ -71,8 +71,25 @@ independence number of the complement graph.
 We state the inequality in the form
 $\mathrm{tree}(G) \cdot \mathrm{lMin}(\overline{G}) \ge 2 \cdot \mathrm{ecc}(B)$
 to avoid division.
+
+## Informal proof
+
+Write $m = \lambda_{\min}(\overline G)$, $p = \mathrm{ecc}(B)$,
+$t = \mathrm{tree}(G)$, and $d = \mathrm{diam}(G)$. A diametral geodesic is an
+induced path, so $d + 1 \le t$, while $p + 1 \le d$. Thus $m \ge 2$ immediately
+gives $2p \le mt$.
+
+It remains to consider $m = 1$. Choose a vertex $v$ attaining the minimum. The
+non-neighbours of $v$ form an independent set: otherwise two of them would form
+a two-vertex independent set in the neighbourhood of $v$ in $\overline G$.
+Connectedness then puts every vertex within distance two of $v$, so
+$\mathrm{diam}(G) \le 4$ and $p \le 3$. The cases $p \le 2$ follow from
+$d + 1 \le t$. If $p = 3$, then $d = 4$ and the radius is $2$; the six-vertex
+exceptional-case theorem proved for WOWII Conjecture 146 yields $t \ge 6 = 2p$.
+Since $m = 1$, the result follows.
 -/
-@[category research open, AMS 5]
+@[category research solved, AMS 5,
+  formal_proof using lean4 at "https://github.com/DomTheDeveloper/crl/blob/42e0a98e352e9ae89c2b185933d28011849b1d98/math/wowii145/WOW145/Conjecture145.lean"]
 theorem conjecture145 (G : SimpleGraph α) [DecidableRel G.Adj] (h : G.Connected)
     (hlMin : 0 < localIndependenceMin Gᶜ) :
     2 * eccSet G (maxEccentricityVertices G : Set α) ≤
