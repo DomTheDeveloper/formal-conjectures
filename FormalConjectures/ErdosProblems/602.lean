@@ -151,7 +151,8 @@ If the index set is countable, the answer is yes, and the intersection
 condition is unnecessary. This is Bernstein's Lemma:
 every countable system of infinite sets has Property B.
 -/
-@[category research solved, AMS 3 5]
+@[category research solved, AMS 3 5,
+  formal_proof using formal_conjectures at "https://github.com/DomTheDeveloper/formal-conjectures/blob/1162835f092ed6cd910cd32d40424df69cfa96be/FormalConjectures/ErdosProblems/Proofs/602.lean"]
 theorem erdos_602.variants.countable_index : answer(True) ↔
     ∀ {α : Type*} (A : ℕ → Set α),
       (∀ i, (A i).Countable ∧ (A i).Infinite) →
