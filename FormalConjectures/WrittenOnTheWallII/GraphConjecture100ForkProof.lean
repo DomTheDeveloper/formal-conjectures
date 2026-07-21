@@ -31,6 +31,7 @@ open Classical SimpleGraph
 
 set_option linter.style.ams_attribute false
 set_option linter.style.category_attribute false
+set_option linter.unusedSectionVars false
 set_option maxHeartbeats 2000000
 
 variable {α : Type*} [Fintype α] [DecidableEq α]
@@ -88,7 +89,7 @@ private theorem one_le_maxLocalIndependence
   have hsingle : G.IsIndepSet (({c} : Finset α) : Set α) := by simp
   have hlocal : 1 ≤ indepNeighborsCard G a := by
     have hcard := card_filter_adj_le_indepNeighborsCard G {c} hsingle a
-    simpa [hac] using hcard
+    convert hcard using 1 <;> simp [hac]
   apply le_trans hlocal
   apply Finset.le_max'
   simp
@@ -151,9 +152,9 @@ private theorem maximumIndepSet_card_le_compl_mul_maxLocal
         simp [locals]
   change S.card ≤ (Sᶜ).card * L
   by_contra hnot
+  have hlt0 : (Sᶜ).card * L < S.card := Nat.lt_of_not_ge hnot
   have hlt : Fintype.card ↥(Sᶜ) * L < Fintype.card ↥S := by
-    change (Sᶜ).card * L < S.card
-    exact Nat.lt_of_not_ge hnot
+    simpa only [Fintype.card_coe] using hlt0
   obtain ⟨y, hy⟩ :=
     Fintype.exists_lt_card_fiber_of_mul_lt_card (f := fT) hlt
   exact (not_lt_of_ge (hfiber y)) hy
@@ -200,14 +201,20 @@ theorem arithmetic_ceiling_bound
     have hqT : q ≤ T := by
       dsimp [T]
       nlinarith
-    have hsq : q ^ 2 ≤ T ^ 2 := by
-      have h1 : 0 ≤ q * (T - q) := mul_nonneg hqnon (sub_nonneg.mpr hqT)
-      have h2 : 0 ≤ T * (T - q) := mul_nonneg hTnon (sub_nonneg.mpr hqT)
-      nlinarith
     by_cases hsmall : A < 15
     · have hAle : A ≤ 14 := by omega
       interval_cases A <;> interval_cases L <;>
-        norm_num [T] at hA hL hLA hAmr hq2 hsq ⊢ <;>
+        norm_num at hA hL hLA hAmr hq2 hnot'
+      all_goals
+        have hTnon' : 0 ≤ 4 * (A : ℝ) - 4 - 2 * (L : ℝ) := by norm_num
+        have hqT' : q ≤ 4 * (A : ℝ) - 4 - 2 * (L : ℝ) := by nlinarith
+        have hsq' : q ^ 2 ≤ (4 * (A : ℝ) - 4 - 2 * (L : ℝ)) ^ 2 := by
+          have h1 : 0 ≤ q * ((4 * (A : ℝ) - 4 - 2 * (L : ℝ)) - q) :=
+            mul_nonneg hqnon (sub_nonneg.mpr hqT')
+          have h2 : 0 ≤ (4 * (A : ℝ) - 4 - 2 * (L : ℝ)) *
+              ((4 * (A : ℝ) - 4 - 2 * (L : ℝ)) - q) :=
+            mul_nonneg hTnon' (sub_nonneg.mpr hqT')
+          nlinarith
         nlinarith
     · have hA15 : 15 ≤ A := by omega
       have hA15r : (15 : ℝ) ≤ A := by exact_mod_cast hA15
@@ -231,6 +238,10 @@ theorem arithmetic_ceiling_bound
         have hbig : 0 ≤ 4 * (A : ℝ) - 6 := by nlinarith
         nlinarith [mul_nonneg hTnon (sub_nonneg.mpr hTle),
           mul_nonneg hbig (sub_nonneg.mpr hTle)]
+      have hsq : q ^ 2 ≤ T ^ 2 := by
+        have h1 : 0 ≤ q * (T - q) := mul_nonneg hqnon (sub_nonneg.mpr hqT)
+        have h2 : 0 ≤ T * (T - q) := mul_nonneg hTnon (sub_nonneg.mpr hqT)
+        nlinarith
       nlinarith
   have hz : (A : ℤ) ≤ ⌈(((L : ℝ) + (1 / 2) * q) / 2)⌉ := by
     rw [Int.le_ceil_iff]
