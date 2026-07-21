@@ -7,6 +7,7 @@ on:
     paths:
       - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean'
       - '.github/wowii146-source.part*'
+      - '.github/wowii146-fix2.patch'
       - '.github/workflows/check-wowii146.yml'
 
 permissions:
@@ -30,7 +31,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ~/.cache/mathlib
-          key: wowii146-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('.github/wowii146-source.part*') }}
+          key: wowii146-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('.github/wowii146-source.part*', '.github/wowii146-fix2.patch') }}
           restore-keys: |
             oleans-${{ hashFiles('lake-manifest.json') }}-
             oleans-
@@ -43,6 +44,7 @@ jobs:
       - name: Assemble exact proof source
         run: |
           cat .github/wowii146-source.part* > FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean
+          patch -d FormalConjectures/WrittenOnTheWallII -p1 < .github/wowii146-fix2.patch
           wc -c FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean
           sha256sum FormalConjectures/WrittenOnTheWallII/GraphConjecture146Proof.lean | tee wowii146-source.sha256
 
