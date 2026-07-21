@@ -53,7 +53,7 @@ $$(a_{n+1}, b_{n+1}) = \begin{cases}
 for all positive integers $n$. Does there exist a positive integer $i$ such that $a_i = b_i$?
 
 The first 10 values of $(a_n, b_n)$ are $(1, 2), (3, 1), (2, 6), (5, 4), (1, 18), (3, 17),
-(7, 14), (15, 7), (8, 30), (17, 22)$.
+$(7, 14), (15, 7), (8, 30), (17, 22)$.
 
 [BMO#1](https://wiki.bbchallenge.org/wiki/Beaver_Math_Olympiad#1._1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE_(bbch)) is equivalent to asking whether the 6-state Turing machine
 [`1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE`](https://wiki.bbchallenge.org/wiki/1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE) halts or not.
@@ -163,7 +163,8 @@ is equivalent to the non-termination of 2-state 5-symbol Turing machine
 The machine was informally proven not to halt [bbchallenge.org](bbchallenge.org)
 contributor Daniel Yuan on July 19th 2024; see [sketched proof](https://wiki.bbchallenge.org/wiki/1RB3RB---1LB0LA_2LA4RA3LA4RB1LB) and [Discord discussion](https://discord.com/channels/960643023006490684/960643023530762343/1263666591900631210).
 -/
-@[category research solved, AMS 5 11 68]
+@[category research solved, AMS 5 11 68,
+  formal_proof using formal_conjectures at "https://github.com/DomTheDeveloper/formal-conjectures/blob/cf59008ef1cd432bf9803275dcf5d62ab1f094a3/FormalConjectures/Other/BeaverMathOlympiad.lean"]
 theorem beaver_math_olympiad_problem_4
     (a : ℕ → ℕ)
     (a_ini : a 0 = 2)
