@@ -46,7 +46,21 @@ lemma sqrt_mul_bezierCenteredMoment_eq_stdDev_mul_integral
   rw [← standardizedBezierMeasure_eq_poweredStandardizedBinomial n α hα x]
   rw [integral_id_standardizedBezierMeasure_eq_sum]
   rw [bezierCenteredMoment, Finset.mul_sum, Finset.mul_sum]
-  rw [Fin.sum_univ_eq_sum_range]
+  have hsum :
+      (∑ k : Fin (n + 1),
+        bernoulliStdDev x *
+          (bezierWeight n (k : ℕ) α (x : ℝ) *
+            standardizeBinomial n x ((k : ℕ) : ℝ))) =
+        ∑ k ∈ Finset.range (n + 1),
+          bernoulliStdDev x *
+            (bezierWeight n k α (x : ℝ) *
+              standardizeBinomial n x (k : ℝ)) := by
+    simpa using (Fin.sum_univ_eq_sum_range
+      (f := fun k : ℕ =>
+        bernoulliStdDev x *
+          (bezierWeight n k α (x : ℝ) *
+            standardizeBinomial n x (k : ℝ))) (n + 1))
+  rw [hsum]
   apply Finset.sum_congr rfl
   intro k hk
   have hnR : (n : ℝ) ≠ 0 := by exact_mod_cast hn.ne'
@@ -56,9 +70,7 @@ lemma sqrt_mul_bezierCenteredMoment_eq_stdDev_mul_integral
   have hsd : bernoulliStdDev x ≠ 0 := (bernoulliStdDev_pos x hx0 hx1).ne'
   rw [standardizeBinomial]
   field_simp [hnR, hsqrt, hsd]
-  rw [Real.sq_sqrt]
-  · ring
-  · positivity
+  rw [Real.sq_sqrt (by positivity : 0 ≤ (n : ℝ))]
 
 /-- Exact centered first-moment asymptotic at every interior point. -/
 lemma tendsto_sqrt_mul_bezierCenteredMoment
