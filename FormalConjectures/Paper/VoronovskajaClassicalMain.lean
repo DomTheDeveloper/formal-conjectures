@@ -42,7 +42,7 @@ private lemma bezierTaylorRemainder_one_eq_second
           ((((k : ℝ) / (n : ℝ)) - x) ^ 2) * bezierWeight n k 1 x) +
       classicalSecondRemainderSum n f x := by
   rw [bezierTaylorRemainder, classicalSecondRemainderSum]
-  rw [← Finset.sum_add_distrib, ← Finset.mul_sum]
+  rw [← Finset.mul_sum, ← Finset.sum_add_distrib]
   apply Finset.sum_congr rfl
   intro k hk
   rw [classicalSecondRemainder]
@@ -62,7 +62,6 @@ lemma nat_mul_bezierBernstein_one_sub_eq
   rw [bezierTaylorRemainder_one_eq_second]
   rw [sum_sq_centered_bezierWeight_one n hn x]
   field_simp [show (n : ℝ) ≠ 0 by exact_mod_cast hn.ne']
-  ring
 
 /-- Classical Voronovskaja formula at an interior point. -/
 lemma tendsto_classical_bezierBernstein_interior
