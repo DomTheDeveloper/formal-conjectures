@@ -144,7 +144,7 @@ private lemma abs_classicalSecondRemainderSum_le
         apply Finset.sum_congr rfl
         intro k hk
         ring
-      · rw [Finset.mul_sum, classicalFarMass, Fin.sum_univ_eq_sum_range]
+      · rw [classicalFarMass, Fin.sum_univ_eq_sum_range, Finset.mul_sum]
 
 /-- The `n`-scaled second-order Taylor remainder tends to zero at every interior point. -/
 lemma tendsto_nat_mul_classicalSecondRemainderSum
@@ -168,9 +168,12 @@ lemma tendsto_nat_mul_classicalSecondRemainderSum
   have hfar0 : Tendsto
       (fun n : ℕ ↦ C * ((n : ℝ) * classicalFarMass n x δ)) atTop (𝓝 0) := by
     simpa using hfar
+  have hnorm0 : Tendsto
+      (fun n : ℕ ↦ ‖C * ((n : ℝ) * classicalFarMass n x δ)‖) atTop (𝓝 0) := by
+    simpa only [norm_zero] using hfar0.norm
   have hfarEventually : ∀ᶠ n : ℕ in atTop,
       |C * ((n : ℝ) * classicalFarMass n x δ)| < η / 2 := by
-    have hnorm := hfar0.norm.eventually_lt_const (half_pos hη)
+    have hnorm := hnorm0.eventually_lt_const (half_pos hη)
     simpa [Real.norm_eq_abs] using hnorm
   rcases eventually_atTop.1 hfarEventually with ⟨N, hN⟩
   refine ⟨max 1 N, fun n hn ↦ ?_⟩
@@ -197,11 +200,11 @@ lemma tendsto_nat_mul_classicalSecondRemainderSum
         dsimp [ε]
         have hxprod : 0 ≤ (x : ℝ) * (1 - (x : ℝ)) :=
           mul_nonneg x.property.1 (sub_nonneg.mpr x.property.2)
+        rw [div_mul_eq_mul_div]
         apply (div_le_iff₀ hden).2
         nlinarith
-      gcongr
-      exact le_abs_self _
-    _ < η / 2 + η / 2 := add_lt_add_left hfarN _
+      exact add_le_add hnear (le_abs_self _)
+    _ < η / 2 + η / 2 := by linarith
     _ = η := add_halves η
 
 end VoronovskajaTypeFormula
