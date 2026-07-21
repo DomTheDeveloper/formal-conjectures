@@ -1,3 +1,4 @@
+# Triggered by proof or workflow changes; transcript is committed to the proof branch.
 name: Verify WOWII 145 proof
 
 on:
