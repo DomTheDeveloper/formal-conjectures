@@ -42,8 +42,13 @@ jobs:
 
       - name: Apply diagnostic patch
         run: |
+          set +e
           cat .github/wowii146-fix1.patch.part* > /tmp/wowii146-fix1.patch
-          patch -d FormalConjectures/WrittenOnTheWallII -p1 < /tmp/wowii146-fix1.patch
+          patch --verbose -d FormalConjectures/WrittenOnTheWallII -p1 < /tmp/wowii146-fix1.patch > wowii146-patch.log 2>&1
+          status=$?
+          cat wowii146-patch.log
+          printf '%s\n' "$status" > wowii146-patch.status
+          exit "$status"
 
       - name: Compile exact proof module
         run: |
@@ -54,12 +59,14 @@ jobs:
           printf '%s\n' "$status" > wowii146.status
           exit "$status"
 
-      - name: Upload compiler diagnostics
+      - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wowii146-compiler-diagnostics
+          name: wowii146-diagnostics
           path: |
+            wowii146-patch.log
+            wowii146-patch.status
             wowii146.log
             wowii146.status
-          if-no-files-found: error
+          if-no-files-found: warn
