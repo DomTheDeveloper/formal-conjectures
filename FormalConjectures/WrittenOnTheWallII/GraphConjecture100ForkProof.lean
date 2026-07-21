@@ -40,7 +40,15 @@ private theorem indepNum_induce_le (G : SimpleGraph α) (U : Set α) :
   obtain ⟨s, hs⟩ := (G.induce U).exists_isNIndepSet_indepNum
   let e : U ↪ α := ⟨Subtype.val, Subtype.val_injective⟩
   have hs' : G.IsNIndepSet (G.induce U).indepNum (s.map e) := by
-    exact (SimpleGraph.isNIndepSet_induce (G := G)).mp hs
+    refine ⟨?_, by simpa [Finset.card_map] using hs.card_eq⟩
+    rintro x hx y hy hxy hadj
+    obtain ⟨x', hx', rfl⟩ := Finset.mem_map.mp hx
+    obtain ⟨y', hy', rfl⟩ := Finset.mem_map.mp hy
+    apply hs.isIndepSet hx' hy'
+    · intro h
+      apply hxy
+      exact congrArg Subtype.val h
+    · exact hadj
   have hcard := hs'.isIndepSet.card_le_indepNum
   simpa [Finset.card_map, hs.card_eq] using hcard
 
@@ -75,24 +83,27 @@ private theorem one_le_maxLocalIndependence
     [Nontrivial α] (G : SimpleGraph α) [DecidableRel G.Adj] (hconn : G.Connected) :
     1 ≤ (Finset.univ.image (indepNeighborsCard G)).max' (by simp) := by
   obtain ⟨a, b, hab⟩ := exists_pair_ne α
-  have hdeg : 0 < G.degree a := (hconn.preconnected a b).degree_pos_left hab
+  have hdeg : 0 < G.degree a := hconn.preconnected.degree_pos_of_nontrivial a
   obtain ⟨c, hac⟩ := (G.degree_pos_iff_exists_adj (v := a)).mp hdeg
-  have hsingle : G.IsIndepSet ({c} : Set α) := by simp
+  have hsingle : G.IsIndepSet (({c} : Finset α) : Set α) := by simp
   have hlocal : 1 ≤ indepNeighborsCard G a := by
     have hcard := card_filter_adj_le_indepNeighborsCard G {c} hsingle a
     simpa [hac] using hcard
-  exact hlocal.trans (Finset.le_max' _ (by simp))
+  apply le_trans hlocal
+  apply Finset.le_max'
+  simp
 
 private theorem two_le_maximumIndepSet_card
     [Nontrivial α] (G : SimpleGraph α) [DecidableRel G.Adj]
     (hGc : Gᶜ.Connected) (S : Finset α) (hS : G.IsMaximumIndepSet S) :
     2 ≤ S.card := by
   obtain ⟨a, b, hab⟩ := exists_pair_ne α
-  have hdeg : 0 < (Gᶜ).degree a := (hGc.preconnected a b).degree_pos_left hab
+  have hdeg : 0 < (Gᶜ).degree a := hGc.preconnected.degree_pos_of_nontrivial a
   obtain ⟨c, hac⟩ := ((Gᶜ).degree_pos_iff_exists_adj (v := a)).mp hdeg
-  have hp : G.IsIndepSet ({a, c} : Finset α) := by
+  have hp : G.IsIndepSet ((({a, c} : Finset α) : Set α)) := by
     rw [← SimpleGraph.isClique_compl]
-    exact SimpleGraph.isClique_pair.mpr (fun _ => hac)
+    simpa only [Finset.coe_insert, Finset.coe_singleton] using
+      (SimpleGraph.isClique_pair.mpr (fun _ => hac))
   have hle := hS.maximum ({a, c} : Finset α) hp
   simpa [(Gᶜ).ne_of_adj hac] using hle
 
@@ -105,9 +116,8 @@ private theorem maximumIndepSet_card_le_compl_mul_maxLocal
   let L := locals.max' (by simp [locals])
   have hex : ∀ s : S, ∃ t : α, G.Adj s t := by
     intro s
-    obtain ⟨z, hz⟩ := exists_ne (s : α)
     have hdeg : 0 < G.degree (s : α) :=
-      (hconn.preconnected (s : α) z).degree_pos_left hz
+      hconn.preconnected.degree_pos_of_nontrivial (s : α)
     exact (G.degree_pos_iff_exists_adj (v := (s : α))).mp hdeg
   choose f hf using hex
   have hfout (s : S) : f s ∉ S := by
@@ -120,7 +130,8 @@ private theorem maximumIndepSet_card_le_compl_mul_maxLocal
     have hsub :
         Finset.univ.filter (fun x : S => fT x = y) ⊆ N := by
       intro x hx
-      simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hx ⊢
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hx
+      simp only [N, Finset.mem_filter, Finset.mem_univ, true_and]
       have hval : f x = (y : α) := congrArg Subtype.val hx
       simpa [hval] using (hf x).symm
     have hNcard : N.card = (S.filter (G.Adj (y : α))).card := by
@@ -141,7 +152,8 @@ private theorem maximumIndepSet_card_le_compl_mul_maxLocal
   change S.card ≤ (Sᶜ).card * L
   by_contra hnot
   have hlt : Fintype.card ↥(Sᶜ) * L < Fintype.card ↥S := by
-    simpa using (Nat.lt_of_not_ge hnot)
+    change (Sᶜ).card * L < S.card
+    exact Nat.lt_of_not_ge hnot
   obtain ⟨y, hy⟩ :=
     Fintype.exists_lt_card_fiber_of_mul_lt_card (f := fT) hlt
   exact (not_lt_of_ge (hfiber y)) hy
@@ -178,13 +190,27 @@ theorem arithmetic_ceiling_bound
   rw [← hqsq] at hq2
   have hstrict :
       (A : ℝ) - 1 < ((L : ℝ) + (1 / 2) * q) / 2 := by
+    by_contra hnot
+    have hnot' : ((L : ℝ) + (1 / 2) * q) / 2 ≤ (A : ℝ) - 1 :=
+      le_of_not_gt hnot
+    let T : ℝ := 4 * (A : ℝ) - 4 - 2 * (L : ℝ)
+    have hTnon : 0 ≤ T := by
+      dsimp [T]
+      nlinarith
+    have hqT : q ≤ T := by
+      dsimp [T]
+      nlinarith
+    have hsq : q ^ 2 ≤ T ^ 2 := by
+      have h1 : 0 ≤ q * (T - q) := mul_nonneg hqnon (sub_nonneg.mpr hqT)
+      have h2 : 0 ≤ T * (T - q) := mul_nonneg hTnon (sub_nonneg.mpr hqT)
+      nlinarith
     by_cases hsmall : A < 15
     · have hAle : A ≤ 14 := by omega
       interval_cases A <;> interval_cases L <;>
-        norm_num at hA hL hLA hAmr hq2 ⊢ <;>
+        norm_num [T] at hA hL hLA hAmr hq2 hsq ⊢ <;>
         nlinarith
     · have hA15 : 15 ≤ A := by omega
-      have hx : 0 ≤ (A : ℝ) - 15 := by exact_mod_cast hA15
+      have hA15r : (15 : ℝ) ≤ A := by exact_mod_cast hA15
       have hbase_le :
           (A : ℝ) * ((A : ℝ) - 1) ^ 2 ≤ q ^ 2 := by
         have hmnon : 0 ≤ (m : ℝ) := by positivity
@@ -194,12 +220,17 @@ theorem arithmetic_ceiling_bound
         linarith
       have hpoly :
           (4 * (A : ℝ) - 6) ^ 2 < (A : ℝ) * ((A : ℝ) - 1) ^ 2 := by
+        have hx : 0 ≤ (A : ℝ) - 15 := sub_nonneg.mpr hA15r
         have hcub : 0 ≤ ((A : ℝ) - 15) ^ 3 := pow_nonneg hx 3
         have hsqx : 0 ≤ ((A : ℝ) - 15) ^ 2 := sq_nonneg _
         nlinarith
-      have hthreshold : 0 ≤ 4 * (A : ℝ) - 6 := by linarith
-      have hqgt : 4 * (A : ℝ) - 6 < q := by
+      have hTle : T ≤ 4 * (A : ℝ) - 6 := by
+        dsimp [T]
         nlinarith
+      have hTsq : T ^ 2 ≤ (4 * (A : ℝ) - 6) ^ 2 := by
+        have hbig : 0 ≤ 4 * (A : ℝ) - 6 := by nlinarith
+        nlinarith [mul_nonneg hTnon (sub_nonneg.mpr hTle),
+          mul_nonneg hbig (sub_nonneg.mpr hTle)]
       nlinarith
   have hz : (A : ℤ) ≤ ⌈(((L : ℝ) + (1 / 2) * q) / 2)⌉ := by
     rw [Int.le_ceil_iff]
