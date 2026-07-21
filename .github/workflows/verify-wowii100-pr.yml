@@ -26,7 +26,7 @@ jobs:
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Restore pinned Lean cache
         id: lean-cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: |
             .lake/packages
@@ -35,6 +35,14 @@ jobs:
       - name: Get Mathlib cache
         if: steps.lean-cache.outputs.cache-hit != 'true'
         run: lake exe cache get >/dev/null
+      - name: Save pinned Lean cache
+        if: steps.lean-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: wowii100-lean-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
       - name: Build proof module
         id: build
         continue-on-error: true
