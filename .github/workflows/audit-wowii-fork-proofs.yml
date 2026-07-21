@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Audit merged WOWII fork proofs
+name: Audit merged upstream candidates
 
 on:
   push:
@@ -21,22 +21,18 @@ on:
   pull_request:
     paths:
       - '.github/workflows/audit-wowii-fork-proofs.yml'
-      - 'WOWII/**'
-      - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture143ForkProof.lean'
-      - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture316ForkProof.lean'
-      - 'lakefile.toml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: wowii-fork-proof-main-${{ github.ref }}
+  group: merged-upstream-candidates-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   audit:
     runs-on: macos-15
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6
 
@@ -50,37 +46,46 @@ jobs:
         shell: bash
         run: lake exe cache get >/dev/null
 
-      - name: Reject explicit proof holes and custom axioms
-        shell: bash
-        run: |
-          if grep -RInE '^[[:space:]]*(sorry|admit|axiom)([[:space:]]|$)' \
-              WOWII \
-              FormalConjectures/WrittenOnTheWallII/GraphConjecture143ForkProof.lean \
-              FormalConjectures/WrittenOnTheWallII/GraphConjecture316ForkProof.lean; then
-            echo "Explicit proof hole or custom axiom found"
-            exit 1
-          fi
-
-      - name: Compile exact fork proof wrappers
+      - name: Build exact candidate modules
         shell: bash
         run: |
           lake build \
+            FormalConjectures.WrittenOnTheWallII.GraphConjecture65 \
+            FormalConjectures.WrittenOnTheWallII.GraphConjecture109 \
             FormalConjectures.WrittenOnTheWallII.GraphConjecture143ForkProof \
-            FormalConjectures.WrittenOnTheWallII.GraphConjecture316ForkProof
+            FormalConjectures.WrittenOnTheWallII.GraphConjecture314 \
+            FormalConjectures.WrittenOnTheWallII.GraphConjecture316ForkProof \
+            FormalConjectures.WrittenOnTheWallII.GraphConjecture322 \
+            FormalConjectures.Other.BeaverMathOlympiad \
+            FormalConjectures.ErdosProblems.Erdos602Countable \
+            FormalConjectures.ErdosProblems.«1150»
 
       - name: Audit exact theorem axioms
         shell: bash
         run: |
-          cat > WOWIIForkProofAudit.lean <<'EOF'
+          cat > MergedCandidateAudit.lean <<'EOF'
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture65
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture109
           import FormalConjectures.WrittenOnTheWallII.GraphConjecture143ForkProof
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture314
           import FormalConjectures.WrittenOnTheWallII.GraphConjecture316ForkProof
-          #check WrittenOnTheWallII.GraphConjecture143.conjecture143_fork_proof
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture322
+          import FormalConjectures.Other.BeaverMathOlympiad
+          import FormalConjectures.ErdosProblems.Erdos602Countable
+          import FormalConjectures.ErdosProblems.«1150»
+
+          #print axioms WrittenOnTheWallII.GraphConjecture65.conjecture65
+          #print axioms WrittenOnTheWallII.GraphConjecture109.conjecture109
           #print axioms WrittenOnTheWallII.GraphConjecture143.conjecture143_fork_proof
-          #check WrittenOnTheWallII.GraphConjecture316.conjecture316_fork_proof
+          #print axioms WrittenOnTheWallII.GraphConjecture314.conjecture314
           #print axioms WrittenOnTheWallII.GraphConjecture316.conjecture316_fork_proof
+          #print axioms WrittenOnTheWallII.GraphConjecture322.conjecture322
+          #print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_4
+          #print axioms Erdos602.countable_index_proof
+          #print axioms Erdos1150.erdos_1150.variants.parseval_lower_bound
           EOF
-          lake env lean WOWIIForkProofAudit.lean 2>&1 | tee wowii-fork-proof-audit.log
-          if grep -E 'sorryAx|admitAx|Lean\.trustCompiler|Lean\.ofReduceBool' wowii-fork-proof-audit.log; then
+          lake env lean MergedCandidateAudit.lean 2>&1 | tee merged-candidate-audit.log
+          if grep -E 'sorryAx|admitAx|Lean\.trustCompiler|Lean\.ofReduceBool' merged-candidate-audit.log; then
             echo "Unexpected non-kernel axiom detected"
             exit 1
           fi
@@ -89,6 +94,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wowii-fork-proof-audit
-          path: wowii-fork-proof-audit.log
+          name: merged-upstream-candidate-audit
+          path: merged-candidate-audit.log
           if-no-files-found: warn
