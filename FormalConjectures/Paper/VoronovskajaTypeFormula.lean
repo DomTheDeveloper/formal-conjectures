@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
+import FormalConjectures.Paper.VoronovskajaClassicalMain
 import FormalConjectures.Paper.VoronovskajaMain
 
 /-!
@@ -54,7 +55,8 @@ theorem voronovskaja_theorem.bernstein_operators
     Tendsto (fun (n : ℕ) => (n : ℝ) * (bezierBernstein n 1 f x - f x))
     atTop
     (𝓝 ((1 / 2) * x * (1 - x) * f'')) := by
-  sorry
+  dsimp only
+  exact tendsto_classical_bezierBernstein_all f hf x hx
 
 /--
 Voronovskaja formula for Bézier--Bernstein operators with positive shape parameter.
@@ -62,7 +64,7 @@ Voronovskaja formula for Bézier--Bernstein operators with positive shape parame
 The constant is
 `∫ t in Ioi 0, (1 - Φ t)^α + (Φ t)^α - 1`, where `Φ` is the standard Gaussian CDF.
 -/
-@[category research open, AMS 26 40 47]
+@[category research solved, AMS 26 40 47]
 theorem voronovskaja_theorem.bezier_bernstein_operators
     (α : ℝ) (hα_pos : 0 < α) (hα : α ≠ 1)
     (f : ℝ → ℝ) (x : ℝ) (hx : x ∈ I)
@@ -73,7 +75,7 @@ theorem voronovskaja_theorem.bezier_bernstein_operators
   simpa using tendsto_bezierBernstein_all α hα_pos f hf x hx
 
 /-- Eventual-smoothness variant, with the explicit threshold `m = 2`. -/
-@[category research open, AMS 26 40 47]
+@[category research solved, AMS 26 40 47]
 theorem voronovskaja_theorem.bezier_bernstein_operators.variants.eventually_smooth
     (α : ℝ) (hα_pos : 0 < α) (hα : α ≠ 1) :
     let limitFormula : (ℝ → ℝ) → ℝ → ℝ := fun f x ↦
@@ -89,7 +91,7 @@ theorem voronovskaja_theorem.bezier_bernstein_operators.variants.eventually_smoo
   exact hfm.of_le (by exact_mod_cast hm)
 
 /-- Existence-only consequence of the explicit formula. -/
-@[category research open, AMS 26 40 47]
+@[category research solved, AMS 26 40 47]
 theorem voronovskaja_theorem.bezier_bernstein_operators.variants.eventually_smooth.limit_exists
     (α : ℝ) (hα_pos : 0 < α) (hα : α ≠ 1) :
     ∀ᶠ m : ℕ in atTop,
@@ -104,7 +106,7 @@ theorem voronovskaja_theorem.bezier_bernstein_operators.variants.eventually_smoo
   exact hfm.of_le (by exact_mod_cast hm)
 
 /-- Concrete answer to the smoothness-threshold variant: order two and the explicit formula above. -/
-@[category research open, AMS 26 40 47]
+@[category research solved, AMS 26 40 47]
 theorem voronovskaja_theorem.bezier_bernstein_operators.variants.answer_smoothness
     (α : ℝ) (hα_pos : 0 < α) (hα : α ≠ 1) :
     let p : ℕ × ((ℝ → ℝ) → ℝ → ℝ) :=
