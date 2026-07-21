@@ -143,6 +143,7 @@ theorem bernsteinTail_eval_le_one
     _ = 1 := by simp [bernsteinTail_zero]
 
 /-- The Bézier mass attached to the sampling point `k / n`. -/
+@[expose]
 noncomputable def bezierWeight (n k : ℕ) (α x : ℝ) : ℝ :=
   (bernsteinTail n k).eval x ^ α - (bernsteinTail n (k + 1)).eval x ^ α
 
@@ -201,6 +202,7 @@ theorem sum_cast_mul_bezierWeight (n : ℕ) {α : ℝ} (hα : 0 < α) (x : ℝ) 
   simp [bernsteinTail_succ_self, hα.ne']
 
 /-- The first centered moment of the Bézier probability weights. -/
+@[expose]
 noncomputable def bezierCenteredMoment (n : ℕ) (α x : ℝ) : ℝ :=
   ∑ k ∈ Finset.range (n + 1),
     (((k : ℝ) / (n : ℝ)) - x) * bezierWeight n k α x
@@ -216,6 +218,7 @@ theorem bezierCenteredMoment_eq_tail_sum (n : ℕ) {α : ℝ} (hα : 0 < α) (x 
     sum_cast_mul_bezierWeight n hα x, sum_bezierWeight n hα x, mul_one]
 
 /-- The weighted first-order Taylor remainder of `f` at `x`. -/
+@[expose]
 noncomputable def bezierTaylorRemainder
     (n : ℕ) (α : ℝ) (f : ℝ → ℝ) (x slope : ℝ) : ℝ :=
   ∑ k ∈ Finset.range (n + 1),
