@@ -19,7 +19,7 @@ The 47 compact LRAT certificates are distributed as the release asset
 `quantum-graph-n6d3-clrat-v1.tar.zst`.  Run:
 
 ```sh
-./setup_certificates.sh
+./QuantumGraphN6D3/setup_certificates.sh
 ```
 
 The script downloads the versioned release asset, verifies its fixed SHA-256
