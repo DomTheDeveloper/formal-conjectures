@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Audit merged upstream candidates
+name: Audit remaining upstream candidates
 
 on:
   push:
@@ -36,18 +36,6 @@ jobs:
       max-parallel: 3
       matrix:
         include:
-          - label: wowii65
-            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture65
-            module: FormalConjectures.WrittenOnTheWallII.GraphConjecture65
-            theorem: WrittenOnTheWallII.GraphConjecture65.conjecture65
-          - label: wowii109
-            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture109
-            module: FormalConjectures.WrittenOnTheWallII.GraphConjecture109
-            theorem: WrittenOnTheWallII.GraphConjecture109.conjecture109
-          - label: wowii143
-            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture143ForkProof
-            module: FormalConjectures.WrittenOnTheWallII.GraphConjecture143ForkProof
-            theorem: WrittenOnTheWallII.GraphConjecture143.conjecture143_fork_proof
           - label: wowii314
             target: FormalConjectures.WrittenOnTheWallII.GraphConjecture314
             module: FormalConjectures.WrittenOnTheWallII.GraphConjecture314
