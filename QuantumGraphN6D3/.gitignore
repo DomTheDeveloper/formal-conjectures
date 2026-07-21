@@ -1,0 +1,10 @@
+*.olean
+.singularhistory
+.venv/
+__pycache__/
+certificates/
+releases/
+*.cnf
+*.drat
+*.lrat
+*.out
