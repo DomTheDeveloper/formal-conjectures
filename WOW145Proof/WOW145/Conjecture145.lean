@@ -1,180 +1,147 @@
-import WOW146.GraphConjecture146Proof
+import WOW146.ExceptionalTheorem
 import FormalConjectures.WrittenOnTheWallII.GraphConjecture145
 
 /-!
-# Written on the Wall II — Conjecture 145
+# WOWII Graph Conjecture 145
 
-This file proves the exact current Formal Conjectures statement. The proof splits on the
-minimum local independence number of the complement. The exceptional value one forces a
-radius-two center and reduces to the kernel-checked proof of WOWII Conjecture 146.
+A proof of the exact Formal Conjectures statement.
 -/
 
-open Classical
-open SimpleGraph
+open Classical SimpleGraph
 open WrittenOnTheWallII.GraphConjecture145
-open WrittenOnTheWallII.GraphConjecture146
 
 namespace WOW145
 
 variable {α : Type*} [Fintype α] [DecidableEq α] [Nontrivial α]
 
-omit [DecidableEq α] in
-private lemma eccent_ne_top_of_connected {G : SimpleGraph α}
-    (hG : G.Connected) (u : α) : G.eccent u ≠ ⊤ := by
-  have hed : G.ediam ≠ ⊤ := connected_iff_ediam_ne_top.mp hG
-  intro hu
-  apply hed
-  exact top_unique (hu ▸ (eccent_le_ediam (G := G) (u := u)))
+private lemma exists_localIndependenceMin_eq (H : SimpleGraph α) :
+    ∃ v : α, indepNeighborsCard H v = localIndependenceMin H := by
+  obtain ⟨v, _, hv⟩ :=
+    Finset.exists_mem_eq_inf' Finset.univ_nonempty (indepNeighborsCard H)
+  exact ⟨v, hv.symm⟩
 
-private lemma exists_local_independence_one (H : SimpleGraph α)
-    [DecidableRel H.Adj]
-    (hmin : localIndependenceMin H = 1) :
-    ∃ v, indepNeighborsCard H v = 1 := by
-  by_contra hnone
-  push_neg at hnone
-  have htwo : 2 ≤ localIndependenceMin H := by
-    unfold localIndependenceMin
-    rw [Finset.le_inf'_iff]
-    intro v _hv
-    have hle : localIndependenceMin H ≤ indepNeighborsCard H v := by
-      unfold localIndependenceMin
-      apply Finset.inf'_le
-      exact Finset.mem_univ v
-    rw [hmin] at hle
-    have hne := hnone v
-    omega
-  rw [hmin] at htwo
-  omega
-
-private lemma dist_le_two_of_compl_local_independence_one
-    (G : SimpleGraph α) [DecidableRel G.Adj]
-    (hG : G.Connected) {v : α}
-    (hv : indepNeighborsCard Gᶜ v = 1) (w : α) :
-    G.dist v w ≤ 2 := by
-  by_contra hle
-  have hdist : 2 < G.dist v w := by omega
-  obtain ⟨p, _hpPath, hpLen⟩ := hG.exists_path_of_dist v w
-  have htwoLen : 2 ≤ p.length := by
-    rw [hpLen]
-    omega
-  have hthreeLen : 3 ≤ p.length := by
-    rw [hpLen]
-    omega
-  let b : α := p.getVert 2
-  let c : α := p.getVert 3
-  have hdistb : G.dist v b = 2 := by
-    have hsub := length_eq_dist_of_subwalk hpLen (Walk.isSubwalk_take p 2)
-    calc
-      G.dist v b = (p.take 2).length := by simpa [b] using hsub.symm
-      _ = 2 := by simp [Walk.take_length, Nat.min_eq_left htwoLen]
-  have hdistc : G.dist v c = 3 := by
-    have hsub := length_eq_dist_of_subwalk hpLen (Walk.isSubwalk_take p 3)
-    calc
-      G.dist v c = (p.take 3).length := by simpa [c] using hsub.symm
-      _ = 3 := by simp [Walk.take_length, Nat.min_eq_left hthreeLen]
-  have hvb : ¬G.Adj v b := by
-    intro hadj
-    have hone := G.dist_eq_one_iff_adj.mpr hadj
-    omega
-  have hvc : ¬G.Adj v c := by
-    intro hadj
-    have hone := G.dist_eq_one_iff_adj.mpr hadj
-    omega
-  have hbc : G.Adj b c := by
-    dsimp [b, c]
-    simpa using p.adj_getVert_succ (i := 2) (by omega)
-  have hvbne : v ≠ b := by
-    intro hEq
-    have hzero : G.dist v b = 0 := by simp [hEq]
-    omega
-  have hvcne : v ≠ c := by
-    intro hEq
-    have hzero : G.dist v c = 0 := by simp [hEq]
-    omega
-  have hbmem : b ∈ (Gᶜ).neighborSet v := by
-    simpa [SimpleGraph.compl_adj] using And.intro hvbne hvb
-  have hcmem : c ∈ (Gᶜ).neighborSet v := by
-    simpa [SimpleGraph.compl_adj] using And.intro hvcne hvc
-  let b' : ↥((Gᶜ).neighborSet v) := ⟨b, hbmem⟩
-  let c' : ↥((Gᶜ).neighborSet v) := ⟨c, hcmem⟩
-  have hb'c' : b' ≠ c' := by
-    intro hEq
-    apply hbc.ne
-    exact congrArg Subtype.val hEq
-  have hnotadj :
-      ¬((Gᶜ).induce ((Gᶜ).neighborSet v)).Adj b' c' := by
-    intro hadj
-    have hcomp : (Gᶜ).Adj b c := by simpa [b', c'] using hadj
-    simp [SimpleGraph.compl_adj] at hcomp
-    exact hcomp.2 hbc
-  have hind :
-      ((Gᶜ).induce ((Gᶜ).neighborSet v)).IsIndepSet
-        ({b', c'} : Set ↥((Gᶜ).neighborSet v)) := by
-    rw [← SimpleGraph.isClique_compl, SimpleGraph.isClique_pair]
-    intro hne
-    simpa [SimpleGraph.compl_adj] using And.intro hne hnotadj
-  have hindFin :
-      ((Gᶜ).induce ((Gᶜ).neighborSet v)).IsIndepSet
-        (↑({b', c'} : Finset ↥((Gᶜ).neighborSet v)) : Set ↥((Gᶜ).neighborSet v)) := by
-    simpa using hind
-  have hcard :
-      ({b', c'} : Finset ↥((Gᶜ).neighborSet v)).card ≤
-        ((Gᶜ).induce ((Gᶜ).neighborSet v)).indepNum :=
-    hindFin.card_le_indepNum
+private lemma nonadjacent_nonneighbors_of_indepNeighborsCard_compl_eq_one
+    (G : SimpleGraph α) [DecidableRel G.Adj] {v : α}
+    (hv : indepNeighborsCard Gᶜ v = 1) :
+    ∀ ⦃x y : α⦄, Gᶜ.Adj v x → Gᶜ.Adj v y → ¬G.Adj x y := by
+  intro x y hvx hvy hxy
+  let x' : (Gᶜ).neighborSet v := ⟨x, hvx⟩
+  let y' : (Gᶜ).neighborSet v := ⟨y, hvy⟩
+  have hxy' : x' ≠ y' := by
+    intro h
+    apply hxy.ne
+    exact congrArg Subtype.val h
+  have hind : ((Gᶜ).induce ((Gᶜ).neighborSet v)).IsIndepSet
+      ({x', y'} : Finset ((Gᶜ).neighborSet v)) := by
+    intro a ha b hb hab
+    simp only [Finset.mem_coe, Finset.mem_insert, Finset.mem_singleton] at ha hb
+    rcases ha with rfl | rfl <;> rcases hb with rfl | rfl
+    · exact (hab rfl).elim
+    · simp [x', y', hxy]
+    · simp [x', y', hxy.symm]
+    · exact (hab rfl).elim
+  have hle := hind.card_le_indepNum
   have htwo : 2 ≤ indepNeighborsCard Gᶜ v := by
-    unfold indepNeighborsCard
-    simpa [hb'c'] using hcard
+    simpa [indepNeighborsCard, Finset.card_pair hxy'] using hle
   omega
 
-private lemma radius_toNat_le_two_of_local_min_one
-    (G : SimpleGraph α) [DecidableRel G.Adj]
-    (hG : G.Connected)
-    (hmin : localIndependenceMin Gᶜ = 1) :
+private lemma exists_center_dist_le_two_of_localIndependenceMin_compl_eq_one
+    (G : SimpleGraph α) [DecidableRel G.Adj] (hG : G.Connected)
+    (hm : localIndependenceMin Gᶜ = 1) :
+    ∃ v : α, ∀ x : α, G.dist v x ≤ 2 := by
+  obtain ⟨v, hv⟩ := exists_localIndependenceMin_eq (Gᶜ)
+  have hvone : indepNeighborsCard Gᶜ v = 1 := hv.trans hm
+  have hnon := nonadjacent_nonneighbors_of_indepNeighborsCard_compl_eq_one G hvone
+  refine ⟨v, fun x => ?_⟩
+  by_cases hxv : x = v
+  · subst x
+    simp
+  by_cases hvx : G.Adj v x
+  · exact (G.dist_le hvx.toWalk).trans (by norm_num)
+  have hvne : v ≠ x := Ne.symm hxv
+  have hcvx : Gᶜ.Adj v x := by
+    simp [hvne, hvx]
+  have hxs : x ∈ G.support := by
+    rw [hG.preconnected.support_eq_univ]
+    simp
+  obtain ⟨z, hxz⟩ := (mem_support G).mp hxs
+  have hvz : G.Adj v z := by
+    by_contra hn
+    have hzv : z ≠ v := by
+      intro hzv
+      subst z
+      exact hvx hxz.symm
+    have hvz_ne : v ≠ z := Ne.symm hzv
+    have hcvz : Gᶜ.Adj v z := by
+      simp [hvz_ne, hn]
+    exact (hnon hcvx hcvz) hxz
+  exact WOW146.dist_le_two_of_adj_adj G hvz hxz.symm
+
+private lemma radius_toNat_le_two_of_localIndependenceMin_compl_eq_one
+    (G : SimpleGraph α) [DecidableRel G.Adj] (hG : G.Connected)
+    (hm : localIndependenceMin Gᶜ = 1) :
     G.radius.toNat ≤ 2 := by
-  obtain ⟨v, hv⟩ := exists_local_independence_one Gᶜ hmin
-  have hdist : ∀ w : α, SimpleGraph.dist G v w ≤ 2 :=
-    dist_le_two_of_compl_local_independence_one G hG hv
-  obtain ⟨w, hw⟩ := G.exists_edist_eq_eccent_of_finite v
-  have hdist_eq : SimpleGraph.dist G v w = (G.eccent v).toNat := by
-    unfold SimpleGraph.dist
-    rw [hw]
-  have hecc : (G.eccent v).toNat ≤ 2 := by
-    rw [← hdist_eq]
-    exact hdist w
-  have hrle : G.radius.toNat ≤ (G.eccent v).toNat :=
-    ENat.toNat_le_toNat
-      (radius_le_eccent (G := G) (u := v))
-      (eccent_ne_top_of_connected hG v)
-  omega
+  obtain ⟨v, hv⟩ := exists_center_dist_le_two_of_localIndependenceMin_compl_eq_one G hG hm
+  have hecc : G.eccent v ≤ (2 : ℕ∞) := by
+    rw [eccent_le_iff]
+    intro x
+    rw [← (hG v x).coe_dist_eq_edist]
+    exact_mod_cast hv x
+  have hr : G.radius ≤ (2 : ℕ∞) := radius_le_eccent.trans hecc
+  simpa using ENat.toNat_le_toNat hr (by simp)
 
-/-- Written on the Wall II, Conjecture 145, with the exact upstream signature. -/
-theorem conjecture145 (G : SimpleGraph α) [DecidableRel G.Adj]
-    (hG : G.Connected)
+private lemma diam_le_four_of_localIndependenceMin_compl_eq_one
+    (G : SimpleGraph α) [DecidableRel G.Adj] (hG : G.Connected)
+    (hm : localIndependenceMin Gᶜ = 1) :
+    G.diam ≤ 4 := by
+  obtain ⟨c, hc⟩ := exists_center_dist_le_two_of_localIndependenceMin_compl_eq_one G hG hm
+  obtain ⟨u, v, huv⟩ := G.exists_dist_eq_diam
+  rw [← huv]
+  calc
+    G.dist u v ≤ G.dist u c + G.dist c v := hG.dist_triangle
+    _ ≤ 2 + 2 := Nat.add_le_add (by simpa [dist_comm] using hc u) (hc v)
+    _ = 4 := by norm_num
+
+/-- Exact Lean proof of WOWII Graph Conjecture 145. -/
+theorem conjecture145_proved (G : SimpleGraph α) [DecidableRel G.Adj] (hG : G.Connected)
     (hlMin : 0 < localIndependenceMin Gᶜ) :
     2 * eccSet G (maxEccentricityVertices G : Set α) ≤
-      largestInducedTreeSize G * localIndependenceMin Gᶜ := by
-  have hperTree :
-      eccSet G (maxEccentricityVertices G : Set α) ≤
-        largestInducedTreeSize G := by
-    have hper := G.eccSet_periphery_add_one_le_diam hG
-    have htree := G.diam_succ_le_largestInducedTreeSize hG
+    largestInducedTreeSize G * localIndependenceMin Gᶜ := by
+  let p := eccSet G (maxEccentricityVertices G : Set α)
+  let t := largestInducedTreeSize G
+  let m := localIndependenceMin Gᶜ
+  have hpdiam : p + 1 ≤ G.diam := by
+    simpa [p] using eccSet_periphery_add_one_le_diam hG
+  have hdtree : G.diam + 1 ≤ t := by
+    simpa [t] using diam_succ_le_largestInducedTreeSize hG
+  by_cases hmge : 2 ≤ m
+  · have hpt : p ≤ t := by omega
+    change 2 * p ≤ t * m
+    nlinarith
+  have hm : m = 1 := by
+    have hmpos : 0 < m := by simpa [m] using hlMin
     omega
-  by_cases htwo : 2 ≤ localIndependenceMin Gᶜ
-  · calc
-      2 * eccSet G (maxEccentricityVertices G : Set α) ≤
-          2 * largestInducedTreeSize G := Nat.mul_le_mul_left 2 hperTree
-      _ = largestInducedTreeSize G * 2 := Nat.mul_comm _ _
-      _ ≤ largestInducedTreeSize G * localIndependenceMin Gᶜ :=
-        Nat.mul_le_mul_left _ htwo
-  · have hone : localIndependenceMin Gᶜ = 1 := by omega
-    have hrle : G.radius.toNat ≤ 2 :=
-      radius_toNat_le_two_of_local_min_one G hG hone
-    have hrho : graphSquareRadius G = 1 := by
-      rw [SimpleGraph.graphSquareRadius_eq hG]
+  have hmraw : localIndependenceMin Gᶜ = 1 := by simpa [m] using hm
+  have hdle : G.diam ≤ 4 :=
+    diam_le_four_of_localIndependenceMin_compl_eq_one G hG hmraw
+  have hple : p ≤ 3 := by omega
+  have hgoal : 2 * p ≤ t := by
+    by_cases hp : p ≤ 2
+    · omega
+    · have hp3 : p = 3 := by omega
+      have hd4 : G.diam = 4 := by omega
+      have hrle : G.radius.toNat ≤ 2 :=
+        radius_toNat_le_two_of_localIndependenceMin_compl_eq_one G hG hmraw
+      have hdlower : G.diam ≤ 2 * G.radius.toNat := diam_le_two_mul_radius_toNat hG
+      have hr2 : G.radius.toNat = 2 := by omega
+      have hsix : 6 ≤ t := by
+        have hpraw : eccSet G (maxEccentricityVertices G : Set α) = 3 := by
+          simpa [p] using hp3
+        simpa [t] using WOW146.exceptional_case G hG hr2 hd4 hpraw
       omega
-    have h146 := WOW146.conjecture146 G hG (by omega : 0 < graphSquareRadius G)
-    simpa [hrho, hone] using h146
+  change 2 * p ≤ t * m
+  simpa [hm] using hgoal
 
-#print axioms WOW145.conjecture145
+#print axioms WOW145.conjecture145_proved
 
 end WOW145
