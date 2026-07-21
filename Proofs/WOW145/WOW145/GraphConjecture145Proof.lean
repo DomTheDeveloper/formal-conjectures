@@ -67,13 +67,17 @@ lemma dist_le_two_of_comp_indepNeighborsCard_eq_one
       ((Gᶜ).induce (Gᶜ.neighborSet v)).IsIndepSet
         ({z', w'} : Finset (Gᶜ.neighborSet v)) := by
     rw [← isClique_compl]
-    apply (isClique_pair (G := ((Gᶜ).induce (Gᶜ.neighborSet v))ᶜ)).2
-    intro _
-    rw [compl_adj]
-    refine ⟨hzwNe, ?_⟩
-    change ¬Gᶜ.Adj z w
-    intro hcomp
-    exact (compl_adj.mp hcomp).2 hzw
+    have hclique :
+        (((Gᶜ).induce (Gᶜ.neighborSet v))ᶜ).IsClique
+          ({z', w'} : Set (Gᶜ.neighborSet v)) := by
+      rw [isClique_pair]
+      intro _
+      rw [compl_adj]
+      refine ⟨hzwNe, ?_⟩
+      change ¬Gᶜ.Adj z w
+      intro hcomp
+      exact (compl_adj.mp hcomp).2 hzw
+    simpa using hclique
   have hcard : ({z', w'} : Finset (Gᶜ.neighborSet v)).card = 2 := by
     simp [hzwNe]
   have htwo := hpair.card_le_indepNum
@@ -156,6 +160,7 @@ theorem conjecture145_proof [DecidableRel G.Adj] (hG : G.Connected)
         simpa [p, d, t] using
           WOW146.exceptional_six_vertex_induced_tree G hG hrho
             (by simpa [d] using hdEq) (by simpa [p] using hpEq)
+      rw [hqOne, Nat.mul_one]
       omega
 
 #check WrittenOnTheWallII.GraphConjecture145.conjecture145
