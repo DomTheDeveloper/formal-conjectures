@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Audit upstream marker branches
+name: Audit remaining upstream marker branches
 
 on:
   push:
@@ -27,20 +27,19 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: upstream-marker-branches-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     strategy:
       fail-fast: false
+      max-parallel: 3
       matrix:
         include:
-          - branch: upstream/wowii-109-disproved
-            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture109
           - branch: upstream/wowii-314-solved
             target: FormalConjectures.WrittenOnTheWallII.GraphConjecture314
-          - branch: upstream/wowii-316-solved
-            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture316
-          - branch: upstream/wowii-322-solved
-            target: FormalConjectures.WrittenOnTheWallII.GraphConjecture322
           - branch: upstream/bmo4-formal-proof
             target: FormalConjectures.Other.BeaverMathOlympiad
           - branch: upstream/erdos602-countable-proof
