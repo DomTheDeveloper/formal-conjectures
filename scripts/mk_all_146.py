@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROOF_DIR = ROOT / "FormalConjectures" / "WrittenOnTheWallII"
 WORK = PROOF_DIR / "GraphConjecture146Proof.lean"
 FINAL = PROOF_DIR / "146.lean"
+CANONICAL = PROOF_DIR / "GraphConjecture146.lean"
 
 parts = sorted((ROOT / ".github").glob("wowii146-source.part*"))
 if not parts:
@@ -56,13 +57,15 @@ text = text.replace("conjecture146_proved", "conjecture146")
 text = text.replace("@[category API, AMS 5]", "@[category research solved, AMS 5]", 1)
 FINAL.write_text(text)
 
-# Recreate the aggregate import file expected by the standard workflow.
+# Recreate the aggregate import file expected by the standard workflow.  The
+# canonical open statement and the standalone proof intentionally declare the
+# same exact theorem, so only the proof enters this temporary aggregate.
 def lean_segment(segment: str) -> str:
     return f"«{segment}»" if re.match(r"^\d", segment) else segment
 
 modules: list[str] = []
 for path in sorted((ROOT / "FormalConjectures").rglob("*.lean")):
-    if path.name == "All.lean":
+    if path.name == "All.lean" or path == CANONICAL:
         continue
     rel = path.relative_to(ROOT).with_suffix("")
     modules.append(".".join(lean_segment(part) for part in rel.parts))
