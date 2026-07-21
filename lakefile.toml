@@ -66,6 +66,13 @@ weak.linter.style.category_attribute = true
 weak.linter.style.moduleDocstring = true
 weak.google.answer = "postpone"
 
+# Temporary proof-export helper; removed from the clean proof branch.
+[[lean_exe]]
+name = "mk_all"
+srcDir = "scripts"
+root = "mk_all"
+exeName = "mk_all"
+supportInterpreter = true
 
 [[lean_exe]]
 name = "extract_names"
