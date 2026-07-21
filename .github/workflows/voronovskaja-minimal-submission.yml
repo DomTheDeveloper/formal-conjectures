@@ -1,0 +1,29 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: Voronovskaja minimal submission
+
+on:
+  push:
+    branches:
+      - audit/voronovskaja-minimal-target
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Fetch precompiled dependencies
+        run: lake exe cache get
+      - name: Compile submission file
+        run: lake build FormalConjectures.Paper.VoronovskajaTypeFormula
