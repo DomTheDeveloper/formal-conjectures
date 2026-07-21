@@ -122,12 +122,13 @@ private lemma abs_classicalSecondRemainderSum_le
               bezierWeight n k 1 (x : ℝ) ≤
               (C * d ^ 2) * bezierWeight n k 1 (x : ℝ) := by
             simpa [d] using mul_le_mul_of_nonneg_right hR hw
-          _ ≤ C * bezierWeight n k 1 (x : ℝ) :=
-            mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hsq hC0) hw
+          _ ≤ C * bezierWeight n k 1 (x : ℝ) := by
+            have hCd : C * d ^ 2 ≤ C := by
+              simpa only [mul_one] using mul_le_mul_of_nonneg_left hsq hC0
+            exact mul_le_mul_of_nonneg_right hCd hw
           _ ≤ ε * d ^ 2 * bezierWeight n k 1 (x : ℝ) +
               C * bezierWeight n k 1 (x : ℝ) := by
-            have hd2 : 0 ≤ d ^ 2 := sq_nonneg d
-            positivity
+            exact le_add_of_nonneg_left (mul_nonneg (mul_nonneg hε0 (sq_nonneg d)) hw)
       · have hnear : |((k : ℝ) / (n : ℝ)) - (x : ℝ)| < δ := lt_of_not_ge hfar
         have hR := hlocal ((k : ℝ) / (n : ℝ)) hy hnear
         simp only [if_neg hfar, mul_zero, add_zero]
@@ -137,8 +138,13 @@ private lemma abs_classicalSecondRemainderSum_le
             ((((k : ℝ) / (n : ℝ)) - (x : ℝ)) ^ 2) *
               bezierWeight n k 1 (x : ℝ)) +
         C * classicalFarMass n x δ := by
-      rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
-      rw [classicalFarMass, Fin.sum_univ_eq_sum_range]
+      rw [Finset.sum_add_distrib]
+      congr 1
+      · rw [Finset.mul_sum]
+        apply Finset.sum_congr rfl
+        intro k hk
+        ring
+      · rw [Finset.mul_sum, classicalFarMass, Fin.sum_univ_eq_sum_range]
 
 /-- The `n`-scaled second-order Taylor remainder tends to zero at every interior point. -/
 lemma tendsto_nat_mul_classicalSecondRemainderSum
@@ -159,14 +165,18 @@ lemma tendsto_nat_mul_classicalSecondRemainderSum
   obtain ⟨δ, hδ, hlocal⟩ :=
     exists_delta_abs_classicalSecondRemainder_le f (x : ℝ) x.property hf hε
   have hfar := (tendsto_nat_mul_classicalFarMass x hx0 hx1 hδ).const_mul C
+  have hfar0 : Tendsto
+      (fun n : ℕ ↦ C * ((n : ℝ) * classicalFarMass n x δ)) atTop (𝓝 0) := by
+    simpa using hfar
   have hfarEventually : ∀ᶠ n : ℕ in atTop,
       |C * ((n : ℝ) * classicalFarMass n x δ)| < η / 2 := by
-    have := hfar.norm.eventually_lt_const (half_pos hη)
-    simpa [Real.norm_eq_abs] using this
-  refine (eventually_atTop.2 ⟨1, fun n hn ↦ hn⟩).and hfarEventually |>.mono ?_
-  intro n hdata
-  rcases hdata with ⟨hn, hfarN⟩
-  have hn0 : 0 < n := hn
+    have hnorm := hfar0.norm.eventually_lt_const (half_pos hη)
+    simpa [Real.norm_eq_abs] using hnorm
+  rcases eventually_atTop.1 hfarEventually with ⟨N, hN⟩
+  refine ⟨max 1 N, fun n hn ↦ ?_⟩
+  have hn1 : 1 ≤ n := (le_max_left 1 N).trans hn
+  have hfarN := hN n ((le_max_right 1 N).trans hn)
+  have hn0 : 0 < n := hn1
   have hsum := abs_classicalSecondRemainderSum_le
     n hn0 f hf x C ε δ hC0 hε.le hδ hglobal hlocal
   have hvar := sum_sq_centered_bezierWeight_one n hn0 x
