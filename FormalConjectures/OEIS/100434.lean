@@ -126,6 +126,12 @@ conjectures: c(n) + d(n) = e(n) + f(n) = g(n) + a(n); c(n) + d(n) = b(n)."
 
 This auxiliary-sequence conjecture recorded in OEIS A100434 is false. The
 last equality fails at `n = 2`.
+
+The counterexample and Lean formalization were produced by ProofOrchestrator,
+using OpenAI GPT-5.6 Thinking, under Dominic Dabish's supervision.
+
+*Reference:*
+- [OEIS A100434](https://oeis.org/A100434)
 -/
 @[category research solved, AMS 11]
 theorem a100434_conjecture_false :
