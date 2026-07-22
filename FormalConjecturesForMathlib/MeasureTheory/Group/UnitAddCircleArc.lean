@@ -15,7 +15,7 @@ limitations under the License.
 -/
 module
 
-public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Periodic
+public import Mathlib.MeasureTheory.Group.AddCircle
 public import Mathlib.Analysis.Normed.Group.AddCircle
 
 @[expose] public section
