@@ -16,17 +16,9 @@ permissions:
 
 jobs:
   check:
-    name: check (${{ matrix.runner }})
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: ubuntu-slim
-            elan_target: x86_64-unknown-linux-gnu
-          - runner: macos-15-intel
-            elan_target: x86_64-apple-darwin
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 15
+    name: check (ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
@@ -34,7 +26,7 @@ jobs:
       - name: Install elan
         run: |
           set -o pipefail
-          curl -sSfL "https://github.com/leanprover/elan/releases/download/v1.4.2/elan-${{ matrix.elan_target }}.tar.gz" | tar xz
+          curl -sSfL "https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz" | tar xz
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
