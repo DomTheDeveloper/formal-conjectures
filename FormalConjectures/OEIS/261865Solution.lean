@@ -15,7 +15,7 @@ limitations under the License.
 -/
 module
 
-public import FormalConjectures.OEIS.«261865»
+public import FormalConjectures.OEIS.A261865Base
 public import FormalConjecturesForMathlib.Analysis.Equidistribution.TerminalBox
 
 @[expose] public section
