@@ -6,18 +6,11 @@ name: Litt most-unfair proof check
 on:
   push:
     branches:
-      - agent/litt-most-unfair-proof
-  pull_request:
-    branches:
-      - audit/litt-upstream-base
+      - audit/litt-proof-20260722-a
   workflow_dispatch:
 
 permissions:
   contents: read
-
-concurrency:
-  group: litt-most-unfair-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   exact-audit:
@@ -55,10 +48,11 @@ jobs:
           lake env lean FormalConjectures/Other/LittMostUnfairBet.lean
           lake env lean FormalConjectures/Other/LittMostUnfairBetProof.lean
 
-      - name: Compile Walsh variance-gap modules
+      - name: Compile exact Walsh variance bridge
         run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshInteriorGap.lean
+          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshOverlapBridge.lean
 
-      - name: Compile full Walsh variance bridge
+      - name: Compile constant and endpoint variance gaps
         run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshVarianceBridge.lean
+          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshConstantGap.lean
+          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshOneEndpointGap.lean
