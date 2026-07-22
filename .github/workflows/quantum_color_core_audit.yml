@@ -1,0 +1,41 @@
+name: Quantum color restriction core audit
+
+on:
+  pull_request:
+    branches:
+      - upstream/quantum-4511-author-base
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up pinned Lean and mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: true
+      - name: Compile and audit color restriction core
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake env lean QuantumGraphColorRestriction.lean 2>&1 | tee quantum-color-core.log
+          if grep -q 'sorryAx' quantum-color-core.log; then
+            echo 'Color restriction core contains sorryAx.' >&2
+            exit 1
+          fi
+      - name: Upload audit log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quantum-color-core-audit-log
+          path: quantum-color-core.log
+          if-no-files-found: error
