@@ -4,7 +4,7 @@ Licensed under the Apache License, Version 2.0.
 -/
 import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217CrossDegree
 import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217UniversalStages
-import Mathlib.Tactic.IntervalCases
+import Lean.Elab.Tactic.Omega
 
 /-!
 # Mixed high-degree rows via Chvátal after path closure
@@ -103,7 +103,7 @@ lemma card_sub_one_le_crossDegree_of_degree_four_nonseed
       have hxv : x ≠ v := by
         intro h
         subst x
-        exact G.irrefl (show G.Adj v v from False.elim (hxData.2 (G.irrefl)))
+        exact hvA hxA
       have hAdjH : H.Adj v x := (huniv x hxA v hxv).symm
       simpa [H] using hAdjH
   have hcard := Finset.card_le_card hsub
@@ -138,10 +138,10 @@ theorem sixSeedSet_card_ge
     (hCdeg : ∀ c ∈ C, G.degree c = 5)
     (hDdeg : ∀ d ∈ D, G.degree d = 4)
     (huniv : ∀ a ∈ A, ∀ v, v ≠ a → (pathClosure G).Adj a v)
-    (hforce : ∀ sC sD : ℕ,
-      sC ≤ C.card → sD ≤ D.card → sC + sD < m →
+    (hforce : ∀ nC nD sC sD : ℕ,
+      nC + sC = C.card → nD + sD = D.card → sC + sD < m →
       (∑ a ∈ A, G.degree a) <
-        A.card * (C.card - sC) + (A.card - 1) * (D.card - sD)) :
+        A.card * nC + (A.card - 1) * nD) :
     m ≤ (sixSeedSet G A).card := by
   let S := sixSeedSet G A
   let SC := C ∩ S
@@ -159,8 +159,10 @@ theorem sixSeedSet_card_ge
       have hvCD := hSsub hv
       rw [Finset.mem_union] at hvCD ⊢
       rcases hvCD with hvC | hvD
-      · left; exact Finset.mem_inter.mpr ⟨hvC, hv⟩
-      · right; exact Finset.mem_inter.mpr ⟨hvD, hv⟩
+      · left
+        exact Finset.mem_inter.mpr ⟨hvC, hv⟩
+      · right
+        exact Finset.mem_inter.mpr ⟨hvD, hv⟩
     · intro hv
       rw [Finset.mem_union] at hv
       rcases hv with hvSC | hvSD
@@ -175,6 +177,26 @@ theorem sixSeedSet_card_ge
     exact Nat.lt_of_not_ge hnot
   let NC := C \ S
   let ND := D \ S
+  have hCpartition : NC ∪ SC = C := by
+    ext v
+    simp [NC, SC]
+  have hDpartition : ND ∪ SD = D := by
+    ext v
+    simp [ND, SD]
+  have hNCSC : Disjoint NC SC := by
+    rw [Finset.disjoint_left]
+    intro v hvN hvS
+    exact (Finset.mem_sdiff.mp (by simpa [NC] using hvN)).2
+      (Finset.mem_inter.mp (by simpa [SC] using hvS)).2
+  have hNDSD : Disjoint ND SD := by
+    rw [Finset.disjoint_left]
+    intro v hvN hvS
+    exact (Finset.mem_sdiff.mp (by simpa [ND] using hvN)).2
+      (Finset.mem_inter.mp (by simpa [SD] using hvS)).2
+  have hCcard : NC.card + SC.card = C.card := by
+    rw [← Finset.card_union_of_disjoint hNCSC, hCpartition]
+  have hDcard : ND.card + SD.card = D.card := by
+    rw [← Finset.card_union_of_disjoint hNDSD, hDpartition]
   have hNCcross : ∀ c ∈ NC, crossDegree G A c = A.card := by
     intro c hc
     have hcData := Finset.mem_sdiff.mp (by simpa [NC] using hc)
@@ -195,18 +217,6 @@ theorem sixSeedSet_card_ge
       exact (Finset.mem_sdiff.mp hdComp).2
     exact card_sub_one_le_crossDegree_of_degree_four_nonseed G A hdA
       (hDdeg d hdData.1) huniv hdData.2
-  have hNCcard : NC.card = C.card - SC.card := by
-    have hInter : C ∩ S = SC := rfl
-    rw [NC, Finset.card_sdiff]
-    · rw [← hInter]
-      exact Finset.card_inter_of_subset (by rfl)
-    · exact Finset.inter_subset_left
-  have hNDcard : ND.card = D.card - SD.card := by
-    have hInter : D ∩ S = SD := rfl
-    rw [ND, Finset.card_sdiff]
-    · rw [← hInter]
-      exact Finset.card_inter_of_subset (by rfl)
-    · exact Finset.inter_subset_left
   have hsumNC : (∑ c ∈ NC, crossDegree G A c) = A.card * NC.card := by
     calc
       (∑ c ∈ NC, crossDegree G A c) = ∑ _c ∈ NC, A.card := by
@@ -217,7 +227,8 @@ theorem sixSeedSet_card_ge
   have hsumND : (A.card - 1) * ND.card ≤
       ∑ d ∈ ND, crossDegree G A d := by
     calc
-      (A.card - 1) * ND.card = ∑ _d ∈ ND, (A.card - 1) := by simp [mul_comm]
+      (A.card - 1) * ND.card = ∑ _d ∈ ND, (A.card - 1) := by
+        simp [mul_comm]
       _ ≤ ∑ d ∈ ND, crossDegree G A d :=
         Finset.sum_le_sum fun d hd => hNDcross d hd
   have hNCNDdisj : Disjoint NC ND :=
@@ -227,8 +238,10 @@ theorem sixSeedSet_card_ge
     rw [Finset.mem_union] at hv
     rw [← hCD]
     rcases hv with hvNC | hvND
-    · exact Finset.mem_union.mpr (Or.inl (Finset.mem_sdiff.mp (by simpa [NC] using hvNC)).1)
-    · exact Finset.mem_union.mpr (Or.inr (Finset.mem_sdiff.mp (by simpa [ND] using hvND)).1)
+    · exact Finset.mem_union.mpr (Or.inl
+        (Finset.mem_sdiff.mp (by simpa [NC] using hvNC)).1)
+    · exact Finset.mem_union.mpr (Or.inr
+        (Finset.mem_sdiff.mp (by simpa [ND] using hvND)).1)
   have hsumSub : (∑ v ∈ NC ∪ ND, crossDegree G A v) ≤
       ∑ v ∈ Finset.univ \ A, crossDegree G A v := by
     exact Finset.sum_le_sum_of_subset_of_nonneg hNCNDsub
@@ -242,11 +255,9 @@ theorem sixSeedSet_card_ge
       ∑ v ∈ NC ∪ ND, crossDegree G A v := by
     rw [Finset.sum_union hNCNDdisj, hsumNC]
     exact Nat.add_le_add_left hsumND _
-  have hforceNow := hforce SC.card SD.card
-    (Finset.card_inter_le_left) (Finset.card_inter_le_left) hseedSmall
-  rw [hNCcard, hNDcard] at hlower
-  have hcap : A.card * (C.card - SC.card) +
-      (A.card - 1) * (D.card - SD.card) ≤
+  have hforceNow := hforce NC.card ND.card SC.card SD.card
+    hCcard hDcard hseedSmall
+  have hcap : A.card * NC.card + (A.card - 1) * ND.card ≤
       ∑ a ∈ A, G.degree a :=
     hlower.trans (hsumSub.trans hcrossLe)
   omega
@@ -258,6 +269,7 @@ theorem isTraceable_of_mixed_sixSeeds
     (hn : Fintype.card V = 12)
     (hCD : C ∪ D = Finset.univ \ A)
     (hCDisjD : Disjoint C D)
+    (hAbase : ∀ a ∈ A, 6 ≤ (pathClosure G).degree a)
     (hAuniv : ∀ a ∈ A, ∀ v, v ≠ a → (pathClosure G).Adj a v)
     (hCbase : ∀ c ∈ C, 5 ≤ (pathClosure G).degree c)
     (hDbase : ∀ d ∈ D, 4 ≤ (pathClosure G).degree d)
@@ -269,25 +281,22 @@ theorem isTraceable_of_mixed_sixSeeds
   have hmin4 : ∀ v, 4 ≤ H.degree v := by
     intro v
     by_cases hvA : v ∈ A
-    · have hsub : A.erase v ⊆ H.neighborFinset v := by
-        intro x hx
-        have hxe := Finset.mem_erase.mp hx
-        simpa [H] using hAuniv v hvA x hxe.1.symm
-      have hcard := Finset.card_le_card hsub
-      rw [Finset.card_erase_of_mem hvA, card_neighborFinset_eq_degree] at hcard
+    · have := hAbase v hvA
       omega
     · have hvCD : v ∈ C ∪ D := by
         rw [hCD]
         simp [hvA]
       rw [Finset.mem_union] at hvCD
       rcases hvCD with hvC | hvD
-      · exact (hCbase v hvC).trans' (by omega)
+      · have := hCbase v hvC
+        omega
       · exact hDbase v hvD
   have hcond : ChvatalPathCondition H := by
     intro i hi hmid
     rw [hn] at hmid
-    interval_cases i
-    all_goals try {omega}
+    have hicases : i = 1 ∨ i = 2 ∨ i = 3 ∨ i = 4 ∨ i = 5 ∨ i = 6 := by
+      omega
+    rcases hicases with rfl | rfl | rfl | rfl | rfl | rfl
     · left
       have hempty : lowDegreeFinset H 1 = ∅ := by
         ext v
@@ -317,17 +326,11 @@ theorem isTraceable_of_mixed_sixSeeds
     · left
       have hsub : lowDegreeFinset H 5 ⊆ D := by
         intro v hv
-        have hvlt : H.degree v < 5 := by simpa [lowDegreeFinset] using hv
+        have hvlt : H.degree v < 5 := by
+          simpa [lowDegreeFinset] using hv
         have hvA : v ∉ A := by
           intro hvA
-          have hdeg : A.card - 1 ≤ H.degree v := by
-            have hsubA : A.erase v ⊆ H.neighborFinset v := by
-              intro x hx
-              have hxe := Finset.mem_erase.mp hx
-              simpa [H] using hAuniv v hvA x hxe.1.symm
-            have hc := Finset.card_le_card hsubA
-            rw [Finset.card_erase_of_mem hvA, card_neighborFinset_eq_degree] at hc
-            exact hc
+          have := hAbase v hvA
           omega
         have hvCD : v ∈ C ∪ D := by
           rw [hCD]
@@ -341,21 +344,16 @@ theorem isTraceable_of_mixed_sixSeeds
       have hsub : lowDegreeFinset H 6 ⊆
           (Finset.univ \ A) \ sixSeedSet G A := by
         intro v hv
-        have hvlt : H.degree v < 6 := by simpa [lowDegreeFinset] using hv
+        have hvlt : H.degree v < 6 := by
+          simpa [lowDegreeFinset] using hv
         have hvA : v ∉ A := by
           intro hvA
-          have hdeg : A.card - 1 ≤ H.degree v := by
-            have hsubA : A.erase v ⊆ H.neighborFinset v := by
-              intro x hx
-              have hxe := Finset.mem_erase.mp hx
-              simpa [H] using hAuniv v hvA x hxe.1.symm
-            have hc := Finset.card_le_card hsubA
-            rw [Finset.card_erase_of_mem hvA, card_neighborFinset_eq_degree] at hc
-            exact hc
+          have := hAbase v hvA
           omega
         refine Finset.mem_sdiff.mpr ⟨by simp [hvA], ?_⟩
         intro hvSeed
-        have h6 := (Finset.mem_filter.mp (by simpa [sixSeedSet] using hvSeed)).2
+        have h6 := (Finset.mem_filter.mp
+          (by simpa [sixSeedSet] using hvSeed)).2
         omega
       have hseedSub := sixSeedSet_subset G A
       have hcardComp : ((Finset.univ \ A) \ sixSeedSet G A).card =
@@ -363,7 +361,6 @@ theorem isTraceable_of_mixed_sixSeeds
         rw [Finset.card_sdiff hseedSub]
       have hc := Finset.card_le_card hsub
       rw [hcardComp]
-      rw [hn]
       omega
   have hTraceH := isTraceable_of_chvatalPathCondition H hcond
   exact (pathClosure_traceable_iff G).mp hTraceH
