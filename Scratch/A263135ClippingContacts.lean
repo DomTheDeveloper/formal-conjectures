@@ -163,7 +163,7 @@ theorem contacts_clippedPatch_formula
     contacts_patch_formula a b c ha hb hc] at hlost_le
   rw [contacts_clippedPatch_eq_card_surviving a b c d ha hb hc hab hd]
   unfold survivingPatchContactDarts
-  rw [Finset.card_sdiff
+  rw [Finset.card_sdiff_of_subset
     (clippedLostDarts_subset_patchContactDarts a b c d ha hb hc hab hd),
     card_clippedLostDarts a b d hd,
     card_patchContactDarts_eq_contacts a b c ha hb hc,
