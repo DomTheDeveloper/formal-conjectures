@@ -99,8 +99,11 @@ theorem sphere_subset_pair {c r : ℝ} (hr0 : 0 ≤ r) (hr : r < 1 / 2) :
   have hqabs : |q| ≤ (1 : ℝ) / 2 := by
     rw [abs_le]
     constructor <;> linarith [hqmem.1, hqmem.2]
-  have hqcoe : (q : UnitAddCircle) = x - (c : UnitAddCircle) :=
-    AddCircle.coe_equivIoc
+  have hqcoe : (q : UnitAddCircle) = x - (c : UnitAddCircle) := by
+    change (AddCircle.equivIoc (1 : ℝ) (-(1 / 2 : ℝ))).symm
+      (AddCircle.equivIoc (1 : ℝ) (-(1 / 2 : ℝ)) (x - (c : UnitAddCircle))) =
+        x - (c : UnitAddCircle)
+    exact (AddCircle.equivIoc (1 : ℝ) (-(1 / 2 : ℝ))).symm_apply_apply _
   have hnorm : ‖(q : UnitAddCircle)‖ = |q| :=
     (AddCircle.norm_coe_eq_abs_iff (1 : ℝ) one_ne_zero).2 (by simpa using hqabs)
   have habs : |q| = r := by
