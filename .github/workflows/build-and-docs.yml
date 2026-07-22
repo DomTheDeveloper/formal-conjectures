@@ -20,6 +20,16 @@ on:
       - main
       - '*-webtest'
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - converted_to_draft
+      - labeled
+      - unlabeled
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
     inputs:
       website_only:
@@ -27,8 +37,9 @@ on:
         type: boolean
         default: false
 
-# Keep only the newest run for each pull request or branch. This prevents
-# superseded proof commits from filling the account-wide Actions queue.
+# Keep only the newest run for each pull request or branch. Draft lifecycle
+# events use the same group, so converting a PR back to draft cancels an
+# obsolete full build. Expensive work is gated again at the build job.
 concurrency:
   group: build-and-docs-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -41,6 +52,12 @@ permissions:
 
 jobs:
   build:
+    # Development happens in ProofPlaygrond with AXLE/local Lean. A draft PR
+    # does not consume a full repository build unless explicitly labeled.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.draft == false ||
+      contains(github.event.pull_request.labels.*.name, 'ci:full')
     runs-on: ubuntu-latest
     name: Build project
     timeout-minutes: 90
