@@ -65,9 +65,13 @@ theorem orbit_mem_terminalBox_iff (n j : ℕ) (hj : 2 ≤ j) :
   · rintro ⟨hjhit, hmiss⟩
     have hnpos : 0 < n := by
       by_contra hn
-      have : n = 0 := Nat.eq_zero_of_not_pos hn
+      have hnzero : n = 0 := Nat.eq_zero_of_not_pos hn
       subst n
-      simp [CoordinateHit] at hjhit
+      have hnonneg :
+          0 ≤ 1 - alpha (distinguishedRadicand j).1 :=
+        sub_nonneg.mpr (ha1 (distinguishedRadicand j)).le
+      norm_num at hjhit
+      exact (not_lt_of_ge hnonneg) hjhit
     refine ⟨hnpos, (isValue_iff_coordinateConditions n j hj).2 ?_⟩
     refine ⟨by simpa [distinguishedRadicand] using hjhit, ?_⟩
     intro s hs hcoord
@@ -123,7 +127,6 @@ theorem product_erase_distinguished (j : ℕ) :
 theorem density_formula_solution (j : ℕ) (hj : 2 ≤ j) (hsq : Squarefree j) :
     {n : ℕ | 0 < n ∧ IsValue n j}.HasDensity (predictedDensity j) := by
   classical
-  let R := relevantRadicands j
   have hge : ∀ s ∈ relevantRadicands j, 2 ≤ s := by
     intro s hs
     rcases mem_relevantRadicands.mp hs with rfl | hs
