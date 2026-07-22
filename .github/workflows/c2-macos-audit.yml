@@ -1,0 +1,39 @@
+name: C2 macOS Lean audit
+
+on:
+  pull_request:
+    branches:
+      - audit/c2-macos-base-2026-07-22
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    if: contains(github.event.pull_request.title, 'C2')
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up pinned Lean and mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: true
+      - name: Compile C2 counting core and audit axioms
+        shell: bash
+        run: |
+          set -o pipefail
+          lake build FormalConjecturesUtil
+          lake env lean ProofAudit/2_counting_core.lean 2>&1 | tee c2-macos.log
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c2-macos-audit-log
+          path: c2-macos.log
+          if-no-files-found: warn
