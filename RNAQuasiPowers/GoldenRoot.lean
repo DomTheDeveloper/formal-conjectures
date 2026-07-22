@@ -35,7 +35,7 @@ theorem sqrtFive_nonneg : 0 <= sqrtFive := by
 
 theorem sqrtFive_sq : sqrtFive ^ 2 = 5 := by
   unfold sqrtFive
-  simpa using (Real.sq_sqrt (show (0 : Real) <= 5 by norm_num))
+  exact Real.sq_sqrt (by norm_num)
 
 theorem sqrtFive_pos : 0 < sqrtFive := by
   nlinarith [sqrtFive_sq, sqrtFive_nonneg]
@@ -78,7 +78,7 @@ theorem quadratic_roots {t : Real} (h : t ^ 2 - 3 * t + 1 = 0) :
 
 /-- `rho` is the unique root of the quadratic factor in the open unit interval. -/
 theorem rho_unique_in_unit {t : Real}
-    (ht0 : 0 < t) (ht1 : t < 1) (hquad : t ^ 2 - 3 * t + 1 = 0) :
+    (_ht0 : 0 < t) (ht1 : t < 1) (hquad : t ^ 2 - 3 * t + 1 = 0) :
     t = rho := by
   rcases quadratic_roots hquad with hsmall | hlarge
   · exact hsmall
@@ -102,11 +102,7 @@ theorem dRadicandAtOne_rho :
 theorem dRadicandAtOne_rho_ne_zero : Not (dRadicandAtOne rho = 0) := by
   rw [dRadicandAtOne_rho]
   intro h
-  have hs : sqrtFive = (15 : Real) / 7 := by
-    linarith
-  have hsq := congrArg (fun y : Real => y ^ 2) hs
-  rw [sqrtFive_sq] at hsq
-  norm_num at hsq
+  nlinarith [sqrtFive_sq]
 
 end
 
