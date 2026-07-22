@@ -19,7 +19,7 @@ import FormalConjectures.Other.VCDimConvex
 # A counterexample to the convex additive-VC₂ bound in ℝ³
 
 This file kernel-checks an explicit convex polyhedron in `ℝ³` whose additive
-`VC₂` dimension is at least two. In particular, it refutes
+`VC₂` dimension is at least two.  In particular, it refutes
 `VCDimConvex.hasAddVCNDimAtMost_two_one_of_convex_r3`.
 -/
 
@@ -120,7 +120,7 @@ private def target : Fin 16 → Fin 4 → Prop := ![
   ![False, True,  True,  True],
   ![True,  True,  True,  True]]
 
-/-- A violated row for every excluded incidence. Entries on included incidences are unused. -/
+/-- A violated row for every excluded incidence.  Entries on included incidences are unused. -/
 private def bad : Fin 16 → Fin 4 → Fin 13 := ![
   ![0, 0, 0, 0],
   ![0, 0, 0, 0],
@@ -148,11 +148,10 @@ private lemma mem_of_target {m : Fin 16} {j : Fin 4} (h : target m j) : Y m + Z 
 
 private lemma not_mem_of_not_target {m : Fin 16} {j : Fin 4} (h : ¬ target m j) :
     Y m + Z j ∉ C := by
-  fin_cases m <;> fin_cases j <;> simp [target] at h
-  all_goals
-    intro hp
-    rw [mem_C] at hp
-    have hb := hp (bad _ _)
+  intro hp
+  rw [mem_C] at hp
+  have hb := hp (bad m j)
+  fin_cases m <;> fin_cases j <;> simp [target] at h <;>
     norm_num [bad, Y, Z, point, lin, coeff, bound] at hb
 
 private lemma mem_Y_add_Z_iff (m : Fin 16) (j : Fin 4) :
@@ -211,6 +210,7 @@ private lemma shattering_certificate (i : Fin 2 → Fin 2) (s : Set (Fin 2 → F
   simpa [I_code]
 
 /-- The explicit convex polyhedron has additive `VC₂` dimension at least two. -/
+@[category research solved, AMS 5 52]
 theorem exists_convex_r3_not_hasAddVCNDimAtMost_two_one :
     ∃ C : Set ℝ³, Convex ℝ C ∧ ¬ HasAddVCNDimAtMost C 2 1 := by
   refine ⟨C, convex_C, ?_⟩
@@ -218,6 +218,7 @@ theorem exists_convex_r3_not_hasAddVCNDimAtMost_two_one :
   exact h x y shattering_certificate
 
 /-- The open convex additive-`VC₂` conjecture in `ℝ³` is false. -/
+@[category research solved, AMS 5 52]
 theorem not_forall_convex_r3_hasAddVCNDimAtMost_two_one :
     ¬ ∀ C : Set ℝ³, Convex ℝ C → HasAddVCNDimAtMost C 2 1 := by
   rintro h
