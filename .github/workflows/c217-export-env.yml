@@ -10,6 +10,9 @@ on:
   push:
     branches:
       - agent/c217-proof
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
