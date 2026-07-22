@@ -1,0 +1,23 @@
+import Scratch.A263135Boundary
+import Scratch.A263135BoxChains
+import Scratch.A263135CapArithmetic
+import Scratch.A263135ChainCount
+import Scratch.A263135ChainMembership
+import Scratch.A263135ChainOrder
+import Scratch.A263135ClippingCard
+import Scratch.A263135Endpoints
+import Scratch.A263135Incidence
+import Scratch.A263135Parameters
+import Scratch.A263135PatchCard
+import Scratch.A263135PatchContacts
+import Scratch.A263135PatchCorners
+import Scratch.A263135PatchDefs
+import Scratch.A263135PatchStructure
+import Scratch.A263135Ranks
+import Scratch.A263135RowBound
+import Scratch.A263135Rows
+import Scratch.A263135Staircase
+import Scratch.A263135Symmetry
+import Scratch.A263135Upper
+
+#check OeisA263135.conjecture
