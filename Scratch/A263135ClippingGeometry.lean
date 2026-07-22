@@ -146,7 +146,6 @@ private theorem clipA_horizontal_eq_forward_pred
 
 private theorem same_base_of_clipB
     {a b k : ℕ} {p : RankPoint}
-    (hpSide : p.side = false)
     (h : rankDartNeighbor (p, .same) = clipBPoint a b k) :
     p.first = (clipBPoint a b k).first ∧
       p.second = (clipBPoint a b k).second := by
@@ -154,28 +153,67 @@ private theorem same_base_of_clipB
     (fun q : RankPoint => (q.first, q.second)) h
 
 private theorem horizontal_base_of_clipB
-    {a b k : ℕ} {p : RankPoint} (hp : p.first ≠ 0)
+    {a b k : ℕ} {p : RankPoint} (hpSide : p.side = false) (hp : p.first ≠ 0)
     (h : rankDartNeighbor (p, .horizontal) = clipBPoint a b k) :
     p = clipForwardAPoint a b k := by
   by_cases hkb : k < b
-  · apply RankPoint.ext <;>
+  · apply RankPoint.ext
+    · have hf := congrArg RankPoint.first h
       simp [rankDartNeighbor, horizontalRankNeighbor, clipBPoint,
-        clipForwardAPoint, hkb] at h ⊢ <;> omega
-  · apply RankPoint.ext <;>
+        clipForwardAPoint, hkb] at hf ⊢
+      omega
+    · have hs := congrArg RankPoint.second h
+      simpa [rankDartNeighbor, horizontalRankNeighbor, clipBPoint,
+        clipForwardAPoint, hkb] using hs
+    · exact hpSide.trans (clipForwardAPoint_side a b k).symm
+  · apply RankPoint.ext
+    · have hf := congrArg RankPoint.first h
       simp [rankDartNeighbor, horizontalRankNeighbor, clipBPoint,
-        clipForwardAPoint, hkb] at h ⊢ <;> omega
+        clipForwardAPoint, hkb] at hf ⊢
+      omega
+    · have hs := congrArg RankPoint.second h
+      simpa [rankDartNeighbor, horizontalRankNeighbor, clipBPoint,
+        clipForwardAPoint, hkb] using hs
+    · exact hpSide.trans (clipForwardAPoint_side a b k).symm
 
 private theorem diagonal_base_of_clipB
-    {a b k : ℕ} {p : RankPoint} (hp : p.second ≠ 0)
+    {a b k : ℕ} {p : RankPoint} (hpSide : p.side = false) (hp : p.second ≠ 0)
     (h : rankDartNeighbor (p, .diagonal) = clipBPoint a b k) :
     p = clipAPoint a b k := by
   by_cases hkb : k < b
-  · apply RankPoint.ext <;>
+  · apply RankPoint.ext
+    · have hf := congrArg RankPoint.first h
+      simpa [rankDartNeighbor, diagonalRankNeighbor, clipBPoint,
+        clipAPoint, hkb] using hf
+    · have hs := congrArg RankPoint.second h
       simp [rankDartNeighbor, diagonalRankNeighbor, clipBPoint,
-        clipAPoint, hkb] at h ⊢ <;> omega
-  · apply RankPoint.ext <;>
+        clipAPoint, hkb] at hs ⊢
+      omega
+    · exact hpSide.trans (clipAPoint_side a b k).symm
+  · apply RankPoint.ext
+    · have hf := congrArg RankPoint.first h
+      simpa [rankDartNeighbor, diagonalRankNeighbor, clipBPoint,
+        clipAPoint, hkb] using hf
+    · have hs := congrArg RankPoint.second h
       simp [rankDartNeighbor, diagonalRankNeighbor, clipBPoint,
-        clipAPoint, hkb] at h ⊢ <;> omega
+        clipAPoint, hkb] at hs ⊢
+      omega
+    · exact hpSide.trans (clipAPoint_side a b k).symm
+
+private theorem patchContactDart_base_side
+    {a b c : ℕ} {pd : RankPoint × Direction}
+    (hpd : pd ∈ patchContactDarts a b c) : pd.1.side = false := by
+  rcases pd with ⟨p, direction⟩
+  cases direction
+  · have hp : p ∈ sameContactPoints a b c := by
+      simpa [patchContactDarts] using hpd
+    exact (Finset.mem_filter.mp (Finset.mem_filter.mp hp).1).2
+  · have hp : p ∈ horizontalContactPoints a b c := by
+      simpa [patchContactDarts] using hpd
+    exact (Finset.mem_filter.mp (Finset.mem_filter.mp hp).1).2
+  · have hp : p ∈ diagonalContactPoints a b c := by
+      simpa [patchContactDarts] using hpd
+    exact (Finset.mem_filter.mp (Finset.mem_filter.mp hp).1).2
 
 /-- A patch contact is destroyed by clipping exactly when one of its endpoints is clipped. -/
 theorem mem_clippedLostDarts_iff
@@ -199,8 +237,10 @@ theorem mem_clippedLostDarts_iff
       rw [rankDartNeighbor_clipForward_horizontal]
       exact mem_clippedRankPoints_iff.mpr ⟨k, hk', Or.inl rfl⟩
   · rintro (hbase | hneighbor)
-    · rcases mem_clippedRankPoints_iff.mp hbase with ⟨k, hk, hpk | hpk⟩
+    · have hbaseSide := patchContactDart_base_side hpd
+      rcases mem_clippedRankPoints_iff.mp hbase with ⟨k, hk, hpk | hpk⟩
       · have hs := congrArg RankPoint.side hpk
+        rw [hbaseSide] at hs
         simp at hs
       · rcases pd with ⟨p, direction⟩
         subst p
@@ -229,7 +269,7 @@ theorem mem_clippedLostDarts_iff
             simpa [patchContactDarts] using hpd
           have hpA := (Finset.mem_filter.mp hpSame).1
           have hpSide := (Finset.mem_filter.mp hpA).2
-          have hcoords := same_base_of_clipB hpSide hpk
+          have hcoords := same_base_of_clipB hpk
           by_cases hkb : k < b
           · have hpPatch := (Finset.mem_filter.mp hpA).1
             rw [mem_rankPatch] at hpPatch
@@ -255,15 +295,19 @@ theorem mem_clippedLostDarts_iff
               ⟨h, Finset.mem_range.mpr hhd, by simp [clipLostDarts]⟩
         · have hpHorizontal : p ∈ horizontalContactPoints a b c := by
             simpa [patchContactDarts] using hpd
+          have hpA := (Finset.mem_filter.mp hpHorizontal).1
+          have hpSide := (Finset.mem_filter.mp hpA).2
           have hfirst := (Finset.mem_filter.mp hpHorizontal).2
-          have hpEq := horizontal_base_of_clipB hfirst hpk
+          have hpEq := horizontal_base_of_clipB hpSide hfirst hpk
           subst p
           exact Finset.mem_biUnion.mpr
             ⟨k, Finset.mem_range.mpr hk, by simp [clipLostDarts]⟩
         · have hpDiagonal : p ∈ diagonalContactPoints a b c := by
             simpa [patchContactDarts] using hpd
+          have hpA := (Finset.mem_filter.mp hpDiagonal).1
+          have hpSide := (Finset.mem_filter.mp hpA).2
           have hsecond := (Finset.mem_filter.mp hpDiagonal).2
-          have hpEq := diagonal_base_of_clipB hsecond hpk
+          have hpEq := diagonal_base_of_clipB hpSide hsecond hpk
           subst p
           exact Finset.mem_biUnion.mpr
             ⟨k, Finset.mem_range.mpr hk, by simp [clipLostDarts]⟩
