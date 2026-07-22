@@ -3,7 +3,7 @@ name: C160 macOS Lean audit
 on:
   pull_request:
     branches:
-      - audit/macos-proof-base-2026-07-22
+      - audit/macos-proof-base-v2-2026-07-22
 
 permissions:
   contents: read
