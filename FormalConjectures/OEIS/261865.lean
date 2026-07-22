@@ -15,6 +15,7 @@ limitations under the License.
 -/
 module
 
+public import FormalConjecturesUtil
 public import FormalConjectures.OEIS.«261865Solution»
 
 @[expose] public section
