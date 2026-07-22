@@ -15,7 +15,7 @@ limitations under the License.
 -/
 module
 
-public import FormalConjectures.OEIS.«261865Solution»
+public import FormalConjectures.OEIS.«261865»
 
 @[expose] public section
 
@@ -24,9 +24,10 @@ namespace OeisA261865
 /-- Exact-statement audit wrapper for Peter Kagey's Problem 13 / OEIS A261865. -/
 theorem density_formula_final_audit (j : ℕ) (hj : 2 ≤ j) (hsq : Squarefree j) :
     {n : ℕ | 0 < n ∧ IsValue n j}.HasDensity (predictedDensity j) :=
-  density_formula_solution j hj hsq
+  density_formula j hj hsq
 
 #print axioms density_formula_solution
+#print axioms density_formula
 #print axioms density_formula_final_audit
 
 end OeisA261865
