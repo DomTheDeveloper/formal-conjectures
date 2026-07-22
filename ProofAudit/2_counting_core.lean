@@ -7,7 +7,7 @@ import FormalConjecturesUtil
 
 namespace WrittenOnTheWallII.GraphConjecture2Audit
 
-open Classical Finset
+open Classical Finset SimpleGraph
 
 /-- Number of selected neighborhoods containing a fixed vertex. -/
 def reverseCount {β : Type*} [Fintype β] [DecidableEq β]
@@ -30,6 +30,23 @@ lemma sum_reverseCount_cast_eq_sum_card_cast
     (∑ u, (reverseCount I u : ℝ)) = ∑ v, ((I v).card : ℝ) := by
   exact_mod_cast sum_reverseCount_eq_sum_card I
 
+/-- If every selected vertex at `v` is a neighbor of `v`, then the number of
+selected neighborhoods containing `u` is at most the degree of `u`. -/
+lemma reverseCount_le_degree
+    {β : Type*} [Fintype β] [DecidableEq β]
+    (G : SimpleGraph β) [DecidableRel G.Adj]
+    (I : β → Finset β)
+    (hI : ∀ v, I v ⊆ G.neighborFinset v) (u : β) :
+    reverseCount I u ≤ G.degree u := by
+  classical
+  change (Finset.univ.filter fun v => u ∈ I v).card ≤ (G.neighborFinset u).card
+  apply Finset.card_le_card
+  intro v hv
+  simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hv
+  have hvu : G.Adj v u := by
+    simpa using hI v hv
+  simpa using hvu.symm
+
 /-- The finite Cauchy inequality in exactly the form needed for both sides of
 the selected-neighborhood incidence count. -/
 lemma square_sum_le_card_mul_sum_square
@@ -45,6 +62,20 @@ lemma sq_le_mul_of_nonneg_of_le
     (c d : ℝ) (hc : 0 ≤ c) (hcd : c ≤ d) :
     c ^ 2 ≤ c * d := by
   nlinarith [mul_nonneg hc (sub_nonneg.mpr hcd)]
+
+/-- Summed form of `reverseCount_le_degree`. -/
+lemma sum_reverseCount_square_le_mul_degree
+    {β : Type*} [Fintype β] [DecidableEq β]
+    (G : SimpleGraph β) [DecidableRel G.Adj]
+    (I : β → Finset β)
+    (hI : ∀ v, I v ⊆ G.neighborFinset v) :
+    (∑ u, (reverseCount I u : ℝ) ^ 2) ≤
+      ∑ u, (reverseCount I u : ℝ) * (G.degree u : ℝ) := by
+  apply Finset.sum_le_sum
+  intro u _hu
+  apply sq_le_mul_of_nonneg_of_le
+  · positivity
+  · exact_mod_cast reverseCount_le_degree G I hI u
 
 /-- Algebraic endgame of the C2 double-counting argument.
 
@@ -74,8 +105,10 @@ lemma average_bound_core
 
 #print axioms sum_reverseCount_eq_sum_card
 #print axioms sum_reverseCount_cast_eq_sum_card_cast
+#print axioms reverseCount_le_degree
 #print axioms square_sum_le_card_mul_sum_square
 #print axioms sq_le_mul_of_nonneg_of_le
+#print axioms sum_reverseCount_square_le_mul_degree
 #print axioms average_bound_core
 
 end WrittenOnTheWallII.GraphConjecture2Audit
