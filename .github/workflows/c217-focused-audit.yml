@@ -40,6 +40,7 @@ jobs:
             FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianExtras.lean
             FormalConjecturesForMathlib/Combinatorics/SimpleGraph/PathClosure.lean
             FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217FiniteCertificate.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217OrderCertificate.lean
             FormalConjecturesForMathlib/Combinatorics/SimpleGraph/MaximumLeafDegree.lean
             FormalConjecturesForMathlib/Combinatorics/SimpleGraph/DegreeTwoTraceable.lean
             FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217BaseReduction.lean
@@ -58,18 +59,21 @@ jobs:
             FormalConjecturesForMathlib.Combinatorics.SimpleGraph.HamiltonianExtras \
             FormalConjecturesForMathlib.Combinatorics.SimpleGraph.PathClosure \
             FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217FiniteCertificate \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217OrderCertificate \
             FormalConjecturesForMathlib.Combinatorics.SimpleGraph.MaximumLeafDegree \
             FormalConjecturesForMathlib.Combinatorics.SimpleGraph.DegreeTwoTraceable \
             FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217BaseReduction \
             2>&1 | tee c217-focused-audit.log
 
-      - name: Replay deterministic certificate
+      - name: Replay deterministic certificates
         id: certificate
         continue-on-error: true
         run: |
           set -o pipefail
           python3 scripts/c217_certificate.py 2>&1 | tee c217-certificate-replay.log
           git diff --exit-code -- scripts/c217_certificate.json
+          python3 scripts/c217_order_bound_certificate.py 2>&1 | tee c217-order-certificate-replay.log
+          git diff --exit-code -- scripts/c217_order_bound_certificate.json
 
       - name: Publish compact diagnostics
         if: (steps.lean.outcome == 'failure' || steps.certificate.outcome == 'failure') && github.event_name == 'pull_request'
@@ -80,7 +84,7 @@ jobs:
             echo '### C217 pinned audit diagnostics'
             echo
             echo '```text'
-            grep -E -A4 -B1 'error:|declaration uses|unknown (constant|identifier)|type mismatch|application type mismatch|invalid field|assertion|Traceback' c217-focused-audit.log c217-certificate-replay.log | tail -n 220 || true
+            grep -E -A4 -B1 'error:|declaration uses|unknown (constant|identifier)|type mismatch|application type mismatch|invalid field|assertion|Traceback' c217-focused-audit.log c217-certificate-replay.log c217-order-certificate-replay.log | tail -n 240 || true
             echo '```'
           } > c217-diagnostics.md
           gh pr comment "${{ github.event.pull_request.number }}" --body-file c217-diagnostics.md
@@ -102,5 +106,6 @@ jobs:
           path: |
             c217-focused-audit.log
             c217-certificate-replay.log
+            c217-order-certificate-replay.log
           compression-level: 0
           retention-days: 7
