@@ -25,15 +25,20 @@ jobs:
           use-mathlib-cache: true
           use-github-cache: true
 
-      - name: Build repository utility modules
-        run: lake build FormalConjecturesUtil
-
-      - name: Compile proof candidates and capture axiom audits
+      - name: Build repository modules and compile candidates
         shell: bash
         run: |
           set +e
           mkdir -p proof-audit-logs
           : > proof-audit-logs/summary.txt
+
+          echo "===== lake build FormalConjecturesUtil =====" | tee -a proof-audit-logs/summary.txt
+          lake build FormalConjecturesUtil > proof-audit-logs/repository-build.log 2>&1
+          build_status=$?
+          echo "exit_code=$build_status" | tee -a proof-audit-logs/summary.txt
+          cat proof-audit-logs/repository-build.log
+          printf '\n' | tee -a proof-audit-logs/summary.txt
+
           files=(
             ProofAudit/65_unverified.lean
             ProofAudit/2_attempt.lean
