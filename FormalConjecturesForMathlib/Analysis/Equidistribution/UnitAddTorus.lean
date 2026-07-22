@@ -216,7 +216,7 @@ lemma tendsto_geom_average_zero {z : ℂ} (hz : z ≠ 1) (hnorm : ‖z‖ = 1) :
     have hden : 0 < ‖z - 1‖ := norm_pos_iff.mpr (sub_ne_zero.mpr hz)
     have hNpos : (0 : ℝ) < N := by exact_mod_cast Nat.pos_of_ne_zero hN
     apply div_le_div_of_nonneg_right _ hNpos.le
-    rw [div_le_iff₀ hden]
+    apply div_le_div_of_nonneg_right _ hden.le
     calc
       ‖z ^ N - 1‖ ≤ ‖z ^ N‖ + ‖(1 : ℂ)‖ := norm_sub_le _ _
       _ = 2 := by simp [norm_pow, hnorm]
