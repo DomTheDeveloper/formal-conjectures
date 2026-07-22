@@ -4,7 +4,6 @@ Licensed under the Apache License, Version 2.0.
 -/
 
 import FormalConjecturesUtil
-import Mathlib.Combinatorics.SimpleGraph.Triangle.Basic
 
 namespace WrittenOnTheWallII.GraphConjecture160Petals
 
@@ -13,153 +12,157 @@ open Classical SimpleGraph Finset
 variable {α : Type*} [Fintype α] [DecidableEq α]
 variable (G : SimpleGraph α) [DecidableRel G.Adj]
 
-/-- The triangles containing a fixed vertex. -/
-def trianglesAt (v : α) : Finset (Finset α) :=
-  (G.cliqueFinset 3).filter fun t => v ∈ t
+/-- Edges whose two endpoints lie in the neighborhood of `v`.  Its cardinality
+is exactly the repository invariant `numTrianglesAtVertex G v`. -/
+def triangleEdgesAt (v : α) : Finset (Sym2 α) :=
+  G.edgeFinset.filter fun e => e.toFinset ⊆ G.neighborFinset v
 
-/-- The two vertices of a triangle other than its distinguished vertex. -/
-def petal (v : α) (t : Finset α) : Finset α := t.erase v
-
-/-- The union of the petals of all triangles through `v`. -/
+/-- The union of all two-vertex petals opposite `v`. -/
 def trianglePetals (v : α) : Finset α :=
-  (trianglesAt G v).biUnion (petal v)
+  (triangleEdgesAt G v).biUnion Sym2.toFinset
 
-lemma mem_trianglesAt {v : α} {t : Finset α} :
-    t ∈ trianglesAt G v ↔ G.IsNClique 3 t ∧ v ∈ t := by
-  simp [trianglesAt]
+lemma card_triangleEdgesAt (v : α) :
+    #(triangleEdgesAt G v) = numTrianglesAtVertex G v := by
+  rfl
 
-lemma card_petal_eq_two {v : α} {t : Finset α}
-    (ht : t ∈ trianglesAt G v) : #(petal v t) = 2 := by
-  obtain ⟨htc, hvt⟩ := (mem_trianglesAt G).mp ht
-  rw [petal, card_erase_of_mem hvt, htc.card_eq]
+lemma mem_triangleEdgesAt {v : α} {e : Sym2 α} :
+    e ∈ triangleEdgesAt G v ↔
+      e ∈ G.edgeFinset ∧ e.toFinset ⊆ G.neighborFinset v := by
+  simp [triangleEdgesAt]
 
-private lemma four_cycle_of_two_triangles_sharing_edge
-    {a b c d : α}
-    (hab : a ≠ b) (hca : G.Adj c a) (had : G.Adj a d)
-    (hdb : G.Adj d b) (hbc : G.Adj b c)
-    (hcb : c ≠ b) (hcd : c ≠ d) (hadne : a ≠ d) :
-    ∃ z : α, ∃ w : G.Walk z z, w.IsCycle ∧ w.length = 4 := by
-  let p : G.Path b c :=
-    ⟨.cons hdb.symm (.cons had.symm (.cons hca.symm .nil)), by
-      simp [hab, hcb, hcd, hadne]⟩
-  have he : s(c, b) ∉ (p : G.Walk b c).edges := by
-    simp [p, hab, hcb, hcd, hadne]
-  let w : G.Walk c c := .cons hbc.symm (p : G.Walk b c)
-  refine ⟨c, w, ?_, by simp [w, p]⟩
-  exact p.cons_isCycle hbc.symm he
+lemma card_edge_petal {v : α} {e : Sym2 α}
+    (he : e ∈ triangleEdgesAt G v) : #e.toFinset = 2 := by
+  have heG : e ∈ G.edgeFinset := (mem_triangleEdgesAt G).mp he |>.1
+  exact G.card_toFinset_mem_edgeFinset ⟨e, heG⟩
 
-/-- A graph with no four-cycle has edge-disjoint triangles. -/
-lemma edgeDisjointTriangles_of_no_four_cycle
-    (hC4 : ¬ ∃ z : α, ∃ w : G.Walk z z, w.IsCycle ∧ w.length = 4) :
-    G.EdgeDisjointTriangles := by
-  intro s hs t ht hst
-  have hsC : G.IsNClique 3 s := by
-    simpa only [mem_cliqueSet_iff] using hs
-  have htC : G.IsNClique 3 t := by
-    simpa only [mem_cliqueSet_iff] using ht
-  intro a ha b hb
-  by_contra hab
-  have haS : a ∈ s := ha.1
-  have haT : a ∈ t := ha.2
-  have hbS : b ∈ s := hb.1
-  have hbT : b ∈ t := hb.2
-  have hc : ∃ c ∈ s, c ∉ t := by
-    by_contra h
-    push_neg at h
-    have hsub : s ⊆ t := h
-    have heq : s = t := Finset.eq_of_subset_of_card_le hsub (by
-      rw [hsC.card_eq, htC.card_eq])
-    exact hst heq
-  have hd : ∃ d ∈ t, d ∉ s := by
-    by_contra h
-    push_neg at h
-    have hsub : t ⊆ s := h
-    have heq : t = s := Finset.eq_of_subset_of_card_le hsub (by
-      rw [htC.card_eq, hsC.card_eq])
-    exact hst heq.symm
-  obtain ⟨c, hcS, hcT⟩ := hc
-  obtain ⟨d, hdT, hdS⟩ := hd
-  have hca : G.Adj c a := hsC.isClique hcS haS (by
-    intro h; subst c; exact hcT haT)
-  have had : G.Adj a d := htC.isClique haT hdT (by
-    intro h; subst d; exact hdS haS)
-  have hdb : G.Adj d b := htC.isClique hdT hbT (by
-    intro h; subst d; exact hdS hbS)
-  have hbc : G.Adj b c := hsC.isClique hbS hcS (by
-    intro h; subst c; exact hcT hbT)
-  have hcb : c ≠ b := by
-    intro h; subst c; exact hcT hbT
-  have hcd : c ≠ d := by
-    intro h; subst d; exact hcT hdT
-  have hadne : a ≠ d := by
-    intro h; subst d; exact hdS haS
-  exact hC4 (four_cycle_of_two_triangles_sharing_edge G hab hca had hdb hbc hcb hcd hadne)
+private lemma four_cycle_of_cross
+    {v z a b : α}
+    (hva : G.Adj v a) (haz : G.Adj a z)
+    (hzb : G.Adj z b) (hbv : G.Adj b v)
+    (hav : a ≠ v) (hazne : a ≠ z) (hab : a ≠ b)
+    (hzv : z ≠ v) (hzbne : z ≠ b) (hbvne : b ≠ v) :
+    ∃ x : α, ∃ w : G.Walk x x, w.IsCycle ∧ w.length = 4 := by
+  let p : G.Path a v :=
+    ⟨.cons haz (.cons hzb (.cons hbv .nil)), by
+      simp [hav, hazne, hab, hzv, hzbne, hbvne]⟩
+  have he : s(v, a) ∉ (p : G.Walk a v).edges := by
+    simp [p, hav, hazne, hab, hzv, hzbne, hbvne]
+  let w : G.Walk v v := .cons hva (p : G.Walk a v)
+  refine ⟨v, w, ?_, by simp [w, p]⟩
+  exact p.cons_isCycle hva he
 
-lemma pairwise_disjoint_petals {v : α} (hED : G.EdgeDisjointTriangles) :
-    ∀ ⦃s⦄, s ∈ trianglesAt G v → ∀ ⦃t⦄, t ∈ trianglesAt G v → s ≠ t →
-      Disjoint (petal v s) (petal v t) := by
-  intro s hs t ht hst
-  rw [Finset.disjoint_left]
-  intro z hzs hzt
-  obtain ⟨hsC, hvS⟩ := (mem_trianglesAt G).mp hs
-  obtain ⟨htC, hvT⟩ := (mem_trianglesAt G).mp ht
-  have hsSet : s ∈ G.cliqueSet 3 := by
-    simpa only [mem_cliqueSet_iff] using hsC
-  have htSet : t ∈ G.cliqueSet 3 := by
-    simpa only [mem_cliqueSet_iff] using htC
-  have hsub := hED hsSet htSet hst
-  have hzS : z ∈ s := (mem_erase.mp hzs).2
-  have hzT : z ∈ t := (mem_erase.mp hzt).2
-  have hzv : z ≠ v := (mem_erase.mp hzs).1
-  exact hzv (hsub ⟨hzS, hzT⟩ ⟨hvS, hvT⟩)
+/-- Distinct triangle petals through the same vertex are disjoint in a graph
+with no four-cycle. -/
+lemma pairwise_disjoint_triangleEdges {v : α}
+    (hC4 : ¬ ∃ x : α, ∃ w : G.Walk x x, w.IsCycle ∧ w.length = 4) :
+    ∀ ⦃e⦄, e ∈ triangleEdgesAt G v →
+      ∀ ⦃f⦄, f ∈ triangleEdgesAt G v → e ≠ f →
+        Disjoint e.toFinset f.toFinset := by
+  intro e he f hf hef
+  induction e using Sym2.ind with
+  | _ a b =>
+      induction f using Sym2.ind with
+      | _ c d =>
+          rw [Finset.disjoint_left]
+          intro z hzE hzF
+          have hab : G.Adj a b := by
+            have := (mem_triangleEdgesAt G).mp he |>.1
+            simpa using this
+          have hcd : G.Adj c d := by
+            have := (mem_triangleEdgesAt G).mp hf |>.1
+            simpa using this
+          have hEa := (mem_triangleEdgesAt G).mp he |>.2 (by simp)
+          have hEb := (mem_triangleEdgesAt G).mp he |>.2 (by simp)
+          have hFc := (mem_triangleEdgesAt G).mp hf |>.2 (by simp)
+          have hFd := (mem_triangleEdgesAt G).mp hf |>.2 (by simp)
+          have hva : G.Adj v a := by simpa using hEa
+          have hvb : G.Adj v b := by simpa using hEb
+          have hvc : G.Adj v c := by simpa using hFc
+          have hvd : G.Adj v d := by simpa using hFd
+          simp only [Sym2.toFinset_mk, mem_insert, mem_singleton] at hzE hzF
+          rcases hzE with rfl | rfl <;> rcases hzF with rfl | rfl
+          · have hbd : b ≠ d := by
+              intro h
+              subst d
+              exact hef rfl
+            exact hC4 (four_cycle_of_cross G hvb hab.symm hcd hvd.symm
+              hvb.ne hab.ne.symm hbd hva.ne hcd.ne hvd.ne)
+          · have hbc : b ≠ c := by
+              intro h
+              subst c
+              exact hef Sym2.eq_swap
+            exact hC4 (four_cycle_of_cross G hvb hab.symm hcd.symm hvc.symm
+              hvb.ne hab.ne.symm hbc hva.ne hcd.ne.symm hvc.ne)
+          · have had : a ≠ d := by
+              intro h
+              subst d
+              exact hef Sym2.eq_swap
+            exact hC4 (four_cycle_of_cross G hva hab hcd hvd.symm
+              hva.ne hab.ne had hvb.ne hcd.ne hvd.ne)
+          · have hac : a ≠ c := by
+              intro h
+              subst c
+              exact hef rfl
+            exact hC4 (four_cycle_of_cross G hva hab hcd.symm hvc.symm
+              hva.ne hab.ne hac hvb.ne hcd.ne.symm hvc.ne)
 
-lemma card_trianglePetals {v : α} (hED : G.EdgeDisjointTriangles) :
-    #(trianglePetals G v) = 2 * #(trianglesAt G v) := by
+lemma card_trianglePetals {v : α}
+    (hC4 : ¬ ∃ x : α, ∃ w : G.Walk x x, w.IsCycle ∧ w.length = 4) :
+    #(trianglePetals G v) = 2 * numTrianglesAtVertex G v := by
   unfold trianglePetals
   rw [card_biUnion]
   · calc
-      (∑ t ∈ trianglesAt G v, #(petal v t)) =
-          ∑ _t ∈ trianglesAt G v, 2 := by
+      (∑ e ∈ triangleEdgesAt G v, #e.toFinset) =
+          ∑ _e ∈ triangleEdgesAt G v, 2 := by
             apply sum_congr rfl
-            intro t ht
-            exact card_petal_eq_two G ht
-      _ = 2 * #(trianglesAt G v) := by simp [mul_comm]
-  · intro s hs t ht hst
-    exact pairwise_disjoint_petals G hED hs ht hst
+            intro e he
+            exact card_edge_petal G he
+      _ = 2 * #(triangleEdgesAt G v) := by simp [mul_comm]
+      _ = 2 * numTrianglesAtVertex G v := by rw [card_triangleEdgesAt]
+  · intro e he f hf hef
+    exact pairwise_disjoint_triangleEdges G hC4 he hf hef
 
-lemma independent_inter_petal_card_le_one {v : α} {S t : Finset α}
-    (hS : G.IsIndepSet (S : Set α)) (ht : t ∈ trianglesAt G v) :
-    #(S ∩ petal v t) ≤ 1 := by
-  rw [card_le_one]
-  intro a ha b hb
-  by_contra hab
-  obtain ⟨htC, -⟩ := (mem_trianglesAt G).mp ht
-  have haS : a ∈ S := (mem_inter.mp ha).1
-  have hbS : b ∈ S := (mem_inter.mp hb).1
-  have haT : a ∈ t := (mem_erase.mp (mem_inter.mp ha).2).2
-  have hbT : b ∈ t := (mem_erase.mp (mem_inter.mp hb).2).2
-  exact hS haS hbS hab (htC.isClique haT hbT hab)
+lemma independent_inter_edge_card_le_one {v : α} {S : Finset α} {e : Sym2 α}
+    (hS : G.IsIndepSet (S : Set α)) (he : e ∈ triangleEdgesAt G v) :
+    #(S ∩ e.toFinset) ≤ 1 := by
+  induction e using Sym2.ind with
+  | _ a b =>
+      rw [card_le_one]
+      intro x hx y hy
+      have hab : G.Adj a b := by
+        have := (mem_triangleEdgesAt G).mp he |>.1
+        simpa using this
+      have hxS : x ∈ S := (mem_inter.mp hx).1
+      have hyS : y ∈ S := (mem_inter.mp hy).1
+      simp only [Sym2.toFinset_mk, mem_insert, mem_singleton] at hx hy
+      rcases hx.2 with rfl | rfl <;> rcases hy.2 with rfl | rfl
+      · rfl
+      · exact (hS hxS hyS hab.ne hab).elim
+      · exact (hS hxS hyS hab.ne.symm hab.symm).elim
+      · rfl
 
 lemma card_inter_trianglePetals_le {v : α} {S : Finset α}
-    (hED : G.EdgeDisjointTriangles) (hS : G.IsIndepSet (S : Set α)) :
-    #(S ∩ trianglePetals G v) ≤ #(trianglesAt G v) := by
+    (hC4 : ¬ ∃ x : α, ∃ w : G.Walk x x, w.IsCycle ∧ w.length = 4)
+    (hS : G.IsIndepSet (S : Set α)) :
+    #(S ∩ trianglePetals G v) ≤ numTrianglesAtVertex G v := by
   have hEq : S ∩ trianglePetals G v =
-      (trianglesAt G v).biUnion (fun t => S ∩ petal v t) := by
+      (triangleEdgesAt G v).biUnion (fun e => S ∩ e.toFinset) := by
     ext z
     simp [trianglePetals, and_assoc, and_left_comm, and_comm]
   rw [hEq, card_biUnion]
   · calc
-      (∑ t ∈ trianglesAt G v, #(S ∩ petal v t)) ≤
-          ∑ _t ∈ trianglesAt G v, 1 := by
+      (∑ e ∈ triangleEdgesAt G v, #(S ∩ e.toFinset)) ≤
+          ∑ _e ∈ triangleEdgesAt G v, 1 := by
             apply sum_le_sum
-            intro t ht
-            exact independent_inter_petal_card_le_one G hS ht
-      _ = #(trianglesAt G v) := by simp
-  · intro s hs t ht hst
-    exact (pairwise_disjoint_petals G hED hs ht hst).mono
+            intro e he
+            exact independent_inter_edge_card_le_one G hS he
+      _ = #(triangleEdgesAt G v) := by simp
+      _ = numTrianglesAtVertex G v := card_triangleEdgesAt G v
+  · intro e he f hf hef
+    exact (pairwise_disjoint_triangleEdges G hC4 he hf hef).mono
       inter_subset_right inter_subset_right
 
-#print axioms edgeDisjointTriangles_of_no_four_cycle
+#print axioms pairwise_disjoint_triangleEdges
 #print axioms card_trianglePetals
 #print axioms card_inter_trianglePetals_le
 
