@@ -10,7 +10,8 @@ import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217DegreeBridge
 
 All infinite and nonexceptional reasoning is discharged here.  The sole
 remaining input is a dispatcher proving traceability for a connected graph
-whose exact degree sequence is one of the forty certified exceptional rows.
+whose exact degree sequence is one of the forty certified exceptional rows,
+under the retained exceptional leaf bound `Ls G ≤ 6`.
 -/
 
 namespace SimpleGraph.C217TerminalReduction
@@ -23,12 +24,14 @@ open C217FiniteCertificate
 variable {α : Type*} [Fintype α] [DecidableEq α] [Nontrivial α]
 
 /-- The exact exceptional theorem still required by the finite certificate
-layer.  It is deliberately stated with only graph-theoretic hypotheses that
-have already been derived by the general reduction. -/
+layer.  The leaf bound is essential: the exceptional list contains the
+`K_{4,6}` degree sequence, whose complete bipartite realization is connected
+and nontraceable but has more than six spanning-tree leaves. -/
 def ExceptionalDispatcher : Prop :=
   ∀ (G : SimpleGraph α) [DecidableRel G.Adj],
     G.Connected →
     residue G = 2 →
+    Ls G ≤ 6 →
     (∀ v, G.degree v ≤ 6) →
     degreeSequence G ∈ exceptionalSequences →
     IsTraceable G
@@ -41,11 +44,12 @@ theorem traceable_of_exceptionalDispatcher
     (hL : Ls G ≤ 4 * (C217BaseReduction.residueEqTwoIndicator G : ℝ) + 2) :
     IsTraceable G := by
   by_cases hres : residue G = 2
-  · have hdeg : ∀ v, G.degree v ≤ 6 :=
+  · have hLs : Ls G ≤ 6 := Ls_le_six_of_residue_eq_two G hL hres
+    have hdeg : ∀ v, G.degree v ≤ 6 :=
       degree_le_six_of_residue_eq_two G hG hL hres
     rcases chvatal_or_exceptional G hG hres hdeg with hch | hex
     · exact isTraceable_of_chvatalPathCondition G hch
-    · exact dispatch G hG hres hdeg hex
+    · exact dispatch G hG hres hLs hdeg hex
   · exact traceable_of_residue_ne_two G hG hL hres
 
 #print axioms SimpleGraph.C217TerminalReduction.traceable_of_exceptionalDispatcher
