@@ -132,9 +132,9 @@ theorem isTraceable_of_chvatalPathCondition
     obtain ⟨u, huBv, humax⟩ :=
       exists_max_degree_mem H (nonneighborFinset H v) hBv
     have huv : u ≠ v := (mem_nonneighborFinset H v u).mp huBv |>.1
-    have hnadj : ¬H.Adj u v := by
-      have := (mem_nonneighborFinset H v u).mp huBv |>.2
-      simpa [H.symm_adj] using this
+    have hnadjVU : ¬H.Adj v u :=
+      (mem_nonneighborFinset H v u).mp huBv |>.2
+    have hnadj : ¬H.Adj u v := fun huvAdj => hnadjVU huvAdj.symm
     have huactive : u ∈ active := by
       simp only [active, Finset.mem_filter, Finset.mem_univ, true_and]
       refine ⟨v, ?_⟩
