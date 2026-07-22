@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - audit/quantum-mod2-sat-2026-07-21
+  pull_request:
+    branches:
+      - audit/upstream-proof-base-2026-07-21
   workflow_dispatch:
 
 permissions:
