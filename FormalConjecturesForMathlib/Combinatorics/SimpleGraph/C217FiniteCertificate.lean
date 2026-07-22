@@ -3,6 +3,7 @@ Copyright 2026 The Formal Conjectures Authors.
 Licensed under the Apache License, Version 2.0.
 -/
 import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217OrderCertificate
+import Mathlib.Tactic.IntervalCases
 
 /-!
 # Finite degree-sequence certificate for WOWII Conjecture 217
@@ -148,11 +149,31 @@ set_option maxHeartbeats 0 in theorem classify_order_12 : ∀ m : Sym (Fin 7) 12
 set_option maxHeartbeats 0 in theorem classify_order_13 : ∀ m : Sym (Fin 7) 13, classified (degreeList m) = true := by decide
 set_option maxHeartbeats 0 in theorem classify_order_14 : ∀ m : Sym (Fin 7) 14, classified (degreeList m) = true := by decide
 
+/-- Uniform dispatcher for the thirteen bounded graph orders used by C217. -/
+theorem classify_order_two_to_fourteen {n : ℕ} (h2 : 2 ≤ n) (h14 : n ≤ 14)
+    (m : Sym (Fin 7) n) : classified (degreeList m) = true := by
+  interval_cases n <;>
+    first
+    | exact classify_order_2 m
+    | exact classify_order_3 m
+    | exact classify_order_4 m
+    | exact classify_order_5 m
+    | exact classify_order_6 m
+    | exact classify_order_7 m
+    | exact classify_order_8 m
+    | exact classify_order_9 m
+    | exact classify_order_10 m
+    | exact classify_order_11 m
+    | exact classify_order_12 m
+    | exact classify_order_13 m
+    | exact classify_order_14 m
+
 #print axioms SimpleGraph.C217FiniteCertificate.rows_residue_two
 #print axioms SimpleGraph.C217FiniteCertificate.rows_fail_chvatal_count
 #print axioms SimpleGraph.C217FiniteCertificate.rows_length
 #print axioms SimpleGraph.C217FiniteCertificate.directRows_length
 #print axioms SimpleGraph.C217FiniteCertificate.rows_degree_bounds
 #print axioms SimpleGraph.C217FiniteCertificate.classify_order_14
+#print axioms SimpleGraph.C217FiniteCertificate.classify_order_two_to_fourteen
 
 end SimpleGraph.C217FiniteCertificate
