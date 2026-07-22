@@ -122,7 +122,11 @@ theorem linearIndependent_sqrt_squarefree {ι : Type*} [Fintype ι]
     have hsq_rat : IsSquare (((s i * s j : ℕ) : ℚ)) := by
       refine ⟨q, ?_⟩
       apply (algebraMap ℚ K).injective
-      rw [map_mul, ← hq, hmul_sq]
+      calc
+        algebraMap ℚ K (((s i * s j : ℕ) : ℚ)) = (root i * root j) ^ 2 :=
+          (hmul_sq i j).symm
+        _ = (algebraMap ℚ K q) ^ 2 := by rw [← hq]
+        _ = algebraMap ℚ K (q * q) := by rw [map_mul, pow_two]
     have hsq_nat : IsSquare (s i * s j) := by
       rwa [Rat.isSquare_natCast_iff] at hsq_rat
     exact hij (hinj (Nat.eq_of_squarefree_of_isSquare_mul (hs i) (hs j) hsq_nat))
