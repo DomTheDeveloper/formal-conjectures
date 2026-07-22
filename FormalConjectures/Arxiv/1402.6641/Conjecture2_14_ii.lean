@@ -18,6 +18,8 @@ import FormalConjecturesUtil
 import Mathlib.Algebra.GCDMonoid.FinsetLemmas
 import Mathlib.Analysis.Complex.ExponentialBounds
 import Mathlib.Analysis.SpecialFunctions.Log.Monotone
+import Mathlib.Data.Nat.Factorization.LCM
+import Mathlib.Data.Nat.Periodic
 import Mathlib.Data.Nat.Prime.Factorial
 import Mathlib.NumberTheory.Chebyshev
 
@@ -52,9 +54,18 @@ private theorem lcmUpto_ne_zero (n : ℕ) : lcmUpto n ≠ 0 := by
 private theorem lcmUpto_pos (n : ℕ) : 0 < lcmUpto n :=
   pos_of_ne_zero (lcmUpto_ne_zero n)
 
+private theorem factorization_finset_lcm {ι : Type*} {f : ι → ℕ} {s : Finset ι}
+    (hf : ∀ k ∈ s, f k ≠ 0) (p : ℕ) :
+    (s.lcm f).factorization p = s.sup fun a ↦ (f a).factorization p := by
+  classical
+  induction s using Finset.induction with
+  | empty => simp
+  | insert a s ha ih =>
+      simp_all [Finset.lcm_insert, lcm_eq_nat_lcm, Nat.factorization_lcm]
+
 private theorem factorization_lcmUpto (n : ℕ) {p : ℕ} (hp : p.Prime) :
     (lcmUpto n).factorization p = p.log n := by
-  rw [lcmUpto, Finset.factorization_lcm (fun _ _ ↦ by grind)]
+  rw [lcmUpto, factorization_finset_lcm (fun _ _ ↦ by grind) p]
   have hp1 := hp.one_lt
   refine le_antisymm ?_ ?_
   · simp only [Finset.sup_le_iff, mem_Icc, and_imp]
@@ -227,7 +238,7 @@ private theorem square_wheelCount_bound (n : ℕ) :
 private theorem log_three_lt_eight_fifths_log_two :
     log 3 < (8 / 5 : ℝ) * log 2 := by
   have h : (3 : ℝ) ^ 5 < (2 : ℝ) ^ 8 := by norm_num
-  have hl := Real.strictMonoOn_log h (by positivity) (by positivity)
+  have hl := Real.log_lt_log (by positivity) h
   rw [Real.log_pow, Real.log_pow] at hl
   norm_num at hl ⊢
   linarith
@@ -241,7 +252,7 @@ private theorem log_seven_log_two_lt_sixteen_sevenths_log_two :
     calc
       (7 * log 2) ^ 7 < (175 / 36 : ℝ) ^ 7 := by gcongr
       _ < (2 : ℝ) ^ 16 := by norm_num
-  have hl := Real.strictMonoOn_log hp (by positivity) (by positivity)
+  have hl := Real.log_lt_log (by positivity) hp
   rw [Real.log_pow, Real.log_pow] at hl
   norm_num at hl ⊢
   linarith
@@ -260,7 +271,7 @@ private theorem log_margin_mono {x y : ℝ} (hx : 128 ≤ x) (hxy : x ≤ y) :
       (5 / 9 : ℝ) * log y - log (log y) := by
   have hx1 : 1 < x := by linarith
   have hy1 : 1 < y := hx1.trans_le hxy
-  have hlogxy : log x ≤ log y := Real.strictMonoOn_log.monotoneOn (by positivity) (by positivity) hxy
+  have hlogxy : log x ≤ log y := Real.log_le_log (by positivity) hxy
   have hlogxpos : 0 < log x := Real.log_pos hx1
   have hlogypos : 0 < log y := Real.log_pos hy1
   have hratio : 0 < log y / log x := div_pos hlogypos hlogxpos
@@ -275,7 +286,7 @@ private theorem log_margin_mono {x y : ℝ} (hx : 128 ≤ x) (hxy : x ≤ y) :
         norm_num at this ⊢
         linarith
       _ = log 128 := by rw [show (128 : ℝ) = 2 ^ 7 by norm_num, Real.log_pow]; norm_num
-      _ ≤ log x := Real.strictMonoOn_log.monotoneOn (by positivity) (by positivity) hx
+      _ ≤ log x := Real.log_le_log (by positivity) hx
   have hinv : 1 / log x ≤ (5 / 9 : ℝ) := by
     rw [div_le_iff₀ hlogxpos]
     nlinarith
@@ -311,7 +322,7 @@ private theorem primeCounting_square_lower (n : ℕ) (hn : 128 ≤ n) :
         rw [Real.log_mul (by norm_num) (by positivity), Real.log_pow]
         ring
       _ ≤ 1 + 2 * n := by
-        have hlog2lt : log 2 < 1 := Real.log_lt_sub_one_of_pos (by norm_num)
+        have hlog2lt : log 2 < 1 := Real.log_lt_sub_one_of_pos (by norm_num) (by norm_num)
         linarith
       _ ≤ (n : ℝ) ^ 2 / 50 := by
         norm_num at hn ⊢
@@ -338,7 +349,7 @@ private theorem primeCounting_square_log_lower (n : ℕ) (hn : 128 ≤ n) :
   have hpipos : 0 < (π (n ^ 2) : ℝ) := hbasepos.trans_le hlower
   have hloglower :
       log ((n : ℝ) ^ 2 / (3 * log n)) ≤ log (π (n ^ 2) : ℝ) :=
-    Real.strictMonoOn_log.monotoneOn hbasepos hpipos hlower
+    Real.log_le_log hbasepos hlower
   have hid : log ((n : ℝ) ^ 2 / (3 * log n)) =
       2 * log n - log 3 - log (log n) := by
     rw [Real.log_div (by positivity) (by positivity), Real.log_pow,
@@ -367,7 +378,7 @@ private theorem tail_log_increment (n : ℕ) (hn : 128 ≤ n) :
   have hBpos : 0 < B := by
     have : 0 < (π (n ^ 2) : ℕ) := by
       exact_mod_cast hApos
-    exact_mod_cast (this.trans_le (monotone_primeCounting (Nat.pow_le_pow_left (by omega) 2)))
+    exact_mod_cast (this.trans_le (monotone_primeCounting (by nlinarith)))
   have hCnonneg : 0 ≤ C := by positivity
   have hlogratio : log B - log A ≤ C / A := by
     rw [← Real.log_div hBpos.ne' hApos.ne']
@@ -407,7 +418,7 @@ private theorem tail_integer_inequality (n : ℕ) (hn : 128 ≤ n) :
     exact (by positivity : 0 < (n : ℝ) ^ 2 / (3 * log n)).trans_le
       (primeCounting_square_lower n hn)
   have hBpos : 0 < (π ((n + 1) ^ 2) : ℝ) := by
-    have hmono := monotone_primeCounting (Nat.pow_le_pow_left (by omega) 2)
+    have hmono := monotone_primeCounting (by nlinarith)
     exact_mod_cast (show 0 < π (n ^ 2) from by exact_mod_cast hApos).trans_le hmono
   have hlogpow :
       log ((π ((n + 1) ^ 2) : ℝ) ^ n) <
@@ -417,7 +428,7 @@ private theorem tail_integer_inequality (n : ℕ) (hn : 128 ≤ n) :
     linarith
   have hreal :
       (π ((n + 1) ^ 2) : ℝ) ^ n < (π (n ^ 2) : ℝ) ^ (n + 1) :=
-    Real.strictMonoOn_log.lt_iff_lt hBpos.pow hApos.pow |>.mp hlogpow
+    (Real.log_lt_log_iff hBpos.pow hApos.pow).mp hlogpow
   exact_mod_cast hreal
 
 private theorem finite_check (n : ℕ) (hn : 3 ≤ n) (hN : n < 128) :
