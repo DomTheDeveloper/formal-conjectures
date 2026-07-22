@@ -98,8 +98,8 @@ def chvatalCountHolds (desc : List ℕ) : Bool :=
   let n := desc.length
   (List.range (n + 1)).all fun i =>
     if 1 ≤ i ∧ 2 * i < n + 1 then
-      decide ((desc.countP fun d => d < i) < i ∨
-        (desc.countP fun d => d < n - i) ≤ n - i)
+      decide ((desc.countP fun d => decide (d < i)) < i ∨
+        (desc.countP fun d => decide (d < n - i)) ≤ n - i)
     else true
 
 /-- The exhaustive finite classification predicate. -/
