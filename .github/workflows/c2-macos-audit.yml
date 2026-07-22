@@ -42,11 +42,14 @@ jobs:
             ProofAudit/2_tree_bound.lean
             ProofAudit/2_complete.lean
           )
+          mkdir -p .lake/build/lib/lean/ProofAudit
           : > c2-focused.log
           status=0
           for file in "${files[@]}"; do
+            stem="${file%.lean}"
+            out=".lake/build/lib/lean/${stem}.olean"
             echo "=== $file ===" | tee -a c2-focused.log
-            if ! lake env lean "$file" 2>&1 | tee -a c2-focused.log; then
+            if ! lake env lean -o "$out" "$file" 2>&1 | tee -a c2-focused.log; then
               status=1
             fi
           done
