@@ -17,6 +17,7 @@ namespace SimpleGraph.C217CrossDegree
 
 open Classical
 open SimpleGraph
+open SimpleGraph.C217ClosureHelpers
 
 variable {V : Type*} [Fintype V] [DecidableEq V] [Nontrivial V]
 
@@ -126,8 +127,24 @@ theorem exists_outside_seed_of_degree_sum_lt
     exact hinLe
   omega
 
+/-- End-to-end seed criterion: the degree-sum imbalance produces a seed, and
+the corrected seed-completion lemma makes the path closure complete. -/
+theorem isTraceable_of_universal_degree_sum_lt
+    (G : SimpleGraph V) [DecidableRel G.Adj]
+    (A : Finset V) (r : ℕ)
+    (hn : Fintype.card V = 2 * r + 2)
+    (hAcard : A.card = r)
+    (huniv : ∀ a ∈ A, ∀ v, v ≠ a → (pathClosure G).Adj a v)
+    (hout : ∀ v ∉ A, r ≤ (pathClosure G).degree v)
+    (hsum : (∑ a ∈ A, G.degree a) <
+      ∑ v ∈ Finset.univ \ A, G.degree v) :
+    IsTraceable G := by
+  apply isTraceable_of_universal_seed G A r hn hAcard.le huniv hout
+  exact exists_outside_seed_of_degree_sum_lt G A r hAcard huniv hsum
+
 #print axioms SimpleGraph.C217CrossDegree.crossDegree_le_degree
 #print axioms SimpleGraph.C217CrossDegree.sum_crossDegree_compl
 #print axioms SimpleGraph.C217CrossDegree.exists_outside_seed_of_degree_sum_lt
+#print axioms SimpleGraph.C217CrossDegree.isTraceable_of_universal_degree_sum_lt
 
 end SimpleGraph.C217CrossDegree
