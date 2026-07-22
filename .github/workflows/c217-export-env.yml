@@ -1,0 +1,68 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#     https://www.apache.org/licenses/LICENSE-2.0
+
+name: Export C217 Lean environment
+
+on:
+  push:
+    branches:
+      - agent/c217-proof
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact proof branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install pinned Lean toolchain
+        run: |
+          set -euxo pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Mathlib binary cache
+        run: |
+          set -euxo pipefail
+          lake exe cache get
+
+      - name: Compile the untouched C217 baseline
+        run: |
+          set -euxo pipefail
+          lake env lean FormalConjectures/WrittenOnTheWallII/GraphConjecture217.lean \
+            2>&1 | tee c217-baseline.log
+
+      - name: Export exact local checker environment
+        run: |
+          set -euxo pipefail
+          mkdir -p /tmp/c217-export
+          cp -a "$HOME/.elan" /tmp/c217-export/elan
+          rsync -a \
+            --exclude '.git' \
+            --exclude 'docbuild/.lake' \
+            --exclude '_deploy' \
+            --exclude '_literate_html' \
+            ./ /tmp/c217-export/formal-conjectures/
+          tar -I 'zstd -T0 -3' -cf c217-lean-env.tar.zst -C /tmp/c217-export .
+          sha256sum c217-lean-env.tar.zst > c217-lean-env.tar.zst.sha256
+          du -h c217-lean-env.tar.zst
+
+      - name: Upload exact checker environment
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-lean-env
+          path: |
+            c217-lean-env.tar.zst
+            c217-lean-env.tar.zst.sha256
+            c217-baseline.log
+          compression-level: 0
+          retention-days: 1
