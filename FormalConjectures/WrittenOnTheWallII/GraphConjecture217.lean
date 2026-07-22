@@ -15,7 +15,7 @@ limitations under the License.
 -/
 
 import FormalConjecturesUtil
-import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.BondyChvatal
+import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.HamiltonianExtras
 
 /-!
 # Written on the Wall II - Conjecture 217
