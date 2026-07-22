@@ -111,8 +111,8 @@ theorem fullSpanBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 2 ≤ n)
     exact hinterior ⟨i, by omega⟩ (by omega) (by omega)
   unfold natMonomial fullSpanBase
   rw [← Finset.prod_mul_distrib]
-  rw [Finset.prod_insert hR0]
-  rw [Finset.prod_insert (by simp [hRlast, h0last])]
+  rw [Finset.prod_insert (by simp [hR0, h0last])]
+  rw [Finset.prod_insert hRlast]
   rw [hprodR]
   have hleftSign := letterSign_mul_eq_neg_one_of_word_ne A B
     (j := 0) (by omega) hleft
@@ -148,8 +148,8 @@ theorem fullSpanBase_monomial_mul_eq_neg_one_right {n : ℕ} (hn : 2 ≤ n)
     exact hinterior ⟨i, by omega⟩ (by omega) (by omega)
   unfold natMonomial fullSpanBase
   rw [← Finset.prod_mul_distrib]
-  rw [Finset.prod_insert hR0]
-  rw [Finset.prod_insert (by simp [hRlast, h0last])]
+  rw [Finset.prod_insert (by simp [hR0, h0last])]
+  rw [Finset.prod_insert hRlast]
   rw [hprodR]
   have hleftSign := letterSign_mul_eq_one_of_word_eq A B
     (i := 0) (by omega) hleft
