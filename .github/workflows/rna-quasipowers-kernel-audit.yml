@@ -45,7 +45,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          lake --wfail build RNAQuasiPowers 2>&1 | tee rna-kernel-audit.log
+          # Build the public library first so its imports are present when the
+          # public RNA wrapper is checked directly with warnings fatal.
+          lake --wfail build RNAQuasiPowers FormalConjectures \
+            2>&1 | tee rna-kernel-audit.log
           lake env lean -DwarningAsError=true \
             FormalConjectures/Arxiv/2602.19255/RNAQuasiPowers.lean \
             2>&1 | tee -a rna-kernel-audit.log
