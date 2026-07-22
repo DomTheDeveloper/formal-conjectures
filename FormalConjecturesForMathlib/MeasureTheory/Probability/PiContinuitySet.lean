@@ -60,7 +60,7 @@ theorem frontier_pi_subset_iUnion (A : ∀ i, Set (α i)) :
       exact (mem_interior_iff_notMem_frontier (show x i ∈ (A i)ᶜ by simpa)).2 (by simpa using hcoord i)
     have hVsub : V ⊆ (Set.pi univ A)ᶜ := by
       intro y hy hyA
-      exact hy (hyA i trivial)
+      exact (interior_subset hy) (hyA i trivial)
     have hxcompint : x ∈ interior (Set.pi univ A)ᶜ :=
       interior_maximal hVsub hVopen hxV
     have hxcomp : x ∈ (Set.pi univ A)ᶜ := interior_subset hxcompint
