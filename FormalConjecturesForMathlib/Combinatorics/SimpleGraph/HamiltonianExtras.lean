@@ -34,7 +34,7 @@ protected theorem transfer (hp : p.IsHamiltonianCycle) {H : SimpleGraph α}
 variable (b)
 
 protected theorem rotate (hp : p.IsHamiltonianCycle) :
-    IsHamiltonianCycle (p.rotate b (hp.mem_support b)) := by
+    IsHamiltonianCycle (p.rotate (hp.mem_support b)) := by
   rw [Walk.isHamiltonianCycle_iff_isCycle_and_support_count_tail_eq_one] at *
   refine And.intro ?_ (fun v => ?_)
   · apply hp.1.rotate
@@ -115,7 +115,7 @@ lemma rotate_next (hp : p.IsHamiltonianCycle) (b' : α) :
   congr
   ext d
   apply Iff.and
-  rw [List.IsRotated.mem_iff (p.rotate_darts _ _)]
+  rw [List.IsRotated.mem_iff (p.rotate_darts _)]
   exact Iff.rfl
 
 lemma next_inj (hp : p.IsHamiltonianCycle) : Function.Injective hp.next := by
@@ -140,7 +140,7 @@ lemma support_getElem_succ (hp : p.IsHamiltonianCycle)
 
 theorem next_next_ne (hp : p.IsHamiltonianCycle) : hp.next (hp.next b) ≠ b := by
   have mem : b ∈ p.support := hp.mem_support b
-  let p' := p.rotate b mem
+  let p' := p.rotate mem
   have hp' : p'.IsHamiltonianCycle := hp.rotate b
   have len_ge_3 := hp'.isCycle.three_le_length
   have p'_at_0 : p'.support[0] = b := by simp [List.getElem_zero]
@@ -148,7 +148,7 @@ theorem next_next_ne (hp : p.IsHamiltonianCycle) : hp.next (hp.next b) ≠ b := 
     hp'.support_getElem_succ (i := 0) (by omega) p'_at_0
   have p'_at_2 : p'.support[2]'(by simp; omega) = hp'.next (hp'.next b) :=
     hp'.support_getElem_succ (i := 1) (by omega) p'_at_1
-  simp only [← hp.rotate_next b b]
+  simp only [← hp.rotate_next _ b]
   intro h
   change hp'.next (hp'.next b) = b at h
   simp_rw [← p'_at_2, ← p'_at_0] at h
@@ -245,7 +245,7 @@ theorem IsHamiltonian.complete_graph
     (hα : Fintype.card α = 1 ∨ Fintype.card α ≥ 3) :
     IsHamiltonian (⊤ : SimpleGraph α) := by
   cases' hα with hα hα
-  · exact IsHamiltonian.of_card_eq_one hα
+  · simpa [IsHamiltonian] using absurd hα
   · have ne : (⊤ : Finset α).toList ≠ [] := by
       simp [← Finset.card_eq_zero]
       omega
