@@ -156,6 +156,11 @@ theorem contacts_clippedPatch_formula
     (hab : a ≤ b) (hd : d ≤ a + b - 1) :
     contacts (clippedPatch a b c d) =
       3 * (a * b + b * c + c * a - d) - (a + b + c) := by
+  have hlost_le := Finset.card_le_card
+    (clippedLostDarts_subset_patchContactDarts a b c d ha hb hc hab hd)
+  rw [card_clippedLostDarts a b d hd,
+    card_patchContactDarts_eq_contacts a b c ha hb hc,
+    contacts_patch_formula a b c ha hb hc] at hlost_le
   rw [contacts_clippedPatch_eq_card_surviving a b c d ha hb hc hab hd]
   unfold survivingPatchContactDarts
   rw [Finset.card_sdiff
@@ -163,9 +168,6 @@ theorem contacts_clippedPatch_formula
     card_clippedLostDarts a b d hd,
     card_patchContactDarts_eq_contacts a b c ha hb hc,
     contacts_patch_formula a b c ha hb hc]
-  have hbudget : a + b + c + 3 * d ≤
-      3 * (a * b + b * c + c * a) := by
-    nlinarith
   omega
 
 end OeisA263135
