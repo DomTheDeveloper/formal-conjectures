@@ -185,7 +185,8 @@ lemma mFourier_eq_toCircle_sum (k : d → ℤ) (x : UnitAddTorus d) :
   classical
   simp only [mFourier, ContinuousMap.coe_mk, fourier_apply]
   let s : Finset d := Finset.univ
-  change (∏ i ∈ s, ((AddCircle.toCircle (k i • x i) : Circle) : ℂ)) = _
+  change (∏ i ∈ s, ((AddCircle.toCircle (k i • x i) : Circle) : ℂ)) =
+    ((AddCircle.toCircle (∑ i ∈ s, k i • x i) : Circle) : ℂ)
   induction s using Finset.induction_on with
   | empty => simp
   | @insert a s ha ih =>
