@@ -6,6 +6,9 @@ on:
       - dtd/oeis-a263135
     paths:
       - .github/workflows/export-a263135-lean-env.yml
+  pull_request:
+    paths:
+      - .github/workflows/export-a263135-lean-env.yml
 
 permissions:
   contents: read
