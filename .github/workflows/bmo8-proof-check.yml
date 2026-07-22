@@ -1,5 +1,6 @@
 # Copyright 2026 The Formal Conjectures Authors.
 # Licensed under the Apache License, Version 2.0.
+# This audit ignores unrelated `sorry` warnings from other open BMO statements.
 
 name: BMO 8 proof check
 
