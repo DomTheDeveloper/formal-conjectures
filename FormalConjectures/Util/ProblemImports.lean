@@ -16,7 +16,6 @@ limitations under the License.
 module
 
 public import Mathlib
-public import FormalConjecturesForMathlib
 public import FormalConjectures.Util.Answer
 public import FormalConjectures.Util.Linters.AMSLinter
 public import FormalConjectures.Util.Linters.AnswerLinter
@@ -28,7 +27,10 @@ public import FormalConjectures.Util.Linters.ModuleDocstringLinter
 public import FormalConjectures.Util.Linters.NamespaceLinter
 
 /-!
-# Standard imports for open problems
+# Standard imports for the frozen OEIS A263135 proof audit
 
-This file provides a standard set of imports used by problem files throughout the project.
+This audit prelude provides Mathlib and the standard Formal Conjectures
+attributes and linters. The project-wide `FormalConjecturesForMathlib`
+aggregator is intentionally omitted because the A263135 statement and proof
+do not use it.
 -/
