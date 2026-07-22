@@ -1,27 +1,29 @@
-name: VC2 Lean debug
+name: VC2 isolated Lean check
 
 on:
-  push:
-    branches:
-      - agent/solve-vc2-convex-counterexample
+  pull_request:
+    paths:
+      - 'FormalConjectures/Other/VCDimConvexCounterexample.lean'
+      - '.github/workflows/vc2-debug.yml'
 
 permissions:
   contents: read
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v6
-      - name: Install elan
+      - name: Install pinned Lean toolchain
         run: |
-          set -o pipefail
-          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
-          ./elan-init -y --default-toolchain none
+          curl --proto '=https' --tlsv1.2 -sSf \
+            https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Get mathlib cache
+      - name: Get Mathlib cache
+        run: lake exe cache get
+      - name: Check exact counterexample file
         run: |
-          lake exe cache get
-      - name: Check VC2 probe
-        run: |
-          lake env lean VC2Inspect.lean
+          ! grep -nE '\b(sorry|admit|native_decide)\b' \
+            FormalConjectures/Other/VCDimConvexCounterexample.lean
+          lake env lean FormalConjectures/Other/VCDimConvexCounterexample.lean
