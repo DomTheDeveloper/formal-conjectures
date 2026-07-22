@@ -11,7 +11,7 @@
 
 name = "formal_conjectures"
 keywords = ["math"]
-defaultTargets = ["FormalConjectures"]
+defaultTargets = ["FormalConjectures", "RNAQuasiPowers"]
 testDriver = "FormalConjecturesTest"
 
 [leanOptions]
@@ -53,6 +53,10 @@ weak.linter.style.moduleDocstring = true
 # Fork-hosted complete Lean proofs that are linked from upstream metadata.
 [[lean_lib]]
 name = "WOWII"
+
+# Temporary checker target for the RNA quasi-powers algebraic certificate.
+[[lean_lib]]
+name = "RNAQuasiPowers"
 
 [[lean_lib]]
 name = "FormalConjecturesAnswerPostpone"
