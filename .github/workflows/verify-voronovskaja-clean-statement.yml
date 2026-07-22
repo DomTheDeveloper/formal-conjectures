@@ -1,0 +1,32 @@
+name: Verify clean Voronovskaja statement
+
+on:
+  push:
+    branches:
+      - agent/verify-voronovskaja-clean-statement
+    paths:
+      - 'FormalConjectures/Paper/VoronovskajaTypeFormula.lean'
+      - '.github/workflows/verify-voronovskaja-clean-statement.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install elan
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | \
+            sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Fetch precompiled dependencies
+        run: lake exe cache get
+      - name: Build exact statement module
+        run: lake build FormalConjectures.Paper.VoronovskajaTypeFormula
+      - name: Check final upstream scope
+        run: |
+          test "$(git diff --name-only e923379e609b9d5987011a1d1f06ec22ea25cd20..beb180f80fca8823e48df52a65f89c051ac21fbb | wc -l)" -eq 1
+          test "$(git diff --name-only e923379e609b9d5987011a1d1f06ec22ea25cd20..beb180f80fca8823e48df52a65f89c051ac21fbb)" = "FormalConjectures/Paper/VoronovskajaTypeFormula.lean"
