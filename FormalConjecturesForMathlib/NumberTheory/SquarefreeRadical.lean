@@ -75,8 +75,8 @@ theorem trace_eq_zero_of_sq_ratCast {K : Type*} [Field K] [NumberField K] {x : K
       · exact hx (minpoly.natDegree_eq_one_iff.mp hh)
     omega
   have heq : minpoly ℚ x = X ^ 2 - C r :=
-    (Polynomial.eq_of_monic_of_dvd_of_natDegree_le (minpoly.monic hint) hmonic hdvd
-      (by rw [hdeg2, Polynomial.natDegree_X_pow_sub_C])).symm
+    Polynomial.eq_of_monic_of_dvd_of_natDegree_le (minpoly.monic hint) hmonic hdvd
+      (by rw [hdeg2, Polynomial.natDegree_X_pow_sub_C])
   rw [trace_eq_finrank_mul_minpoly_nextCoeff, heq]
   have hnc : (X ^ 2 - C r : ℚ[X]).nextCoeff = 0 := by
     rw [Polynomial.nextCoeff_of_natDegree_pos
