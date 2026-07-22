@@ -33,25 +33,24 @@ protected theorem transfer (hp : p.IsHamiltonianCycle) {H : SimpleGraph α}
 variable (b)
 
 lemma mem_tail_support (hp : p.IsHamiltonianCycle) : b ∈ p.support.tail := by
-  rw [← List.count_pos_iff]
-  have hcount := hp.isHamiltonian_tail b
-  omega
+  rw [← support_tail_of_not_nil p hp.isCycle.not_nil]
+  exact hp.isHamiltonian_tail.mem_support b
 
 /-- Every vertex occurs before the repeated terminal vertex of a Hamiltonian
-cycle.  This replaces an old list-rotation helper that is absent in Lean 4.27. -/
+cycle. -/
 lemma mem_dropLast_support (hp : p.IsHamiltonianCycle) : b ∈ p.support.dropLast := by
   have hb : b ∈ p.support := hp.mem_support b
   by_cases hba : b = a
   · subst b
-    rw [List.mem_dropLast_iff_idxOf_lt hb]
-    have hidx : p.support.idxOf a = 0 := by
-      rw [Walk.support_eq_cons]
-      simp
-    rw [hidx]
-    have hlen : 2 ≤ p.support.length := by
-      rw [Walk.length_support]
-      omega
-    omega
+    rw [Walk.support_eq_cons]
+    cases htail : p.support.tail with
+    | nil =>
+        have hlen := hp.isCycle.three_le_length
+        have hslen := Walk.length_support p
+        rw [Walk.support_eq_cons, htail] at hslen
+        simp at hslen
+        omega
+    | cons c l => simp
   · have hsup : p.support = p.support.dropLast ++ [a] := by
       rw [← List.dropLast_append_getLast (by simp)]
       rw [Walk.getLast_support]
