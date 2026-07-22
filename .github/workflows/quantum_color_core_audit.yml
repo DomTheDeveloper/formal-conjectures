@@ -27,6 +27,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          lake build FormalConjectures.Paper.MonochromaticQuantumGraph
           lake env lean QuantumGraphColorRestriction.lean 2>&1 | tee quantum-color-core.log
           if grep -q 'sorryAx' quantum-color-core.log; then
             echo 'Color restriction core contains sorryAx.' >&2
