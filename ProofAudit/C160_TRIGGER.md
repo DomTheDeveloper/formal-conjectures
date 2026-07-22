@@ -1,1 +1,1 @@
-Trigger the base-scoped macOS C160 Lean audit after installing the workflow on the temporary audit base.
+Trigger the trusted-base macOS C160 Lean audit after retargeting to the fresh audit base.
