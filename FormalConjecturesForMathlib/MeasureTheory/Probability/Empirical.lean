@@ -23,7 +23,7 @@ public import FormalConjecturesForMathlib.Data.Set.Density
 @[expose] public section
 
 open Filter MeasureTheory Set Topology
-open scoped ENNReal NNReal Topology BigOperators
+open scoped ENNReal NNReal Topology BigOperators Classical
 
 noncomputable section
 
@@ -31,36 +31,39 @@ namespace MeasureTheory
 
 variable {Ω : Type*} [MeasurableSpace Ω]
 
+private theorem range_nonempty_of_ne_zero {N : ℕ} (hN : N ≠ 0) :
+    (Finset.range N).Nonempty :=
+  ⟨0, Finset.mem_range.mpr (Nat.pos_of_ne_zero hN)⟩
+
 /-- The empirical probability measure of the first `N` values of a sequence.
 At `N = 0` we use a harmless Dirac measure. -/
 def empiricalProbabilityMeasure (Y : ℕ → Ω) (N : ℕ) : ProbabilityMeasure Ω := by
   classical
   by_cases hN : N = 0
   · exact ⟨Measure.dirac (Y 0), Measure.dirac.isProbabilityMeasure⟩
-  · let p : PMF ℕ := PMF.uniformOfFinset (Finset.range N)
-      (Finset.range_nonempty.mpr (Nat.pos_of_ne_zero hN))
+  · let p : PMF ℕ := PMF.uniformOfFinset (Finset.range N) (range_nonempty_of_ne_zero hN)
     let ν : ProbabilityMeasure ℕ := ⟨p.toMeasure, inferInstance⟩
-    exact ν.map (measurable_of_countable Y).aemeasurable
+    exact ProbabilityMeasure.map ν (measurable_of_countable Y).aemeasurable
 
 lemma empiricalProbabilityMeasure_ne_zero (Y : ℕ → Ω) {N : ℕ} (hN : N ≠ 0) :
     empiricalProbabilityMeasure Y N =
-      (⟨(PMF.uniformOfFinset (Finset.range N)
-          (Finset.range_nonempty.mpr (Nat.pos_of_ne_zero hN))).toMeasure,
-        inferInstance⟩ : ProbabilityMeasure ℕ).map
-          (measurable_of_countable Y).aemeasurable := by
-  simp [empiricalProbabilityMeasure, hN]
+      ProbabilityMeasure.map
+        (⟨(PMF.uniformOfFinset (Finset.range N)
+            (range_nonempty_of_ne_zero hN)).toMeasure,
+          inferInstance⟩ : ProbabilityMeasure ℕ)
+        (measurable_of_countable Y).aemeasurable := by
+  simp [empiricalProbabilityMeasure, hN, range_nonempty_of_ne_zero]
 
 variable [TopologicalSpace Ω] [BorelSpace Ω]
 
 /-- Integration against the empirical measure is the corresponding finite average. -/
 theorem integral_empiricalProbabilityMeasure
-    (Y : ℕ → Ω) {N : ℕ} (hN : N ≠ 0) (f : Ω →ᵇ ℂ) :
-    ∫ x, f x ∂(empiricalProbabilityMeasure Y N : ProbabilityMeasure Ω) =
+    (Y : ℕ → Ω) {N : ℕ} (hN : N ≠ 0) (f : BoundedContinuousFunction Ω ℂ) :
+    ∫ x, f x ∂(empiricalProbabilityMeasure Y N : Measure Ω) =
       (∑ n ∈ Finset.range N, f (Y n)) / (N : ℂ) := by
   classical
   rw [empiricalProbabilityMeasure_ne_zero Y hN]
-  let p : PMF ℕ := PMF.uniformOfFinset (Finset.range N)
-    (Finset.range_nonempty.mpr (Nat.pos_of_ne_zero hN))
+  let p : PMF ℕ := PMF.uniformOfFinset (Finset.range N) (range_nonempty_of_ne_zero hN)
   have hY : Measurable Y := measurable_of_countable Y
   rw [ProbabilityMeasure.toMeasure_map]
   rw [integral_map hY.aemeasurable f.continuous.aestronglyMeasurable]
@@ -94,7 +97,7 @@ theorem empiricalProbabilityMeasure_apply (Y : ℕ → Ω) {N : ℕ} (hN : N ≠
   rw [empiricalProbabilityMeasure_ne_zero Y hN]
   rw [ProbabilityMeasure.map_apply]
   · change (((PMF.uniformOfFinset (Finset.range N)
-        (Finset.range_nonempty.mpr (Nat.pos_of_ne_zero hN))).toMeasure
+        (range_nonempty_of_ne_zero hN)).toMeasure
           (Y ⁻¹' A)).toNNReal) = _
     rw [PMF.toMeasure_uniformOfFinset_apply]
     · norm_num [ENNReal.toNNReal_div, Finset.filter_filter, and_comm]
@@ -129,6 +132,7 @@ theorem tendsto_frequency_of_null_frontier
       (fun N : ℕ =>
         (((Finset.range N).filter fun n => Y n ∈ A).card : ℝ) / N)
       atTop (𝓝 ((μ A : ℝ≥0) : ℝ)) := by
+  classical
   have hweak := tendsto_empiricalProbabilityMeasure Y μ havg
   have hport := ProbabilityMeasure.tendsto_measure_of_null_frontier_of_tendsto hweak hfront
   have hcoe := (NNReal.continuous_coe.tendsto (μ A)).comp hport
@@ -146,8 +150,12 @@ theorem hasDensity_of_tendsto_average
     {A : Set Ω} (hA : MeasurableSet A) (hfront : μ (frontier A) = 0)
     (S : Set ℕ) (hS : ∀ n, n ∈ S ↔ Y n ∈ A) :
     S.HasDensity ((μ A : ℝ≥0) : ℝ) := by
+  classical
   have hfreq := tendsto_frequency_of_null_frontier Y μ havg hA hfront
-  rw [Set.HasDensity, Set.partialDensity]
+  change Tendsto
+    (fun N : ℕ => (((S ∩ Set.univ) ∩ Set.Iio N).ncard : ℝ) /
+      ((Set.univ ∩ Set.Iio N).ncard : ℝ))
+    atTop (𝓝 ((μ A : ℝ≥0) : ℝ))
   apply hfreq.congr'
   filter_upwards with N
   have hfinite : ((S ∩ Set.univ) ∩ Set.Iio N).Finite :=
