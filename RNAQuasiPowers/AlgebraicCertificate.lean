@@ -1,3 +1,4 @@
+import RNAQuasiPowers.DensityCorrection
 import RNAQuasiPowers.ImplicitDerivatives
 
 namespace RNAQuasiPowers
@@ -6,10 +7,10 @@ noncomputable section
 
 /--
 A theorem collecting the original exact algebraic facts needed by the proposed
-quasi-powers proof.  The stronger `quasiPowers_algebraic_certificate` below also
-includes the complete first- and second-order implicit-root derivative
-certificate.  Neither theorem formalizes the uniform analytic transfer theorem
-or the final probability limit theorem.
+quasi-powers proof. The stronger certificates below also include the complete
+first- and second-order implicit-root derivative certificate and the correction
+to the displayed Gaussian density. None of these theorems formalizes the
+uniform analytic transfer theorem or the final probability limit theorem.
 -/
 theorem algebraic_certificate :
     And (radicand rho 1 1 = 0)
@@ -44,6 +45,24 @@ theorem quasiPowers_algebraic_certificate :
                   (normalizedCorrelation = targetCorrelation)))))))) ∧
       implicitDerivativeConditions := by
   exact ⟨algebraic_certificate, implicit_derivative_certificate⟩
+
+/--
+The complete finite certificate used by the three solution tracks: algebraic
+quasi-powers data, implicit derivatives, and incompatibility of the printed
+density with exact unit-variance standardization.
+-/
+theorem threeTrack_certificate :
+    ((And (radicand rho 1 1 = 0)
+      (And (Not (dRadicandAtOne rho = 0))
+        (And (0 < rho)
+          (And (rho < 1)
+            (And (0 < varianceHairpins)
+              (And (0 < varianceBasepairs)
+                (And (0 < covarianceDeterminant)
+                  (normalizedCorrelation = targetCorrelation)))))))) ∧
+      implicitDerivativeConditions) ∧
+      printedMarginalVariance ≠ 1 := by
+  exact ⟨quasiPowers_algebraic_certificate, printedMarginalVariance_ne_one⟩
 
 end
 
