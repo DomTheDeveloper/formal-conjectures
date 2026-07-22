@@ -32,8 +32,8 @@ jobs:
           mkdir -p proof-audit-logs
           : > proof-audit-logs/summary.txt
 
-          echo "===== lake build FormalConjecturesUtil =====" | tee -a proof-audit-logs/summary.txt
-          lake build FormalConjecturesUtil > proof-audit-logs/repository-build.log 2>&1
+          echo "===== lake build FormalConjectures.Util.ProblemImports =====" | tee -a proof-audit-logs/summary.txt
+          lake build FormalConjectures.Util.ProblemImports > proof-audit-logs/repository-build.log 2>&1
           build_status=$?
           echo "exit_code=$build_status" | tee -a proof-audit-logs/summary.txt
           cat proof-audit-logs/repository-build.log
