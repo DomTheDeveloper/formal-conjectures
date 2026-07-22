@@ -30,7 +30,7 @@ theorem card_clippedRankPoints
 
 private theorem clipPair_subset_rankPatch
     (a b c k : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
-    (hk : k < a + b - 1) :
+    (hac : a ≤ c) (hk : k < a + b - 1) :
     clipPair a b k ⊆ rankPatch a b c := by
   intro p hp
   by_cases hkb : k < b
@@ -45,22 +45,22 @@ private theorem clipPair_subset_rankPatch
 /-- Every point removed by a valid clipping budget belongs to the original patch. -/
 theorem clippedRankPoints_subset_rankPatch
     (a b c d : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
-    (hd : d ≤ a + b - 1) :
+    (hac : a ≤ c) (hd : d ≤ a + b - 1) :
     clippedRankPoints a b d ⊆ rankPatch a b c := by
   intro p hp
   rcases Finset.mem_biUnion.mp hp with ⟨k, hk, hpk⟩
-  exact clipPair_subset_rankPatch a b c k ha hb hc
+  exact clipPair_subset_rankPatch a b c k ha hb hc hac
     (lt_of_lt_of_le (Finset.mem_range.mp hk) hd) hpk
 
 /-- Exact cardinality after `d` clipping steps. -/
 theorem card_clippedPatch
     (a b c d : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
-    (hd : d ≤ a + b - 1) :
+    (hac : a ≤ c) (hd : d ≤ a + b - 1) :
     (clippedPatch a b c d).card = 2 * (a * b + b * c + c * a - d) := by
   unfold clippedPatch
   rw [Finset.card_image_of_injective _ rankPointVertex_injective,
     Finset.card_sdiff_of_subset
-      (clippedRankPoints_subset_rankPatch a b c d ha hb hc hd),
+      (clippedRankPoints_subset_rankPatch a b c d ha hb hc hac hd),
     card_rankPatch, card_clippedRankPoints a b d hd]
   omega
 
