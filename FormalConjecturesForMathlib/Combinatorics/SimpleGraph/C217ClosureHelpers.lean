@@ -44,6 +44,33 @@ lemma pathClosure_adj_of_degree_sum
     (degree_le_of_le (self_le_pathClosure G))
     (degree_le_of_le (self_le_pathClosure G)))
 
+/-- If `G ≤ H` and `H` has an adjacency at `v` that is absent from `G`, then
+the degree of `v` strictly increases. -/
+lemma degree_lt_of_le_of_adj_of_not_adj
+    {G H : SimpleGraph V} [DecidableRel G.Adj] [DecidableRel H.Adj]
+    (hGH : G ≤ H) {v w : V}
+    (hH : H.Adj v w) (hG : ¬G.Adj v w) :
+    G.degree v < H.degree v := by
+  have hsub : G.neighborFinset v ⊂ H.neighborFinset v := by
+    constructor
+    · intro x hx
+      have hxG : G.Adj v x := by simpa using hx
+      have hxH : H.Adj v x := hGH hxG
+      simpa using hxH
+    · intro hrev
+      have hwH : w ∈ H.neighborFinset v := by simpa using hH
+      have hwG : w ∈ G.neighborFinset v := hrev hwH
+      exact hG (by simpa using hwG)
+  simpa only [card_neighborFinset_eq_degree] using Finset.card_lt_card hsub
+
+/-- A genuinely new adjacency raises degree by at least one. -/
+lemma degree_add_one_le_of_le_of_adj_of_not_adj
+    {G H : SimpleGraph V} [DecidableRel G.Adj] [DecidableRel H.Adj]
+    (hGH : G ≤ H) {v w : V}
+    (hH : H.Adj v w) (hG : ¬G.Adj v w) :
+    G.degree v + 1 ≤ H.degree v :=
+  Nat.succ_le_of_lt (degree_lt_of_le_of_adj_of_not_adj hGH hH hG)
+
 /-- A uniform degree lower bound in the final path closure makes it complete
 once twice that lower bound reaches the path-closure threshold. -/
 lemma pathClosure_eq_top_of_degree_lower_bound
@@ -209,6 +236,8 @@ theorem isTraceable_of_universal_two_seeds
     (pathClosure_eq_top_of_universal_two_seeds G A r hn hAcard huniv hout hseeds)
 
 #print axioms SimpleGraph.C217ClosureHelpers.pathClosure_adj_of_degree_sum
+#print axioms SimpleGraph.C217ClosureHelpers.degree_lt_of_le_of_adj_of_not_adj
+#print axioms SimpleGraph.C217ClosureHelpers.degree_add_one_le_of_le_of_adj_of_not_adj
 #print axioms SimpleGraph.C217ClosureHelpers.pathClosure_eq_top_of_degree_lower_bound
 #print axioms SimpleGraph.C217ClosureHelpers.pathClosure_eq_top_of_universal_seed
 #print axioms SimpleGraph.C217ClosureHelpers.pathClosure_eq_top_of_universal_two_seeds
