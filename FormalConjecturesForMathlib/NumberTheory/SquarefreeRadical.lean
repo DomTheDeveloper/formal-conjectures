@@ -35,8 +35,9 @@ theorem eq_of_squarefree_of_isSquare_mul {a b : ℕ} (ha : Squarefree a) (hb : S
   have hfac : a.factorization p + b.factorization p = 2 * c.factorization p := by
     calc
       a.factorization p + b.factorization p = (a * b).factorization p := by
-        simpa only [Pi.add_apply] using
-          congrFun (factorization_mul ha.ne_zero hb.ne_zero).symm p
+        have h := congrArg (fun f : ℕ →₀ ℕ => f p)
+          (factorization_mul ha.ne_zero hb.ne_zero).symm
+        simpa using h
       _ = (c ^ 2).factorization p := by
         simpa [pow_two, hc]
       _ = 2 * c.factorization p := by simp [factorization_pow]
