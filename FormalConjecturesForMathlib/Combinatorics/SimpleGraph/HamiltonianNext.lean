@@ -16,7 +16,7 @@ open Finset Function
 namespace SimpleGraph
 
 variable {α : Type*} [DecidableEq α] {G : SimpleGraph α}
-  {a b : α} {p : G.Walk a b}
+  {a b : α} {p : G.Walk a a}
 
 namespace Walk.IsHamiltonianCycle
 
@@ -34,13 +34,29 @@ variable (b)
 
 lemma mem_tail_support (hp : p.IsHamiltonianCycle) : b ∈ p.support.tail := by
   rw [← List.count_pos_iff]
-  have hcount := hp.2 b
-  rw [← Walk.support_tail_of_not_nil p hp.not_nil]
+  have hcount := hp.isHamiltonian_tail b
   omega
 
+/-- Every vertex occurs before the repeated terminal vertex of a Hamiltonian
+cycle.  This replaces an old list-rotation helper that is absent in Lean 4.27. -/
 lemma mem_dropLast_support (hp : p.IsHamiltonianCycle) : b ∈ p.support.dropLast := by
-  rw [List.IsRotated.mem_iff (IsRotated_dropLast_tail p)]
-  exact hp.mem_tail_support b
+  have hb : b ∈ p.support := hp.mem_support b
+  by_cases hba : b = a
+  · subst b
+    rw [List.mem_dropLast_iff_idxOf_lt hb]
+    have hidx : p.support.idxOf a = 0 := by
+      rw [Walk.support_eq_cons]
+      simp
+    rw [hidx]
+    have hlen : 2 ≤ p.support.length := by
+      rw [Walk.length_support]
+      omega
+    omega
+  · have hsup : p.support = p.support.dropLast ++ [a] := by
+      rw [← List.dropLast_append_getLast (by simp)]
+      rw [Walk.getLast_support]
+    rw [hsup, List.mem_append, List.mem_singleton] at hb
+    exact hb.resolve_right hba
 
 /-- The dart in a Hamiltonian cycle that starts at `b`. -/
 noncomputable def dartWithFst (hp : p.IsHamiltonianCycle) : G.Dart :=
@@ -91,14 +107,14 @@ lemma adj_self_next (hp : p.IsHamiltonianCycle) : G.Adj b (hp.next b) := by
   obtain ⟨d₂, hd₂, hd₂'⟩ := hp.self_next_in_darts b
   rw [← hd₁'.1, ← hd₂'.1]
   rw [← hd₂'.2] at hd₁'
-  exact hp.1.prev_unique hd₁ hd₂ hd₁'.2
+  exact hp.isCycle.prev_unique hd₁ hd₂ hd₁'.2
 
 @[simp] lemma next_prev (hp : p.IsHamiltonianCycle) : hp.next (hp.prev b) = b := by
   obtain ⟨d₁, hd₁, hd₁'⟩ := hp.self_next_in_darts (hp.prev b)
   obtain ⟨d₂, hd₂, hd₂'⟩ := hp.prev_self_in_darts b
   rw [← hd₁'.2, ← hd₂'.2]
   rw [← hd₂'.1] at hd₁'
-  exact hp.1.next_unique hd₁ hd₂ hd₁'.1
+  exact hp.isCycle.next_unique hd₁ hd₂ hd₁'.1
 
 lemma next_inj (hp : p.IsHamiltonianCycle) : Function.Injective hp.next := by
   intro v₁ v₂ h
