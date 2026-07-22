@@ -1,0 +1,102 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: Direct C217 terminal audit
+
+on:
+  push:
+    branches:
+      - agent/c217-closure-backport
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - name: Checkout C217 branch
+        uses: actions/checkout@v6
+
+      - name: Install pinned Lean toolchain
+        run: |
+          set -euxo pipefail
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Mathlib cache
+        run: |
+          set -euxo pipefail
+          lake exe cache get
+
+      - name: Reject proof holes and trusted shortcuts
+        run: |
+          set -euxo pipefail
+          files=(
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianExtras.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/PathClosure.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/ChvatalPath.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217FiniteCertificate.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217OrderCertificate.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217OrderBound.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217DegreeBridge.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/MaximumLeafDegree.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/DegreeTwoTraceable.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217BaseReduction.lean
+          )
+          if grep -nE '\b(sorry|admit|native_decide)\b|Lean\.trustCompiler|Lean\.ofReduceBool|(^|[^A-Za-z])axiom([^A-Za-z]|$)' "${files[@]}"; then
+            echo 'Forbidden proof shortcut found.' >&2
+            exit 1
+          fi
+
+      - name: Build C217 proof stack
+        id: lean
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          lake build \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.HamiltonianExtras \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.PathClosure \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.ChvatalPath \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217FiniteCertificate \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217OrderCertificate \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217OrderBound \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217DegreeBridge \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.MaximumLeafDegree \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.DegreeTwoTraceable \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217BaseReduction \
+            2>&1 | tee c217-direct-audit.log
+
+      - name: Replay deterministic certificates
+        id: certificate
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python3 scripts/c217_certificate.py 2>&1 | tee c217-certificate-replay.log
+          git diff --exit-code -- scripts/c217_certificate.json
+          python3 scripts/c217_order_bound_certificate.py 2>&1 | tee c217-order-certificate-replay.log
+          git diff --exit-code -- scripts/c217_order_bound_certificate.json
+
+      - name: Enforce audit
+        run: |
+          test "${{ steps.lean.outcome }}" = success
+          test "${{ steps.certificate.outcome }}" = success
+          if grep -nE 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' c217-direct-audit.log; then
+            echo 'Forbidden axiom found.' >&2
+            exit 1
+          fi
+
+      - name: Upload audit logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-direct-audit-log
+          path: |
+            c217-direct-audit.log
+            c217-certificate-replay.log
+            c217-order-certificate-replay.log
+          compression-level: 0
+          retention-days: 7
