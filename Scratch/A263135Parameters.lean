@@ -26,15 +26,38 @@ theorem balanced_pair_sum (r : ℕ) :
     balancedA r * balancedB r + balancedB r * balancedC r +
       balancedC r * balancedA r = r ^ 2 / 3 := by
   unfold balancedA balancedB balancedC
+  let q := r / 3
   have hmod : r % 3 = 0 ∨ r % 3 = 1 ∨ r % 3 = 2 := by omega
   rcases hmod with h | h | h
-  · obtain ⟨q, rfl⟩ := Nat.dvd_iff_mod_eq_zero.mpr h
+  · have hr : r = 3 * q := by dsimp [q]; omega
+    have h0 : r / 3 = q := rfl
+    have h1 : (r + 1) / 3 = q := by dsimp [q]; omega
+    have h2 : (r + 2) / 3 = q := by dsimp [q]; omega
+    have hs : r ^ 2 / 3 = 3 * q ^ 2 := by
+      rw [hr]
+      ring_nf
+      omega
+    rw [h0, h1, h2, hs]
     ring
-  · have hr : r = 3 * (r / 3) + 1 := by omega
-    rw [hr]
+  · have hr : r = 3 * q + 1 := by dsimp [q]; omega
+    have h0 : r / 3 = q := rfl
+    have h1 : (r + 1) / 3 = q := by dsimp [q]; omega
+    have h2 : (r + 2) / 3 = q + 1 := by dsimp [q]; omega
+    have hs : r ^ 2 / 3 = 3 * q ^ 2 + 2 * q := by
+      rw [hr]
+      ring_nf
+      omega
+    rw [h0, h1, h2, hs]
     ring
-  · have hr : r = 3 * (r / 3) + 2 := by omega
-    rw [hr]
+  · have hr : r = 3 * q + 2 := by dsimp [q]; omega
+    have h0 : r / 3 = q := rfl
+    have h1 : (r + 1) / 3 = q + 1 := by dsimp [q]; omega
+    have h2 : (r + 2) / 3 = q + 1 := by dsimp [q]; omega
+    have hs : r ^ 2 / 3 = 3 * q ^ 2 + 4 * q + 1 := by
+      rw [hr]
+      ring_nf
+      omega
+    rw [h0, h1, h2, hs]
     ring
 
 /-- Width of the available clipping corner. -/
