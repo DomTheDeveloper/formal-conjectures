@@ -90,7 +90,8 @@ Therefore
 ## Lean decomposition
 
 1. `average_bound_core`: completed algebraic Cauchy/incidence endgame.
-2. Choose finite maximum independent sets in each neighborhood.
-3. Formalize the selected-incidence sum and `c(u) ≤ degree(u)`.
-4. Reuse the acyclic leaf-attachment and spanning-tree extension machinery developed for corrected WOWII 160.
-5. Assemble the exact upstream theorem and audit its axioms.
+2. `chosenLocalIndep`: canonical maximum independent set in each neighborhood, with exact-cardinality, containment, adjacency, and independence lemmas.
+3. Weighted selected-incidence reversal and `reverseCount ≤ degree`: completed in the counting core.
+4. Formalize `|I_v| + degree(u) ≤ |N(v) ∪ N(u)|` for each selected incidence and sum it.
+5. Reuse the acyclic leaf-attachment and spanning-tree extension machinery developed for corrected WOWII 160.
+6. Assemble the exact upstream theorem and audit its axioms.
