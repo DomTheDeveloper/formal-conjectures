@@ -663,17 +663,19 @@ theorem eqSystem6_no_solution_d3_int :
 
 /-- For $N = 6$ and $D = 5$, does there exist no solution to the monochromatic quantum graph
 equation system over $\mathbb{Z}$? -/
-@[category research open, AMS 5 14 81]
+@[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
+"https://github.com/DomTheDeveloper/formal-conjectures/blob/a76f24bc20db67b27c445faa39571cf5bc03990e/QuantumGraphColorRestriction.lean#L163-L166"]
 theorem eqSystem6_no_solution_d5_int :
-    answer(sorry) ↔
+    answer(True) ↔
       ¬ ∃ W : WeightsN 6 5 ℤ, EqSystemN 6 5 W := by
   sorry
 
 /-- For $N = 6$ and all $D \geq 3$, does there exist no solution to the monochromatic quantum graph
 equation system over $\mathbb{Z}$? -/
-@[category research open, AMS 5 14 81]
+@[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
+"https://github.com/DomTheDeveloper/formal-conjectures/blob/a76f24bc20db67b27c445faa39571cf5bc03990e/QuantumGraphColorRestriction.lean#L169-L174"]
 theorem eqSystem6_no_solution_ge3_int :
-    answer(sorry) ↔
+    answer(True) ↔
       ∀ D : Nat, D ≥ 3 →
         ¬ ∃ W : WeightsN 6 D ℤ, EqSystemN 6 D W := by
   sorry
@@ -734,9 +736,10 @@ theorem eqSystem6_no_solution_d3_trinary_int :
 
 /-- For $N = 6$ and $D = 5$, does there exist no solution to the monochromatic quantum graph
 equation system over $\mathbb{Z}$ with weights in $\{-1, 0, 1\}$? -/
-@[category research open, AMS 5 14 81]
+@[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
+"https://github.com/DomTheDeveloper/formal-conjectures/blob/a76f24bc20db67b27c445faa39571cf5bc03990e/QuantumGraphColorRestriction.lean#L177-L182"]
 theorem eqSystem6_no_solution_d5_trinary_int :
-    answer(sorry) ↔
+    answer(True) ↔
       ¬ ∃ W : WeightsN 6 5 ℤ,
           (∀ e, W e = (-1 : ℤ) ∨ W e = 0 ∨ W e = 1) ∧
             EqSystemN 6 5 W := by
@@ -744,9 +747,10 @@ theorem eqSystem6_no_solution_d5_trinary_int :
 
 /-- For $N = 6$ and all $D \geq 3$, does there exist no solution to the monochromatic quantum graph
 equation system over $\mathbb{Z}$ with weights in $\{-1, 0, 1\}$? -/
-@[category research open, AMS 5 14 81]
+@[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
+"https://github.com/DomTheDeveloper/formal-conjectures/blob/a76f24bc20db67b27c445faa39571cf5bc03990e/QuantumGraphColorRestriction.lean#L185-L192"]
 theorem eqSystem6_no_solution_ge3_trinary_int :
-    answer(sorry) ↔
+    answer(True) ↔
       ∀ D : Nat, D ≥ 3 →
         ¬ ∃ W : WeightsN 6 D ℤ,
             (∀ e, W e = (-1 : ℤ) ∨ W e = 0 ∨ W e = 1) ∧
