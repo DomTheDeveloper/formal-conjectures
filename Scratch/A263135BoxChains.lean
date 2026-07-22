@@ -9,13 +9,15 @@ structure RankPoint where
   side : Bool
   deriving DecidableEq
 
-private def verticalEmbedding (t : ℕ) (side : Bool) : ℕ ↪ RankPoint where
+/-- Embedding of the vertical leg of a rectangle chain. -/
+def verticalEmbedding (t : ℕ) (side : Bool) : ℕ ↪ RankPoint where
   toFun j := ⟨t, j, side⟩
   inj' := by
     intro x y h
     exact congrArg RankPoint.second h
 
-private def horizontalEmbedding (t b : ℕ) (side : Bool) : ℕ ↪ RankPoint where
+/-- Embedding of the horizontal leg of a rectangle chain. -/
+def horizontalEmbedding (t b : ℕ) (side : Bool) : ℕ ↪ RankPoint where
   toFun h := ⟨t + 1 + h, b - 1 - t, side⟩
   inj' := by
     intro x y h
