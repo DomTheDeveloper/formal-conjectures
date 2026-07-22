@@ -82,9 +82,14 @@ theorem endpoint_flip_pair_attains (m : ℕ) (hm : 1 ≤ m) (b : Bool) :
         ((2 ^ (m + 1) : ℕ) : ℤ) =
       candidateNum (m + 1) ^ 2 *
         varianceNum (endpointFlipWord m b) (constantWord (m + 1) b) := by
+  have hpow : 2 ≤ 2 ^ (m + 1) := by
+    have hpos : 0 < (2 : ℕ) ^ m := pow_pos (by norm_num) _
+    rw [pow_succ]
+    omega
   rw [selfOverlapDelta, varianceNum, candidateNum,
     overlapNum_endpoint_self, overlapNum_constant,
-    overlapNum_endpoint_constant, overlapNum_constant_endpoint]
+    overlapNum_endpoint_constant, overlapNum_constant_endpoint,
+    Nat.cast_sub hpow]
   ring
 
 #print axioms most_unfair_litt_coin_word_bet
