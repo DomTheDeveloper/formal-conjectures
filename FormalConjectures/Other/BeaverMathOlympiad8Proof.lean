@@ -39,6 +39,8 @@ private def bmo8_run : ℕ → ℕ × ℕ → ℕ × ℕ
 private def bmo8_orbit (n : ℕ) : ℕ × ℕ :=
   bmo8_run n (10, 12)
 
+/-- The tail-recursive evaluator commutes with one recurrence step. -/
+@[category API, AMS 5 11 68]
 private lemma bmo8_run_step (n : ℕ) (s : ℕ × ℕ) :
     bmo8_run n (bmo8_step s) = bmo8_step (bmo8_run n s) := by
   induction n generalizing s with
@@ -46,6 +48,8 @@ private lemma bmo8_run_step (n : ℕ) (s : ℕ × ℕ) :
   | succ n ih =>
       simpa only [bmo8_run] using ih (bmo8_step s)
 
+/-- The explicit orbit satisfies the BMO #8 recurrence. -/
+@[category API, AMS 5 11 68]
 private lemma bmo8_orbit_succ (n : ℕ) :
     bmo8_orbit (n + 1) = bmo8_step (bmo8_orbit n) := by
   simpa only [bmo8_orbit, bmo8_run] using bmo8_run_step n (10, 12)
