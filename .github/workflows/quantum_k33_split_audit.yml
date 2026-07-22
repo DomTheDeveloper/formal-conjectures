@@ -1,0 +1,69 @@
+name: Quantum K3,3 residual-orbit SAT audit
+
+on:
+  pull_request:
+    branches:
+      - audit/quantum-k33-base-2026-07-22
+
+permissions:
+  contents: read
+
+jobs:
+  solve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        pattern: ['000', '111', '100', '110']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install CaDiCaL and DRAT-trim
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y build-essential git python3
+          git clone --depth 1 https://github.com/arminbiere/cadical.git /tmp/cadical
+          cd /tmp/cadical
+          ./configure
+          make -j2
+          sudo cp build/cadical /usr/local/bin/cadical
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git /tmp/drat-trim
+          make -C /tmp/drat-trim -j2
+      - name: Generate, solve, and verify K3,3 residual orbit
+        shell: bash
+        run: |
+          set -euxo pipefail
+          dir=quantum-k33-${{ matrix.pattern }}
+          mkdir -p "$dir"
+          python3 ProofAudit/quantum_mod2_cnf.py \
+            --case six_cycle \
+            --case2-index 6 \
+            --k33-pattern '${{ matrix.pattern }}' \
+            --output "$dir/system.cnf" \
+            --metadata "$dir/metadata.json"
+          sha256sum "$dir/system.cnf" "$dir/metadata.json" > "$dir/SHA256SUMS"
+          set +e
+          cadical "$dir/system.cnf" "$dir/unsat.drat" 2>&1 | tee "$dir/cadical.log"
+          status=${PIPESTATUS[0]}
+          set -e
+          echo "cadical_exit_code=$status" | tee "$dir/status.txt"
+          if [ "$status" -eq 10 ]; then
+            echo 'SAT: the K3,3 mod-2 obstruction is false for this exhaustive residual orbit.' >&2
+            exit 1
+          fi
+          test "$status" -eq 20
+          /tmp/drat-trim/drat-trim "$dir/system.cnf" "$dir/unsat.drat" \
+            2>&1 | tee "$dir/drat-trim.log"
+          grep -q 'VERIFIED' "$dir/drat-trim.log"
+          sha256sum "$dir/unsat.drat" >> "$dir/SHA256SUMS"
+      - name: Upload independently checked certificate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quantum-k33-${{ matrix.pattern }}
+          path: quantum-k33-${{ matrix.pattern }}
+          if-no-files-found: error
+          compression-level: 9
