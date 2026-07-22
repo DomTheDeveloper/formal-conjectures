@@ -57,3 +57,7 @@ jobs:
       - name: Compile overlap and arithmetic core
         run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBetProof.lean
+
+      - name: Compile Walsh foundations
+        run: |
+          lake env lean FormalConjectures/Other/LittMostUnfairBetWalsh.lean
