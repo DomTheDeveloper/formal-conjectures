@@ -113,6 +113,7 @@ def secondZeroARankPatch (a b c : ℕ) : Finset RankPoint :=
 /-- The top A-side row has length `b`. -/
 theorem card_topARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     (topARankPatch a b c).card = b := by
+  conv_rhs => rw [← Finset.card_range b]
   apply Finset.card_bij (fun k hk => (⟨a + k, b + c - 1 - k, false⟩ : RankPoint))
   · intro k hk
     have hk' := Finset.mem_range.mp hk
@@ -138,6 +139,7 @@ theorem card_topARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) 
 /-- The first-coordinate A-side boundary has length `c`. -/
 theorem card_firstZeroARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     (firstZeroARankPatch a b c).card = c := by
+  conv_rhs => rw [← Finset.card_range c]
   apply Finset.card_bij (fun k hk => (⟨0, b + k, false⟩ : RankPoint))
   · intro k hk
     have hk' := Finset.mem_range.mp hk
@@ -161,6 +163,7 @@ theorem card_firstZeroARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0
 /-- The second-coordinate A-side boundary has length `a`. -/
 theorem card_secondZeroARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     (secondZeroARankPatch a b c).card = a := by
+  conv_rhs => rw [← Finset.card_range a]
   apply Finset.card_bij (fun k hk => (⟨b + k, 0, false⟩ : RankPoint))
   · intro k hk
     have hk' := Finset.mem_range.mp hk
