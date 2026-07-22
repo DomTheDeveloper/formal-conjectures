@@ -30,6 +30,36 @@ lemma sum_reverseCount_cast_eq_sum_card_cast
     (∑ u, (reverseCount I u : ℝ)) = ∑ v, ((I v).card : ℝ) := by
   exact_mod_cast sum_reverseCount_eq_sum_card I
 
+/-- The contribution depending only on the first coordinate of a selected
+incidence is its value times the selected-set cardinality. -/
+lemma sum_selected_constant_eq_sum_card_mul
+    {β : Type*} [Fintype β] [DecidableEq β]
+    (I : β → Finset β) (a : β → ℝ) :
+    (∑ v, ∑ _u ∈ I v, a v) = ∑ v, ((I v).card : ℝ) * a v := by
+  apply Finset.sum_congr rfl
+  intro v _hv
+  simp [nsmul_eq_mul]
+
+/-- Reversing a weighted selected-incidence sum introduces `reverseCount`. -/
+lemma sum_selected_weight_eq_sum_reverseCount_mul
+    {β : Type*} [Fintype β] [DecidableEq β]
+    (I : β → Finset β) (d : β → ℝ) :
+    (∑ v, ∑ u ∈ I v, d u) =
+      ∑ u, (reverseCount I u : ℝ) * d u := by
+  classical
+  calc
+    (∑ v, ∑ u ∈ I v, d u) =
+        ∑ v, ∑ u, if u ∈ I v then d u else 0 := by
+          apply Finset.sum_congr rfl
+          intro v _hv
+          simp
+    _ = ∑ u, ∑ v, if u ∈ I v then d u else 0 := by
+          rw [Finset.sum_comm]
+    _ = ∑ u, (reverseCount I u : ℝ) * d u := by
+          apply Finset.sum_congr rfl
+          intro u _hu
+          simp [reverseCount, Finset.card_eq_sum_ones, nsmul_eq_mul]
+
 /-- If every selected vertex at `v` is a neighbor of `v`, then the number of
 selected neighborhoods containing `u` is at most the degree of `u`. -/
 lemma reverseCount_le_degree
@@ -105,6 +135,8 @@ lemma average_bound_core
 
 #print axioms sum_reverseCount_eq_sum_card
 #print axioms sum_reverseCount_cast_eq_sum_card_cast
+#print axioms sum_selected_constant_eq_sum_card_mul
+#print axioms sum_selected_weight_eq_sum_reverseCount_mul
 #print axioms reverseCount_le_degree
 #print axioms square_sum_le_card_mul_sum_square
 #print axioms sq_le_mul_of_nonneg_of_le
