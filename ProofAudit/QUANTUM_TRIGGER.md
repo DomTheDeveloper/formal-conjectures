@@ -1,1 +1,1 @@
-Trigger the trusted-base macOS quantum Lean audit after retargeting to the fresh audit base.
+Synchronize the quantum proof branch with the self-consistent v2 macOS audit base.
