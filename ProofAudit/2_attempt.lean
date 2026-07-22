@@ -35,14 +35,14 @@ private theorem two_mul_averageIndepNeighbors_le_adjacent_neighbor_union
       Exists fun y : alpha =>
         And (G.Adj x y)
           (2 * averageIndepNeighbors G <=
-            (Set.ncard (sup (G.neighborSet x) (G.neighborSet y)) : Real)) := by
+            (Set.ncard (G.neighborSet x ∪ G.neighborSet y) : Real)) := by
   sorry
 
 /-- The double-star / spanning-tree-extension half of the proof. -/
 private theorem adjacent_neighbor_union_le_Ls_add_two
     (G : SimpleGraph alpha) (hG : G.Connected)
     {x y : alpha} (hxy : G.Adj x y) :
-    (Set.ncard (sup (G.neighborSet x) (G.neighborSet y)) : Real) <= Ls G + 2 := by
+    (Set.ncard (G.neighborSet x ∪ G.neighborSet y) : Real) <= Ls G + 2 := by
   sorry
 
 /-- WOWII Conjecture 2. -/
