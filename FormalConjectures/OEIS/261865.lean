@@ -133,10 +133,8 @@ theorem hits_square_mul_imp (c s n : ℕ) (hc : 0 < c) :
     rw [Nat.cast_mul, Nat.cast_pow, Real.sqrt_mul (sq_nonneg (c : ℝ))]
     rw [Real.sqrt_sq (Nat.cast_nonneg c)]
   refine ⟨m * c, Nat.mul_pos hm hc, ?_, ?_⟩
-  · simpa only [hsqrt, Nat.cast_mul]
-    simpa only [mul_assoc] using hleft
-  · simpa only [hsqrt, Nat.cast_mul]
-    simpa only [mul_assoc] using hright
+  · simpa only [hsqrt, Nat.cast_mul, mul_assoc] using hleft
+  · simpa only [hsqrt, Nat.cast_mul, mul_assoc] using hright
 
 /-- The squarefree integers in `[2, j)`. -/
 noncomputable def squarefreeBelow (j : ℕ) : Finset ℕ := by
