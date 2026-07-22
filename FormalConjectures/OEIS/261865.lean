@@ -44,7 +44,7 @@ The mathematical proof and Lean development were produced by
 ProofOrchestrator, using OpenAI GPT-5.6 Thinking, under Dominic Dabish's
 supervision.
 -/
-@[category research open, AMS 11]
+@[category research solved, AMS 11]
 theorem density_formula (j : ℕ) (hj : 2 ≤ j) (hsq : Squarefree j) :
     {n : ℕ | 0 < n ∧ IsValue n j}.HasDensity (predictedDensity j) :=
   density_formula_solution j hj hsq
