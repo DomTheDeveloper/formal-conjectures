@@ -174,11 +174,14 @@ theorem rawEnergy_ge_of_one_endpoint_disagreement {n : ℕ} (hn : 3 ≤ n)
     rcases Finset.mem_image.mp hS with ⟨R, hR, rfl⟩
     have hRsub := Finset.mem_powerset.mp hR
     apply mem_shapes.mpr
-    exact ⟨fullSpanBase_subset_range (j := 1) hn (by
-      intro i hi
-      have hr := mem_interiorCoordinates.mp (hRsub hi)
-      simp [interiorExcept]
-      omega), zero_mem_fullSpanBase n R⟩
+    refine ⟨?_, zero_mem_fullSpanBase n R⟩
+    intro i hi
+    simp only [fullSpanBase, Finset.mem_insert] at hi
+    rcases hi with rfl | rfl | hi
+    · simp; omega
+    · simp; omega
+    · have hr := mem_interiorCoordinates.mp (hRsub hi)
+      simp; omega
   have hsquare : ∀ R ∈ (interiorCoordinates n).powerset,
       (shapeCoeff A B (fullSpanBase n R)).natAbs ^ 2 = 4 := by
     intro R hR
