@@ -1,0 +1,76 @@
+name: Full quantum color-restriction proof audit
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pinned Lean and mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: true
+
+      - name: Reject proof escapes in the new module
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=QuantumGraphColorRestriction.lean
+          if grep -nE '\b(sorry|admit|native_decide|unsafe|axiom|opaque)\b' "$file"; then
+            echo 'Forbidden proof escape found in the new module.' >&2
+            exit 1
+          fi
+
+      - name: Download and verify the LRAT certificate bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./QuantumGraphN6D3/setup_certificates.sh
+
+      - name: Rebuild and audit the complete N=6 D=3 certificate proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p proof-audit-logs
+          ./QuantumGraphN6D3/verify.sh \
+            2>&1 | tee proof-audit-logs/quantum-n6d3-base.log
+          if grep -q 'sorryAx' proof-audit-logs/quantum-n6d3-base.log; then
+            echo 'Base certificate axiom audit contains sorryAx.' >&2
+            exit 1
+          fi
+
+      - name: Compile color restriction and terminal consequences
+        shell: bash
+        run: |
+          set -euo pipefail
+          proof_directory="$PWD/QuantumGraphN6D3"
+          project_lean_path=$(lake env printenv LEAN_PATH)
+          export LEAN_PATH="$proof_directory:$project_lean_path"
+          lake env lean QuantumGraphColorRestriction.lean \
+            2>&1 | tee proof-audit-logs/quantum-color-restriction.log
+          if grep -q 'sorryAx' proof-audit-logs/quantum-color-restriction.log; then
+            echo 'Color-restriction axiom audit contains sorryAx.' >&2
+            exit 1
+          fi
+
+      - name: Upload audit logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quantum-full-color-restriction-audit-log
+          path: proof-audit-logs
+          if-no-files-found: error
