@@ -1,3 +1,19 @@
+/-
+Copyright 2026 The Formal Conjectures Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-/
+
 import FormalConjectures.Other.BeaverMathOlympiad
 
 namespace BeaverMathOlympiad
@@ -45,8 +61,8 @@ theorem beaver_math_olympiad_problem_8_positive :
         simp [bmo8Orbit, bmo8Run, a_ini, b_ini]
     | succ n ih =>
         rw [bmo8Orbit_succ, ← ih]
-        simp only [bmo8Step]
-        rw [a_rec n, b_rec n]
+        by_cases h : b n / 2 < a n <;>
+          simp [bmo8Step, h, a_rec, b_rec]
   refine ⟨1_210_682, ?_⟩
   have hcalc : bmo8Orbit 1_210_682 = (1_749_056, 3_498_111) := by
     native_decide
