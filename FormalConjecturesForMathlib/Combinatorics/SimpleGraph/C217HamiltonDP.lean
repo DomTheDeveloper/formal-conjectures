@@ -54,15 +54,15 @@ theorem pathStart_sound (G : SimpleGraph V) [DecidableRel G.Adj] :
       · exact .singleton v
   | succ k ih =>
       intro S v h
-      have hv : v ∈ S := by
-        simpa [pathStart, Bool.and_eq_true] using h |>.1
-      have hex : ∃ w ∈ S.erase v,
-          G.Adj v w ∧ pathStart G k (S.erase v) w = true := by
-        have h' := (by simpa [pathStart, Bool.and_eq_true] using h :
+      have hsplit :
           v ∈ S ∧
             (S.erase v).any (fun w =>
-              decide (G.Adj v w) && pathStart G k (S.erase v) w) = true)
-        simpa [Finset.any_eq_true, Bool.and_eq_true] using h'.2
+              decide (G.Adj v w) && pathStart G k (S.erase v) w) = true := by
+        simpa [pathStart, Bool.and_eq_true] using h
+      have hv : v ∈ S := hsplit.1
+      have hex : ∃ w ∈ S.erase v,
+          G.Adj v w ∧ pathStart G k (S.erase v) w = true := by
+        simpa [Finset.any_eq_true, Bool.and_eq_true] using hsplit.2
       obtain ⟨w, hw, hadj, hrec⟩ := hex
       obtain ⟨t, hnodup, hfin, hchain⟩ := ih (S.erase v) w hrec
       refine ⟨w :: t, ?_, ?_, ?_⟩
