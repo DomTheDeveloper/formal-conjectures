@@ -49,6 +49,8 @@ lemma leafCount_le_Ls (G : SimpleGraph α) [DecidableRel G.Adj]
   apply le_csSup
   · refine ⟨(Fintype.card α : ℝ), ?_⟩
     rintro x ⟨S, _hS, rfl⟩
+    change ((S.verts.toFinset.filter fun v => S.degree v = 1).card : ℝ) ≤
+      (Fintype.card α : ℝ)
     exact_mod_cast
       (Finset.card_le_univ (S.verts.toFinset.filter fun v => S.degree v = 1))
   · exact ⟨T, ⟨hTspan, hTtree⟩, rfl⟩
