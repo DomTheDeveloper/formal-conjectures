@@ -60,6 +60,66 @@ lemma sum_selected_weight_eq_sum_reverseCount_mul
           intro u _hu
           simp [reverseCount, Finset.card_eq_sum_ones, nsmul_eq_mul]
 
+/-- Sum a pointwise bound over all selected incidences. If `|I v| = a v` and
+`a v + d u ≤ M` whenever `u ∈ I v`, then the first-coordinate square mass and
+the reverse-incidence weighted mass are at most `M * Σ a`. -/
+lemma selected_incidence_sum_bound
+    {β : Type*} [Fintype β] [DecidableEq β]
+    (I : β → Finset β) (a d : β → ℝ) (M : ℝ)
+    (hcard : ∀ v, ((I v).card : ℝ) = a v)
+    (hpoint : ∀ v u, u ∈ I v → a v + d u ≤ M) :
+    (∑ v, (a v) ^ 2) +
+        ∑ u, (reverseCount I u : ℝ) * d u ≤
+      M * ∑ v, a v := by
+  have hsum :
+      (∑ v, ∑ u ∈ I v, (a v + d u)) ≤
+        ∑ v, ∑ u ∈ I v, M := by
+    apply Finset.sum_le_sum
+    intro v _hv
+    apply Finset.sum_le_sum
+    intro u hu
+    exact hpoint v u hu
+  have hfirst :
+      (∑ v, ∑ _u ∈ I v, a v) = ∑ v, (a v) ^ 2 := by
+    rw [sum_selected_constant_eq_sum_card_mul]
+    apply Finset.sum_congr rfl
+    intro v _hv
+    rw [hcard v]
+    ring
+  have hsecond :
+      (∑ v, ∑ u ∈ I v, d u) =
+        ∑ u, (reverseCount I u : ℝ) * d u :=
+    sum_selected_weight_eq_sum_reverseCount_mul I d
+  have hright :
+      (∑ v, ∑ _u ∈ I v, M) = M * ∑ v, a v := by
+    calc
+      (∑ v, ∑ _u ∈ I v, M) =
+          ∑ v, ((I v).card : ℝ) * M :=
+        sum_selected_constant_eq_sum_card_mul I (fun _ => M)
+      _ = ∑ v, a v * M := by
+        apply Finset.sum_congr rfl
+        intro v _hv
+        rw [hcard v]
+      _ = M * ∑ v, a v := by
+        rw [Finset.mul_sum]
+        apply Finset.sum_congr rfl
+        intro v _hv
+        ring
+  calc
+    (∑ v, (a v) ^ 2) +
+        ∑ u, (reverseCount I u : ℝ) * d u =
+      (∑ v, ∑ _u ∈ I v, a v) +
+        ∑ v, ∑ u ∈ I v, d u := by
+          rw [hfirst, hsecond]
+    _ = ∑ v, ((∑ _u ∈ I v, a v) + ∑ u ∈ I v, d u) := by
+          rw [← Finset.sum_add_distrib]
+    _ = ∑ v, ∑ u ∈ I v, (a v + d u) := by
+          apply Finset.sum_congr rfl
+          intro v _hv
+          rw [Finset.sum_add_distrib]
+    _ ≤ ∑ v, ∑ u ∈ I v, M := hsum
+    _ = M * ∑ v, a v := hright
+
 /-- If every selected vertex at `v` is a neighbor of `v`, then the number of
 selected neighborhoods containing `u` is at most the degree of `u`. -/
 lemma reverseCount_le_degree
@@ -137,6 +197,7 @@ lemma average_bound_core
 #print axioms sum_reverseCount_cast_eq_sum_card_cast
 #print axioms sum_selected_constant_eq_sum_card_mul
 #print axioms sum_selected_weight_eq_sum_reverseCount_mul
+#print axioms selected_incidence_sum_bound
 #print axioms reverseCount_le_degree
 #print axioms square_sum_le_card_mul_sum_square
 #print axioms sq_le_mul_of_nonneg_of_le
