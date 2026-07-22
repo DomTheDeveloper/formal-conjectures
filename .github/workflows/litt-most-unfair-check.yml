@@ -22,7 +22,7 @@ concurrency:
 jobs:
   exact-audit:
     name: exact finite audit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 10
     steps:
       - name: Checkout project
@@ -32,7 +32,7 @@ jobs:
 
   lean-check:
     name: check Lean 4.27
-    runs-on: ubuntu-latest
+    runs-on: macos-15-intel
     timeout-minutes: 20
     steps:
       - name: Checkout project
@@ -41,7 +41,7 @@ jobs:
       - name: Install elan
         run: |
           set -o pipefail
-          curl -sSfL "https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz" | tar xz
+          curl -sSfL "https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-apple-darwin.tar.gz" | tar xz
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
@@ -54,6 +54,6 @@ jobs:
         run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBet.lean
 
-      - name: Compile arithmetic core
+      - name: Compile overlap and arithmetic core
         run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBetProof.lean
