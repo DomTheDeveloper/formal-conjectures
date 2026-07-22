@@ -1,0 +1,56 @@
+name: Quantum graph color-restriction Lean audit
+
+on:
+  pull_request:
+    branches:
+      - audit/quantum-color-restriction-base-2026-07-22
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pinned Lean and mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: true
+
+      - name: Reject proof escapes
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=ProofAudit/MonochromaticQuantumGraphColorRestriction.lean
+          if grep -nE '\b(sorry|admit|native_decide|unsafe|axiom|opaque)\b' "$file"; then
+            echo 'Forbidden proof escape found.' >&2
+            exit 1
+          fi
+
+      - name: Compile color-restriction theorem and audit axioms
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p proof-audit-logs
+          lake env lean ProofAudit/MonochromaticQuantumGraphColorRestriction.lean \
+            2>&1 | tee proof-audit-logs/color-restriction.log
+          if grep -q 'sorryAx' proof-audit-logs/color-restriction.log; then
+            echo 'Axiom audit contains sorryAx.' >&2
+            exit 1
+          fi
+
+      - name: Upload audit log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quantum-color-restriction-audit-log
+          path: proof-audit-logs
+          if-no-files-found: error
