@@ -110,17 +110,24 @@ lemma attachLeaves_le
         · exact (hAdj v (by simp)).symm
 
 lemma attachLeaves_adj_of_mem
-    (H : SimpleGraph α) (c : α) (L : List α) {v : α} (hv : v ∈ L) :
+    (H : SimpleGraph α) (c : α) (L : List α) {v : α}
+    (hcL : c ∉ L) (hv : v ∈ L) :
     (attachLeaves H c L).Adj c v := by
   induction L with
   | nil => simp at hv
   | cons w ws ih =>
+      have hcw : c ≠ w := by
+        intro h
+        exact hcL (by simp [h])
+      have hcws : c ∉ ws := by
+        intro h
+        exact hcL (by simp [h])
       simp only [List.mem_cons] at hv
       change (attachLeaves H c ws).Adj c v ∨ (edge c w).Adj c v
       rcases hv with rfl | hv
       · right
-        simp
-      · exact Or.inl (ih hv)
+        simp [hcw]
+      · exact Or.inl (ih hcws hv)
 
 private noncomputable def leaves (T : SimpleGraph α) [DecidableRel T.Adj] : Finset α :=
   Finset.univ.filter fun v => T.degree v = 1
