@@ -47,7 +47,7 @@ def matrixOfGraph {n : ℕ} (G : SimpleGraph (Fin n)) (i j : Fin n) : Bool :=
 theorem graphOfMatrix_matrixOfGraph_eq {n : ℕ} (G : SimpleGraph (Fin n)) :
     graphOfMatrix (matrixOfGraph G) = G := by
   ext i j
-  simp [graphOfMatrix, canonicalAdj, matrixOfGraph, G.symm_adj]
+  simp [graphOfMatrix, canonicalAdj, matrixOfGraph, G.adj_comm]
 
 /-- A cut has a crossing edge. -/
 def cutCrossesBool {V : Type*} [Fintype V] [DecidableEq V]
