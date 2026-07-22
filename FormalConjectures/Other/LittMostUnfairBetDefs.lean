@@ -19,9 +19,8 @@ import FormalConjecturesUtil
 /-!
 # Definitions for the most unfair Litt coin-word bet
 
-This module contains the common definitions and the exact evaluation of the
-sharp constant-word/endpoint-flip pair. The solved conjecture statement lives
-in `LittMostUnfairBet.lean`.
+This module contains the common definitions and exact overlap evaluations used
+by the solved conjecture statement in `LittMostUnfairBet.lean`.
 -/
 
 namespace LittMostUnfairBet
@@ -180,16 +179,5 @@ lemma overlapNum_constant_endpoint (m : ℕ) (b : Bool) :
   by_cases hp : k.val + 1 < m + 1
   · simp [hp, constant_suffix_ne_endpoint_prefix b k]
   · simp [hp]
-
-/-- The constant/end-flip pair attains the sharp bound. -/
-theorem endpoint_flip_pair_attains (m : ℕ) (hm : 1 ≤ m) (b : Bool) :
-    selfOverlapDelta (endpointFlipWord m b) (constantWord (m + 1) b) ^ 2 *
-        ((2 ^ (m + 1) : ℕ) : ℤ) =
-      candidateNum (m + 1) ^ 2 *
-        varianceNum (endpointFlipWord m b) (constantWord (m + 1) b) := by
-  rw [selfOverlapDelta, varianceNum, candidateNum,
-    overlapNum_endpoint_self, overlapNum_constant,
-    overlapNum_endpoint_constant, overlapNum_constant_endpoint]
-  ring
 
 end LittMostUnfairBet
