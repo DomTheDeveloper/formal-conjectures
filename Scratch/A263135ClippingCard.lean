@@ -24,8 +24,9 @@ private theorem clipPair_pairwise_disjoint
 theorem card_clippedRankPoints
     (a b d : ℕ) (hd : d ≤ a + b - 1) :
     (clippedRankPoints a b d).card = 2 * d := by
-  rw [clippedRankPoints, Finset.card_biUnion (clipPair_pairwise_disjoint a b d hd)]
-  simp [card_clipPair, mul_comm]
+  rw [clippedRankPoints, Finset.card_biUnion]
+  · simp [card_clipPair, mul_comm]
+  · exact clipPair_pairwise_disjoint a b d hd
 
 private theorem clipPair_subset_rankPatch
     (a b c k : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
@@ -58,7 +59,8 @@ theorem card_clippedPatch
     (clippedPatch a b c d).card = 2 * (a * b + b * c + c * a - d) := by
   unfold clippedPatch
   rw [Finset.card_image_of_injective _ rankPointVertex_injective,
-    Finset.card_sdiff (clippedRankPoints_subset_rankPatch a b c d ha hb hc hd),
+    Finset.card_sdiff_of_subset
+      (clippedRankPoints_subset_rankPatch a b c d ha hb hc hd),
     card_rankPatch, card_clippedRankPoints a b d hd]
   omega
 
