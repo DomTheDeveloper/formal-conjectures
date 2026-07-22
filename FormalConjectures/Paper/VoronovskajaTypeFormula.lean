@@ -113,6 +113,14 @@ theorem voronovskaja_theorem.bernstein_operators
 /--
 Voronovskaja formula for Bézier--Bernstein operators with shape parameter
 $\alpha > 0$, $\alpha \neq 1$.
+
+## Provenance
+
+Solved by Dominic Dabish.
+
+ProofOrchestrator, using OpenAI GPT-5.6 Thinking, assisted with the mathematical
+argument and Lean formalization; all formal claims were checked by the pinned
+Lean compiler.
 -/
 @[category research solved, AMS 26 40 47,
   formal_proof using lean4 at "https://github.com/DomTheDeveloper/formal-conjectures/blob/6f53eea73f2198091a7b5822bfdfe4b0d40f21a0/FormalConjectures/Paper/VoronovskajaTypeFormula.lean"]
