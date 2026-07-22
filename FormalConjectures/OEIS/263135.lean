@@ -19,10 +19,15 @@ import FormalConjecturesUtil
 /-!
 # Maximum contacts on the honeycomb lattice
 
-This work-in-progress file records the exact arithmetic reduction for the
-conjecture associated with OEIS A263135.  The remaining theorem is the
-edge-isoperimetric characterization of finite vertex sets in the infinite
-honeycomb graph; it is not hidden behind an axiom or a weakened definition.
+OEIS A263135 is the maximum number of contacts among `m` vertices of the
+infinite honeycomb graph.  The conjectured even-index closed form is
+
+`A263135 (2 * n) = 3 * n - ceil (sqrt (3 * n))`.
+
+This file gives a concrete coordinate model of the infinite honeycomb graph
+and states that exact extremal theorem.  It also contains the fully proved
+integer ceiling arithmetic that turns the closed form into Peter Kagey's OEIS
+identity with A047932 and A216256.
 
 *References:*
 - [A263135](https://oeis.org/A263135)
@@ -32,6 +37,65 @@ honeycomb graph; it is not hidden behind an axiom or a weakened definition.
 -/
 
 namespace OeisA263135
+
+/-- The three edge directions incident to a vertex of the honeycomb graph. -/
+inductive Direction
+  | same
+  | horizontal
+  | diagonal
+  deriving DecidableEq, Fintype
+
+/-- A vertex `A i j` (`side = false`) or `B i j` (`side = true`). -/
+structure Vertex where
+  i : ℤ
+  j : ℤ
+  side : Bool
+  deriving DecidableEq
+
+/-- The neighbor of `v` in direction `d`.
+
+The coordinate convention is
+
+* `A i j ~ B i j`,
+* `A i j ~ B (i - 1) j`,
+* `A i j ~ B i (j - 1)`.
+-/
+def neighbor : Vertex → Direction → Vertex
+  | ⟨i, j, false⟩, .same => ⟨i, j, true⟩
+  | ⟨i, j, false⟩, .horizontal => ⟨i - 1, j, true⟩
+  | ⟨i, j, false⟩, .diagonal => ⟨i, j - 1, true⟩
+  | ⟨i, j, true⟩, .same => ⟨i, j, false⟩
+  | ⟨i, j, true⟩, .horizontal => ⟨i + 1, j, false⟩
+  | ⟨i, j, true⟩, .diagonal => ⟨i, j + 1, false⟩
+
+@[simp]
+theorem neighbor_neighbor (v : Vertex) (d : Direction) :
+    neighbor (neighbor v d) d = v := by
+  rcases v with ⟨i, j, side⟩
+  cases side <;> cases d <;> simp [neighbor]
+
+@[simp]
+theorem neighbor_ne (v : Vertex) (d : Direction) : neighbor v d ≠ v := by
+  rcases v with ⟨i, j, side⟩
+  cases side <;> cases d <;> simp [neighbor]
+
+/-- The number of honeycomb edges with both endpoints in `S`.
+
+Every honeycomb edge has exactly one endpoint on the `A` side, so summing the
+three neighbor tests only over `A` vertices counts every contact exactly once.
+-/
+def contacts (S : Finset Vertex) : ℕ :=
+  ∑ v in S, if v.side = true then 0 else
+    ∑ d : Direction, if neighbor v d ∈ S then 1 else 0
+
+/-- `k` is the maximum contact count among all `N`-vertex honeycomb subsets. -/
+def IsMaximumContact (N k : ℕ) : Prop :=
+  (∃ S : Finset Vertex, S.card = N ∧ contacts S = k) ∧
+    ∀ S : Finset Vertex, S.card = N → contacts S ≤ k
+
+/-- Exact natural-number characterization of `r = ceil (sqrt x)` for positive `x`. -/
+def IsNatCeilSqrt (x r : ℕ) : Prop :=
+  (r - 1) ^ 2 < x ∧ x ≤ r ^ 2
 
 /-- Integer interval characterizing `ceil (sqrt x)` for positive `x`. -/
 def IsCeilSqrt (x r : ℤ) : Prop :=
@@ -70,7 +134,7 @@ private lemma isCeilSqrt_unique {x a b : ℤ} (hx : 0 < x)
       nlinarith [mul_nonneg h1 h2]
     nlinarith
 
-/-- The exact ceiling subtraction needed for the A263135 conjecture. -/
+/-- The exact ceiling subtraction needed after the honeycomb closed form is known. -/
 @[category research solved, AMS 11]
 theorem ceiling_difference
     (n k r s : ℤ)
@@ -119,28 +183,15 @@ theorem ceiling_difference
     have hsEq : s = 2 * k + 1 := isCeilSqrt_unique hx hs htarget
     omega
 
-/-- Incidence bookkeeping in a 3-regular ambient graph. -/
-@[category API, AMS 05]
-theorem internal_edges_from_boundary
-    (vertices internalEdges boundaryEdges : ℤ)
-    (hdegree : 3 * vertices = 2 * internalEdges + boundaryEdges) :
-    2 * internalEdges = 3 * vertices - boundaryEdges := by
-  linarith
-
 /--
-The original OEIS conjecture.  A full proof must instantiate `a` with the
-maximum induced-edge count on the infinite honeycomb graph and prove its even
-closed form.  This declaration intentionally remains open until that geometric
-layer is kernel checked.
+**OEIS A263135, stronger even-index form.** For every positive `n`, the maximum
+number of contacts among `2 * n` vertices of the infinite honeycomb graph is
+`3 * n - ceil (sqrt (3 * n))`.
 -/
 @[category research open, AMS 05]
-theorem conjecture
-    (a triangular index : ℕ → ℕ)
-    (n : ℕ) (hn : 0 < n)
-    (hA263135 : a (2 * n) = 3 * n - ⌈Real.sqrt (3 * n)⌉₊)
-    (hA047932 : triangular n = ⌊(3 * n : ℝ) - Real.sqrt (12 * n - 3)⌋₊)
-    (hA216256 : index n = ⌈Real.sqrt (3 * n - (3 : ℝ) / 4) - (1 : ℝ) / 2⌉₊) :
-    a (2 * n) - triangular n = index n := by
+theorem conjecture (n : ℕ) (hn : 0 < n) :
+    ∃ r : ℕ, IsNatCeilSqrt (3 * n) r ∧
+      IsMaximumContact (2 * n) (3 * n - r) := by
   sorry
 
 end OeisA263135
