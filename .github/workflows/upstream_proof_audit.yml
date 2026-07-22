@@ -25,15 +25,15 @@ jobs:
           use-mathlib-cache: true
           use-github-cache: true
 
-      - name: Build current upstream utility module and compile candidates
+      - name: Build current upstream modules and compile candidates
         shell: bash
         run: |
           set +e
           mkdir -p proof-audit-logs
           : > proof-audit-logs/summary.txt
 
-          echo "===== lake build FormalConjecturesUtil =====" | tee -a proof-audit-logs/summary.txt
-          lake build FormalConjecturesUtil > proof-audit-logs/repository-build.log 2>&1
+          echo "===== lake build FormalConjecturesUtil FormalConjectures.Paper.MonochromaticQuantumGraph =====" | tee -a proof-audit-logs/summary.txt
+          lake build FormalConjecturesUtil FormalConjectures.Paper.MonochromaticQuantumGraph > proof-audit-logs/repository-build.log 2>&1
           build_status=$?
           echo "exit_code=$build_status" | tee -a proof-audit-logs/summary.txt
           cat proof-audit-logs/repository-build.log
