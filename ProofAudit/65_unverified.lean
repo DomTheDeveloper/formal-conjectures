@@ -96,6 +96,7 @@ private lemma two_le_largestInducedForestSize (G : SimpleGraph α) :
     have hlen : c.support.tail.length = c.length := by
       simp [Walk.length_support]
     have hcard : Fintype.card {z // z ∈ ({u, v} : Finset α)} = 2 := by
+      change Fintype.card ↥({u, v} : Finset α) = 2
       simp [huv]
     have hthree : 3 ≤ c.length := hc.three_le_length
     omega
@@ -123,10 +124,10 @@ theorem conjecture65 (G : SimpleGraph α) [DecidableRel G.Adj] (h : G.Connected)
   · rcases hMcases with hM0 | hM1
     · norm_num [hA0, hM0]
     · norm_num [hA0, hM1]
-      exact_mod_cast Nat.zero_le G.largestInducedForestSize
+      omega
   · rcases hMcases with hM0 | hM1
     · norm_num [hA1, hM0]
-      exact_mod_cast Nat.zero_le G.largestInducedForestSize
+      omega
     · norm_num [hA1, hM1]
       exact hf
 
