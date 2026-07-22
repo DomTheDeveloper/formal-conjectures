@@ -121,7 +121,7 @@ theorem fullSpanBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 2 ≤ n)
   rw [hleftSign, hrightSign]
   norm_num
 
-/-- Symmetric version with the right endpoint differing. -/
+/-- Symmetric endpoint-position version with the right endpoint differing. -/
 theorem fullSpanBase_monomial_mul_eq_neg_one_right {n : ℕ} (hn : 2 ≤ n)
     (A B : Word n)
     (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
@@ -130,12 +130,33 @@ theorem fullSpanBase_monomial_mul_eq_neg_one_right {n : ℕ} (hn : 2 ≤ n)
     {R : Finset ℕ} (hR : R ⊆ interiorCoordinates n) :
     natMonomial A (fullSpanBase n R) *
       natMonomial B (fullSpanBase n R) = -1 := by
-  have hswap := fullSpanBase_monomial_mul_eq_neg_one hn
-    (fun i => B i) (fun i => A i)
-    (by intro i hi hj; exact (hinterior i hi hj).symm)
-    (by simpa using hright) (by simpa using hleft)
-    hR
-  simpa [mul_comm] using hswap
+  have h0last : 0 ≠ n - 1 := by omega
+  have hR0 : 0 ∉ R := by
+    intro h
+    have hr := mem_interiorCoordinates.mp (hR h)
+    omega
+  have hRlast : n - 1 ∉ R := by
+    intro h
+    have hr := mem_interiorCoordinates.mp (hR h)
+    omega
+  have hprodR :
+      ∏ i ∈ R, (letterSign A i * letterSign B i) = 1 := by
+    apply Finset.prod_eq_one
+    intro i hi
+    have hr := mem_interiorCoordinates.mp (hR hi)
+    apply letterSign_mul_eq_one_of_word_eq A B (by omega)
+    exact hinterior ⟨i, by omega⟩ (by omega) (by omega)
+  unfold natMonomial fullSpanBase
+  rw [← Finset.prod_mul_distrib]
+  rw [Finset.prod_insert hR0]
+  rw [Finset.prod_insert (by simp [hRlast, h0last])]
+  rw [hprodR]
+  have hleftSign := letterSign_mul_eq_one_of_word_eq A B
+    (i := 0) (by omega) hleft
+  have hrightSign := letterSign_mul_eq_neg_one_of_word_ne A B
+    (j := n - 1) (by omega) hright
+  rw [hleftSign, hrightSign]
+  norm_num
 
 /-- One endpoint disagreement forces raw energy at least `4 * 2^(n-2)`. -/
 theorem rawEnergy_ge_of_one_endpoint_disagreement {n : ℕ} (hn : 2 ≤ n)
