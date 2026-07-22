@@ -32,14 +32,6 @@ namespace LittMostUnfairBetWalsh
 open Finset
 open LittMostUnfairBet
 
-/-- Translation preserves cardinality. -/
-theorem card_translate (S : Finset ℕ) (t : ℕ) :
-    #(translate S t) = #S := by
-  unfold translate
-  rw [Finset.card_image_iff.mpr]
-  intro a ha b hb hab
-  omega
-
 /-- The monomial of a constant word depends only on the set cardinality. -/
 theorem natMonomial_constant_of_subset_range {n : ℕ} (b : Bool)
     (S : Finset ℕ) (hsub : S ⊆ Finset.range n) :
