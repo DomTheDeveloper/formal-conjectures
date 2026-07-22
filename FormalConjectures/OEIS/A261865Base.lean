@@ -113,7 +113,10 @@ theorem not_hits_one (n : ℕ) : ¬ Hits 1 n := by
     exact_mod_cast (by simpa using hleft)
   have hright' : (m : ℝ) < (n : ℝ) + 1 := by simpa using hright
   have hmn : m ≤ n := by
-    exact_mod_cast hright'
+    by_contra h
+    have hle : n + 1 ≤ m := by omega
+    have hle' : (n : ℝ) + 1 ≤ (m : ℝ) := by exact_mod_cast hle
+    linarith
   omega
 
 /-- Removing a positive square factor from a radicand preserves the hitting property. -/
@@ -157,8 +160,8 @@ theorem exists_squarefree_hit_le (r n : ℕ) (hr : 0 < r) (hhit : Hits r n) :
           have hspos : 0 < s := by
             apply Nat.pos_of_ne_zero
             intro hs0
-            subst s
-            simp at hr
+            have hr0 : r = 0 := by simpa [hs0] using hrs
+            omega
           have hslt : s < r := by
             rw [hrs]
             have hdd : 1 < d * d := by nlinarith [hdprime.two_le]
