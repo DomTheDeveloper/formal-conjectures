@@ -43,7 +43,10 @@ jobs:
           lake exe cache unpack || true
           lake exe cache get
 
-      - name: Check BMO 8 proof and axioms
+      - name: Build BMO 8 proof with warnings as errors
+        run: lake --wfail build FormalConjectures.Other.BeaverMathOlympiad8Proof
+
+      - name: Check BMO 8 theorem axioms
         run: |
           cp FormalConjectures/Other/BeaverMathOlympiad8Proof.lean BMO8ProofAudit.lean
           printf '\n#print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_8_solved\n' >> BMO8ProofAudit.lean
