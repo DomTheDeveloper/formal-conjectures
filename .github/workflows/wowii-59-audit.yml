@@ -1,0 +1,49 @@
+name: WOWII 59 Lean audit
+
+on:
+  push:
+    branches:
+      - audit/wowii-59-ci
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout exact branch
+        uses: actions/checkout@v6
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Mathlib cache
+        run: |
+          lake exe cache unpack
+          lake exe cache get
+
+      - name: Check target file
+        run: |
+          lake env lean FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean
+
+      - name: Audit forbidden proof escapes
+        run: |
+          target=FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean
+          if grep -nE '\b(sorry|admit|native_decide|axiom|opaque)\b|sorryAx' "$target"; then
+            echo "Forbidden proof escape found"
+            exit 1
+          fi
+
+      - name: Print theorem axioms
+        run: |
+          cat > /tmp/Wow59Axioms.lean <<'EOF'
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture59
+          #print axioms WrittenOnTheWallII.GraphConjecture59.conjecture59
+          EOF
+          lake env lean /tmp/Wow59Axioms.lean
