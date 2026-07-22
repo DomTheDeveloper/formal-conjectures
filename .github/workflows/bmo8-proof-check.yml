@@ -37,5 +37,5 @@ jobs:
       - name: Check BMO 8 proof and axioms
         run: |
           cp FormalConjectures/Other/BeaverMathOlympiad8Proof.lean BMO8ProofAudit.lean
-          printf '\n#print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_8_positive\n' >> BMO8ProofAudit.lean
+          printf '\n#print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_8_solved\n' >> BMO8ProofAudit.lean
           lake env lean BMO8ProofAudit.lean
