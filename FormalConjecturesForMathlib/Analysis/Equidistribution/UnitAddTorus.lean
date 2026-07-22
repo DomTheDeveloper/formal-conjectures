@@ -108,7 +108,7 @@ theorem tendsto_average_of_tendsto_mFourier
       Submodule.top_coe]
     exact Set.mem_univ F
   obtain ⟨p, hp, hdist⟩ := Metric.mem_closure_iff.mp hF (ε / 3) (by positivity)
-  rw [dist_eq_norm, norm_sub_rev] at hdist
+  rw [dist_eq_norm] at hdist
   obtain ⟨N₀, hN₀⟩ :=
     (Metric.tendsto_atTop.mp (hspan p hp)) (ε / 3) (by positivity)
   refine ⟨N₀, fun N hN => ?_⟩
@@ -173,7 +173,7 @@ lemma mFourier_add_point (k : d → ℤ) (x y : UnitAddTorus d) :
 lemma mFourier_nsmul (k : d → ℤ) (x : UnitAddTorus d) (n : ℕ) :
     mFourier k (n • x) = (mFourier k x) ^ n := by
   induction n with
-  | zero => simp [mFourier_zero]
+  | zero => simp [mFourier, fourier_apply]
   | succ n ih =>
       rw [succ_nsmul, mFourier_add_point, ih, pow_succ]
 
@@ -208,7 +208,7 @@ lemma mFourier_coe_ne_one {a : d → ℝ} (ha : NoIntegerRelation a)
     simpa using hcirc
   have hzero' : ((∑ i, (k i : ℝ) * a i : ℝ) : UnitAddCircle) = 0 := by
     simpa [zsmul_eq_mul] using hzero
-  obtain ⟨z, hz⟩ := AddCircle.coe_eq_zero_iff.mp hzero'
+  obtain ⟨z, hz⟩ := (AddCircle.coe_eq_zero_iff (1 : ℝ)).mp hzero'
   apply hk
   apply ha k
   exact ⟨z, by simpa [zsmul_eq_mul] using hz.symm⟩
@@ -217,7 +217,6 @@ lemma mFourier_coe_ne_one {a : d → ℝ} (ha : NoIntegerRelation a)
 otherwise. -/
 lemma integral_mFourier (k : d → ℤ) :
     ∫ x : UnitAddTorus d, mFourier k x = if k = 0 then 1 else 0 := by
-  rw [volume_eq_fourierVolume (d := d)]
   have h := (orthonormal_iff_ite.mp (orthonormal_mFourier (d := d))) (0 : d → ℤ) k
   simpa only [ContinuousMap.inner_toLp, mFourier_zero, ContinuousMap.one_apply,
     map_one, one_mul, Pi.zero_apply, neg_zero, zero_add, eq_comm] using h
@@ -238,7 +237,7 @@ lemma tendsto_geom_average_zero {z : ℂ} (hz : z ≠ 1) (hnorm : ‖z‖ = 1) :
     apply div_le_div_of_nonneg_right _ hden.le
     calc
       ‖z ^ N - 1‖ ≤ ‖z ^ N‖ + ‖(1 : ℂ)‖ := norm_sub_le _ _
-      _ = 2 := by simp [norm_pow, hnorm]
+      _ = 2 := by norm_num [norm_pow, hnorm]
   refine squeeze_zero_norm hbound ?_
   exact tendsto_const_nhds.div_atTop tendsto_natCast_atTop_atTop
 
@@ -268,7 +267,8 @@ theorem tendsto_average_rotation
   · have hz : mFourier k (fun i => (a i : UnitAddCircle)) ≠ 1 :=
       mFourier_coe_ne_one ha hk
     have hnorm : ‖mFourier k (fun i => (a i : UnitAddCircle))‖ = 1 := by
-      simp [mFourier, fourier_apply, norm_prod, Circle.norm_coe]
+      simp only [mFourier, fourier_apply, ContinuousMap.coe_mk, norm_prod,
+        Circle.norm_coe, Finset.prod_const_one]
     have hgeom := tendsto_geom_average_zero hz hnorm
     rw [integral_mFourier, if_neg hk]
     simpa only [mFourier_nsmul] using hgeom

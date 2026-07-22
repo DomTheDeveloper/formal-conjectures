@@ -29,7 +29,7 @@ namespace Nat
 /-- The product of two squarefree natural numbers is a square only when they are equal. -/
 theorem eq_of_squarefree_of_isSquare_mul {a b : ℕ} (ha : Squarefree a) (hb : Squarefree b)
     (hab : IsSquare (a * b)) : a = b := by
-  rw [ha.ext_iff hb]
+  apply (Squarefree.ext_iff ha hb).2
   intro p hp
   obtain ⟨c, hc⟩ := hab
   have hfac : a.factorization p + b.factorization p = 2 * c.factorization p := by
@@ -76,9 +76,12 @@ theorem trace_eq_zero_of_sq_ratCast {K : Type*} [Field K] [NumberField K] {x : K
       · exact (minpoly.natDegree_pos hint).ne' hh
       · exact hx (minpoly.natDegree_eq_one_iff.mp hh)
     omega
-  have heq : minpoly ℚ x = X ^ 2 - C r :=
-    Polynomial.eq_of_monic_of_dvd_of_natDegree_le (minpoly.monic hint) hmonic hdvd
+  have heq_rev : X ^ 2 - C r = minpoly ℚ x :=
+    Polynomial.eq_of_monic_of_dvd_of_natDegree_le
+      (p := minpoly ℚ x) (q := X ^ 2 - C r)
+      (minpoly.monic hint) hmonic hdvd
       (by rw [hdeg2, Polynomial.natDegree_X_pow_sub_C])
+  have heq : minpoly ℚ x = X ^ 2 - C r := heq_rev.symm
   rw [trace_eq_finrank_mul_minpoly_nextCoeff, heq]
   have hnc : (X ^ 2 - C r : ℚ[X]).nextCoeff = 0 := by
     rw [Polynomial.nextCoeff_of_natDegree_pos
@@ -97,12 +100,11 @@ theorem linearIndependent_sqrt_squarefree {ι : Type*} [Fintype ι]
   have hfd : FiniteDimensional ℚ K := by
     refine IntermediateField.finiteDimensional_adjoin ?_
     rintro x ⟨i, rfl⟩
-    refine ⟨Polynomial.X ^ 2 - Polynomial.C (s i : ℚ), ?_, ?_⟩
-    · exact Polynomial.monic_X_pow_sub_C _ two_ne_zero
-    · norm_num [← Polynomial.C_pow]
-      norm_cast
-      rw [Real.sq_sqrt (Nat.cast_nonneg _)]
-      ring
+    refine ⟨Polynomial.X ^ 2 - Polynomial.C (s i : ℚ),
+      Polynomial.monic_X_pow_sub_C _ two_ne_zero, ?_⟩
+    norm_num [← Polynomial.C_pow]
+    rw [Real.sq_sqrt (Nat.cast_nonneg _)]
+    norm_num
   letI : NumberField K :=
     { to_charZero := inferInstance
       to_finiteDimensional := hfd }
@@ -110,10 +112,8 @@ theorem linearIndependent_sqrt_squarefree {ι : Type*} [Fintype ι]
     ⟨Real.sqrt (s i), IntermediateField.subset_adjoin ℚ _ ⟨i, rfl⟩⟩
   have hroot_sq (i : ι) : (root i) ^ 2 = algebraMap ℚ K (s i : ℚ) := by
     apply Subtype.ext
-    simp only [root]
-    push_cast
-    rw [Real.sq_sqrt (Nat.cast_nonneg _)]
-    norm_cast
+    change (Real.sqrt (s i : ℝ)) ^ 2 = (s i : ℝ)
+    exact Real.sq_sqrt (Nat.cast_nonneg _)
   have hmul_sq (i j : ι) : (root i * root j) ^ 2 = algebraMap ℚ K ((s i * s j : ℕ) : ℚ) := by
     rw [mul_pow, hroot_sq, hroot_sq, ← map_mul]
     norm_cast
