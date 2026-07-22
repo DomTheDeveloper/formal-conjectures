@@ -81,3 +81,11 @@ jobs:
       - name: Compile fixed-shift Walsh correlations
         run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBetWalshShiftCorrelation.lean
+
+      - name: Compile translation normalization
+        run: |
+          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshNormalize.lean
+
+      - name: Compile translation-orbit equivalence
+        run: |
+          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshOrbit.lean
