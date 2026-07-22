@@ -1,0 +1,58 @@
+name: Lean quantum reduction audit
+
+on:
+  push:
+    branches:
+      - audit/lean-proofs-2026-07-21
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pinned Lean and mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: true
+
+      - name: Build official dependency and compile reduction
+        shell: bash
+        run: |
+          set +e
+          mkdir -p quantum-audit-logs
+          lake build FormalConjectures.Paper.MonochromaticQuantumGraph \
+            > quantum-audit-logs/dependency-build.log 2>&1
+          dep_status=$?
+          echo "dependency_exit_code=$dep_status" | tee quantum-audit-logs/summary.txt
+          if [ "$dep_status" -eq 0 ]; then
+            lake env lean ProofAudit/6_dependency_candidate.lean \
+              > quantum-audit-logs/6_dependency_candidate.log 2>&1
+            proof_status=$?
+          else
+            proof_status=99
+          fi
+          echo "proof_exit_code=$proof_status" | tee -a quantum-audit-logs/summary.txt
+          cat quantum-audit-logs/dependency-build.log
+          if [ -f quantum-audit-logs/6_dependency_candidate.log ]; then
+            cat quantum-audit-logs/6_dependency_candidate.log
+          fi
+          exit "$proof_status"
+
+      - name: Upload audit logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lean-quantum-reduction-audit-logs
+          path: quantum-audit-logs
+          if-no-files-found: error
