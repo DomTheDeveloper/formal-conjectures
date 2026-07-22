@@ -16,7 +16,7 @@ limitations under the License.
 
 import FormalConjectures.Arxiv.«2602.19255».RNAQuasiPowers
 
-/-! Internal finite-certificate declarations. -/
+/- Internal finite-certificate declarations. -/
 
 #print axioms RNAQuasiPowers.grammar_discriminant_eq_radicand
 #print axioms RNAQuasiPowers.quasiPowers_algebraic_certificate
@@ -25,7 +25,7 @@ import FormalConjectures.Arxiv.«2602.19255».RNAQuasiPowers
 #print axioms RNAQuasiPowers.printedTargetPrecision_inverse_entries
 #print axioms RNAQuasiPowers.threeTrack_certificate
 
-/-! Public Formal Conjectures declarations. -/
+/- Public Formal Conjectures declarations. -/
 
 #print axioms Arxiv.«2602.19255».grammar_discriminant_eq_radicand
 #print axioms Arxiv.«2602.19255».quasiPowers_algebraic_certificate
