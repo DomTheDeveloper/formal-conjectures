@@ -120,6 +120,15 @@ theorem hits_iff_coordinateHit (s n : ℕ) (hs : 2 ≤ s) :
     apply (lt_div_iff₀ hsqrt_pos).mp
     convert hright using 1 <;> ring
 
+/-- The radicand `1` never hits an open unit interval between consecutive integers. -/
+theorem not_hits_one (n : ℕ) : ¬ Hits 1 n := by
+  rintro ⟨m, _hm, hleft, hright⟩
+  have hnm : n < m := by
+    exact_mod_cast (by simpa using hleft)
+  have hmn : m < n + 1 := by
+    exact_mod_cast (by simpa [Nat.cast_add, Nat.cast_one] using hright)
+  omega
+
 /--
 Removing a positive square factor from a radicand preserves the hitting
 property.  Hence a nonsquarefree radicand can never be a genuinely new least
@@ -179,6 +188,46 @@ noncomputable def relevantRadicands (j : ℕ) : Finset ℕ :=
     s ∈ relevantRadicands j ↔ s = j ∨ (2 ≤ s ∧ s < j ∧ Squarefree s) := by
   classical
   simp [relevantRadicands]
+
+/-- `j` is the least successful radicand exactly when it hits and every smaller squarefree
+radicand at least two misses. -/
+theorem isValue_iff_squarefree_competitors (n j : ℕ) (hj : 2 ≤ j) :
+    IsValue n j ↔
+      Hits j n ∧ ∀ s ∈ squarefreeBelow j, ¬ Hits s n := by
+  constructor
+  · rintro ⟨_hjpos, hjhit, hminimal⟩
+    refine ⟨hjhit, ?_⟩
+    intro s hs
+    have hs' := mem_squarefreeBelow.mp hs
+    exact hminimal s (lt_of_lt_of_le Nat.zero_lt_two hs'.1) hs'.2.1
+  · rintro ⟨hjhit, hsmall⟩
+    refine ⟨lt_of_lt_of_le Nat.zero_lt_two hj, hjhit, ?_⟩
+    intro r hrpos hrj hrhit
+    obtain ⟨s, hspos, hsr, hssq, hshit⟩ := exists_squarefree_hit_le r n hrpos hrhit
+    have hsne : s ≠ 1 := by
+      intro hs1
+      subst s
+      exact not_hits_one n hshit
+    have hsge : 2 ≤ s := by omega
+    have hslt : s < j := lt_of_le_of_lt hsr hrj
+    exact hsmall s (mem_squarefreeBelow.mpr ⟨hsge, hslt, hssq⟩) hshit
+
+/-- Fractional-part version of `isValue_iff_squarefree_competitors`. -/
+theorem isValue_iff_coordinateConditions (n j : ℕ) (hj : 2 ≤ j) :
+    IsValue n j ↔
+      CoordinateHit j n ∧ ∀ s ∈ squarefreeBelow j, ¬ CoordinateHit s n := by
+  rw [isValue_iff_squarefree_competitors n j hj, hits_iff_coordinateHit j n hj]
+  constructor
+  · rintro ⟨hjhit, hsmall⟩
+    refine ⟨hjhit, ?_⟩
+    intro s hs hscoord
+    have hsge := (mem_squarefreeBelow.mp hs).1
+    exact hsmall s hs ((hits_iff_coordinateHit s n hsge).mpr hscoord)
+  · rintro ⟨hjhit, hsmall⟩
+    refine ⟨hjhit, ?_⟩
+    intro s hs hshit
+    have hsge := (mem_squarefreeBelow.mp hs).1
+    exact hsmall s hs ((hits_iff_coordinateHit s n hsge).mp hshit)
 
 /-- Adjoin the rational coordinate `1` to a finite family of radicands. -/
 def radicandWithOne {S : Finset ℕ} : Option S → ℕ
