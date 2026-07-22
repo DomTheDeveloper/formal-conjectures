@@ -53,6 +53,12 @@ def natMonomial {n : ℕ} (A : Word n) (S : Finset ℕ) : ℤ :=
 @[simp] theorem natMonomial_empty {n : ℕ} (A : Word n) : natMonomial A ∅ = 1 := by
   simp [natMonomial]
 
+/-- Insert one fresh coordinate into a Walsh monomial. -/
+theorem natMonomial_insert {n i : ℕ} (A : Word n) (S : Finset ℕ)
+    (hi : i ∉ S) :
+    natMonomial A (insert i S) = letterSign A i * natMonomial A S := by
+  simp [natMonomial, hi]
+
 @[simp] theorem natMonomial_mul_self {n : ℕ} (A : Word n) (S : Finset ℕ) :
     natMonomial A S * natMonomial A S = 1 := by
   rw [← Finset.prod_mul_distrib]
