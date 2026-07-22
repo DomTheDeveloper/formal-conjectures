@@ -61,12 +61,16 @@ theorem degreeList_cappedSym_eq (s : List ℕ)
     simp
   exact hp.eq_of_pairwise' (Multiset.pairwise_sort _ _) hsorted
 
+set_option maxHeartbeats 0 in
+set_option maxRecDepth 100000 in
 /-- Exhaustive kernel check over all `C(22,6)=74613` bounded multisets of
 length sixteen. -/
 theorem no_residue_two_length_sixteen_finite :
     ∀ m : Sym (Fin 7) 16, residueAux (degreeList m) ≠ 2 := by
   decide
 
+set_option maxHeartbeats 0 in
+set_option maxRecDepth 100000 in
 /-- Exhaustive kernel check over all `C(21,6)=54264` bounded multisets of
 length fifteen. -/
 theorem residue_two_length_fifteen_has_odd_sum_finite :
