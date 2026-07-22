@@ -19,5 +19,6 @@ import RNAQuasiPowers.GeneratingFunction
 import RNAQuasiPowers.GoldenRoot
 import RNAQuasiPowers.Covariance
 import RNAQuasiPowers.DensityCorrection
+import RNAQuasiPowers.GaussianPrecision
 import RNAQuasiPowers.ImplicitDerivatives
 import RNAQuasiPowers.AlgebraicCertificate
