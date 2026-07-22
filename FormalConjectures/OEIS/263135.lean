@@ -135,7 +135,7 @@ private lemma isCeilSqrt_unique {x a b : ℤ} (hx : 0 < x)
     nlinarith
 
 /-- The exact ceiling subtraction needed after the honeycomb closed form is known. -/
-@[category research solved, AMS 11]
+@[category API, AMS 11]
 theorem ceiling_difference
     (n k r s : ℤ)
     (hn : 1 ≤ n)
