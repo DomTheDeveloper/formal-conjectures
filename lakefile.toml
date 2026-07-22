@@ -50,11 +50,40 @@ weak.linter.style.ams_attribute = true
 weak.linter.style.category_attribute = true
 weak.linter.style.moduleDocstring = true
 
-# Focused temporary library for the OEIS A263135 proof workbench.
-# Building this exact root compiles its complete transitive scratch dependency stack.
+# Focused temporary library for the complete OEIS A263135 proof workbench.
+# Every scratch module is registered explicitly so Lake can build the entire
+# transitive chain and produce the final audit object.
 [[lean_lib]]
 name = "A263135ScratchAudit"
-globs = ["Scratch.A263135Audit"]
+globs = [
+  "Scratch.A263135Rows",
+  "Scratch.A263135Boundary",
+  "Scratch.A263135Endpoints",
+  "Scratch.A263135RowBound",
+  "Scratch.A263135Staircase",
+  "Scratch.A263135Ranks",
+  "Scratch.A263135BoxChains",
+  "Scratch.A263135ChainMembership",
+  "Scratch.A263135ChainOrder",
+  "Scratch.A263135ChainCount",
+  "Scratch.A263135CapArithmetic",
+  "Scratch.A263135Symmetry",
+  "Scratch.A263135Incidence",
+  "Scratch.A263135Upper",
+  "Scratch.A263135Parameters",
+  "Scratch.A263135PatchDefs",
+  "Scratch.A263135PatchCorners",
+  "Scratch.A263135PatchCard",
+  "Scratch.A263135PatchStructure",
+  "Scratch.A263135PatchContacts",
+  "Scratch.A263135ClippingCard",
+  "Scratch.A263135ClippingDarts",
+  "Scratch.A263135ClippingGeometry",
+  "Scratch.A263135RankDarts",
+  "Scratch.A263135ClippingContacts",
+  "Scratch.A263135Final",
+  "Scratch.A263135Audit",
+]
 
 # Fork-hosted complete Lean proofs that are linked from upstream metadata.
 [[lean_lib]]
