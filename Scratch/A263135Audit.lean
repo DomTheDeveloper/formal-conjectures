@@ -5,6 +5,7 @@ import Scratch.A263135ChainCount
 import Scratch.A263135ChainMembership
 import Scratch.A263135ChainOrder
 import Scratch.A263135ClippingCard
+import Scratch.A263135ClippingContacts
 import Scratch.A263135ClippingDarts
 import Scratch.A263135ClippingGeometry
 import Scratch.A263135Endpoints
@@ -15,6 +16,7 @@ import Scratch.A263135PatchContacts
 import Scratch.A263135PatchCorners
 import Scratch.A263135PatchDefs
 import Scratch.A263135PatchStructure
+import Scratch.A263135RankDarts
 import Scratch.A263135Ranks
 import Scratch.A263135RowBound
 import Scratch.A263135Rows
