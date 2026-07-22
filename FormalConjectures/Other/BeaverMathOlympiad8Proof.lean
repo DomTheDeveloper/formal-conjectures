@@ -16,6 +16,13 @@ limitations under the License.
 
 import FormalConjectures.Other.BeaverMathOlympiad
 
+/-!
+# Beaver Math Olympiad Problem 8 Certificate
+
+A finite Lean certificate for the positive answer to BMO #8. The recurrence reaches
+`(1_749_056, 3_498_111)` at zero-based index `1_210_682`.
+-/
+
 namespace BeaverMathOlympiad
 
 private def bmo8Step : ℕ × ℕ → ℕ × ℕ
@@ -43,6 +50,7 @@ private lemma bmo8Orbit_succ (n : ℕ) :
     bmo8Orbit (n + 1) = bmo8Step (bmo8Orbit n) := by
   simpa only [bmo8Orbit, bmo8Run] using bmo8Run_step n (10, 12)
 
+/-- The BMO #8 recurrence has a target-hitting term. -/
 @[category test, AMS 5 11 68]
 theorem beaver_math_olympiad_problem_8_positive :
     ∀ᵉ (a : ℕ → ℕ) (b : ℕ → ℕ)
