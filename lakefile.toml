@@ -51,11 +51,12 @@ weak.linter.style.category_attribute = true
 weak.linter.style.moduleDocstring = true
 
 # Focused temporary library for the complete OEIS A263135 proof workbench.
-# Every scratch module is registered explicitly so Lake can build the entire
-# transitive chain and produce the final audit object.
+# Every scratch module and the root utility module are registered explicitly so
+# Lake can build the entire transitive chain and produce the final audit object.
 [[lean_lib]]
 name = "A263135ScratchAudit"
 globs = [
+  "FormalConjecturesUtil",
   "Scratch.A263135Rows",
   "Scratch.A263135Boundary",
   "Scratch.A263135Endpoints",
