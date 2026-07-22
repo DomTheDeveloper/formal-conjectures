@@ -114,6 +114,7 @@ def secondZeroARankPatch (a b c : ℕ) : Finset RankPoint :=
 theorem card_topARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     (topARankPatch a b c).card = b := by
   conv_rhs => rw [← Finset.card_range b]
+  symm
   apply Finset.card_bij (fun k hk => (⟨a + k, b + c - 1 - k, false⟩ : RankPoint))
   · intro k hk
     have hk' := Finset.mem_range.mp hk
@@ -140,6 +141,7 @@ theorem card_topARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) 
 theorem card_firstZeroARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     (firstZeroARankPatch a b c).card = c := by
   conv_rhs => rw [← Finset.card_range c]
+  symm
   apply Finset.card_bij (fun k hk => (⟨0, b + k, false⟩ : RankPoint))
   · intro k hk
     have hk' := Finset.mem_range.mp hk
@@ -164,6 +166,7 @@ theorem card_firstZeroARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0
 theorem card_secondZeroARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     (secondZeroARankPatch a b c).card = a := by
   conv_rhs => rw [← Finset.card_range a]
+  symm
   apply Finset.card_bij (fun k hk => (⟨b + k, 0, false⟩ : RankPoint))
   · intro k hk
     have hk' := Finset.mem_range.mp hk
