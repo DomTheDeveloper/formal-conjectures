@@ -201,7 +201,7 @@ lemma integral_mFourier (k : d → ℤ) :
     ∫ x : UnitAddTorus d, mFourier k x = if k = 0 then 1 else 0 := by
   have h := (orthonormal_iff_ite.mp (orthonormal_mFourier (d := d))) (0 : d → ℤ) k
   simpa only [ContinuousMap.inner_toLp, mFourier_zero, ContinuousMap.one_apply,
-    map_one, one_mul, Pi.zero_apply, neg_zero, zero_add] using h
+    map_one, one_mul, Pi.zero_apply, neg_zero, zero_add, eq_comm] using h
 
 /-- The Cesàro averages of a nontrivial unit-modulus geometric progression tend to zero. -/
 lemma tendsto_geom_average_zero {z : ℂ} (hz : z ≠ 1) (hnorm : ‖z‖ = 1) :
