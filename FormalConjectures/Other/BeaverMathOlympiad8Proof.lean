@@ -81,4 +81,21 @@ theorem beaver_math_olympiad_problem_8_positive :
     simpa using congrArg Prod.snd hstate
   norm_num [ha, hb]
 
+/-- BMO #8 has the positive answer. -/
+@[category research solved, AMS 5 11 68]
+theorem beaver_math_olympiad_problem_8_solved : answer(True) ↔
+    ∀ᵉ (a : ℕ → ℕ) (b : ℕ → ℕ)
+    (a_ini : a 0 = 10)
+    (a_rec : ∀ n, a (n + 1) =
+      if b n / 2 < a n then a n - b n / 2 - 3 else 3 * a n + 5)
+    (b_ini : b 0 = 12)
+    (b_rec : ∀ n, b (n + 1) =
+      if b n / 2 < a n then 3 * ((b n + 1) / 2) + 6 else b n - 2 * a n),
+    ∃ i, a i = b i / 2 + 1 := by
+  constructor
+  · intro _
+    exact beaver_math_olympiad_problem_8_positive
+  · intro _
+    trivial
+
 end BeaverMathOlympiad
