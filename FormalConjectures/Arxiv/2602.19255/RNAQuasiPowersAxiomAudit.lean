@@ -16,6 +16,12 @@ limitations under the License.
 
 import FormalConjectures.Arxiv.«2602.19255».RNAQuasiPowers
 
+/-!
+# Public RNA quasi-powers axiom audit
+
+Prints the axioms used by the exported Formal Conjectures theorem layer.
+-/
+
 #print axioms Arxiv.«2602.19255».grammar_discriminant_eq_radicand
 #print axioms Arxiv.«2602.19255».quasiPowers_algebraic_certificate
 #print axioms Arxiv.«2602.19255».printed_density_not_standardized
