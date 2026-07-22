@@ -108,8 +108,8 @@ theorem exists_balanced_clipping_parameters
   have hM : a * b + b * c + c * a = M := by
     simpa [a, b, c, M] using balanced_pair_sum r
   have hnM : n ≤ M := by
-    apply (Nat.le_div_iff_mul_le (by norm_num : 0 < 3)).mpr
-    simpa [mul_comm] using hr.2
+    dsimp [M]
+    omega
   let d := M - n
   refine ⟨a, b, c, d, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · exact (balanced_positive r hr3).1
@@ -121,9 +121,7 @@ theorem exists_balanced_clipping_parameters
   · dsimp [d]
     rw [hM]
     omega
-  · have hlower : (r - 1) ^ 2 / 3 < n := by
-      apply (Nat.div_lt_iff_lt_mul (by norm_num : 0 < 3)).mpr
-      simpa [mul_comm] using hr.1
+  · have hlower : (r - 1) ^ 2 / 3 < n := by omega
     have hwidth := balanced_corner_width r hr3
     dsimp [d, M, a, b]
     omega
