@@ -29,7 +29,7 @@ namespace ColorRestriction
 
 section General
 
-variable {α : Type*} [Semiring α]
+variable {α : Type} [Semiring α]
 
 /-- Pull a weighting back along an embedding of color sets. -/
 def restrictWeights {N d D : Nat} (f : Fin d ↪ Fin D)
@@ -51,7 +51,8 @@ lemma allEqual_comp_embedding_iff {N d D : Nat} (f : Fin d ↪ Fin D)
   apply List.IsChain.iff
   intro u v
   constructor
-  · exact f.injective
+  · intro h
+    exact f.injective h
   · exact congrArg f
 
 /-- Pullback leaves the recursive perfect-matching sum unchanged. -/
