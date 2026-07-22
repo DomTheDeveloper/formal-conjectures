@@ -17,6 +17,7 @@ module
 
 public import FormalConjecturesUtil
 public import FormalConjecturesForMathlib.Analysis.Equidistribution.UnitAddTorus
+public import FormalConjecturesForMathlib.NumberTheory.SquarefreeRadicals
 
 @[expose] public section
 
