@@ -137,6 +137,4 @@ theorem a100434_conjecture_false :
   have h2 := (conjecture 2).2.2
   norm_num [b, c, d, cAbs, dAbs] at h2
 
-#print axioms a100434_conjecture_false
-
 end OeisA100434
