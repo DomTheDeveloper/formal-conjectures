@@ -66,7 +66,7 @@ theorem mem_clippedRankPoints_iff {a b d : ℕ} {p : RankPoint} :
 
 private theorem clipAPoint_mem_aRankPatch
     (a b c k : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
-    (hab : a ≤ b) (hk : k < a + b - 1) :
+    (hab : a ≤ b) (hac : a ≤ c) (hk : k < a + b - 1) :
     clipAPoint a b k ∈ aRankPatch a b c := by
   apply Finset.mem_filter.mpr
   constructor
@@ -77,7 +77,7 @@ private theorem clipAPoint_mem_aRankPatch
 
 private theorem clipForwardAPoint_mem_aRankPatch
     (a b c k : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
-    (hab : a ≤ b) (hk : k < a + b - 1) :
+    (hab : a ≤ b) (hac : a ≤ c) (hk : k < a + b - 1) :
     clipForwardAPoint a b k ∈ aRankPatch a b c := by
   apply Finset.mem_filter.mpr
   constructor
@@ -108,29 +108,29 @@ private theorem clipForwardAPoint_first_ne_zero (a b k : ℕ) :
 /-- Every explicitly listed lost dart was an internal patch contact before clipping. -/
 theorem clipLostDarts_subset_patchContactDarts
     (a b c k : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
-    (hab : a ≤ b) (hk : k < a + b - 1) :
+    (hab : a ≤ b) (hac : a ≤ c) (hk : k < a + b - 1) :
     clipLostDarts a b k ⊆ patchContactDarts a b c := by
   intro pd hpd
   simp only [clipLostDarts, Finset.mem_insert, Finset.mem_singleton] at hpd
   rcases hpd with rfl | rfl | rfl
-  · have hp := clipAPoint_mem_aRankPatch a b c k ha hb hc hab hk
+  · have hp := clipAPoint_mem_aRankPatch a b c k ha hb hc hab hac hk
     have htop := clipAPoint_rankLevel_ne_top a b c k ha hc hk
     simp [patchContactDarts, sameContactPoints, hp, htop]
-  · have hp := clipAPoint_mem_aRankPatch a b c k ha hb hc hab hk
+  · have hp := clipAPoint_mem_aRankPatch a b c k ha hb hc hab hac hk
     have hsecond := clipAPoint_second_ne_zero a b k ha hb hab hk
     simp [patchContactDarts, diagonalContactPoints, hp, hsecond]
-  · have hp := clipForwardAPoint_mem_aRankPatch a b c k ha hb hc hab hk
+  · have hp := clipForwardAPoint_mem_aRankPatch a b c k ha hb hc hab hac hk
     have hfirst := clipForwardAPoint_first_ne_zero a b k
     simp [patchContactDarts, horizontalContactPoints, hp, hfirst]
 
 /-- Every lost dart from a valid clipping budget is a contact of the original patch. -/
 theorem clippedLostDarts_subset_patchContactDarts
     (a b c d : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
-    (hab : a ≤ b) (hd : d ≤ a + b - 1) :
+    (hab : a ≤ b) (hac : a ≤ c) (hd : d ≤ a + b - 1) :
     clippedLostDarts a b d ⊆ patchContactDarts a b c := by
   intro pd hpd
   rcases Finset.mem_biUnion.mp hpd with ⟨k, hk, hpdk⟩
-  exact clipLostDarts_subset_patchContactDarts a b c k ha hb hc hab
+  exact clipLostDarts_subset_patchContactDarts a b c k ha hb hc hab hac
     (lt_of_lt_of_le (Finset.mem_range.mp hk) hd) hpdk
 
 private theorem clipA_horizontal_eq_forward_pred
