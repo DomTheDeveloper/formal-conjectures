@@ -23,7 +23,7 @@ lemma colorEmbeddingCore_injective {d D : Nat} (h : d ≤ D) :
     Function.Injective (colorEmbeddingCore h) := by
   intro i j hij
   apply Fin.ext
-  exact congrArg Fin.val hij
+  exact congrArg (fun z : Fin D => z.val) hij
 
 private lemma pmSumN_six_restrictColorWeightsCore
     {alpha : Type} [Semiring alpha] {d D : Nat}
@@ -53,7 +53,14 @@ theorem eqSystem6_restrictColors_core
     _ = if allEqual (fun v => f (iota v)) then (1 : alpha) else 0 :=
       hW (fun v => f (iota v))
     _ = if allEqual iota then (1 : alpha) else 0 := by
-      rw [allEqual_six_comp_iff_core f hf iota]
+      by_cases hi : allEqual iota
+      · have hfi : allEqual (fun v => f (iota v)) :=
+          (allEqual_six_comp_iff_core f hf iota).2 hi
+        simp [hi, hfi]
+      · have hfi : ¬ allEqual (fun v => f (iota v)) := by
+          intro hcomp
+          exact hi ((allEqual_six_comp_iff_core f hf iota).1 hcomp)
+        simp [hi, hfi]
 
 theorem no_eqSystem6_mono_colors_core
     {alpha : Type} [Semiring alpha] {d : Nat}
