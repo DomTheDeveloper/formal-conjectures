@@ -86,25 +86,25 @@ lemma pairwise_disjoint_triangleEdges {v : α}
               subst d
               exact hef rfl
             exact hC4 (four_cycle_of_cross G hvb hab.symm hcd hvd.symm
-              hvb.ne hab.ne.symm hbd hva.ne hcd.ne hvd.ne)
+              hvb.ne.symm hab.ne.symm hbd hva.ne.symm hcd.ne hvd.ne.symm)
           · have hbc : b ≠ c := by
               intro h
               subst c
               exact hef Sym2.eq_swap
             exact hC4 (four_cycle_of_cross G hvb hab.symm hcd.symm hvc.symm
-              hvb.ne hab.ne.symm hbc hva.ne hcd.ne.symm hvc.ne)
+              hvb.ne.symm hab.ne.symm hbc hva.ne.symm hcd.ne.symm hvc.ne.symm)
           · have had : a ≠ d := by
               intro h
               subst d
               exact hef Sym2.eq_swap
             exact hC4 (four_cycle_of_cross G hva hab hcd hvd.symm
-              hva.ne hab.ne had hvb.ne hcd.ne hvd.ne)
+              hva.ne.symm hab.ne had hvb.ne.symm hcd.ne hvd.ne.symm)
           · have hac : a ≠ c := by
               intro h
               subst c
               exact hef rfl
             exact hC4 (four_cycle_of_cross G hva hab hcd.symm hvc.symm
-              hva.ne hab.ne hac hvb.ne hcd.ne.symm hvc.ne)
+              hva.ne.symm hab.ne hac hvb.ne.symm hcd.ne.symm hvc.ne.symm)
 
 lemma card_trianglePetals {v : α}
     (hC4 : ¬ ∃ x : α, ∃ w : G.Walk x x, w.IsCycle ∧ w.length = 4) :
