@@ -17,11 +17,18 @@ concurrency:
 
 jobs:
   stop:
-    name: Cancel and force-cancel active runs
-    runs-on: ubuntu-slim
+    name: Stop runs via ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - ubuntu-24.04-arm
+          - macos-15
+          - windows-2025
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 5
     steps:
-      - name: Stop all other workflow runs
+      - name: Cancel and force-cancel all other workflow runs
         uses: actions/github-script@v7
         with:
           script: |
