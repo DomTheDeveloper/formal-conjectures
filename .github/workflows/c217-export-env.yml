@@ -47,10 +47,10 @@ jobs:
           echo "baseline_exit_code=${PIPESTATUS[0]}" | tee -a c217-baseline.log
           exit 0
 
-      - name: Export exact local checker environment
+      - name: Export and split exact local checker environment
         run: |
           set -euxo pipefail
-          mkdir -p /tmp/c217-export
+          mkdir -p /tmp/c217-export chunks
           cp -a "$HOME/.elan" /tmp/c217-export/elan
           rsync -a \
             --exclude '.git' \
@@ -59,16 +59,80 @@ jobs:
             --exclude '_literate_html' \
             ./ /tmp/c217-export/formal-conjectures/
           tar -I 'zstd -T0 -3' -cf c217-lean-env.tar.zst -C /tmp/c217-export .
-          sha256sum c217-lean-env.tar.zst > c217-lean-env.tar.zst.sha256
-          du -h c217-lean-env.tar.zst
+          sha256sum c217-lean-env.tar.zst > chunks/c217-lean-env.tar.zst.sha256
+          cp c217-baseline.log chunks/
+          split -b 350M -d -a 2 c217-lean-env.tar.zst chunks/c217-lean-env.part-
+          ls -lh chunks
+          sha256sum chunks/c217-lean-env.part-* > chunks/PART_SHA256SUMS
+          test "$(find chunks -name 'c217-lean-env.part-*' | wc -l)" -le 8
+          for n in 00 01 02 03 04 05 06 07; do
+            test -f "chunks/c217-lean-env.part-$n" || truncate -s 0 "chunks/c217-lean-env.part-$n"
+          done
 
-      - name: Upload exact checker environment
+      - name: Upload metadata
         uses: actions/upload-artifact@v4
         with:
-          name: c217-lean-env
+          name: c217-env-metadata
           path: |
-            c217-lean-env.tar.zst
-            c217-lean-env.tar.zst.sha256
-            c217-baseline.log
+            chunks/c217-lean-env.tar.zst.sha256
+            chunks/PART_SHA256SUMS
+            chunks/c217-baseline.log
+          compression-level: 0
+          retention-days: 1
+
+      - name: Upload part 00
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-env-part-00
+          path: chunks/c217-lean-env.part-00
+          compression-level: 0
+          retention-days: 1
+      - name: Upload part 01
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-env-part-01
+          path: chunks/c217-lean-env.part-01
+          compression-level: 0
+          retention-days: 1
+      - name: Upload part 02
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-env-part-02
+          path: chunks/c217-lean-env.part-02
+          compression-level: 0
+          retention-days: 1
+      - name: Upload part 03
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-env-part-03
+          path: chunks/c217-lean-env.part-03
+          compression-level: 0
+          retention-days: 1
+      - name: Upload part 04
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-env-part-04
+          path: chunks/c217-lean-env.part-04
+          compression-level: 0
+          retention-days: 1
+      - name: Upload part 05
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-env-part-05
+          path: chunks/c217-lean-env.part-05
+          compression-level: 0
+          retention-days: 1
+      - name: Upload part 06
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-env-part-06
+          path: chunks/c217-lean-env.part-06
+          compression-level: 0
+          retention-days: 1
+      - name: Upload part 07
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-env-part-07
+          path: chunks/c217-lean-env.part-07
           compression-level: 0
           retention-days: 1
