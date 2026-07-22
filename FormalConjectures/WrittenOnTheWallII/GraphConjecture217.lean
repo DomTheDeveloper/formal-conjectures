@@ -15,6 +15,7 @@ limitations under the License.
 -/
 
 import FormalConjecturesUtil
+import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.BondyChvatal
 
 /-!
 # Written on the Wall II - Conjecture 217
@@ -37,7 +38,7 @@ open Classical SimpleGraph
 
 variable {α : Type*} [Fintype α] [DecidableEq α] [Nontrivial α]
 
-/-- The **characteristic function** for the predicate $\mathrm{residue}\, G = 2$:
+/-- The **characteristic function** for the predicate $\mathrm{residue}=2$:
 returns $1$ when $G.\mathrm{residue} = 2$ and $0$ otherwise. This is the WOWII
 $\chi_{\mathrm{residue}=2}(G)$ indicator appearing in Conjecture 217. -/
 noncomputable def residueEqTwoIndicator (G : SimpleGraph α) [DecidableRel G.Adj] : ℕ :=
