@@ -43,10 +43,14 @@ jobs:
             ProofAudit/2_complete.lean
           )
           : > c2-focused.log
+          status=0
           for file in "${files[@]}"; do
             echo "=== $file ===" | tee -a c2-focused.log
-            lake env lean "$file" 2>&1 | tee -a c2-focused.log
+            if ! lake env lean "$file" 2>&1 | tee -a c2-focused.log; then
+              status=1
+            fi
           done
+          exit "$status"
       - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
