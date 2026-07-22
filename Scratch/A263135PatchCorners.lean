@@ -30,8 +30,9 @@ private theorem antidiagonal_pairwise_disjoint (b : ℕ) :
 /-- Cardinality of the strict lower triangle as a sum of antidiagonal sizes. -/
 theorem card_lowerPairs (b : ℕ) :
     (lowerPairs b).card = ∑ n ∈ Finset.range b, (n + 1) := by
-  rw [lowerPairs, Finset.card_biUnion (antidiagonal_pairwise_disjoint b)]
-  simp
+  rw [lowerPairs, Finset.card_biUnion]
+  · simp
+  · exact antidiagonal_pairwise_disjoint b
 
 /-- Lower excluded corner of a rank box, split by honeycomb side. -/
 def lowerCornerTriples (b : ℕ) : Finset ((ℕ × ℕ) × Bool) :=
