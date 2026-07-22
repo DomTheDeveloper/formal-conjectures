@@ -142,9 +142,45 @@ theorem isTraceable_of_universal_degree_sum_lt
   apply isTraceable_of_universal_seed G A r hn hAcard.le huniv hout
   exact exists_outside_seed_of_degree_sum_lt G A r hAcard huniv hsum
 
+/-- Direct degree thresholds can establish universality without any
+row-specific closure bookkeeping. This theorem then applies the cross-degree
+seed criterion automatically. -/
+theorem isTraceable_of_direct_universal_degree_sum_lt
+    (G : SimpleGraph V) [DecidableRel G.Adj]
+    (A : Finset V) (r a₀ b₀ : ℕ)
+    (hn : Fintype.card V = 2 * r + 2)
+    (hAcard : A.card = r)
+    (hAdeg : ∀ a ∈ A, a₀ ≤ G.degree a)
+    (hBdeg : ∀ v ∉ A, b₀ ≤ G.degree v)
+    (hAA : Fintype.card V - 1 ≤ a₀ + a₀)
+    (hAB : Fintype.card V - 1 ≤ a₀ + b₀)
+    (hsum : (∑ a ∈ A, G.degree a) <
+      ∑ v ∈ Finset.univ \ A, G.degree v) :
+    IsTraceable G := by
+  have huniv : ∀ a ∈ A, ∀ v, v ≠ a → (pathClosure G).Adj a v := by
+    intro a ha v hav
+    apply pathClosure_adj_of_degree_sum G hav
+    by_cases hvA : v ∈ A
+    · exact hAA.trans (Nat.add_le_add (hAdeg a ha) (hAdeg v hvA))
+    · exact hAB.trans (Nat.add_le_add (hAdeg a ha) (hBdeg v hvA))
+  have hout : ∀ v ∉ A, r ≤ (pathClosure G).degree v := by
+    intro v hvA
+    have hsub : A ⊆ (pathClosure G).neighborFinset v := by
+      intro a ha
+      have hav : a ≠ v := by
+        intro h
+        subst a
+        exact hvA ha
+      simpa using (huniv a ha v hav).symm
+    have hcard := Finset.card_le_card hsub
+    rw [card_neighborFinset_eq_degree, hAcard] at hcard
+    exact hcard
+  exact isTraceable_of_universal_degree_sum_lt G A r hn hAcard huniv hout hsum
+
 #print axioms SimpleGraph.C217CrossDegree.crossDegree_le_degree
 #print axioms SimpleGraph.C217CrossDegree.sum_crossDegree_compl
 #print axioms SimpleGraph.C217CrossDegree.exists_outside_seed_of_degree_sum_lt
 #print axioms SimpleGraph.C217CrossDegree.isTraceable_of_universal_degree_sum_lt
+#print axioms SimpleGraph.C217CrossDegree.isTraceable_of_direct_universal_degree_sum_lt
 
 end SimpleGraph.C217CrossDegree
