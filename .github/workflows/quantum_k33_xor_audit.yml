@@ -1,0 +1,84 @@
+name: Quantum K3,3 native-XOR certificate audit
+
+on:
+  pull_request:
+    branches:
+      - audit/quantum-k33-xor-base-2026-07-22
+
+permissions:
+  contents: read
+
+jobs:
+  solve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        pattern: ['000', '111', '100', '110']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build CryptoMiniSat and formally verified XOR proof tools
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build git libgmp-dev zlib1g-dev \
+            cargo rustc
+
+          git clone --depth 1 --branch release/v5.14.5 \
+            https://github.com/msoos/cryptominisat.git /tmp/cryptominisat
+          cmake -S /tmp/cryptominisat -B /tmp/cryptominisat/build \
+            -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF -DENABLE_TESTING=OFF
+          cmake --build /tmp/cryptominisat/build --target cryptominisat5 -j2
+          sudo cp /tmp/cryptominisat/build/cryptominisat5 /usr/local/bin/
+
+          git clone --depth 1 https://github.com/meelgroup/frat-xor.git /tmp/frat-xor
+          cargo build --release --manifest-path /tmp/frat-xor/Cargo.toml
+          make -C /tmp/frat-xor/cake_xlrup -j2
+          sudo cp /tmp/frat-xor/target/release/frat-xor /usr/local/bin/
+          sudo cp /tmp/frat-xor/cake_xlrup/cake_xlrup /usr/local/bin/
+
+      - name: Generate, solve, elaborate, and verify native-XOR certificate
+        shell: bash
+        run: |
+          set -euxo pipefail
+          dir=quantum-k33-xor-${{ matrix.pattern }}
+          mkdir -p "$dir"
+          python3 ProofAudit/quantum_mod2_xcnf.py \
+            --k33-pattern '${{ matrix.pattern }}' \
+            --output "$dir/system.xnf" \
+            --metadata "$dir/metadata.json"
+          sha256sum "$dir/system.xnf" "$dir/metadata.json" > "$dir/SHA256SUMS"
+
+          set +e
+          cryptominisat5 --verb 1 "$dir/system.xnf" "$dir/proof.frat" \
+            2>&1 | tee "$dir/cryptominisat.log"
+          status=${PIPESTATUS[0]}
+          set -e
+          echo "cryptominisat_exit_code=$status" | tee "$dir/status.txt"
+          if [ "$status" -eq 10 ]; then
+            echo 'SAT: the K3,3 mod-2 obstruction is false for this residual orbit.' >&2
+            exit 1
+          fi
+          test "$status" -eq 20
+
+          grep -v '^c' "$dir/proof.frat" > "$dir/proof-clean.frat"
+          frat-xor elab "$dir/proof-clean.frat" "$dir/system.xnf" "$dir/proof.xlrup" \
+            2>&1 | tee "$dir/frat-xor.log"
+          cake_xlrup "$dir/system.xnf" "$dir/proof.xlrup" \
+            2>&1 | tee "$dir/cake-xlrup.log"
+          grep -q 's VERIFIED' "$dir/cake-xlrup.log"
+          sha256sum "$dir/proof.frat" "$dir/proof.xlrup" >> "$dir/SHA256SUMS"
+
+      - name: Upload formally checked XOR certificate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quantum-k33-xor-${{ matrix.pattern }}
+          path: quantum-k33-xor-${{ matrix.pattern }}
+          if-no-files-found: error
+          compression-level: 9
