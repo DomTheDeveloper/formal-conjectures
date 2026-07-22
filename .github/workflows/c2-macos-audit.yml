@@ -33,6 +33,7 @@ jobs:
           lake env lean ProofAudit/2_local_choice.lean 2>&1 | tee -a c2-macos.log
           lake env lean ProofAudit/2_double_count.lean 2>&1 | tee -a c2-macos.log
           lake env lean ProofAudit/2_positive.lean 2>&1 | tee -a c2-macos.log
+          lake env lean ProofAudit/2_average_pair.lean 2>&1 | tee -a c2-macos.log
       - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
