@@ -1,10 +1,7 @@
 # Copyright 2026 The Formal Conjectures Authors.
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#     https://www.apache.org/licenses/LICENSE-2.0
+# Licensed under the Apache License, Version 2.0.
 
-name: Export C217 Lean environment
+name: C217 internal proof diagnostics
 
 on:
   push:
@@ -15,124 +12,32 @@ on:
       - agent/c217-base
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  export:
+  diagnostic:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout exact proof branch
+      - name: Checkout internal proof branch
         uses: actions/checkout@v6
         with:
+          ref: agent/c217-proof
           fetch-depth: 0
 
-      - name: Install pinned Lean toolchain
+      - name: Run deterministic C217 diagnostics
         run: |
           set -euxo pipefail
-          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
-          ./elan-init -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          mkdir -p C217
+          python3 scripts/c217_enumerate_sequences.py > C217/generated_low_delta_sequences.md
+          cat C217/generated_low_delta_sequences.md
 
-      - name: Restore Mathlib binary cache
+      - name: Commit deterministic output
         run: |
           set -euxo pipefail
-          lake exe cache get
-
-      - name: Record untouched C217 baseline diagnostics
-        run: |
-          set +e
-          set -o pipefail
-          lake env lean FormalConjectures/WrittenOnTheWallII/GraphConjecture217.lean \
-            2>&1 | tee c217-baseline.log
-          echo "baseline_exit_code=${PIPESTATUS[0]}" | tee -a c217-baseline.log
-          exit 0
-
-      - name: Export and split exact local checker environment
-        run: |
-          set -euxo pipefail
-          mkdir -p /tmp/c217-export chunks
-          cp -a "$HOME/.elan" /tmp/c217-export/elan
-          rsync -a \
-            --exclude '.git' \
-            --exclude 'docbuild/.lake' \
-            --exclude '_deploy' \
-            --exclude '_literate_html' \
-            ./ /tmp/c217-export/formal-conjectures/
-          tar -I 'zstd -T0 -3' -cf c217-lean-env.tar.zst -C /tmp/c217-export .
-          sha256sum c217-lean-env.tar.zst > chunks/c217-lean-env.tar.zst.sha256
-          cp c217-baseline.log chunks/
-          split -b 350M -d -a 2 c217-lean-env.tar.zst chunks/c217-lean-env.part-
-          ls -lh chunks
-          sha256sum chunks/c217-lean-env.part-* > chunks/PART_SHA256SUMS
-          test "$(find chunks -name 'c217-lean-env.part-*' | wc -l)" -le 8
-          for n in 00 01 02 03 04 05 06 07; do
-            test -f "chunks/c217-lean-env.part-$n" || truncate -s 0 "chunks/c217-lean-env.part-$n"
-          done
-
-      - name: Upload metadata
-        uses: actions/upload-artifact@v4
-        with:
-          name: c217-env-metadata
-          path: |
-            chunks/c217-lean-env.tar.zst.sha256
-            chunks/PART_SHA256SUMS
-            chunks/c217-baseline.log
-          compression-level: 0
-          retention-days: 1
-
-      - name: Upload part 00
-        uses: actions/upload-artifact@v4
-        with:
-          name: c217-env-part-00
-          path: chunks/c217-lean-env.part-00
-          compression-level: 0
-          retention-days: 1
-      - name: Upload part 01
-        uses: actions/upload-artifact@v4
-        with:
-          name: c217-env-part-01
-          path: chunks/c217-lean-env.part-01
-          compression-level: 0
-          retention-days: 1
-      - name: Upload part 02
-        uses: actions/upload-artifact@v4
-        with:
-          name: c217-env-part-02
-          path: chunks/c217-lean-env.part-02
-          compression-level: 0
-          retention-days: 1
-      - name: Upload part 03
-        uses: actions/upload-artifact@v4
-        with:
-          name: c217-env-part-03
-          path: chunks/c217-lean-env.part-03
-          compression-level: 0
-          retention-days: 1
-      - name: Upload part 04
-        uses: actions/upload-artifact@v4
-        with:
-          name: c217-env-part-04
-          path: chunks/c217-lean-env.part-04
-          compression-level: 0
-          retention-days: 1
-      - name: Upload part 05
-        uses: actions/upload-artifact@v4
-        with:
-          name: c217-env-part-05
-          path: chunks/c217-lean-env.part-05
-          compression-level: 0
-          retention-days: 1
-      - name: Upload part 06
-        uses: actions/upload-artifact@v4
-        with:
-          name: c217-env-part-06
-          path: chunks/c217-lean-env.part-06
-          compression-level: 0
-          retention-days: 1
-      - name: Upload part 07
-        uses: actions/upload-artifact@v4
-        with:
-          name: c217-env-part-07
-          path: chunks/c217-lean-env.part-07
-          compression-level: 0
-          retention-days: 1
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add C217/generated_low_delta_sequences.md
+          git diff --cached --quiet && exit 0
+          git commit -m 'chore(C217): record exact low-degree remainder'
+          git push origin HEAD:agent/c217-proof
