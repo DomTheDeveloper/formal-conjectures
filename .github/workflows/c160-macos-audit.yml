@@ -30,6 +30,7 @@ jobs:
           set -o pipefail
           lake build FormalConjecturesUtil
           lake env lean ProofAudit/160_attempt.lean 2>&1 | tee c160-macos.log
+          lake env lean ProofAudit/160_local_structure.lean 2>&1 | tee -a c160-macos.log
       - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
