@@ -46,9 +46,9 @@ theorem conjecture_solved (n : ℕ) (hn : 0 < n) :
       rcases exists_balanced_clipping_parameters n r hn2 hr with
         ⟨a, b, c, d, ha, hb, hc, hab, hbc, hsum, hM, hd⟩
       refine ⟨clippedPatch a b c d, ?_, ?_⟩
-      · rw [card_clippedPatch a b c d ha hb hc hd]
+      · rw [card_clippedPatch a b c d ha hb hc (hab.trans hbc) hd]
         omega
-      · rw [contacts_clippedPatch_formula a b c d ha hb hc hab hd]
+      · rw [contacts_clippedPatch_formula a b c d ha hb hc hab (hab.trans hbc) hd]
         omega
   · intro S hcard
     exact contacts_le_even_closed_form S n r hcard hr
