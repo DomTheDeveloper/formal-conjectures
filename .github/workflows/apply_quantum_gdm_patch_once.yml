@@ -24,95 +24,41 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          from textwrap import dedent
 
           path = Path('FormalConjectures/Paper/MonochromaticQuantumGraph.lean')
-          text = path.read_text()
+          lines = path.read_text().splitlines()
           proof = 'https://github.com/DomTheDeveloper/formal-conjectures/blob/a76f24bc20db67b27c445faa39571cf5bc03990e/QuantumGraphColorRestriction.lean'
+          targets = {
+              'eqSystem6_no_solution_d5_int': 'L163-L166',
+              'eqSystem6_no_solution_ge3_int': 'L169-L174',
+              'eqSystem6_no_solution_d5_trinary_int': 'L177-L182',
+              'eqSystem6_no_solution_ge3_trinary_int': 'L185-L192',
+          }
 
-          replacements = [
-              (
-                  dedent(r'''\
-                  /-- For $N = 6$ and $D = 5$, does there exist no solution to the monochromatic quantum graph
-                  equation system over $\mathbb{Z}$? -/
-                  @[category research open, AMS 5 14 81]
-                  theorem eqSystem6_no_solution_d5_int :
-                      answer(sorry) ↔'''),
-                  dedent(f'''\
-                  /-- For $N = 6$ and $D = 5$, does there exist no solution to the monochromatic quantum graph
-                  equation system over $\\mathbb{{Z}}$?
+          for theorem, anchor in targets.items():
+              theorem_line = next((i for i, line in enumerate(lines)
+                                   if line.strip() == f'theorem {theorem} :'), None)
+              if theorem_line is None:
+                  raise SystemExit(f'missing theorem: {theorem}')
 
-                  This follows from the $D = 3$ result by restricting any five-colour solution to three colours.
-                  -/
-                  @[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
-                  "{proof}#L163-L166"]
-                  theorem eqSystem6_no_solution_d5_int :
-                      answer(True) ↔'''),
-              ),
-              (
-                  dedent(r'''\
-                  /-- For $N = 6$ and all $D \geq 3$, does there exist no solution to the monochromatic quantum graph
-                  equation system over $\mathbb{Z}$? -/
-                  @[category research open, AMS 5 14 81]
-                  theorem eqSystem6_no_solution_ge3_int :
-                      answer(sorry) ↔'''),
-                  dedent(f'''\
-                  /-- For $N = 6$ and all $D \\geq 3$, does there exist no solution to the monochromatic quantum graph
-                  equation system over $\\mathbb{{Z}}$?
+              attribute_line = next((i for i in range(theorem_line - 1, max(-1, theorem_line - 12), -1)
+                                     if lines[i].startswith('@[category research ')), None)
+              if attribute_line is None or 'open' not in lines[attribute_line]:
+                  raise SystemExit(f'missing open category for {theorem}')
 
-                  This follows from the $D = 3$ result because solution existence is downward-closed in the number
-                  of colours.
-                  -/
-                  @[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
-                  "{proof}#L169-L174"]
-                  theorem eqSystem6_no_solution_ge3_int :
-                      answer(True) ↔'''),
-              ),
-              (
-                  dedent(r'''\
-                  /-- For $N = 6$ and $D = 5$, does there exist no solution to the monochromatic quantum graph
-                  equation system over $\mathbb{Z}$ with weights in $\{-1, 0, 1\}$? -/
-                  @[category research open, AMS 5 14 81]
-                  theorem eqSystem6_no_solution_d5_trinary_int :
-                      answer(sorry) ↔'''),
-                  dedent(f'''\
-                  /-- For $N = 6$ and $D = 5$, does there exist no solution to the monochromatic quantum graph
-                  equation system over $\\mathbb{{Z}}$ with weights in $\\{{-1, 0, 1\\}}$?
+              lines[attribute_line:attribute_line + 1] = [
+                  '@[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at',
+                  f'"{proof}#{anchor}"]',
+              ]
+              theorem_line += 1
 
-                  This follows from the unrestricted integer result.
-                  -/
-                  @[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
-                  "{proof}#L177-L182"]
-                  theorem eqSystem6_no_solution_d5_trinary_int :
-                      answer(True) ↔'''),
-              ),
-              (
-                  dedent(r'''\
-                  /-- For $N = 6$ and all $D \geq 3$, does there exist no solution to the monochromatic quantum graph
-                  equation system over $\mathbb{Z}$ with weights in $\{-1, 0, 1\}$? -/
-                  @[category research open, AMS 5 14 81]
-                  theorem eqSystem6_no_solution_ge3_trinary_int :
-                      answer(sorry) ↔'''),
-                  dedent(f'''\
-                  /-- For $N = 6$ and all $D \\geq 3$, does there exist no solution to the monochromatic quantum graph
-                  equation system over $\\mathbb{{Z}}$ with weights in $\\{{-1, 0, 1\\}}$?
+              answer_line = next((i for i in range(theorem_line + 1, min(len(lines), theorem_line + 8))
+                                  if 'answer(sorry)' in lines[i]), None)
+              if answer_line is None:
+                  raise SystemExit(f'missing answer(sorry) for {theorem}')
+              lines[answer_line] = lines[answer_line].replace('answer(sorry)', 'answer(True)')
 
-                  This follows from the unrestricted integer result.
-                  -/
-                  @[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
-                  "{proof}#L185-L192"]
-                  theorem eqSystem6_no_solution_ge3_trinary_int :
-                      answer(True) ↔'''),
-              ),
-          ]
-
-          for old, new in replacements:
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'expected exactly one match, found {count}: {old[:80]!r}')
-              text = text.replace(old, new)
-
-          path.write_text(text)
+          path.write_text('\n'.join(lines) + '\n')
           PY
 
       - name: Commit clean statement-only patch
