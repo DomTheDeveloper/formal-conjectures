@@ -65,3 +65,7 @@ jobs:
       - name: Compile Walsh correlation identity
         run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBetWalshCorrelation.lean
+
+      - name: Compile Walsh translation shapes
+        run: |
+          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshShapes.lean
