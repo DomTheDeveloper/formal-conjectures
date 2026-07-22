@@ -49,6 +49,76 @@ def Hits (k n : ℕ) : Prop :=
 def IsValue (n k : ℕ) : Prop :=
   0 < k ∧ Hits k n ∧ ∀ r : ℕ, 0 < r → r < k → ¬ Hits r n
 
+/-- The rotation parameter `1 / √s`. -/
+noncomputable def alpha (s : ℕ) : ℝ :=
+  1 / Real.sqrt (s : ℝ)
+
+/-- The fractional-part condition corresponding to `Hits s n`. -/
+def CoordinateHit (s n : ℕ) : Prop :=
+  1 - alpha s < Int.fract ((n : ℝ) * alpha s)
+
+/--
+The next positive integer after a nonnegative real `x` lies below `x + a`
+exactly when the fractional part of `x` is greater than `1 - a`.
+-/
+theorem exists_nat_between_iff_fract {x a : ℝ} (hx : 0 ≤ x) :
+    (∃ m : ℕ, 0 < m ∧ x < (m : ℝ) ∧ (m : ℝ) < x + a) ↔
+      1 - a < Int.fract x := by
+  constructor
+  · rintro ⟨m, _hmpos, hxm, hmx⟩
+    have hfloor_lt : ⌊x⌋ < (m : ℤ) :=
+      Int.floor_lt.mpr (by simpa using hxm)
+    have hnext_le : ⌊x⌋ + 1 ≤ (m : ℤ) := by omega
+    have hnext_le_real : ((⌊x⌋ + 1 : ℤ) : ℝ) ≤ (m : ℝ) := by
+      exact_mod_cast hnext_le
+    have hnext_lt : (⌊x⌋ : ℝ) + 1 < x + a := by
+      exact lt_of_le_of_lt (by simpa using hnext_le_real) hmx
+    have hdecomp := Int.floor_add_fract x
+    linarith
+  · intro hfract
+    have hfloor_nonneg : 0 ≤ ⌊x⌋ := Int.floor_nonneg.mpr hx
+    let m : ℕ := ⌊x⌋.toNat + 1
+    have hmcast : (m : ℝ) = (⌊x⌋ : ℝ) + 1 := by
+      simp [m, Int.toNat_of_nonneg hfloor_nonneg]
+    refine ⟨m, by simp [m], ?_, ?_⟩
+    · rw [hmcast]
+      exact Int.lt_floor_add_one x
+    · rw [hmcast]
+      have hdecomp := Int.floor_add_fract x
+      linarith
+
+/--
+The interval-hitting predicate is exactly an irrational-rotation interval.
+This removes the first axiom from the uploaded proof bundle.
+-/
+theorem hits_iff_coordinateHit (s n : ℕ) (hs : 2 ≤ s) :
+    Hits s n ↔ CoordinateHit s n := by
+  have hs_real_pos : (0 : ℝ) < (s : ℝ) := by positivity
+  have hsqrt_pos : (0 : ℝ) < Real.sqrt (s : ℝ) := Real.sqrt_pos.2 hs_real_pos
+  have hx : 0 ≤ (n : ℝ) / Real.sqrt (s : ℝ) :=
+    div_nonneg (by positivity) hsqrt_pos.le
+  constructor
+  · rintro ⟨m, hmpos, hleft, hright⟩
+    have hleft' : (n : ℝ) / Real.sqrt (s : ℝ) < (m : ℝ) :=
+      (div_lt_iff₀ hsqrt_pos).2 hleft
+    have hright' : (m : ℝ) <
+        (n : ℝ) / Real.sqrt (s : ℝ) + 1 / Real.sqrt (s : ℝ) := by
+      have := (lt_div_iff₀ hsqrt_pos).2 hright
+      convert this using 1 <;> ring
+    have hfract := (exists_nat_between_iff_fract hx).mp
+      ⟨m, hmpos, hleft', hright'⟩
+    simpa [CoordinateHit, alpha, div_eq_mul_inv] using hfract
+  · intro hcoord
+    have hfract :
+        1 - 1 / Real.sqrt (s : ℝ) <
+          Int.fract ((n : ℝ) / Real.sqrt (s : ℝ)) := by
+      simpa [CoordinateHit, alpha, div_eq_mul_inv] using hcoord
+    obtain ⟨m, hmpos, hleft, hright⟩ :=
+      (exists_nat_between_iff_fract hx).mpr hfract
+    refine ⟨m, hmpos, (div_lt_iff₀ hsqrt_pos).mp hleft, ?_⟩
+    apply (lt_div_iff₀ hsqrt_pos).mp
+    convert hright using 1 <;> ring
+
 /-- The squarefree integers in `[2, j)`. -/
 noncomputable def squarefreeBelow (j : ℕ) : Finset ℕ := by
   classical
@@ -56,8 +126,7 @@ noncomputable def squarefreeBelow (j : ℕ) : Finset ℕ := by
 
 /-- The density predicted for the value `j` in OEIS A261865. -/
 noncomputable def predictedDensity (j : ℕ) : ℝ :=
-  (1 / Real.sqrt (j : ℝ)) *
-    ∏ s ∈ squarefreeBelow j, (1 - 1 / Real.sqrt (s : ℝ))
+  alpha j * ∏ s ∈ squarefreeBelow j, (1 - alpha s)
 
 /--
 **Peter Kagey's Problem 13 / OEIS A261865.**
