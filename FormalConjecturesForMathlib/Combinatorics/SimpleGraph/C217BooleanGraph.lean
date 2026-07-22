@@ -8,40 +8,46 @@ import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.Residue
 /-!
 # Boolean graph model for the finite C217 certificates
 
-A list of Boolean edge variables is interpreted canonically as an undirected
-loopless graph.  The same model supplies Boolean tests for connectivity and an
-exact degree-count profile.  The soundness lemmas below connect those tests to
-Mathlib graph notions; generated LRAT certificates can therefore remain purely
-Boolean.
+A Boolean matrix is canonically symmetrized and stripped of loops. Every
+finite simple graph is recovered by feeding its own adjacency matrix into this
+construction. The same model supplies Boolean tests for connectivity and an
+exact degree-count profile. Generated LRAT certificates can therefore remain
+purely Boolean while their graph-theoretic interpretation is proved in Lean.
 -/
 
 namespace SimpleGraph.C217BooleanGraph
 
 open Classical
 
-/-- Canonical row-major index for an unordered pair. -/
-def pairIndex (n : ℕ) (i j : Fin n) : ℕ :=
-  min i.val j.val * n + max i.val j.val
+/-- Canonical symmetric irreflexive adjacency associated with a Boolean matrix. -/
+def canonicalAdj {n : ℕ} (a : Fin n → Fin n → Bool) (i j : Fin n) : Bool :=
+  decide (i ≠ j) && (a i j || a j i)
 
-/-- Symmetric irreflexive Boolean adjacency extracted from a list. -/
-def adjBool {n : ℕ} (bits : List Bool) (i j : Fin n) : Bool :=
-  decide (i ≠ j) && bits.getD (pairIndex n i j) false
+lemma canonicalAdj_symm {n : ℕ} (a : Fin n → Fin n → Bool) (i j : Fin n) :
+    canonicalAdj a i j = canonicalAdj a j i := by
+  simp [canonicalAdj, eq_comm, Bool.or_comm]
 
-lemma adjBool_symm {n : ℕ} (bits : List Bool) (i j : Fin n) :
-    adjBool bits i j = adjBool bits j i := by
-  simp [adjBool, pairIndex, eq_comm, Nat.min_comm, Nat.max_comm]
+lemma canonicalAdj_loopless {n : ℕ} (a : Fin n → Fin n → Bool) (i : Fin n) :
+    ¬canonicalAdj a i i := by
+  simp [canonicalAdj]
 
-lemma adjBool_loopless {n : ℕ} (bits : List Bool) (i : Fin n) :
-    ¬adjBool bits i i := by
-  simp [adjBool]
+/-- The simple graph represented by a Boolean adjacency matrix. -/
+def graphOfMatrix {n : ℕ} (a : Fin n → Fin n → Bool) : SimpleGraph (Fin n) :=
+  SimpleGraph.mk' ⟨canonicalAdj a, ⟨canonicalAdj_symm a, canonicalAdj_loopless a⟩⟩
 
-/-- The simple graph represented by a Boolean edge list. -/
-def graphOfBits {n : ℕ} (bits : List Bool) : SimpleGraph (Fin n) :=
-  SimpleGraph.mk' ⟨adjBool bits, ⟨adjBool_symm bits, adjBool_loopless bits⟩⟩
-
-@[simp] theorem graphOfBits_adj {n : ℕ} (bits : List Bool) (i j : Fin n) :
-    (graphOfBits bits).Adj i j ↔ adjBool bits i j = true := by
+@[simp] theorem graphOfMatrix_adj {n : ℕ} (a : Fin n → Fin n → Bool) (i j : Fin n) :
+    (graphOfMatrix a).Adj i j ↔ canonicalAdj a i j = true := by
   rfl
+
+/-- Boolean adjacency matrix of a simple graph. -/
+def matrixOfGraph {n : ℕ} (G : SimpleGraph (Fin n)) (i j : Fin n) : Bool :=
+  decide (G.Adj i j)
+
+/-- Canonicalization recovers every simple graph from its adjacency matrix. -/
+theorem graphOfMatrix_matrixOfGraph_eq {n : ℕ} (G : SimpleGraph (Fin n)) :
+    graphOfMatrix (matrixOfGraph G) = G := by
+  ext i j
+  simp [graphOfMatrix, canonicalAdj, matrixOfGraph, G.symm_adj]
 
 /-- A cut has a crossing edge. -/
 def cutCrossesBool {V : Type*} [Fintype V] [DecidableEq V]
@@ -70,7 +76,7 @@ theorem connectedCutBool_of_connected {V : Type*} [Fintype V] [DecidableEq V]
       obtain ⟨u, hu⟩ := hne
       obtain ⟨v, hv⟩ := hvout
       obtain ⟨p⟩ := hG.preconnected u v
-      obtain ⟨d, hd, hdu, hdv⟩ := p.exists_boundary_dart (S : Set V) hu hv
+      obtain ⟨d, _, hdu, hdv⟩ := p.exists_boundary_dart (S : Set V) hu hv
       simp only [connectedCutBool, hne, hproper, decide_true, Bool.true_and, if_true]
       apply Finset.any_eq_true.mpr
       refine ⟨d.fst, hdu, ?_⟩
@@ -121,6 +127,7 @@ theorem degreeProfileBool_of_degreeSequence_eq {V : Type*} [Fintype V]
     simp [degreeMultiplicity]
   simp [hcount, hmult]
 
+#print axioms SimpleGraph.C217BooleanGraph.graphOfMatrix_matrixOfGraph_eq
 #print axioms SimpleGraph.C217BooleanGraph.connectedCutBool_of_connected
 #print axioms SimpleGraph.C217BooleanGraph.degreeProfileBool_of_degreeSequence_eq
 
