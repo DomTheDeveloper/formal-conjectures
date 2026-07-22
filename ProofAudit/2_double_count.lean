@@ -86,6 +86,48 @@ lemma selected_incidence_sum_le
   rw [hleft, hright] at hsum
   exact hsum
 
+/-- The complete double-counting/Cauchy half of WOWII Conjecture 2, stated
+against any common upper bound `M` for the selected edge-neighborhood unions. -/
+lemma two_mul_averageIndepNeighbors_le_of_selected_union_bound
+    [Nontrivial α]
+    (G : SimpleGraph α) [DecidableRel G.Adj] (M : ℝ)
+    (hS : 0 < ∑ v, (indepNeighborsCard G v : ℝ))
+    (hM : ∀ v u, u ∈ chosenLocalIndep G v →
+      ((G.neighborFinset v ∪ G.neighborFinset u).card : ℝ) ≤ M) :
+    2 * averageIndepNeighbors G ≤ M := by
+  classical
+  have hsumEq :
+      (∑ u, (reverseCount (chosenLocalIndep G) u : ℝ)) =
+        ∑ v, (indepNeighborsCard G v : ℝ) := by
+    calc
+      _ = ∑ v, ((chosenLocalIndep G v).card : ℝ) :=
+        sum_reverseCount_cast_eq_sum_card_cast (chosenLocalIndep G)
+      _ = _ := by
+        apply Finset.sum_congr rfl
+        intro v _hv
+        rw [chosenLocalIndep_card]
+  have hA := square_sum_le_card_mul_sum_square
+    (fun v => (indepNeighborsCard G v : ℝ))
+  have hC := square_sum_le_card_mul_sum_square
+    (fun u => (reverseCount (chosenLocalIndep G) u : ℝ))
+  rw [hsumEq] at hC
+  have hCD := sum_reverseCount_square_le_mul_degree
+    G (chosenLocalIndep G) (chosenLocalIndep_subset_neighborFinset G)
+  have hAD := selected_incidence_sum_le G M hM
+  have hAC :
+      (∑ v, (indepNeighborsCard G v : ℝ) ^ 2) +
+          ∑ u, (reverseCount (chosenLocalIndep G) u : ℝ) ^ 2 ≤
+        M * ∑ v, (indepNeighborsCard G v : ℝ) := by
+    linarith
+  have hfinal := average_bound_core
+    (Fintype.card α : ℝ)
+    (∑ v, (indepNeighborsCard G v : ℝ))
+    (∑ v, (indepNeighborsCard G v : ℝ) ^ 2)
+    (∑ u, (reverseCount (chosenLocalIndep G) u : ℝ) ^ 2)
+    M (by positivity) hS hA hC hAC
+  simpa [averageIndepNeighbors, indepNeighbors] using hfinal
+
 #print axioms selected_incidence_sum_le
+#print axioms two_mul_averageIndepNeighbors_le_of_selected_union_bound
 
 end WrittenOnTheWallII.GraphConjecture2Audit
