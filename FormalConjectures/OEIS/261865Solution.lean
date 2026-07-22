@@ -52,8 +52,8 @@ theorem orbit_mem_terminalBox_iff (n j : ℕ) (hj : 2 ≤ j) :
   classical
   have hge : ∀ s : relevantRadicands j, 2 ≤ s.1 := by
     intro s
-    rcases mem_relevantRadicands.mp s.2 with rfl | hs
-    · exact hj
+    rcases mem_relevantRadicands.mp s.2 with hsj | hs
+    · simpa [hsj] using hj
     · exact hs.1
   have ha0 : ∀ s : relevantRadicands j, 0 < alpha s.1 :=
     fun s => alpha_pos_of_two_le (hge s)
@@ -67,15 +67,13 @@ theorem orbit_mem_terminalBox_iff (n j : ℕ) (hj : 2 ≤ j) :
       by_contra hn
       have hnzero : n = 0 := Nat.eq_zero_of_not_pos hn
       subst n
-      have hnonneg :
-          0 ≤ 1 - alpha (distinguishedRadicand j).1 :=
-        sub_nonneg.mpr (ha1 (distinguishedRadicand j)).le
       norm_num at hjhit
-      exact (not_lt_of_ge hnonneg) hjhit
+      linarith [ha1 (distinguishedRadicand j)]
     refine ⟨hnpos, (isValue_iff_coordinateConditions n j hj).2 ?_⟩
     refine ⟨by simpa [distinguishedRadicand] using hjhit, ?_⟩
     intro s hs hcoord
-    let sr : relevantRadicands j := ⟨s, by simp [hs]⟩
+    let sr : relevantRadicands j :=
+      ⟨s, mem_relevantRadicands.mpr (Or.inr (mem_squarefreeBelow.mp hs))⟩
     have hne : sr ≠ distinguishedRadicand j := by
       intro h
       have : s = j := congrArg Subtype.val h
@@ -114,7 +112,8 @@ theorem product_erase_distinguished (j : ℕ) :
   · intro a ha b hb hab
     exact Subtype.ext hab
   · intro s hs
-    let sr : relevantRadicands j := ⟨s, by simp [hs]⟩
+    let sr : relevantRadicands j :=
+      ⟨s, mem_relevantRadicands.mpr (Or.inr (mem_squarefreeBelow.mp hs))⟩
     have hne : sr ≠ distinguishedRadicand j := by
       intro h
       have : s = j := congrArg Subtype.val h
