@@ -3,7 +3,7 @@ name: Quantum D3 macOS Lean audit
 on:
   pull_request:
     branches:
-      - audit/upstream-proof-base-2026-07-21
+      - audit/macos-proof-base-2026-07-22
 
 permissions:
   contents: read
