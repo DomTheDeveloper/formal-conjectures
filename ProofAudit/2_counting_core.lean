@@ -1,0 +1,47 @@
+/-
+Copyright 2026 The Formal Conjectures Authors.
+Licensed under the Apache License, Version 2.0.
+-/
+
+import FormalConjecturesUtil
+
+namespace WrittenOnTheWallII.GraphConjecture2Audit
+
+/-- If `0 ≤ c ≤ d`, then the incidence contribution `c*d` dominates `c²`.
+This is the pointwise inequality used after reversing the selected-neighborhood
+incidence double count. -/
+lemma sq_le_mul_of_nonneg_of_le
+    (c d : ℝ) (hc : 0 ≤ c) (hcd : c ≤ d) :
+    c ^ 2 ≤ c * d := by
+  nlinarith [mul_nonneg hc (sub_nonneg.mpr hcd)]
+
+/-- Algebraic endgame of the C2 double-counting argument.
+
+`S` is the total selected local-independence mass, `n` is the number of
+vertices, `A` and `C` are the two sums of squares, and `M` is the largest
+neighborhood-union size over an edge. Two Cauchy bounds and the incidence
+upper bound imply `2(S/n) ≤ M`. -/
+lemma average_bound_core
+    (n S A C M : ℝ)
+    (hn : 0 < n) (hS : 0 < S)
+    (hA : S ^ 2 ≤ n * A)
+    (hC : S ^ 2 ≤ n * C)
+    (hM : A + C ≤ M * S) :
+    2 * (S / n) ≤ M := by
+  calc
+    2 * (S / n) = (2 * S) / n := by ring
+    _ ≤ M := (div_le_iff₀ hn).2 (by
+      have hsq : 2 * S ^ 2 ≤ n * (A + C) := by
+        nlinarith
+      have hupper : n * (A + C) ≤ n * (M * S) :=
+        mul_le_mul_of_nonneg_left hM hn.le
+      have hprod : S * (2 * S) ≤ S * (n * M) := by
+        nlinarith
+      have hcancel : 2 * S ≤ n * M :=
+        (mul_le_mul_left hS).mp hprod
+      nlinarith)
+
+#print axioms sq_le_mul_of_nonneg_of_le
+#print axioms average_bound_core
+
+end WrittenOnTheWallII.GraphConjecture2Audit
