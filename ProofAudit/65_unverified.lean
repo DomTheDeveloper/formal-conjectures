@@ -69,7 +69,12 @@ private lemma distMin_le_one
         _ ≤ 1 := distToSet_le_one_of_adj G S hu huw.symm
     · have hS0 : S = ∅ := Set.not_nonempty_iff_eq_empty.mp hS
       subst S
-      simp [distToSet]
+      calc
+        _ ≤ distToSet G v ∅ := Finset.min'_le _ _ (by
+          apply Finset.mem_image.mpr
+          exact ⟨v, by simp, rfl⟩)
+        _ = 0 := by simp [distToSet]
+        _ ≤ 1 := by omega
   · omega
 
 /-- Every graph on a nontrivial finite vertex type has a two-vertex induced
@@ -80,12 +85,20 @@ private lemma two_le_largestInducedForestSize (G : SimpleGraph α) :
   unfold largestInducedForestSize
   apply le_csSup
   · refine ⟨Fintype.card α, ?_⟩
-    rintro n ⟨s, hs, rfl⟩
+    rintro n ⟨s, _hs, rfl⟩
     exact Finset.card_le_univ s
   · obtain ⟨u, v, huv⟩ := exists_pair_ne α
     refine ⟨{u, v}, ?_, by simp [huv]⟩
-    apply SimpleGraph.IsAcyclic.of_card_le_two
-    simp [ENat.card_eq_coe_fintype_card, huv]
+    intro x c hc
+    have hle : c.support.tail.length ≤
+        Fintype.card {z // z ∈ ({u, v} : Finset α)} :=
+      hc.support_nodup.length_le_card
+    have hlen : c.support.tail.length = c.length := by
+      simp [Walk.length_support]
+    have hcard : Fintype.card {z // z ∈ ({u, v} : Finset α)} = 2 := by
+      simp [huv]
+    have hthree : 3 ≤ c.length := hc.three_le_length
+    omega
 
 /-- WOWII Conjecture 65. -/
 @[category research solved, AMS 5]
@@ -103,8 +116,6 @@ theorem conjecture65 (G : SimpleGraph α) [DecidableRel G.Adj] (h : G.Connected)
   have hM : distMin G M ≤ 1 := distMin_le_one G h M
   have hf : 2 ≤ G.largestInducedForestSize :=
     two_le_largestInducedForestSize G
-  have hfR : (2 : ℝ) ≤ (G.largestInducedForestSize : ℝ) := by
-    exact_mod_cast hf
 
   have hAcases : distMin G A = 0 ∨ distMin G A = 1 := by omega
   have hMcases : distMin G M = 0 ∨ distMin G M = 1 := by omega
@@ -112,12 +123,12 @@ theorem conjecture65 (G : SimpleGraph α) [DecidableRel G.Adj] (h : G.Connected)
   · rcases hMcases with hM0 | hM1
     · norm_num [hA0, hM0]
     · norm_num [hA0, hM1]
-      linarith
+      exact_mod_cast Nat.zero_le G.largestInducedForestSize
   · rcases hMcases with hM0 | hM1
     · norm_num [hA1, hM0]
-      linarith
+      exact_mod_cast Nat.zero_le G.largestInducedForestSize
     · norm_num [hA1, hM1]
-      exact hfR
+      exact hf
 
 #print axioms conjecture65
 
