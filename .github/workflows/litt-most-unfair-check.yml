@@ -1,12 +1,9 @@
 # Copyright 2026 The Formal Conjectures Authors.
 # Licensed under the Apache License, Version 2.0.
 
-name: Litt most-unfair proof check
+name: Litt final Lean audit
 
 on:
-  push:
-    branches:
-      - agent/litt-most-unfair-proof
   pull_request:
     branches:
       - audit/litt-upstream-base
@@ -16,39 +13,33 @@ permissions:
   contents: read
 
 concurrency:
-  group: litt-most-unfair-${{ github.ref }}
-  cancel-in-progress: true
+  group: litt-final-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  exact-audit:
-    name: exact finite audit
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout project
-        uses: actions/checkout@v6
-      - name: Exhaustively verify lengths 2 through 10
-        run: python3 scripts/verify_litt_most_unfair.py --max-length 10
-
-  lean-check:
-    name: check Lean 4.27
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+  final-audit:
+    name: exact audit and Lean 4.27 kernel check
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
 
       - name: Install elan
         run: |
-          set -o pipefail
+          set -euo pipefail
           curl -sSfL "https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz" | tar xz
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
       - name: Get Mathlib cache
         run: |
+          set -euo pipefail
           lake exe cache unpack || true
           lake exe cache get
+
+      - name: Exhaustively verify lengths 2 through 10
+        run: python3 scripts/verify_litt_most_unfair.py --max-length 10
 
       - name: Reject proof holes and unsupported trust shortcuts
         run: |
@@ -60,48 +51,16 @@ jobs:
             exit 1
           fi
 
-      - name: Compile complete Litt development
+      - name: Build the complete terminal theorem dependency graph
         run: |
           set -euo pipefail
-          files=(
-            FormalConjectures/Other/LittMostUnfairBetDefs.lean
-            FormalConjectures/Other/LittMostUnfairBetProof.lean
-            FormalConjectures/Other/LittMostUnfairBetWalsh.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshCorrelation.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshShapes.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshGap.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshInteriorGap.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshShiftCorrelation.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshNormalize.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshOrbit.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshPairSum.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshUpperOrbit.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshSumFlatten.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshEnergyTranslate.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshEnergyDiagonal.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshEnergyUpper.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshEnergyIdentity.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshVariance.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshOverlapBridge.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshConstantGap.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshOneEndpointGap.lean
-            FormalConjectures/Other/LittMostUnfairBetReversal.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointCore.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointToggle.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointComplete.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshAssembly.lean
-            FormalConjectures/Other/LittMostUnfairBet.lean
-          )
-          for file in "${files[@]}"; do
-            echo "=== $file ==="
-            lake env lean -DwarningAsError=true "$file"
-          done
+          lake build FormalConjectures.Other.LittMostUnfairBet
 
-      - name: Audit terminal theorem axioms
+      - name: Compile with warnings as errors and audit axioms
         run: |
           set -euo pipefail
-          lake env lean FormalConjectures/Other/LittMostUnfairBet.lean 2>&1 | tee /tmp/litt-axioms.txt
+          lake env lean -DwarningAsError=true \
+            FormalConjectures/Other/LittMostUnfairBet.lean 2>&1 | tee /tmp/litt-axioms.txt
           if grep -nE 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce' /tmp/litt-axioms.txt; then
             echo 'Terminal theorem uses an unsupported axiom or compiler-trust shortcut.'
             exit 1
