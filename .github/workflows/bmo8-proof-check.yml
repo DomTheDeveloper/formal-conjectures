@@ -15,6 +15,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: bmo8-proof-check
+  cancel-in-progress: true
+
 jobs:
   check:
     name: check (ubuntu-latest)
@@ -48,6 +52,11 @@ jobs:
 
       - name: Check BMO 8 theorem axioms
         run: |
+          set -o pipefail
           cp FormalConjectures/Other/BeaverMathOlympiad8Proof.lean BMO8ProofAudit.lean
           printf '\n#print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_8_solved\n' >> BMO8ProofAudit.lean
-          lake env lean BMO8ProofAudit.lean
+          lake env lean BMO8ProofAudit.lean 2>&1 | tee BMO8ProofAudit.log
+          if grep -q 'sorryAx' BMO8ProofAudit.log; then
+            echo 'BMO 8 theorem depends on sorryAx.' >&2
+            exit 1
+          fi
