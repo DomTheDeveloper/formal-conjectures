@@ -40,10 +40,10 @@ theorem coe_preimage_ball_eq_iUnion (x ε : ℝ) :
     dist_eq_norm, ← QuotientAddGroup.mk_sub, UnitAddCircle.norm_eq]
   constructor
   · intro h
-    refine ⟨Int.round (y - x), ?_⟩
+    refine ⟨round (y - x), ?_⟩
     simpa [sub_sub, add_comm, add_left_comm, add_assoc] using h
   · rintro ⟨z, hz⟩
-    have hmin := Int.round_le (y - x) z
+    have hmin := round_le (y - x) z
     exact hmin.trans_lt (by simpa [sub_sub, add_comm, add_left_comm, add_assoc] using hz)
 
 /-- Membership in the terminal metric arc is exactly a strict fractional-coordinate inequality. -/
@@ -82,7 +82,8 @@ corresponding terminal interval. -/
 theorem nsmul_mem_terminalArc_iff {a : ℝ} (ha0 : 0 < a) (ha1 : a < 1) (n : ℕ) :
     n • (a : UnitAddCircle) ∈ terminalArc a ↔
       1 - a < Int.fract ((n : ℝ) * a) := by
-  have hfract := Int.fract_mem ((n : ℝ) * a)
+  have hfract : Int.fract ((n : ℝ) * a) ∈ Set.Ico (0 : ℝ) 1 :=
+    ⟨Int.fract_nonneg _, Int.fract_lt_one _⟩
   rw [show n • (a : UnitAddCircle) = (((n : ℝ) * a : ℝ) : UnitAddCircle) by
     simp [nsmul_eq_mul]]
   rw [coe_fract_eq]
@@ -94,14 +95,14 @@ theorem volume_sphere_eq_zero {c r : ℝ} (_hr0 : 0 ≤ r) (_hr : r < 1 / 2) :
   rw [← ae_eq_empty]
   filter_upwards [AddCircle.closedBall_ae_eq_ball
     (x := (c : UnitAddCircle)) (ε := r)] with y hy
-  simp only [Set.mem_empty_iff_false, iff_false]
-  intro hysphere
-  have hclosed : y ∈ Metric.closedBall (c : UnitAddCircle) r :=
-    Metric.mem_closedBall.mpr (Metric.mem_sphere.mp hysphere).le
-  have hball : y ∈ Metric.ball (c : UnitAddCircle) r := by
-    rw [← hy]
-    exact hclosed
-  exact (Metric.mem_ball.mp hball).ne (Metric.mem_sphere.mp hysphere)
+  constructor
+  · intro hysphere
+    have hclosed : y ∈ Metric.closedBall (c : UnitAddCircle) r :=
+      Metric.mem_closedBall.mpr (Metric.mem_sphere.mp hysphere).le
+    have hball : y ∈ Metric.ball (c : UnitAddCircle) r := hy.mp hclosed
+    exact (Metric.mem_ball.mp hball).ne (Metric.mem_sphere.mp hysphere)
+  · intro hyempty
+    exact hyempty.elim
 
 /-- The terminal arc has length `a`. -/
 theorem volume_terminalArc {a : ℝ} (ha0 : 0 < a) (ha1 : a < 1) :

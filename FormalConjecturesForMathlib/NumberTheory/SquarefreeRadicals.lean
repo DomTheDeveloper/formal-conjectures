@@ -36,7 +36,8 @@ theorem linearIndependent_inv_sqrt_squarefree {ι : Type*} [Fintype ι]
   funext i
   have hpos : (0 : ℝ) < s i := by exact_mod_cast (Nat.pos_of_ne_zero (hs i).ne_zero)
   have hsqrt : Real.sqrt (s i) ≠ 0 := (Real.sqrt_pos.2 hpos).ne'
-  simp only [Pi.smul_apply', Units.smul_def, u, Rat.smul_def]
+  change 1 / Real.sqrt (s i) =
+    (((((s i : ℚ)⁻¹ : ℚ) : ℝ)) * Real.sqrt (s i))
   rw [Rat.cast_inv, Rat.cast_natCast]
   field_simp [hsqrt, Real.sq_sqrt hpos.le]
 
