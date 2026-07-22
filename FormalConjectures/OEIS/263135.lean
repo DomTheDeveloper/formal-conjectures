@@ -39,6 +39,8 @@ identity with A047932 and A216256.
 
 namespace OeisA263135
 
+open scoped BigOperators
+
 /-- The three edge directions incident to a vertex of the honeycomb graph. -/
 inductive Direction
   | same
