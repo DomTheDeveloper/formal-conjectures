@@ -31,6 +31,20 @@ lemma common_neighbors_of_adj_subsingleton
   simp [Walk.isCycle_def, c, Sym2.eq_iff, hpq, huv.ne,
     hp.1.ne, hp.2.ne, hq.1.ne, hq.2.ne]
 
+/-- Every vertex in a neighborhood-induced graph has at most one neighbor.
+This is the formal local statement that a C4-free neighborhood is a matching
+plus isolated vertices. -/
+lemma induce_neighborSet_subsingleton
+    (G : SimpleGraph α) [DecidableRel G.Adj]
+    (hC4 : NoFourCycle G) (v : α) (u : G.neighborSet v) :
+    ((G.induce (G.neighborSet v)).neighborSet u).Subsingleton := by
+  intro p hp q hq
+  apply Subtype.ext
+  apply common_neighbors_of_adj_subsingleton G hC4 u.property
+  · exact ⟨p.property, by simpa using hp⟩
+  · exact ⟨q.property, by simpa using hq⟩
+
 #print axioms common_neighbors_of_adj_subsingleton
+#print axioms induce_neighborSet_subsingleton
 
 end WrittenOnTheWallII.GraphConjecture160Audit
