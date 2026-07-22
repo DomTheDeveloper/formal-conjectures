@@ -70,22 +70,24 @@ private theorem clipLostDarts_pairwise_disjoint
   simp only [clipLostDarts, Finset.mem_insert, Finset.mem_singleton] at hpk hpl
   rcases hpk with hpk | hpk | hpk <;>
     rcases hpl with hpl | hpl | hpl
-  · exact hkl (clipAPoint_injective_on hkd hld (congrArg Prod.fst (hpk.trans hpl.symm)))
-  · have := congrArg Prod.snd (hpk.trans hpl.symm)
+  · exact hkl (clipAPoint_injective_on hkd hld
+      (congrArg Prod.fst (hpk.symm.trans hpl)))
+  · have := congrArg Prod.snd (hpk.symm.trans hpl)
     simp at this
-  · have := congrArg Prod.snd (hpk.trans hpl.symm)
+  · have := congrArg Prod.snd (hpk.symm.trans hpl)
     simp at this
-  · have := congrArg Prod.snd (hpk.trans hpl.symm)
+  · have := congrArg Prod.snd (hpk.symm.trans hpl)
     simp at this
-  · exact hkl (clipAPoint_injective_on hkd hld (congrArg Prod.fst (hpk.trans hpl.symm)))
-  · have := congrArg Prod.snd (hpk.trans hpl.symm)
+  · exact hkl (clipAPoint_injective_on hkd hld
+      (congrArg Prod.fst (hpk.symm.trans hpl)))
+  · have := congrArg Prod.snd (hpk.symm.trans hpl)
     simp at this
-  · have := congrArg Prod.snd (hpk.trans hpl.symm)
+  · have := congrArg Prod.snd (hpk.symm.trans hpl)
     simp at this
-  · have := congrArg Prod.snd (hpk.trans hpl.symm)
+  · have := congrArg Prod.snd (hpk.symm.trans hpl)
     simp at this
   · exact hkl (clipForwardAPoint_injective_on hkd hld
-      (congrArg Prod.fst (hpk.trans hpl.symm)))
+      (congrArg Prod.fst (hpk.symm.trans hpl)))
 
 /-- All A-based contact darts destroyed by the first `d` clipping steps. -/
 def clippedLostDarts (a b d : ℕ) : Finset (RankPoint × Direction) :=
