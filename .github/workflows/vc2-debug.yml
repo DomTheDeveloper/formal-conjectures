@@ -15,25 +15,25 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up pinned Lean toolchain
-        uses: leanprover/lean-action@v1
-        with:
-          auto-config: false
-          build: false
-          test: false
-          lint: false
-          use-mathlib-cache: false
-          use-github-cache: false
+      - uses: actions/checkout@v6
+      - name: Install pinned Lean toolchain
+        run: |
+          set -euxo pipefail
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Get Mathlib cache
-        run: lake exe cache get
+        run: |
+          set -euxo pipefail
+          lake exe cache get
       - name: Check exact counterexample file
         run: |
+          set -euxo pipefail
           proof='FormalConjectures/Other/VCDimConvexCounterexample.lean'
-          if grep -nE '\b(sorry|admit|native_decide)\b' "$proof"; then
+          if grep -nE '\b(sorry|admit|native_decide|unsafe|axiom|opaque)\b' "$proof"; then
             echo 'Forbidden proof placeholder or shortcut found.' >&2
             exit 1
           fi
