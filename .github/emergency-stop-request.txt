@@ -1,0 +1,2 @@
+Emergency queue-clear request for July 22, 2026.
+This temporary branch exists only to trigger the trusted pull_request_target cancellation workflow.
