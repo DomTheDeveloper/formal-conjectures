@@ -107,10 +107,11 @@ theorem isTraceable_twoBlock
     omega
   by_cases hnew : ∃ a ∈ Ap, ∃ b ∈ B, ¬G.Adj a b
   · obtain ⟨a₁, ha₁, b₁, hb₁, hnewEdge⟩ := hnew
+    have hnewEdgeRev : ¬G.Adj b₁ a₁ := fun h => hnewEdge h.symm
     have hbSeed : q + 1 ≤ H.degree b₁ := by
       have hlt : G.degree b₁ < H.degree b₁ :=
         degree_lt_of_le_of_adj_of_not_adj
-          (self_le_pathClosure G) (hApB a₁ ha₁ b₁ hb₁).symm hnewEdge.symm
+          (self_le_pathClosure G) (hApB a₁ ha₁ b₁ hb₁).symm hnewEdgeRev
       rw [hBdeg b₁ hb₁] at hlt
       omega
     have hAB : ∀ a ∈ A, ∀ b ∈ B, H.Adj a b := by
@@ -218,7 +219,7 @@ theorem isTraceable_twoBlock
             apply hxNotAp
             simp only [Ap, Finset.mem_filter]
             exact ⟨hxA, y, hyB, hxy⟩
-        exact Finset.mem_erase.mpr ⟨hxy.ne, hyA⟩
+        exact Finset.mem_erase.mpr ⟨hxy.ne.symm, hyA⟩
       apply Finset.eq_of_subset_of_card_le hsub
       rw [card_neighborFinset_eq_degree, hAdeg x hxA,
         Finset.card_erase_of_mem hxA, hAcard]
@@ -236,8 +237,10 @@ theorem isTraceable_twoBlock
             subst x
             exact hxData.2 haAp, haA⟩
         have hxa : G.Adj x a := by
-          have : a ∈ G.neighborFinset x := by simpa [hxeq] using hax
-          simpa using this
+          have hmem : a ∈ G.neighborFinset x := by
+            rw [hxeq]
+            exact hax
+          simpa using hmem
         simpa using hxa.symm
       · simpa using hApBOriginal a haAp x hxB
     have hdisjOut : Disjoint (A \ Ap) B :=
