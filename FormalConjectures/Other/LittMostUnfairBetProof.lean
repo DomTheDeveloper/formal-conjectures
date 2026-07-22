@@ -126,20 +126,16 @@ theorem constant_branch_arithmetic
     delta ^ 2 * p ≤ M ^ 2 * E := by
   exact Nat.mul_le_mul (Nat.pow_le_pow_left hdelta 2) hE
 
-/-- Nonconstant-word scalar branch in the normalization used by `energy`. -/
+/-- Nonconstant-word scalar branch after writing the power-of-two factor as `4 * p`. -/
 theorem nonconstant_branch_arithmetic
-    (x delta E : ℕ)
-    (hx : 2 ≤ x)
-    (hdelta : delta ≤ x - 2)
-    (hE : x / 4 ≤ E) :
-    delta ^ 2 * x ≤ (2 * x - 2) ^ 2 * E := by
-  have hsq : 4 * delta ^ 2 ≤ (2 * x - 2) ^ 2 := by
-    have hdx : delta + 2 ≤ x := Nat.le_of_sub_le_sub_right hdelta
-    nlinarith
+    (M delta E p : ℕ)
+    (hdelta : 2 * delta ≤ M)
+    (hE : p ≤ E) :
+    delta ^ 2 * (4 * p) ≤ M ^ 2 * E := by
+  have hsq : (2 * delta) ^ 2 ≤ M ^ 2 := Nat.pow_le_pow_left hdelta 2
   calc
-    delta ^ 2 * x = (4 * delta ^ 2) * (x / 4) := by
-      sorry
-    _ ≤ (2 * x - 2) ^ 2 * E := Nat.mul_le_mul hsq hE
+    delta ^ 2 * (4 * p) = (2 * delta) ^ 2 * p := by ring
+    _ ≤ M ^ 2 * E := Nat.mul_le_mul hsq hE
 
 /-! ## Word-level lemmas still being discharged -/
 
