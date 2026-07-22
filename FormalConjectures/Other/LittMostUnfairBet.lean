@@ -20,12 +20,12 @@ import FormalConjecturesUtil
 # The most unfair Litt coin-word bet
 
 For a binary word `W` of length `n`, let `N_W(m)` be the number of possibly
-overlapping occurrences of `W` in `m` fair coin tosses.  Ekhad and Zeilberger
+overlapping occurrences of `W` in `m` fair coin tosses. Ekhad and Zeilberger
 asked which pair of distinct words has the largest leading asymptotic bias
 between the events `N_A(m) > N_B(m)` and `N_B(m) > N_A(m)`.
 
 Janson, Nica, and Segert express the leading coefficient using weighted
-prefix-suffix overlaps.  After clearing denominators and squaring, their
+prefix-suffix overlaps. After clearing denominators and squaring, their
 formula reduces the extremal problem to the integer inequality stated below.
 The sharp pair is a constant word and the word obtained by flipping one
 endpoint.
@@ -51,11 +51,13 @@ def wordPrefix {n : ℕ} (w : Word n) (k : Fin n) : Fin (k + 1) → Bool :=
 
 /--
 The proper overlap polynomial evaluated at `2`: a common suffix-prefix of
-length `r` contributes `2^r`.  The full overlap of length `n` is excluded.
+length `r` contributes `2^r`. The full overlap of length `n` is excluded.
 -/
 def overlapNum {n : ℕ} (A B : Word n) : ℕ :=
   ∑ k : Fin n,
-    if k + 1 < n ∧ wordSuffix A k = wordPrefix B k then 2 ^ (k + 1) else 0
+    if k.val + 1 < n ∧ wordSuffix A k = wordPrefix B k then
+      2 ^ (k.val + 1)
+    else 0
 
 /-- The signed difference of the two proper self-overlap numerators. -/
 def selfOverlapDelta {n : ℕ} (A B : Word n) : ℤ :=
