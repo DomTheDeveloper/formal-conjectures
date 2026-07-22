@@ -19,7 +19,8 @@ noncomputable def vertexChainIndex (S : Finset Vertex) (v : ↥S) : ℕ :=
 noncomputable def vertexSubchain (S : Finset Vertex) (v : ↥S) : Bool :=
   boxSubchain (rectangleRankPair S v) v.val.side
 
-private theorem vertexChainIndex_lt_firstRows (S : Finset Vertex) (v : ↥S) :
+/-- A vertex's rectangle-chain index lies in the first-row range. -/
+theorem vertexChainIndex_lt_firstRows (S : Finset Vertex) (v : ↥S) :
     vertexChainIndex S v < (occupiedRows .first S).card := by
   unfold vertexChainIndex rectangleChainIndex rectangleRankPair
   exact lt_of_le_of_lt (Nat.min_le_left _ _) (rowRank .first S v).isLt
