@@ -1,0 +1,35 @@
+name: Update quantum proof links to merged DTD commit
+
+on:
+  pull_request:
+    branches:
+      - upstream/quantum-gdm-base-20260722
+
+permissions:
+  contents: write
+
+jobs:
+  update-links:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/quantum-n6-all-colors-gdm-clean'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/quantum-n6-all-colors-gdm-clean
+      - name: Point formal proofs at merged DTD commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=FormalConjectures/Paper/MonochromaticQuantumGraph.lean
+          sed -i 's/a76f24bc20db67b27c445faa39571cf5bc03990e/0245b5cadcd166252109959d9895b363a63ae1c2/g' "$file"
+          count=$(grep -c '0245b5cadcd166252109959d9895b363a63ae1c2/QuantumGraphColorRestriction.lean' "$file")
+          test "$count" -eq 4
+      - name: Commit stable proof links
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add FormalConjectures/Paper/MonochromaticQuantumGraph.lean
+          git commit -m 'Link quantum statements to merged kernel-audited proof'
+          git push origin HEAD:agent/quantum-n6-all-colors-gdm-clean
