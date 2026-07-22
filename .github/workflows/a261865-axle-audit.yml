@@ -6,6 +6,7 @@ on:
     paths:
       - 'FormalConjectures/OEIS/261865.lean'
       - 'FormalConjecturesForMathlib/Analysis/Equidistribution/UnitAddTorus.lean'
+      - 'FormalConjecturesForMathlib/NumberTheory/SquarefreeRadical.lean'
       - '.github/workflows/a261865-axle-audit.yml'
   workflow_dispatch:
 
@@ -14,9 +15,9 @@ permissions:
 
 jobs:
   check-foundation:
-    name: Check A261865 foundation with AXLE
+    name: Check A261865 foundations with AXLE
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Check Lean 4.27 sources
@@ -30,6 +31,7 @@ jobs:
 
           files = [
               'FormalConjecturesForMathlib/Analysis/Equidistribution/UnitAddTorus.lean',
+              'FormalConjecturesForMathlib/NumberTheory/SquarefreeRadical.lean',
           ]
           failed = False
           for filename in files:
