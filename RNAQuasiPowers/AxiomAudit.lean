@@ -16,8 +16,11 @@ limitations under the License.
 
 import RNAQuasiPowers.GeneratingFunction
 import RNAQuasiPowers.AlgebraicCertificate
+import RNAQuasiPowers.GaussianPrecision
 
 #print axioms RNAQuasiPowers.grammar_discriminant_eq_radicand
 #print axioms RNAQuasiPowers.quasiPowers_algebraic_certificate
 #print axioms RNAQuasiPowers.printedMarginalVarianceAt_target_gt_one
+#print axioms RNAQuasiPowers.correctedTargetPrecision_inverse_entries
+#print axioms RNAQuasiPowers.printedTargetPrecision_inverse_entries
 #print axioms RNAQuasiPowers.threeTrack_certificate
