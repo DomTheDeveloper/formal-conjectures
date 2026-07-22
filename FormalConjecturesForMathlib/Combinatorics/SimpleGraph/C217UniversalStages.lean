@@ -2,7 +2,7 @@
 Copyright 2026 The Formal Conjectures Authors.
 Licensed under the Apache License, Version 2.0.
 -/
-import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217ClosureHelpers
+import FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217CrossDegree
 
 /-!
 # Staged universality in the Bondy--Chvátal path closure
@@ -16,6 +16,7 @@ namespace SimpleGraph.C217UniversalStages
 
 open Classical
 open SimpleGraph
+open SimpleGraph.C217CrossDegree
 
 variable {V : Type*} [Fintype V] [DecidableEq V] [Nontrivial V]
 
@@ -53,6 +54,38 @@ theorem universal_of_high_middle
   have hvD : v ∉ A ∪ C := by simp [hvA, hvC]
   exact hthreshold.trans (Nat.add_le_add hcard (hDdeg v hvD))
 
+/-- End-to-end staged seed criterion. Once the high set is universal, its
+cardinality itself supplies the outside closure-degree lower bound, and the
+strict original degree-sum imbalance forces a seed. -/
+theorem isTraceable_of_high_middle_degree_sum_lt
+    (G : SimpleGraph V) [DecidableRel G.Adj]
+    (A C : Finset V) (r d : ℕ)
+    (hn : Fintype.card V = 2 * r + 2)
+    (hAcard : A.card = r)
+    (hdisj : Disjoint A C)
+    (hAA : ∀ a ∈ A, ∀ b ∈ A, b ≠ a → (pathClosure G).Adj a b)
+    (hAC : ∀ a ∈ A, ∀ c ∈ C, (pathClosure G).Adj a c)
+    (hDdeg : ∀ v ∉ A ∪ C, d ≤ (pathClosure G).degree v)
+    (hthreshold : Fintype.card V - 1 ≤ (A.card - 1 + C.card) + d)
+    (hsum : (∑ a ∈ A, G.degree a) <
+      ∑ v ∈ Finset.univ \ A, G.degree v) :
+    IsTraceable G := by
+  have huniv := universal_of_high_middle G A C d hdisj hAA hAC hDdeg hthreshold
+  have hout : ∀ v ∉ A, r ≤ (pathClosure G).degree v := by
+    intro v hvA
+    have hsub : A ⊆ (pathClosure G).neighborFinset v := by
+      intro a ha
+      have hav : a ≠ v := by
+        intro h
+        subst a
+        exact hvA ha
+      simpa using (huniv a ha v hav).symm
+    have hcard := Finset.card_le_card hsub
+    rw [card_neighborFinset_eq_degree, hAcard] at hcard
+    exact hcard
+  exact isTraceable_of_universal_degree_sum_lt G A r hn hAcard huniv hout hsum
+
 #print axioms SimpleGraph.C217UniversalStages.universal_of_high_middle
+#print axioms SimpleGraph.C217UniversalStages.isTraceable_of_high_middle_degree_sum_lt
 
 end SimpleGraph.C217UniversalStages
