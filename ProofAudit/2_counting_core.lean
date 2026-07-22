@@ -7,6 +7,16 @@ import FormalConjecturesUtil
 
 namespace WrittenOnTheWallII.GraphConjecture2Audit
 
+open Classical Finset
+
+/-- The finite Cauchy inequality in exactly the form needed for both sides of
+the selected-neighborhood incidence count. -/
+lemma square_sum_le_card_mul_sum_square
+    {β : Type*} [Fintype β] (f : β → ℝ) :
+    (∑ i, f i) ^ 2 ≤ (Fintype.card β : ℝ) * ∑ i, (f i) ^ 2 := by
+  simpa using
+    (sq_sum_le_card_mul_sum_sq (s := (Finset.univ : Finset β)) (f := f))
+
 /-- If `0 ≤ c ≤ d`, then the incidence contribution `c*d` dominates `c²`.
 This is the pointwise inequality used after reversing the selected-neighborhood
 incidence double count. -/
@@ -41,6 +51,7 @@ lemma average_bound_core
         (mul_le_mul_left hS).mp hprod
       nlinarith)
 
+#print axioms square_sum_le_card_mul_sum_square
 #print axioms sq_le_mul_of_nonneg_of_le
 #print axioms average_bound_core
 
