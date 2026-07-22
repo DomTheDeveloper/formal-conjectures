@@ -33,7 +33,7 @@ jobs:
   lean-check:
     name: check Lean 4.27
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
@@ -50,15 +50,45 @@ jobs:
           lake exe cache unpack || true
           lake exe cache get
 
-      - name: Compile statement and overlap core
+      - name: Compile entire Litt development
         run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBet.lean
-          lake env lean FormalConjectures/Other/LittMostUnfairBetProof.lean
+          set -euo pipefail
+          files=(
+            FormalConjectures/Other/LittMostUnfairBet.lean
+            FormalConjectures/Other/LittMostUnfairBetProof.lean
+            FormalConjectures/Other/LittMostUnfairBetWalsh.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshCorrelation.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshShapes.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshGap.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshInteriorGap.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshShiftCorrelation.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshNormalize.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshOrbit.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshPairSum.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshUpperOrbit.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshSumFlatten.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshEnergyTranslate.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshEnergyDiagonal.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshEnergyUpper.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshEnergyIdentity.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshVariance.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshOverlapBridge.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshConstantGap.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshOneEndpointGap.lean
+            FormalConjectures/Other/LittMostUnfairBetReversal.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointCore.lean
+          )
+          for file in "${files[@]}"; do
+            echo "=== $file ==="
+            lake env lean "$file"
+          done
 
-      - name: Compile Walsh variance-gap modules
+      - name: Reject unsupported proof holes in completed support modules
         run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshInteriorGap.lean
-
-      - name: Compile full Walsh variance bridge
-        run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshVarianceBridge.lean
+          set -euo pipefail
+          support_files=$(find FormalConjectures/Other -maxdepth 1 -name 'LittMostUnfairBet*.lean' \
+            ! -name 'LittMostUnfairBet.lean' -print)
+          if grep -nE '\b(sorry|admit|native_decide)\b' $support_files; then
+            echo 'Unsupported proof hole or compiler shortcut found in Litt support modules.'
+            exit 1
+          fi
