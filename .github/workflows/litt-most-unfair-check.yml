@@ -69,3 +69,7 @@ jobs:
       - name: Compile Walsh translation shapes
         run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBetWalshShapes.lean
+
+      - name: Compile Walsh gap lemmas
+        run: |
+          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshGap.lean
