@@ -6,6 +6,8 @@ on:
     paths:
       - .github/workflows/emergency-stop-actions.yml
   workflow_dispatch:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
 
 permissions:
   actions: write
@@ -17,6 +19,7 @@ concurrency:
 
 jobs:
   stop:
+    if: github.event_name != 'pull_request_target' || startsWith(github.event.pull_request.head.ref, 'emergency/')
     name: Stop runs via ${{ matrix.runner }}
     strategy:
       fail-fast: false
