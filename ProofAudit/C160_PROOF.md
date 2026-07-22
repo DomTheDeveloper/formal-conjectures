@@ -35,9 +35,7 @@ This follows from the standard identity
 
 `leaves(R) = 2 + Σ_{deg_R(z)≥2} (deg_R(z)-2)`.
 
-We also use the standard forest-extension fact: every acyclic edge-subgraph of a connected graph extends to a spanning tree while retaining all of its edges. Therefore it is enough to construct an acyclic seed with the required leaf or center-degree bound.
-
-A geodesic together with any collection of edges attaching previously unused vertices as leaves is acyclic. We use this repeatedly below.
+We also use the standard forest-extension fact: every acyclic edge-subgraph of a connected graph extends to a spanning tree while retaining all of its edges. Therefore it is enough to construct an acyclic seed with the required center degrees. A geodesic together with any collection of edges attaching previously unused vertices as leaves is acyclic.
 
 ## 3. The case `T = 0`
 
@@ -45,21 +43,41 @@ Choose `x` with `λ(x)=L`. By (1), `deg(x)=λ(x)=L`. The full star at `x` is acy
 
 ## 4. The case `T = 1`
 
-This is the classical triangle-improvement bound `Ls(G) ≥ L+1`; here is a direct construction.
+This is the classical triangle-improvement bound `Ls(G) ≥ L+1`; here is a direct construction that tracks degrees preserved by forest extension.
 
-Choose `x` with `λ(x)=L`, and choose an independent set `S⊆N(x)` of cardinality `L`. Choose a triangle `{a,b,c}` and choose `a` in that triangle minimizing the distance from `x` to the triangle. Let `P` be a geodesic from `x` to `a`.
+Choose `x` with `λ(x)=L`, and choose an independent set `S⊆N(x)` of cardinality `L`. Choose a triangle `{a,b,c}` and choose `a` in that triangle minimizing the distance from `x` to the triangle. If `x` lies in the chosen triangle, take `a=x`. Let `P` be a geodesic from `x` to `a`.
 
-Start with the edges of `P`. Attach every vertex of `S` not already used by `P` or by `{b,c}` as a leaf at `x`. Finally attach `b` and `c` as leaves at `a`.
+### 4.1. The case `a=x`
 
-The seed is acyclic: a geodesic is a path, the selected members of `S` are fresh leaves, and minimality of `a` ensures that `b,c` do not occur earlier on `P`; duplicates with the `x`-leaves were explicitly omitted.
+Take the star at `x` on the neighbor set `S∪{b,c}`. Since `b` and `c` are adjacent and `S` is independent, `S` contains at most one of `b,c`. Thus
 
-At most one member of `S` is lost before adding `b,c`:
+`|S∪{b,c}| ≥ L+1`.
+
+The star extends to a spanning tree preserving degree at least `L+1` at `x`, hence the spanning tree has at least `L+1=L+T` leaves.
+
+### 4.2. The case `a≠x`
+
+Start with the edges of `P`. Attach every vertex of `S` not already used by `P` or by `{b,c}` as a fresh leaf at `x`. Finally attach `b` and `c` as fresh leaves at `a`.
+
+The seed is acyclic: a geodesic is a path; the selected members of `S` are fresh; minimality of `a` ensures that `b,c` do not occur earlier on `P`; and duplicates with the `x`-attachments were explicitly omitted.
+
+At most one member of `S` is omitted:
 
 - a geodesic contains at most one neighbor of its initial vertex, namely its first successor;
 - if `dist(x,a)>1`, no triangle vertex is in `N(x)` by minimality;
-- if `dist(x,a)≤1`, the three triangle vertices form a clique, so the independent set `S` meets them in at most one vertex.
+- if `dist(x,a)=1`, the path successor is `a`, and the three triangle vertices form a clique, so the independent set `S` meets the whole triangle in at most one vertex.
 
-Thus the seed has at least `(L-1)+2=L+1=L+T` leaves. Extend it to a spanning tree.
+Let `s` be the number of retained members of `S`; then `s≥L-1`. Extend the seed to a spanning tree `R`. All seed edges remain, so
+
+`deg_R(x) ≥ s+1`
+
+(the `s` attached edges plus the first path edge), while
+
+`deg_R(a) ≥ 3`
+
+(the last path edge plus the two triangle edges). Since `x≠a`, (2) gives
+
+`leaves(R) ≥ (s+1)+3-2 = s+2 ≥ L+1 = L+T`.
 
 ## 5. The case `T ≥ 2`
 
