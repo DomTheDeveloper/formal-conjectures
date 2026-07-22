@@ -84,10 +84,11 @@ theorem volume_frontier_terminalCoordinateSet [DecidableEq ι]
     (j : ι) (a : ι → ℝ) (ha0 : ∀ i, 0 < a i) (ha1 : ∀ i, a i < 1) (i : ι) :
     volume (frontier (terminalCoordinateSet j a i)) = 0 := by
   by_cases h : i = j
-  · simp [terminalCoordinateSet, h,
-      UnitAddCircle.volume_frontier_terminalArc (ha0 i) (ha1 i)]
-  · simp [terminalCoordinateSet, h,
-      UnitAddCircle.volume_frontier_terminalArc_compl (ha0 i) (ha1 i)]
+  · subst i
+    simpa [terminalCoordinateSet] using
+      UnitAddCircle.volume_frontier_terminalArc (ha0 j) (ha1 j)
+  · simpa [terminalCoordinateSet, h] using
+      UnitAddCircle.volume_frontier_terminalArc_compl (ha0 i) (ha1 i)
 
 /-- The terminal box is a continuity set for Haar probability measure. -/
 theorem volume_frontier_terminalBox [DecidableEq ι]
@@ -102,8 +103,11 @@ theorem volume_terminalCoordinateSet [DecidableEq ι]
     volume (terminalCoordinateSet j a i) =
       ENNReal.ofReal (if i = j then a i else 1 - a i) := by
   by_cases h : i = j
-  · simp [terminalCoordinateSet, h, UnitAddCircle.volume_terminalArc (ha0 i) (ha1 i)]
-  · simp [terminalCoordinateSet, h, UnitAddCircle.volume_terminalArc_compl (ha0 i) (ha1 i)]
+  · subst i
+    simpa [terminalCoordinateSet] using
+      UnitAddCircle.volume_terminalArc (ha0 j) (ha1 j)
+  · simpa [terminalCoordinateSet, h] using
+      UnitAddCircle.volume_terminalArc_compl (ha0 i) (ha1 i)
 
 /-- Haar mass of the terminal box. -/
 theorem volume_terminalBox [DecidableEq ι]
@@ -123,7 +127,12 @@ theorem volume_terminalBox [DecidableEq ι]
         exact (Finset.mul_prod_erase Finset.univ
           (fun i => if i = j then a i else 1 - a i) (Finset.mem_univ j)).symm
       _ = a j * ∏ i ∈ Finset.univ.erase j, (1 - a i) := by
-        simp
+        simp only [if_pos rfl]
+        apply congrArg (fun x => a j * x)
+        apply Finset.prod_congr rfl
+        intro i hi
+        have hij : i ≠ j := (Finset.mem_erase.mp hi).1
+        simp [hij]
   · intro i hi
     split_ifs
     · exact (ha0 i).le
@@ -145,13 +154,14 @@ theorem hasDensity_terminalBox [DecidableEq ι]
     simpa [μ] using tendsto_average_rotation a hrel
   have hd := MeasureTheory.hasDensity_of_tendsto_average
     (Y := fun n => n • (fun i => (a i : UnitAddCircle))) μ havg
-    (measurableSet_terminalBox j a) (by simpa [μ] using volume_frontier_terminalBox j a ha0 ha1)
+    (measurableSet_terminalBox j a) (by
+      change (volume (frontier (terminalBox j a))).toNNReal = 0
+      rw [volume_frontier_terminalBox j a ha0 ha1]
+      rfl)
     {n : ℕ | n • (fun i => (a i : UnitAddCircle)) ∈ terminalBox j a} (fun _ => Iff.rfl)
   convert hd using 1
-  simp only [μ]
-  rw [show (((⟨volume, inferInstance⟩ : ProbabilityMeasure (UnitAddTorus ι))
-      (terminalBox j a) : ℝ≥0) : ℝ) =
-      (volume (terminalBox j a)).toReal by simp]
+  change a j * ∏ i ∈ Finset.univ.erase j, (1 - a i) =
+    (volume (terminalBox j a)).toReal
   rw [volume_terminalBox j a ha0 ha1, ENNReal.toReal_ofReal]
   positivity
 

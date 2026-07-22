@@ -15,7 +15,7 @@ limitations under the License.
 -/
 module
 
-public import FormalConjecturesUtil
+public import Mathlib
 public import FormalConjecturesForMathlib.Analysis.Equidistribution.UnitAddTorus
 public import FormalConjecturesForMathlib.NumberTheory.SquarefreeRadicals
 
