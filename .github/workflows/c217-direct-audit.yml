@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   check:
@@ -79,6 +79,39 @@ jobs:
           git diff --exit-code -- scripts/c217_certificate.json
           python3 scripts/c217_order_bound_certificate.py 2>&1 | tee c217-order-certificate-replay.log
           git diff --exit-code -- scripts/c217_order_bound_certificate.json
+
+      - name: Publish readable audit result branch
+        if: always()
+        env:
+          LEAN_OUTCOME: ${{ steps.lean.outcome }}
+          CERTIFICATE_OUTCOME: ${{ steps.certificate.outcome }}
+          SOURCE_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euxo pipefail
+          for f in c217-direct-audit.log c217-certificate-replay.log c217-order-certificate-replay.log; do
+            test -f "$f" || echo "Log unavailable: an earlier setup step failed." > "$f"
+            cp "$f" "/tmp/$f"
+          done
+          {
+            echo "source_sha=$SOURCE_SHA"
+            echo "run_id=$RUN_ID"
+            echo "lean_outcome=$LEAN_OUTCOME"
+            echo "certificate_outcome=$CERTIFICATE_OUTCOME"
+            date -u '+completed_utc=%Y-%m-%dT%H:%M:%SZ'
+          } > /tmp/status.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin audit/c217-results
+          git switch audit/c217-results
+          mkdir -p C217/direct-audit
+          cp /tmp/status.txt C217/direct-audit/status.txt
+          cp /tmp/c217-direct-audit.log C217/direct-audit/lean.log
+          cp /tmp/c217-certificate-replay.log C217/direct-audit/certificate.log
+          cp /tmp/c217-order-certificate-replay.log C217/direct-audit/order-certificate.log
+          git add C217/direct-audit
+          git commit -m "ci(C217): publish direct audit $SOURCE_SHA" || true
+          git push origin audit/c217-results
 
       - name: Enforce audit
         run: |
