@@ -16,6 +16,13 @@ limitations under the License.
 
 import FormalConjectures.Arxiv.«2602.19255».RNAQuasiPowers
 
+/-!
+# RNA quasi-powers axiom audit
+
+Prints the axioms used by the internal finite certificates and their public
+Formal Conjectures wrappers.
+-/
+
 /- Internal finite-certificate declarations. -/
 
 #print axioms RNAQuasiPowers.grammar_discriminant_eq_radicand
