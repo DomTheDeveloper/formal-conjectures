@@ -11,7 +11,7 @@
 
 name = "formal_conjectures"
 keywords = ["math"]
-defaultTargets = ["FormalConjectures"]
+defaultTargets = ["FormalConjectures", "A263135ScratchAudit"]
 testDriver = "FormalConjecturesTest"
 
 [leanOptions]
@@ -49,6 +49,12 @@ warn.sorry = false
 weak.linter.style.ams_attribute = true
 weak.linter.style.category_attribute = true
 weak.linter.style.moduleDocstring = true
+
+# Focused temporary library for the OEIS A263135 proof workbench.
+# Building this exact root compiles its complete transitive scratch dependency stack.
+[[lean_lib]]
+name = "A263135ScratchAudit"
+globs = ["Scratch.A263135Audit"]
 
 # Fork-hosted complete Lean proofs that are linked from upstream metadata.
 [[lean_lib]]
