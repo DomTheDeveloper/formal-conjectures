@@ -1,0 +1,46 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: Litt most-unfair proof check
+
+on:
+  push:
+    branches:
+      - agent/litt-most-unfair-proof
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: check (${{ matrix.runner }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-slim
+            elan_target: x86_64-unknown-linux-gnu
+          - runner: macos-15-intel
+            elan_target: x86_64-apple-darwin
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v6
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL "https://github.com/leanprover/elan/releases/download/v1.4.2/elan-${{ matrix.elan_target }}.tar.gz" | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Get Mathlib cache
+        run: |
+          lake exe cache unpack || true
+          lake exe cache get
+
+      - name: Compile development
+        run: |
+          lake env lean FormalConjectures/Other/LittMostUnfairBetProof.lean
