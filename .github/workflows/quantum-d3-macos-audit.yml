@@ -32,7 +32,8 @@ jobs:
         run: |
           set -o pipefail
           lake build FormalConjectures.Paper.MonochromaticQuantumGraph
-          lake env lean ProofAudit/6_restriction_core.lean 2>&1 | tee quantum-d3-macos.log
+          lake env lean ProofAudit/6_bridge.lean 2>&1 | tee quantum-d3-macos.log
+          lake env lean ProofAudit/6_restriction_core.lean 2>&1 | tee -a quantum-d3-macos.log
       - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
