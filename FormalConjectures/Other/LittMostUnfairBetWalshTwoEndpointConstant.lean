@@ -98,17 +98,21 @@ theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
   have hTRint := translate_middle_subset_interior hR
   have hpen : A ⟨n - 2, by omega⟩ = c := hconst _ (by omega) (by omega)
   have hone : A ⟨1, by omega⟩ = c := hconst _ (by omega) (by omega)
-  unfold natMonomial
   rw [translate_nearFullBase_eq]
-  unfold nearFullBase
-  rw [Finset.prod_insert (by simp [h0pen, hR0])]
-  rw [Finset.prod_insert hRpen]
-  rw [Finset.prod_insert (by simp [h1last, hTR1])]
-  rw [Finset.prod_insert hTRlast]
+  change natMonomial A (insert 0 (insert (n - 2) R)) =
+    natMonomial A (insert 1 (insert (n - 1) (translate R 1)))
+  rw [natMonomial_insert A (insert (n - 2) R) (by simp [h0pen, hR0])]
+  rw [natMonomial_insert A R hRpen]
+  rw [natMonomial_insert A (insert (n - 1) (translate R 1))
+    (by simp [h1last, hTR1])]
+  rw [natMonomial_insert A (translate R 1) hTRlast]
   rw [natMonomial_interior_constant A c hconst R hRint]
   rw [natMonomial_interior_constant A c hconst (translate R 1) hTRint]
   rw [card_translate]
-  simp only [letterSign_of_lt]
+  rw [letterSign_of_lt A (by omega : 0 < n)]
+  rw [letterSign_of_lt A (by omega : n - 2 < n)]
+  rw [letterSign_of_lt A (by omega : 1 < n)]
+  rw [letterSign_of_lt A (by omega : n - 1 < n)]
   rw [hpen, hone, hends]
   ring
 
