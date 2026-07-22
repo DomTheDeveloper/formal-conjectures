@@ -1,0 +1,79 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: C217 integrated Lean audit
+
+on:
+  push:
+    branches:
+      - agent/c217-closure-backport
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact C217 branch
+        uses: actions/checkout@v6
+        with:
+          ref: agent/c217-closure-backport
+
+      - name: Install pinned Lean toolchain
+        run: |
+          set -euxo pipefail
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Mathlib cache
+        run: |
+          set -euxo pipefail
+          lake exe cache get
+
+      - name: Reject holes and trusted shortcuts in new modules
+        run: |
+          set -euxo pipefail
+          files=(
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217FiniteCertificate.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/MaximumLeafDegree.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/DegreeTwoTraceable.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217BaseReduction.lean
+          )
+          if grep -nE '\b(sorry|admit|native_decide)\b|(^|[^A-Za-z])axiom([^A-Za-z]|$)' "${files[@]}"; then
+            exit 1
+          fi
+
+      - name: Compile integrated C217 modules
+        run: |
+          set -o pipefail
+          lake build \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217FiniteCertificate \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.MaximumLeafDegree \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.DegreeTwoTraceable \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217BaseReduction \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.PathClosure \
+            2>&1 | tee c217-integrated-audit.log
+
+      - name: Audit printed axioms
+        run: |
+          set -euxo pipefail
+          if grep -E 'sorryAx|Lean\.ofReduce|Lean\.trustCompiler' c217-integrated-audit.log; then
+            exit 1
+          fi
+
+      - name: Replay deterministic certificate
+        run: |
+          set -euxo pipefail
+          python3 scripts/c217_certificate.py | tee c217-certificate-replay.log
+          git diff --exit-code -- scripts/c217_certificate.json
+
+      - name: Upload audit logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-integrated-audit
+          path: |
+            c217-integrated-audit.log
+            c217-certificate-replay.log
