@@ -8,6 +8,8 @@ on:
   workflow_dispatch:
   pull_request_target:
     types: [opened, synchronize, reopened]
+  issues:
+    types: [opened]
 
 permissions:
   actions: write
@@ -19,7 +21,11 @@ concurrency:
 
 jobs:
   stop:
-    if: github.event_name != 'pull_request_target' || startsWith(github.event.pull_request.head.ref, 'emergency/')
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_target' && startsWith(github.event.pull_request.head.ref, 'emergency/')) ||
+      (github.event_name == 'issues' && startsWith(github.event.issue.title, '[emergency-stop-actions]'))
     name: Stop runs via ${{ matrix.runner }}
     strategy:
       fail-fast: false
