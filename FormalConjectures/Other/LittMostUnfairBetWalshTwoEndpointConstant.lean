@@ -98,10 +98,11 @@ theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
   have hTRint := translate_middle_subset_interior hR
   have hpen : A ⟨n - 2, by omega⟩ = c := hconst _ (by omega) (by omega)
   have hone : A ⟨1, by omega⟩ = c := hconst _ (by omega) (by omega)
-  unfold natMonomial nearFullBase
+  unfold natMonomial
+  rw [translate_nearFullBase_eq]
+  unfold nearFullBase
   rw [Finset.prod_insert (by simp [h0pen, hR0])]
   rw [Finset.prod_insert hRpen]
-  rw [translate_nearFullBase_eq]
   rw [Finset.prod_insert (by simp [h1last, hTR1])]
   rw [Finset.prod_insert hTRlast]
   rw [natMonomial_interior_constant A c hconst R hRint]
