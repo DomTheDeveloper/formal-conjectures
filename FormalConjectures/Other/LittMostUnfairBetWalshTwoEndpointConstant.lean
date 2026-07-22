@@ -227,10 +227,10 @@ theorem eq_reverse_of_constant_interior_opposite_endpoints {n : ℕ}
       have hirevint : i.rev.val < n - 1 := by
         have h := i.rev_add_cast
         omega
-      rw [hinterior i hipos hiint]
+      change B i = A i.rev
+      rw [← hinterior i hipos hiint]
       rw [hconst i hipos hiint]
       rw [hconst i.rev hirevpos hirevint]
-      rfl
 
 /-- In the opposite-endpoint constant-interior branch the numerator vanishes. -/
 theorem selfOverlapDelta_eq_zero_of_constant_interior_opposite_endpoints {n : ℕ}
