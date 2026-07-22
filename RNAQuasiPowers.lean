@@ -2,5 +2,6 @@ import RNAQuasiPowers.Radicand
 import RNAQuasiPowers.GeneratingFunction
 import RNAQuasiPowers.GoldenRoot
 import RNAQuasiPowers.Covariance
+import RNAQuasiPowers.DensityCorrection
 import RNAQuasiPowers.ImplicitDerivatives
 import RNAQuasiPowers.AlgebraicCertificate
