@@ -149,7 +149,7 @@ def NoIntegerRelation (a : d → ℝ) : Prop :=
 /-- A multivariate Fourier monomial turns addition on the torus into multiplication. -/
 lemma mFourier_add_point (k : d → ℤ) (x y : UnitAddTorus d) :
     mFourier k (x + y) = mFourier k x * mFourier k y := by
-  simp only [mFourier, ContinuousMap.coe_mk, Pi.add_apply, fourier_apply, add_zsmul,
+  simp only [mFourier, ContinuousMap.coe_mk, Pi.add_apply, fourier_apply, smul_add,
     AddCircle.toCircle_add, Circle.coe_mul, Finset.prod_mul_distrib]
 
 /-- A Fourier monomial along a rotation orbit is a geometric progression. -/
