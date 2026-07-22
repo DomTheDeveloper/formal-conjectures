@@ -43,6 +43,7 @@ jobs:
             ProofAudit/160_star_bound.lean
             ProofAudit/160_two_center_bound.lean
             ProofAudit/160_maxima.lean
+            ProofAudit/160_large_triangle.lean
           )
           : > wowii-focused.log
           for file in "${files[@]}"; do
