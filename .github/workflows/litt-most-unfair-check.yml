@@ -73,3 +73,7 @@ jobs:
       - name: Compile Walsh gap lemmas
         run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBetWalshGap.lean
+
+      - name: Compile interior Walsh gap
+        run: |
+          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshInteriorGap.lean
