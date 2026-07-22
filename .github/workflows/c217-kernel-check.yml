@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - agent/c217-kernel-dev
+  pull_request:
+    branches:
+      - agent/c217-base
   workflow_dispatch:
 
 permissions:
