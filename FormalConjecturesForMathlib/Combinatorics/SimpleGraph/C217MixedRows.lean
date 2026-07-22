@@ -136,14 +136,16 @@ theorem isTraceable_mixed_replicates
   have huniv : ∀ x ∈ A, ∀ y, y ≠ x → (pathClosure G).Adj x y := by
     apply universal_of_high_middle G A C 4 hAC hAA hAtoC
     · intro v hv
+      have hvA : v ∉ A := by
+        intro hvA
+        exact hv (Finset.mem_union.mpr (Or.inl hvA))
+      have hvC : v ∉ C := by
+        intro hvC
+        exact hv (Finset.mem_union.mpr (Or.inr hvC))
       have hvCD : v ∈ C ∪ D := by
-        have hvA : v ∉ A := by
-          intro hvA
-          exact hv (Finset.mem_union.mpr (Or.inl hvA))
         rw [hCD]
         simp [hvA]
-      rw [Finset.mem_union] at hvCD
-      exact hvCD.resolve_left (fun hvC => hv (Finset.mem_union.mpr (Or.inr hvC))) |>.elim
+      exact hDbase v (hvCD.resolve_left hvC)
     · rw [hn, hAcard, hCcard]
       exact hstage
   have hAbase : ∀ x ∈ A, 6 ≤ (pathClosure G).degree x := by
