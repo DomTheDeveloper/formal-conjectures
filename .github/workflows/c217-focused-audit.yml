@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   check:
@@ -42,10 +43,30 @@ jobs:
           fi
 
       - name: Compile helper module and audit axioms
+        id: lean
+        continue-on-error: true
         run: |
-          set -euxo pipefail
+          set -o pipefail
           file=FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianExtras.lean
           lake env lean "$file" 2>&1 | tee c217-focused-audit.log
+
+      - name: Publish compact Lean diagnostics
+        if: steps.lean.outcome == 'failure' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo '### Focused Lean 4.27.0 diagnostics'
+            echo
+            echo '```text'
+            grep -E -A3 -B1 'error:|declaration uses|unknown (constant|identifier)|type mismatch|application type mismatch|invalid field' c217-focused-audit.log | tail -n 180
+            echo '```'
+          } > c217-diagnostics.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file c217-diagnostics.md
+
+      - name: Enforce compile and axiom audit
+        run: |
+          test "${{ steps.lean.outcome }}" = success
           if grep -nE 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' c217-focused-audit.log; then
             echo 'Forbidden axiom found in audit output.' >&2
             exit 1
