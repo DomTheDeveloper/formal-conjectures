@@ -53,6 +53,13 @@ private theorem coe_eq_coe_iff_of_mem_Ioc {x y : ℝ}
   · rintro rfl
     rfl
 
+private theorem coe_fract (x : ℝ) :
+    ((Int.fract x : ℝ) : UnitAddCircle) = (x : UnitAddCircle) := by
+  apply (AddCircle.equivIco (1 : ℝ) 0).injective
+  apply Subtype.ext
+  rw [AddCircle.equivIco_coe_eq (Int.fract_mem x)]
+  simpa using AddCircle.coe_equivIco_mk_apply (p := (1 : ℝ)) x
+
 /-- `openArc a` is open. -/
 theorem isOpen_openArc (a : ℝ) : IsOpen (openArc a) :=
   QuotientAddGroup.isOpenMap_coe isOpen_Ioo
@@ -64,6 +71,22 @@ theorem isClosed_closedArc (a : ℝ) : IsClosed (closedArc a) :=
 /-- The open arc is contained in its endpoint closure. -/
 theorem openArc_subset_closedArc (a : ℝ) : openArc a ⊆ closedArc a :=
   image_mono Ioo_subset_Icc_self
+
+/-- Membership of a real point in the terminal arc is exactly the corresponding
+fractional-part inequality. -/
+theorem coe_mem_openArc_iff {a x : ℝ} (ha : a < 1) :
+    ((x : UnitAddCircle) ∈ openArc a) ↔ 1 - a < Int.fract x := by
+  constructor
+  · rintro ⟨y, hy, hxy⟩
+    have hyIco : y ∈ Ico (0 : ℝ) 1 :=
+      ⟨(sub_nonneg.mpr ha.le).trans hy.1.le, hy.2⟩
+    have hfrIco : Int.fract x ∈ Ico (0 : ℝ) 1 := Int.fract_mem x
+    have hyfr : y = Int.fract x :=
+      (AddCircle.coe_eq_coe_iff_of_mem_Ico hyIco hfrIco).mp
+        (hxy.trans (coe_fract x).symm)
+    simpa [hyfr] using hy.1
+  · intro hx
+    exact ⟨Int.fract x, ⟨hx, Int.fract_lt_one x⟩, coe_fract x⟩
 
 private theorem preimage_openArc_inter_Ioc {a : ℝ} (ha : a < 1) :
     ((↑) : ℝ → UnitAddCircle) ⁻¹' openArc a ∩ Ioc 0 1 = Ioo (1 - a) 1 := by
