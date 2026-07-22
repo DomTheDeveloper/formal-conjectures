@@ -174,9 +174,6 @@ theorem natCast_overlapNum_eq_shiftOverlapNum {n : ℕ} (A B : Word n) :
   rw [Nat.cast_sum]
   apply Finset.sum_congr rfl
   intro h hh
-  rw [Nat.cast_sum]
-  apply Finset.sum_congr rfl
-  intro _ hmem
   split <;> simp
 
 /-- The repository and shift-indexed variance numerators coincide. -/
