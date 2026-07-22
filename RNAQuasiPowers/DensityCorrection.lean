@@ -24,6 +24,9 @@ density uses covariance matrix `[[1,c],[c,1]]`.
 /-- Marginal variance of the Gaussian density as literally printed. -/
 def printedMarginalVariance : Real := 1 / (1 - correlationSquare)
 
+/-- Marginal variance of the printed formula at an arbitrary correlation. -/
+def printedMarginalVarianceAt (c : Real) : Real := 1 / (1 - c ^ 2)
+
 theorem correlationSquare_pos : 0 < correlationSquare := by
   unfold correlationSquare
   nlinarith [correlationNumerator_pos]
@@ -44,6 +47,18 @@ theorem printedMarginalVariance_gt_one : 1 < printedMarginalVariance := by
 /-- The printed density is incompatible with unit marginal variances. -/
 theorem printedMarginalVariance_ne_one : printedMarginalVariance ≠ 1 := by
   exact ne_of_gt printedMarginalVariance_gt_one
+
+/-- The parameterized formula agrees with the paper's claimed correlation. -/
+theorem printedMarginalVarianceAt_target_eq :
+    printedMarginalVarianceAt targetCorrelation = printedMarginalVariance := by
+  unfold printedMarginalVarianceAt printedMarginalVariance
+  rw [targetCorrelation_sq]
+
+/-- Exact statement used by the Formal Conjectures submission. -/
+theorem printedMarginalVarianceAt_target_gt_one :
+    1 < printedMarginalVarianceAt targetCorrelation := by
+  rw [printedMarginalVarianceAt_target_eq]
+  exact printedMarginalVariance_gt_one
 
 end
 
