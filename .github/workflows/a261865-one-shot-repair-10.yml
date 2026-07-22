@@ -33,8 +33,11 @@ jobs:
   omega
 '''
           new = '''  have hright' : (m : ℝ) < (n : ℝ) + 1 := by simpa using hright
-  have hmn : m < n + 1 := by
-    exact_mod_cast hright'
+  have hmn : m ≤ n := by
+    by_contra h
+    have hle : n + 1 ≤ m := by omega
+    have hle' : (n : ℝ) + 1 ≤ (m : ℝ) := by exact_mod_cast hle
+    linarith
   omega
 '''
           if text.count(old) != 1:
