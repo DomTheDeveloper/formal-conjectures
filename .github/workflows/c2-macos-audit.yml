@@ -29,13 +29,24 @@ jobs:
         run: |
           set -o pipefail
           lake build FormalConjecturesUtil
-          lake env lean ProofAudit/2_counting_core.lean 2>&1 | tee c2-macos.log
-          lake env lean ProofAudit/2_local_choice.lean 2>&1 | tee -a c2-macos.log
-          lake env lean ProofAudit/2_double_count.lean 2>&1 | tee -a c2-macos.log
-          lake env lean ProofAudit/2_positive.lean 2>&1 | tee -a c2-macos.log
-          lake env lean ProofAudit/2_average_pair.lean 2>&1 | tee -a c2-macos.log
-          lake env lean ProofAudit/2_ls_bridge.lean 2>&1 | tee -a c2-macos.log
-          lake env lean ProofAudit/2_double_star.lean 2>&1 | tee -a c2-macos.log
+          files=(
+            ProofAudit/2_counting_core.lean
+            ProofAudit/2_local_choice.lean
+            ProofAudit/2_double_count.lean
+            ProofAudit/2_positive.lean
+            ProofAudit/2_average_pair.lean
+            ProofAudit/2_ls_bridge.lean
+            ProofAudit/2_double_star.lean
+            ProofAudit/2_double_star_degrees.lean
+            ProofAudit/2_tree_leaves.lean
+            ProofAudit/2_tree_bound.lean
+            ProofAudit/2_complete.lean
+          )
+          : > c2-macos.log
+          for file in "${files[@]}"; do
+            echo "=== $file ===" | tee -a c2-macos.log
+            lake env lean "$file" 2>&1 | tee -a c2-macos.log
+          done
       - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
