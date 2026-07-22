@@ -19,4 +19,5 @@ import FormalConjectures.Arxiv.«2602.19255».RNAQuasiPowers
 #print axioms Arxiv.«2602.19255».grammar_discriminant_eq_radicand
 #print axioms Arxiv.«2602.19255».quasiPowers_algebraic_certificate
 #print axioms Arxiv.«2602.19255».printed_density_not_standardized
+#print axioms Arxiv.«2602.19255».gaussian_precision_correction
 #print axioms Arxiv.«2602.19255».three_track_certificate
