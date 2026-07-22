@@ -33,7 +33,7 @@ jobs:
   lean-check:
     name: check Lean 4.27
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
@@ -50,11 +50,21 @@ jobs:
           lake exe cache unpack || true
           lake exe cache get
 
-      - name: Compile entire Litt development
+      - name: Reject proof holes and unsupported trust shortcuts
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find FormalConjectures/Other -maxdepth 1 \
+            -name 'LittMostUnfairBet*.lean' -print | sort)
+          if grep -nE '\b(sorry|admit|native_decide|unsafe|axiom)\b' "${files[@]}"; then
+            echo 'Unsupported proof hole, custom axiom, or trust shortcut found.'
+            exit 1
+          fi
+
+      - name: Compile complete Litt development
         run: |
           set -euo pipefail
           files=(
-            FormalConjectures/Other/LittMostUnfairBet.lean
+            FormalConjectures/Other/LittMostUnfairBetDefs.lean
             FormalConjectures/Other/LittMostUnfairBetProof.lean
             FormalConjectures/Other/LittMostUnfairBetWalsh.lean
             FormalConjectures/Other/LittMostUnfairBetWalshCorrelation.lean
@@ -77,18 +87,22 @@ jobs:
             FormalConjectures/Other/LittMostUnfairBetWalshOneEndpointGap.lean
             FormalConjectures/Other/LittMostUnfairBetReversal.lean
             FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointCore.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointToggle.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointComplete.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshAssembly.lean
+            FormalConjectures/Other/LittMostUnfairBet.lean
           )
           for file in "${files[@]}"; do
             echo "=== $file ==="
-            lake env lean "$file"
+            lake env lean -DwarningAsError=true "$file"
           done
 
-      - name: Reject unsupported proof holes in completed support modules
+      - name: Audit terminal theorem axioms
         run: |
           set -euo pipefail
-          support_files=$(find FormalConjectures/Other -maxdepth 1 -name 'LittMostUnfairBet*.lean' \
-            ! -name 'LittMostUnfairBet.lean' -print)
-          if grep -nE '\b(sorry|admit|native_decide)\b' $support_files; then
-            echo 'Unsupported proof hole or compiler shortcut found in Litt support modules.'
+          lake env lean FormalConjectures/Other/LittMostUnfairBet.lean 2>&1 | tee /tmp/litt-axioms.txt
+          if grep -nE 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce' /tmp/litt-axioms.txt; then
+            echo 'Terminal theorem uses an unsupported axiom or compiler-trust shortcut.'
             exit 1
           fi
