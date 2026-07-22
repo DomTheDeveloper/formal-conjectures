@@ -7,6 +7,10 @@ Lean status: audit copy.
 
 import FormalConjectures.Util.ProblemImports
 
+/-!
+# WOWII Graph Conjecture 65 audit proof
+-/
+
 namespace WrittenOnTheWallII.GraphConjecture65
 
 open Classical SimpleGraph
@@ -96,13 +100,8 @@ private lemma two_le_largestInducedForestSize (G : SimpleGraph α) :
     have hlen : c.support.tail.length = c.length := by
       simp [Walk.length_support]
     have hcard : Fintype.card {z // z ∈ ({u, v} : Finset α)} = 2 := by
-      calc
-        Fintype.card {z // z ∈ ({u, v} : Finset α)} =
-            ({u, v} : Finset α).card := by
-          apply Fintype.card_of_subtype
-          intro z
-          rfl
-        _ = 2 := by simp [huv]
+      simpa [huv] using
+        (Fintype.card_of_subtype ({u, v} : Finset α) (fun z => Iff.rfl))
     have hthree : 3 ≤ c.length := hc.three_le_length
     omega
 
