@@ -137,10 +137,106 @@ theorem hits_square_mul_imp (c s n : ℕ) (hc : 0 < c) :
   · simpa only [hsqrt, Nat.cast_mul, mul_assoc] using hleft
   · simpa only [hsqrt, Nat.cast_mul, mul_assoc] using hright
 
+/-- Every hit descends to a hit by a positive squarefree radicand no larger than the original. -/
+theorem exists_squarefree_hit_le (r n : ℕ) (hr : 0 < r) (hhit : Hits r n) :
+    ∃ s : ℕ, 0 < s ∧ s ≤ r ∧ Squarefree s ∧ Hits s n := by
+  induction r using Nat.strong_induction_on with
+  | h r ih =>
+      by_cases hsq : Squarefree r
+      · exact ⟨r, hr, le_rfl, hsq, hhit⟩
+      · rcases e : r.minSqFac with _ | d
+        · exact (hsq (Nat.squarefree_iff_minSqFac.mpr e)).elim
+        · have hdprime : d.Prime := Nat.minSqFac_prime e
+          obtain ⟨s, hrs⟩ := Nat.minSqFac_dvd e
+          have hdpos : 0 < d := hdprime.pos
+          have hspos : 0 < s := by
+            rw [hrs] at hr
+            positivity
+          have hslt : s < r := by
+            rw [hrs]
+            nlinarith [hdprime.two_le]
+          have hhit_s : Hits s n := by
+            apply hits_square_mul_imp d s n hdpos
+            simpa [pow_two, hrs] using hhit
+          obtain ⟨t, htpos, htle, htsq, hthit⟩ := ih s hslt hspos hhit_s
+          exact ⟨t, htpos, htle.trans hslt.le, htsq, hthit⟩
+
 /-- The squarefree integers in `[2, j)`. -/
 noncomputable def squarefreeBelow (j : ℕ) : Finset ℕ := by
   classical
   exact (Finset.Ico 2 j).filter Squarefree
+
+@[simp] theorem mem_squarefreeBelow {j s : ℕ} :
+    s ∈ squarefreeBelow j ↔ 2 ≤ s ∧ s < j ∧ Squarefree s := by
+  classical
+  simp [squarefreeBelow, and_assoc]
+
+/-- The squarefree radicands relevant to the value `j`, including `j` itself. -/
+noncomputable def relevantRadicands (j : ℕ) : Finset ℕ :=
+  insert j (squarefreeBelow j)
+
+@[simp] theorem mem_relevantRadicands {j s : ℕ} :
+    s ∈ relevantRadicands j ↔ s = j ∨ (2 ≤ s ∧ s < j ∧ Squarefree s) := by
+  classical
+  simp [relevantRadicands]
+
+/-- Adjoin the rational coordinate `1` to a finite family of radicands. -/
+def radicandWithOne {S : Finset ℕ} : Option S → ℕ
+  | none => 1
+  | some s => s.1
+
+/-- Reciprocal radicals indexed by distinct squarefree integers at least two have no integer
+relation modulo `1`. -/
+theorem noIntegerRelation_alpha (S : Finset ℕ)
+    (hge : ∀ s ∈ S, 2 ≤ s) (hsq : ∀ s ∈ S, Squarefree s) :
+    UnitAddTorus.NoIntegerRelation (fun s : S => alpha s.1) := by
+  let r : Option S → ℕ := radicandWithOne
+  have hr_sq : ∀ o, Squarefree (r o) := by
+    intro o
+    cases o with
+    | none => simp [r, radicandWithOne]
+    | some s => simpa [r, radicandWithOne] using hsq s.1 s.2
+  have hr_inj : Function.Injective r := by
+    intro o₁ o₂ h
+    cases o₁ with
+    | none =>
+        cases o₂ with
+        | none => rfl
+        | some s =>
+            exfalso
+            have := hge s.1 s.2
+            simp [r, radicandWithOne] at h
+            omega
+    | some s =>
+        cases o₂ with
+        | none =>
+            exfalso
+            have := hge s.1 s.2
+            simp [r, radicandWithOne] at h
+            omega
+        | some t =>
+            apply congrArg some
+            apply Subtype.ext
+            simpa [r, radicandWithOne] using h
+  have hli := Real.linearIndependent_inv_sqrt_squarefree r hr_sq hr_inj
+  intro k hk
+  obtain ⟨z, hz⟩ := hk
+  let c : Option S → ℚ
+    | none => -(z : ℚ)
+    | some s => (k s : ℚ)
+  have hsum :
+      ∑ o, c o • (1 / Real.sqrt (r o : ℝ)) =
+        ∑ o, (0 : ℚ) • (1 / Real.sqrt (r o : ℝ)) := by
+    rw [Fintype.sum_option]
+    simp only [c, r, radicandWithOne, Nat.cast_one, Real.sqrt_one, div_one,
+      Rat.smul_def, Rat.cast_neg, Rat.cast_intCast, neg_mul, mul_one,
+      zero_smul, Finset.sum_const_zero]
+    change -(z : ℝ) + ∑ s : S, (k s : ℝ) * alpha s.1 = 0
+    linarith
+  have hc := (Fintype.linearIndependent_iffₛ.mp hli c (fun _ => 0) hsum)
+  funext s
+  have hs := hc (some s)
+  exact_mod_cast (by simpa [c] using hs)
 
 /-- The density predicted for the value `j` in OEIS A261865. -/
 noncomputable def predictedDensity (j : ℕ) : ℝ :=
