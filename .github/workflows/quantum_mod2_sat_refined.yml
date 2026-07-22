@@ -1,0 +1,93 @@
+name: Quantum N6 D3 refined mod-2 SAT audit
+
+on:
+  push:
+    branches:
+      - audit/quantum-mod2-sat-2026-07-21
+  pull_request:
+    branches:
+      - audit/upstream-proof-base-2026-07-21
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  solve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        include:
+          - {case: same, case2: 0}
+          - {case: same, case2: 1}
+          - {case: same, case2: 2}
+          - {case: four_plus_two, case2: 0}
+          - {case: four_plus_two, case2: 1}
+          - {case: four_plus_two, case2: 2}
+          - {case: four_plus_two, case2: 3}
+          - {case: four_plus_two, case2: 4}
+          - {case: four_plus_two, case2: 5}
+          - {case: six_cycle, case2: 0}
+          - {case: six_cycle, case2: 1}
+          - {case: six_cycle, case2: 2}
+          - {case: six_cycle, case2: 3}
+          - {case: six_cycle, case2: 4}
+          - {case: six_cycle, case2: 5}
+          - {case: six_cycle, case2: 6}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install or build CaDiCaL and DRAT-trim
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y build-essential git python3
+          if ! command -v cadical >/dev/null 2>&1; then
+            git clone --depth 1 https://github.com/arminbiere/cadical.git /tmp/cadical
+            cd /tmp/cadical
+            ./configure
+            make -j2
+            sudo cp build/cadical /usr/local/bin/cadical
+          fi
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git /tmp/drat-trim
+          make -C /tmp/drat-trim -j2
+
+      - name: Generate, solve, and verify exact orbit case
+        shell: bash
+        run: |
+          set -euxo pipefail
+          dir=quantum-mod2-${{ matrix.case }}-${{ matrix.case2 }}
+          mkdir -p "$dir"
+          python3 ProofAudit/quantum_mod2_cnf.py \
+            --case '${{ matrix.case }}' \
+            --case2-index '${{ matrix.case2 }}' \
+            --output "$dir/system.cnf" \
+            --metadata "$dir/metadata.json"
+          sha256sum "$dir/system.cnf" "$dir/metadata.json" > "$dir/SHA256SUMS"
+          set +e
+          cadical "$dir/system.cnf" "$dir/unsat.drat" 2>&1 | tee "$dir/cadical.log"
+          status=${PIPESTATUS[0]}
+          set -e
+          echo "cadical_exit_code=$status" | tee "$dir/status.txt"
+          if [ "$status" -eq 10 ]; then
+            echo 'SAT: the mod-2 obstruction is false in this exhaustive orbit case.' >&2
+            exit 1
+          fi
+          test "$status" -eq 20
+          /tmp/drat-trim/drat-trim "$dir/system.cnf" "$dir/unsat.drat" \
+            2>&1 | tee "$dir/drat-trim.log"
+          grep -q 'VERIFIED' "$dir/drat-trim.log"
+          sha256sum "$dir/unsat.drat" >> "$dir/SHA256SUMS"
+
+      - name: Upload independently checked certificate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quantum-mod2-${{ matrix.case }}-${{ matrix.case2 }}
+          path: quantum-mod2-${{ matrix.case }}-${{ matrix.case2 }}
+          if-no-files-found: error
+          compression-level: 9
