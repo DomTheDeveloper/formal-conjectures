@@ -67,6 +67,7 @@ theorem integral_empiricalProbabilityMeasure
   have hY : Measurable Y := measurable_of_countable Y
   rw [ProbabilityMeasure.toMeasure_map]
   rw [integral_map hY.aemeasurable f.continuous.aestronglyMeasurable]
+  change (∫ n : ℕ, f (Y n) ∂p.toMeasure) = _
   have hfint : Integrable (fun n => f (Y n)) p.toMeasure := by
     have hc : Integrable (fun _ : ℕ => (‖f‖ : ℂ)) p.toMeasure := integrable_const _
     refine hc.mono ?_ ?_
