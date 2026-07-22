@@ -70,7 +70,9 @@ theorem rawEnergy_gap_or_delta_zero_of_two_endpoint_disagreement {n : ℕ}
       obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn4
       simp [pow_add, mul_assoc, mul_comm, mul_left_comm]
     rw [hpow] at hgap
-    exact le_trans (Nat.pow_le_pow_right (by omega) (by omega)) hgap
+    have hle : 2 ^ (n - 1) ≤ 2 ^ n :=
+      pow_le_pow_right' (by norm_num) (by omega)
+    exact hle.trans hgap
   · rcases hconst with ⟨c, hconst⟩
     by_cases hends : A ⟨0, by omega⟩ = A ⟨n - 1, by omega⟩
     · right
@@ -80,7 +82,9 @@ theorem rawEnergy_gap_or_delta_zero_of_two_endpoint_disagreement {n : ℕ}
         obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
         simp [pow_add, mul_assoc, mul_comm, mul_left_comm]
       rw [hpow] at hgap
-      exact le_trans (Nat.pow_le_pow_right (by omega) (by omega)) hgap
+      have hle : 2 ^ (n - 1) ≤ 2 ^ (n + 1) :=
+        pow_le_pow_right' (by norm_num) (by omega)
+      exact hle.trans hgap
     · left
       exact selfOverlapDelta_eq_zero_of_constant_interior_opposite_endpoints hn
         A B c hinterior hconst hleft hright hends
