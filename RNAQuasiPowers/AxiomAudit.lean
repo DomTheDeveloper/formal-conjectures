@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import RNAQuasiPowers.GeneratingFunction
-import RNAQuasiPowers.AlgebraicCertificate
-import RNAQuasiPowers.GaussianPrecision
+import FormalConjectures.Arxiv.«2602.19255».RNAQuasiPowers
+
+/-! Internal finite-certificate declarations. -/
 
 #print axioms RNAQuasiPowers.grammar_discriminant_eq_radicand
 #print axioms RNAQuasiPowers.quasiPowers_algebraic_certificate
@@ -24,3 +24,11 @@ import RNAQuasiPowers.GaussianPrecision
 #print axioms RNAQuasiPowers.correctedTargetPrecision_inverse_entries
 #print axioms RNAQuasiPowers.printedTargetPrecision_inverse_entries
 #print axioms RNAQuasiPowers.threeTrack_certificate
+
+/-! Public Formal Conjectures declarations. -/
+
+#print axioms Arxiv.«2602.19255».grammar_discriminant_eq_radicand
+#print axioms Arxiv.«2602.19255».quasiPowers_algebraic_certificate
+#print axioms Arxiv.«2602.19255».printed_density_not_standardized
+#print axioms Arxiv.«2602.19255».gaussian_precision_correction
+#print axioms Arxiv.«2602.19255».three_track_certificate
