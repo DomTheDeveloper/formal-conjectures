@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - agent/c217-closure-backport
+  pull_request:
+    branches:
+      - agent/c217-base
 
 permissions:
   contents: read
@@ -31,7 +34,7 @@ jobs:
           curl -L --fail --silent --show-error \
             https://raw.githubusercontent.com/leanprover-community/mathlib4/c83689ab8f1abfba1f646e65dc8b131fd256b73f/Mathlib/Combinatorics/SimpleGraph/BondyChvatal.lean \
             -o C217/BondyChvatal.lean
-          ! grep -nE '\bsorry\b|\badmit\b|Lean\.ofReduceBool|Lean\.trustCompiler|native_decide' C217/BondyChvatal.lean
+          ! grep -nE 'sorry|admit|Lean\.ofReduceBool|Lean\.trustCompiler|native_decide' C217/BondyChvatal.lean
       - name: Compile candidate and record axioms
         run: |
           set -euxo pipefail
