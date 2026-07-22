@@ -67,7 +67,7 @@ theorem isConstant_of_top_border {m : ℕ} (A : Word (m + 2))
     IsConstant A := by
   apply isConstant_of_adjacent_eq A
   intro i
-  have h := congrFun hborder i.castSucc
+  have h := congrFun hborder i
   change A ⟨m + 2 - m - 1 + i.val, by omega⟩ = A ⟨i.val, by omega⟩ at h
   have hidx : m + 2 - m - 1 + i.val = i.val + 1 := by omega
   simpa [hidx] using h.symm
