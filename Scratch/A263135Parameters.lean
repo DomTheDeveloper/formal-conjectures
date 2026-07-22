@@ -15,6 +15,12 @@ theorem balanced_sum (r : ℕ) :
   unfold balancedA balancedB balancedC
   omega
 
+/-- The balanced parameters are weakly increasing. -/
+theorem balanced_order (r : ℕ) :
+    balancedA r ≤ balancedB r ∧ balancedB r ≤ balancedC r := by
+  unfold balancedA balancedB balancedC
+  omega
+
 /-- Pair-product sum of balanced parameters. -/
 theorem balanced_pair_sum (r : ℕ) :
     balancedA r * balancedB r + balancedB r * balancedC r +
@@ -57,11 +63,12 @@ theorem balanced_positive (r : ℕ) (hr : 3 ≤ r) :
   unfold balancedA balancedB balancedC
   omega
 
-/-- The ceiling-square interval supplies balanced parameters and a valid clipping budget. -/
+/-- The ceiling-square interval supplies ordered balanced parameters and a valid clipping budget. -/
 theorem exists_balanced_clipping_parameters
     (n r : ℕ) (hn : 1 < n) (hr : IsNatCeilSqrt (3 * n) r) :
     ∃ a b c d : ℕ,
       0 < a ∧ 0 < b ∧ 0 < c ∧
+      a ≤ b ∧ b ≤ c ∧
       a + b + c = r ∧
       a * b + b * c + c * a = n + d ∧
       d ≤ a + b - 1 := by
@@ -81,10 +88,12 @@ theorem exists_balanced_clipping_parameters
     apply (Nat.le_div_iff_mul_le (by norm_num : 0 < 3)).mpr
     simpa [mul_comm] using hr.2
   let d := M - n
-  refine ⟨a, b, c, d, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨a, b, c, d, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · exact (balanced_positive r hr3).1
   · exact (balanced_positive r hr3).2.1
   · exact (balanced_positive r hr3).2.2
+  · exact (balanced_order r).1
+  · exact (balanced_order r).2
   · simpa [a, b, c] using balanced_sum r
   · dsimp [d]
     rw [hM]
