@@ -54,8 +54,10 @@ theorem correctedPrecision_inverse_entries (c : Real) (h : 1 - c ^ 2 ≠ 0) :
       correctedPrecisionDiagonal c * c + correctedPrecisionOffDiagonal c = 0 := by
   unfold correctedPrecisionDiagonal correctedPrecisionOffDiagonal
   constructor
-  · field_simp [h] <;> ring
-  · field_simp [h] <;> ring
+  · field_simp [h]
+    ring
+  · field_simp [h]
+    ring
 
 /--
 The unscaled precision entries `(1,-c)` printed in the paper invert to
@@ -66,8 +68,9 @@ theorem printedPrecision_inverse_entries (c : Real) (h : 1 - c ^ 2 ≠ 0) :
       printedCovarianceOffDiagonal c - c * printedCovarianceDiagonal c = 0 := by
   unfold printedCovarianceDiagonal printedCovarianceOffDiagonal
   constructor
-  · field_simp [h] <;> ring
-  · field_simp [h] <;> ring
+  · field_simp [h]
+  · field_simp [h]
+    ring
 
 /-- The target correlation lies in the nonsingular Gaussian range. -/
 theorem one_sub_targetCorrelation_sq_pos : 0 < 1 - targetCorrelation ^ 2 := by
