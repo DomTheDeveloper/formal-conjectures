@@ -1,0 +1,86 @@
+name: Quantum N6 D3 mod-2 SAT audit
+
+on:
+  push:
+    branches:
+      - audit/quantum-mod2-sat-2026-07-21
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  solve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [same, four_plus_two, six_cycle]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install or build CaDiCaL and DRAT-trim
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y build-essential git python3
+          if ! command -v cadical >/dev/null 2>&1; then
+            git clone --depth 1 https://github.com/arminbiere/cadical.git /tmp/cadical
+            cd /tmp/cadical
+            ./configure
+            make -j2
+            sudo cp build/cadical /usr/local/bin/cadical
+          fi
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git /tmp/drat-trim
+          make -C /tmp/drat-trim -j2
+          cadical --version
+
+      - name: Generate exact CNF
+        shell: bash
+        run: |
+          mkdir -p quantum-mod2-${{ matrix.case }}
+          python3 ProofAudit/quantum_mod2_cnf.py \
+            --case '${{ matrix.case }}' \
+            --output quantum-mod2-${{ matrix.case }}/system.cnf \
+            --metadata quantum-mod2-${{ matrix.case }}/metadata.json
+          sha256sum quantum-mod2-${{ matrix.case }}/system.cnf \
+            quantum-mod2-${{ matrix.case }}/metadata.json \
+            > quantum-mod2-${{ matrix.case }}/SHA256SUMS
+
+      - name: Solve and emit DRAT proof
+        shell: bash
+        run: |
+          set +e
+          dir=quantum-mod2-${{ matrix.case }}
+          cadical "$dir/system.cnf" "$dir/unsat.drat" 2>&1 | tee "$dir/cadical.log"
+          status=${PIPESTATUS[0]}
+          echo "cadical_exit_code=$status" | tee "$dir/status.txt"
+          if [ "$status" -eq 10 ]; then
+            echo 'SAT: mod-2 obstruction fails in this orbit case.' >&2
+            exit 1
+          fi
+          if [ "$status" -ne 20 ]; then
+            echo 'CaDiCaL did not prove UNSAT.' >&2
+            exit "$status"
+          fi
+
+      - name: Independently verify DRAT certificate
+        shell: bash
+        run: |
+          set -euxo pipefail
+          dir=quantum-mod2-${{ matrix.case }}
+          /tmp/drat-trim/drat-trim "$dir/system.cnf" "$dir/unsat.drat" \
+            2>&1 | tee "$dir/drat-trim.log"
+          grep -q 'VERIFIED' "$dir/drat-trim.log"
+          sha256sum "$dir/unsat.drat" >> "$dir/SHA256SUMS"
+
+      - name: Upload certificate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quantum-mod2-${{ matrix.case }}
+          path: quantum-mod2-${{ matrix.case }}
+          if-no-files-found: error
+          compression-level: 9
