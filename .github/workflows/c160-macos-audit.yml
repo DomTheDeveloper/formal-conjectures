@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - audit/c160-finish-2026-07-22
+  pull_request:
+    branches:
+      - audit/upstream-proof-base-2026-07-21
   workflow_dispatch:
 
 permissions:
