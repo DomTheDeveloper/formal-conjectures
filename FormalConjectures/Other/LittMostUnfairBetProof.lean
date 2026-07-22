@@ -162,10 +162,67 @@ theorem nonconstant_branch_arithmetic
 theorem zero_difference_branch (candidate variance denominator : ℕ) :
     0 ^ 2 * denominator ≤ candidate ^ 2 * variance := by simp
 
+/-- The square of the signed integer difference is the square of natural distance. -/
+theorem selfOverlapDelta_sq_eq_dist_sq {n : ℕ} (A B : Word n) :
+    selfOverlapDelta A B ^ 2 =
+      ((Nat.dist (overlapNum A A) (overlapNum B B) : ℕ) : ℤ) ^ 2 := by
+  unfold selfOverlapDelta
+  by_cases hle : overlapNum A A ≤ overlapNum B B
+  · rw [Nat.dist_eq_sub_of_le hle, Nat.cast_sub hle]
+    ring
+  · have hge : overlapNum B B ≤ overlapNum A A := Nat.le_of_lt (Nat.lt_of_not_ge hle)
+    rw [Nat.dist_eq_sub_of_le_right hge, Nat.cast_sub hge]
+
+/-- The integer candidate is the cast of the natural geometric numerator. -/
+theorem candidateNum_eq_natCast {n : ℕ} (hn : 1 ≤ n) :
+    candidateNum n = (((2 ^ n - 2 : ℕ) : ℤ)) := by
+  unfold candidateNum
+  have hpow : 2 ≤ 2 ^ n := by
+    obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
+    simp [pow_succ]
+  rw [Nat.cast_sub hpow]
+  norm_num
+
+/-- For `n ≥ 2`, split the power-of-two denominator into the quarter-variance scale. -/
+theorem pow_two_eq_four_mul_quarter {n : ℕ} (hn : 2 ≤ n) :
+    2 ^ n = 4 * 2 ^ (n - 2) := by
+  obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
+  rw [show m + 2 = m + 2 by rfl, pow_add]
+  norm_num
+
+/-- Once the Walsh lemma supplies the exact variance branch, the Formal
+Conjectures inequality follows with no additional word combinatorics. -/
+theorem most_unfair_litt_bound_of_variance_cases {n : ℕ} (hn : 2 ≤ n)
+    (A B : Word n) (q : ℕ)
+    (hvariance : varianceNum A B = (q : ℤ))
+    (hcase :
+      Nat.dist (overlapNum A A) (overlapNum B B) = 0 ∨
+      ((IsConstant A ∨ IsConstant B) ∧ 2 ^ n ≤ q) ∨
+      ((¬ IsConstant A ∧ ¬ IsConstant B) ∧ 2 ^ (n - 2) ≤ q)) :
+    selfOverlapDelta A B ^ 2 * ((2 ^ n : ℕ) : ℤ) ≤
+      candidateNum n ^ 2 * varianceNum A B := by
+  let delta := Nat.dist (overlapNum A A) (overlapNum B B)
+  let candidate := 2 ^ n - 2
+  have hnat : delta ^ 2 * 2 ^ n ≤ candidate ^ 2 * q := by
+    rcases hcase with hzero | hconstant | hnonconstant
+    · have hzero' : delta = 0 := hzero
+      subst delta
+      simp
+    · exact constant_branch_arithmetic candidate delta q (2 ^ n)
+        (selfOverlap_dist_le_candidate A B) hconstant.2
+    · rw [pow_two_eq_four_mul_quarter hn]
+      exact nonconstant_branch_arithmetic candidate delta q (2 ^ (n - 2))
+        (two_mul_selfOverlap_dist_le_candidate hn A B hnonconstant.1.1 hnonconstant.1.2)
+        hnonconstant.2
+  rw [selfOverlapDelta_sq_eq_dist_sq, hvariance,
+    candidateNum_eq_natCast (Nat.le_trans (by omega : 1 ≤ 2) hn)]
+  exact_mod_cast hnat
+
 #print axioms overlapNum_le_candidate
 #print axioms selfOverlapNum_le_nonconstant
 #print axioms two_mul_selfOverlap_dist_le_candidate
 #print axioms constant_branch_arithmetic
 #print axioms nonconstant_branch_arithmetic
+#print axioms most_unfair_litt_bound_of_variance_cases
 
 end LittMostUnfairBet
