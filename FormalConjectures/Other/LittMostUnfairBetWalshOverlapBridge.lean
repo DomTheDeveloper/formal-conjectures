@@ -14,14 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.Other.LittMostUnfairBetWalshEnergyIdentity
+import FormalConjectures.Other.LittMostUnfairBetWalshVariance
 
 /-!
 # Positive shifts and proper word overlaps
 
-A positive shift `h` leaves a common block of length `n-h`.  This file
+A positive shift `h` leaves a common block of length `n-h`. This file
 identifies that block with the proper overlap index `k = n-h-1` used by
-`overlapNum`.
+`overlapNum`, and therefore identifies the repository variance numerator with
+the Walsh translation-shape square energy.
 -/
 
 set_option autoImplicit false
@@ -165,8 +166,45 @@ theorem overlapNum_eq_positive_shift_sum {n : ℕ} (A B : Word n) :
       exact Finset.sum_coe_sort (Finset.Ico 1 n)
         (fun h => if prefixBlock B h = suffixBlock A h then 2 ^ (n - h) else 0)
 
+/-- Casting `overlapNum` gives the shift-indexed integer numerator. -/
+theorem natCast_overlapNum_eq_shiftOverlapNum {n : ℕ} (A B : Word n) :
+    ((overlapNum A B : ℕ) : ℤ) = shiftOverlapNum A B := by
+  rw [overlapNum_eq_positive_shift_sum]
+  unfold shiftOverlapNum
+  rw [Nat.cast_sum]
+  apply Finset.sum_congr rfl
+  intro h hh
+  rw [Nat.cast_sum]
+  apply Finset.sum_congr rfl
+  intro _ hmem
+  split <;> simp
+
+/-- The repository and shift-indexed variance numerators coincide. -/
+theorem varianceNum_eq_shiftVarianceNum {n : ℕ} (A B : Word n) :
+    varianceNum A B = shiftVarianceNum A B := by
+  unfold varianceNum shiftVarianceNum
+  rw [natCast_overlapNum_eq_shiftOverlapNum A A,
+    natCast_overlapNum_eq_shiftOverlapNum B B,
+    natCast_overlapNum_eq_shiftOverlapNum A B,
+    natCast_overlapNum_eq_shiftOverlapNum B A]
+
+/-- Exact Walsh square identity for the repository variance numerator. -/
+theorem rawEnergy_cast_eq_two_mul_varianceNum {n : ℕ}
+    (A B : Word n) (hne : A ≠ B) :
+    ((rawEnergy A B : ℕ) : ℤ) = 2 * varianceNum A B := by
+  rw [varianceNum_eq_shiftVarianceNum]
+  exact rawEnergy_cast_eq_two_mul_shiftVarianceNum A B hne
+
+/-- The repository variance numerator is nonnegative. -/
+theorem varianceNum_nonneg {n : ℕ} (A B : Word n) (hne : A ≠ B) :
+    0 ≤ varianceNum A B := by
+  rw [varianceNum_eq_shiftVarianceNum]
+  exact shiftVarianceNum_nonneg A B hne
+
 #print axioms positiveShiftOverlapEquiv
 #print axioms shift_block_eq_iff_overlap
 #print axioms overlapNum_eq_positive_shift_sum
+#print axioms varianceNum_eq_shiftVarianceNum
+#print axioms rawEnergy_cast_eq_two_mul_varianceNum
 
 end LittMostUnfairBetWalsh
