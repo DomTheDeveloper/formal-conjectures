@@ -11,6 +11,9 @@ theorem sum_occupiedRows_card_le_edgeBoundary (S : Finset Vertex) :
     exact Finset.sum_le_sum fun r _ =>
       two_mul_occupiedRows_card_le_rowBoundaryDarts_card r S
   rw [sum_rowBoundaryDarts_card] at hsum
-  simpa [Finset.mul_sum] using Nat.le_of_mul_le_mul_left hsum
+  have hdouble :
+      2 * (∑ r : RowKind, (occupiedRows r S).card) ≤ 2 * edgeBoundary S := by
+    simpa [Finset.mul_sum] using hsum
+  omega
 
 end OeisA263135
