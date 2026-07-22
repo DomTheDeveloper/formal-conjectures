@@ -82,7 +82,7 @@ theorem diagonalPairs_eq_image (s : Finset α) :
     have hmem := Finset.mem_product.mp hp'.1
     apply Finset.mem_image.mpr
     refine ⟨p.1, hmem.1, ?_⟩
-    exact Prod.ext rfl hp'.2.symm
+    exact Prod.ext rfl hp'.2
   · intro hp
     rcases Finset.mem_image.mp hp with ⟨i, hi, rfl⟩
     simp [diagonalPairs, hi]
