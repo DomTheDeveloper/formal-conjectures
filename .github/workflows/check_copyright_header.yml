@@ -17,9 +17,14 @@ name: 'Check Copyright Header'
 on:
   pull_request:
 
+concurrency:
+  group: copyright-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check-copyright:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
+    timeout-minutes: 10
     steps:
     - name: Check out repository code
       uses: actions/checkout@v6
