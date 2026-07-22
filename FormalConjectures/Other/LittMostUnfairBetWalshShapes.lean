@@ -21,7 +21,7 @@ import FormalConjectures.Other.LittMostUnfairBetWalsh
 # Translation shapes for the Litt Walsh energy
 
 A nonempty finite coordinate set has a unique normalized translation shape,
-obtained by moving its minimum to zero.  The asymptotic variance is the sum of
+obtained by moving its minimum to zero. The asymptotic variance is the sum of
 squares of the aggregated raw Walsh differences over these shapes.
 -/
 
@@ -55,14 +55,22 @@ def natMonomial {n : ℕ} (A : Word n) (S : Finset ℕ) : ℤ :=
 
 @[simp] theorem natMonomial_mul_self {n : ℕ} (A : Word n) (S : Finset ℕ) :
     natMonomial A S * natMonomial A S = 1 := by
+  unfold natMonomial
   rw [← Finset.prod_mul_distrib]
-  simp [natMonomial, letterSign_mul_self]
+  simp [letterSign_mul_self]
 
 /-- Every word monomial is itself a sign. -/
 theorem natMonomial_eq_one_or_neg_one {n : ℕ} (A : Word n) (S : Finset ℕ) :
     natMonomial A S = 1 ∨ natMonomial A S = -1 := by
   have hsquare := natMonomial_mul_self A S
-  nlinarith
+  have hfactor :
+      (natMonomial A S - 1) * (natMonomial A S + 1) = 0 := by
+    nlinarith
+  rcases mul_eq_zero.mp hfactor with h | h
+  · left
+    linarith
+  · right
+    linarith
 
 /-- Normalized nonempty translation shapes inside a word of length `n`. -/
 def shapes (n : ℕ) : Finset (Finset ℕ) :=
@@ -126,7 +134,7 @@ theorem translations_eq_singleton_zero {n : ℕ} (hn : 1 ≤ n) (S : Finset ℕ)
   · rintro rfl
     refine ⟨by omega, ?_⟩
     intro i hi
-    exact Finset.mem_range.mp (hsub hi)
+    simpa using Finset.mem_range.mp (hsub hi)
 
 /-- The coefficient of a full-span shape is its one raw monomial difference. -/
 theorem shapeCoeff_eq_rawDifference_of_full_span {n : ℕ} (hn : 1 ≤ n)
