@@ -279,6 +279,7 @@ theorem contacts_patch_formula (a b c : ℕ)
       3 * (a * b + b * c + c * a) - (a + b + c) := by
   rw [contacts_eq_card_aInternalDarts]
   rw [← card_patchContactDarts a b c ha hb hc]
+  symm
   apply Finset.card_bij (fun pd hpd => rankDartVertex pd)
   · exact fun pd hpd => (rankDart_mem_aInternal_iff ha hb hc).mp hpd
   · intro p hp q hq h
