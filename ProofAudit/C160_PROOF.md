@@ -2,130 +2,130 @@
 
 Let
 
-- \(\lambda(v)=\alpha(G[N(v)])\),
-- \(\tau(v)\) be the number of triangles containing \(v\),
-- \(L=\max_v\lambda(v)\), and
-- \(T=\max_v\tau(v)\).
+- `λ(v) = α(G[N(v)])`,
+- `τ(v)` be the number of triangles containing `v`,
+- `L = max_v λ(v)`, and
+- `T = max_v τ(v)`.
 
 Assume throughout that `G` is finite, simple, connected, nontrivial, and has no cycle of length four. We prove that `G` has a spanning tree with at least `L + T` leaves.
 
-## 1. Local structure
+## 1. Triangle petals in a C4-free graph
 
-For every vertex `v`, the graph induced by `N(v)` has maximum degree at most one. Indeed, if `u ∈ N(v)` had two distinct neighbors `p,q ∈ N(v)`, then
+For a triangle `C` containing a vertex `v`, call the two-element set `C \ {v}` its **petal at `v`**. Two distinct triangles through `v` have disjoint petals. Otherwise they share `v` and another vertex `z`; writing their two remaining vertices as `a` and `b`,
 
-`p - u - q - v - p`
+`a - v - b - z - a`
 
-would be a four-cycle. Hence `G[N(v)]` is a disjoint union of edges and isolated vertices.
+is a four-cycle.
 
-Every edge of `G[N(v)]` is exactly the edge opposite `v` in one triangle through `v`. Consequently `G[N(v)]` has exactly `τ(v)` edges. A matching with `m` edges and `r` isolated vertices has independence number `m+r`, so
+Consequently, if `Q(v)` is the union of all petals of triangles through `v`, then
 
-`λ(v) + τ(v) = deg(v)`.                                                    (1)
+`|Q(v)| = 2 τ(v)`.                                                        (1)
 
-In particular, `λ(v) ≥ τ(v)`.
+Every petal is an edge. Therefore, for every independent set `S ⊆ N(v)`, at most one endpoint of each petal lies in `S`. Since the petals are disjoint,
 
-Also, any two distinct vertices have at most one common neighbor: two distinct common neighbors would themselves give a four-cycle.
+`|S ∩ Q(v)| ≤ τ(v)`.                                                      (2)
 
-## 2. Tree leaf inequality and extension
+We shall also use that two distinct vertices have at most one common neighbor: two distinct common neighbors immediately form a four-cycle.
+
+## 2. Tree facts
 
 For every finite nontrivial tree `R` and distinct vertices `a,b`,
 
-`leaves(R) ≥ deg_R(a) + deg_R(b) - 2`.                                    (2)
+`leaves(R) ≥ deg_R(a) + deg_R(b) - 2`.                                    (3)
 
-This follows from the standard identity
+This is the standard identity
 
 `leaves(R) = 2 + Σ_{deg_R(z)≥2} (deg_R(z)-2)`.
 
-We also use the standard forest-extension fact: every acyclic edge-subgraph of a connected graph extends to a spanning tree while retaining all of its edges. Therefore it is enough to construct an acyclic seed with the required center degrees. A geodesic together with any collection of edges attaching previously unused vertices as leaves is acyclic.
+Every acyclic edge-subgraph of a connected graph extends to a spanning tree while retaining all its edges. Thus we construct acyclic seeds and track center degrees, which cannot decrease under extension. A geodesic together with edges attaching previously unused vertices as leaves is acyclic.
 
 ## 3. The case `T = 0`
 
-Choose `x` with `λ(x)=L`. By (1), `deg(x)=λ(x)=L`. The full star at `x` is acyclic and extends to a spanning tree preserving degree `L` at `x`. Every tree has at least its maximum vertex degree many leaves, so the resulting spanning tree has at least `L=L+T` leaves.
+Choose `x` with `λ(x)=L` and an independent set `S⊆N(x)` of cardinality `L`. The star with center `x` and leaf set `S` is acyclic. Extend it to a spanning tree. The degree of `x` remains at least `L`, so the spanning tree has at least `L=L+T` leaves.
 
 ## 4. The case `T = 1`
-
-This is the classical triangle-improvement bound `Ls(G) ≥ L+1`; here is a direct construction that tracks degrees preserved by forest extension.
 
 Choose `x` with `λ(x)=L`, and choose an independent set `S⊆N(x)` of cardinality `L`. Choose a triangle `{a,b,c}` and choose `a` in that triangle minimizing the distance from `x` to the triangle. If `x` lies in the chosen triangle, take `a=x`. Let `P` be a geodesic from `x` to `a`.
 
 ### 4.1. The case `a=x`
 
-Take the star at `x` on the neighbor set `S∪{b,c}`. Since `b` and `c` are adjacent and `S` is independent, `S` contains at most one of `b,c`. Thus
-
-`|S∪{b,c}| ≥ L+1`.
-
-The star extends to a spanning tree preserving degree at least `L+1` at `x`, hence the spanning tree has at least `L+1=L+T` leaves.
+Take the star at `x` on `S∪{b,c}`. Since `b` and `c` are adjacent and `S` is independent, `S` contains at most one of them. Hence the star has degree at least `L+1` at `x`. Extend it to a spanning tree, which therefore has at least `L+1=L+T` leaves.
 
 ### 4.2. The case `a≠x`
 
-Start with the edges of `P`. Attach every vertex of `S` not already used by `P` or by `{b,c}` as a fresh leaf at `x`. Finally attach `b` and `c` as fresh leaves at `a`.
+Start with the edges of `P`. Attach every member of `S` not already used by `P` or by `{b,c}` as a fresh leaf at `x`. Finally attach `b` and `c` as fresh leaves at `a`.
 
-The seed is acyclic: a geodesic is a path; the selected members of `S` are fresh; minimality of `a` ensures that `b,c` do not occur earlier on `P`; and duplicates with the `x`-attachments were explicitly omitted.
-
-At most one member of `S` is omitted:
+The seed is acyclic. Minimality of `a` ensures that `b,c` do not occur earlier on `P`. At most one member of `S` is omitted:
 
 - a geodesic contains at most one neighbor of its initial vertex, namely its first successor;
-- if `dist(x,a)>1`, no triangle vertex is in `N(x)` by minimality;
-- if `dist(x,a)=1`, the path successor is `a`, and the three triangle vertices form a clique, so the independent set `S` meets the whole triangle in at most one vertex.
+- if `dist(x,a)>1`, no vertex of the chosen triangle is in `N(x)`;
+- if `dist(x,a)=1`, the path successor is `a`, and the independent set `S` meets the triangle in at most one vertex.
 
-Let `s` be the number of retained members of `S`; then `s≥L-1`. Extend the seed to a spanning tree `R`. All seed edges remain, so
+Let `s≥L-1` be the number of retained members of `S`. Extend the seed to a spanning tree `R`. The retained edges give
 
-`deg_R(x) ≥ s+1`
+`deg_R(x) ≥ s+1`,
+`deg_R(a) ≥ 3`.
 
-(the `s` attached edges plus the first path edge), while
-
-`deg_R(a) ≥ 3`
-
-(the last path edge plus the two triangle edges). Since `x≠a`, (2) gives
+Since `x≠a`, (3) yields
 
 `leaves(R) ≥ (s+1)+3-2 = s+2 ≥ L+1 = L+T`.
 
 ## 5. The case `T ≥ 2`
 
-Choose `x` with `λ(x)=L` and `y` with `τ(y)=T`.
+Choose `x` with `λ(x)=L`, an independent set `S⊆N(x)` with `|S|=L`, and choose `y` with `τ(y)=T`. Put `Q=Q(y)`, so `|Q|=2T` by (1).
 
 ### 5.1. Coincident maximizers
 
-If `x=y`, then by (1)
+Suppose `x=y`. By (2), `|S∩Q|≤T`, and hence
 
-`deg(x)=λ(x)+τ(x)=L+T`.
+`|S∪Q| = |S|+|Q|-|S∩Q| ≥ L+2T-T = L+T`.
 
-The full star at `x` extends to a spanning tree with at least `L+T` leaves.
+Every vertex of `S∪Q` is adjacent to `x`. The corresponding star extends to a spanning tree preserving degree at least `L+T` at `x`, so it has at least `L+T` leaves.
 
-### 5.2. Distinct maximizers
+### 5.2. Distinct maximizers: general construction
 
-Assume `x≠y`, and let `P` be a geodesic from `x` to `y`. Take the edge set of `P`, attach every unused neighbor of `x` as an `x`-leaf, and then attach every unused neighbor of `y` that has not already been attached as an `x`-leaf.
+Assume `x≠y`, and let `P` be a geodesic from `x` to `y`.
 
-The resulting seed is acyclic: each added edge introduces a fresh leaf. Extend it to a spanning tree `R`.
+Begin with the edges of `P`. Attach as leaves at `x` all vertices of `S` not already on `P`. Then attach as leaves at `y` all vertices of `Q` that are neither on `P` nor already attached at `x`. Every added vertex is fresh, so the seed is acyclic. Extend it to a spanning tree `R`.
 
-If `dist(x,y)≥2`, both endpoint degrees are fully preserved. For distance greater than two there is no common neighbor. For distance two, the middle path vertex is a common neighbor already represented by both path edges, and a second common neighbor would create a four-cycle. Hence
+A geodesic contains at most one member of `N(x)` and at most one member of `N(y)`. Thus at most one member of `S` is lost to `P`, giving
 
-`deg_R(x)≥deg_G(x)` and `deg_R(y)≥deg_G(y)`.
+`deg_R(x) ≥ L`.                                                           (4)
 
-Using (1), (2), and `λ(y)≥τ(y)=T≥2`,
+Moreover, `Q⊆N(y)`. At most one member of `Q` lies on `P`, and at most one further member can have been attached at `x`, because such a vertex would be a common neighbor of `x` and `y`. Therefore
 
-`leaves(R)`
-`≥ deg_G(x)+deg_G(y)-2`
-`= (L+τ(x))+(λ(y)+T)-2`
-`≥ L+T`.
+`deg_R(y) ≥ 1+(2T-2)=2T-1`.                                               (5)
 
-It remains to consider `dist(x,y)=1`. The construction preserves every edge at `x`. At `y`, it omits only edges to common neighbors of `x` and `y`; there is at most one such neighbor. Therefore
+If `T≥3`, equations (3)–(5) give
 
-`deg_R(x)≥deg_G(x)`,
-`deg_R(y)≥deg_G(y)-1`.
+`leaves(R) ≥ L+(2T-1)-2 = L+2T-3 ≥ L+T`.
 
-If there is no common neighbor, (2) and `λ(y)≥2` immediately give `leaves(R)≥L+T`.
+It remains only to sharpen the construction when `T=2`.
 
-If there is one common neighbor, then `x` lies in a triangle, so `τ(x)≥1`. By (1),
+### 5.3. The case `T=2` and `dist(x,y)≥2`
 
-`deg_G(x)=L+τ(x)≥L+1`,
-`deg_G(y)=λ(y)+T≥T+2`.
+If `dist(x,y)>2`, `x` and `y` have no common neighbor. If `dist(x,y)=2`, their unique possible common neighbor is the middle vertex of `P`; a second common neighbor would create a four-cycle. In either case the two possible exclusions counted in (5) cannot be distinct. Hence at most one member of `Q` is omitted, so
 
-Consequently
+`deg_R(y) ≥ 1+(4-1)=4`.
 
-`leaves(R)`
-`≥ deg_R(x)+deg_R(y)-2`
-`≥ deg_G(x)+deg_G(y)-3`
-`≥ (L+1)+(T+2)-3`
-`= L+T`.
+Together with (4) and (3),
+
+`leaves(R) ≥ L+4-2 = L+2 = L+T`.
+
+### 5.4. The case `T=2` and `x` adjacent to `y`
+
+Use the adjacent double-star seed: retain the central edge `xy`, every chosen edge from `x` to `S`, and every edge from `y` to a vertex of `Q` that is not already joined to `x` in the seed. It is acyclic, because every noncentral vertex is attached to only one center. Extend it to a spanning tree `R`.
+
+If `x∉Q`, at most one member of `Q` is a common neighbor of `x,y`. Therefore `y` retains the central edge and at least three of the four `Q`-edges, so
+
+`deg_R(y)≥4`, while `deg_R(x)≥L`.
+
+If `x∈Q`, then one petal at `y` is `{x,z}` for a common neighbor `z`. The central edge accounts for `x`; only `z` can be lost at the `y` side. If `y∈S`, independence forces `z∉S`, so `x` has degree at least `L` and `y` has degree at least `4`. If `y∉S`, then `x` has the central edge in addition to all `L` chosen `S`-edges, so `deg_R(x)≥L+1`, while `deg_R(y)≥3`. In every subcase,
+
+`deg_R(x)+deg_R(y)≥L+4`.
+
+Equation (3) now gives
+
+`leaves(R) ≥ L+4-2 = L+2 = L+T`.
 
 This completes every case and proves the corrected C4-free form of WOWII Conjecture 160.
