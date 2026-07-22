@@ -1,0 +1,1 @@
+This branch is a frozen audit snapshot of the Litt most-unfair proof at commit c82b4a3e99ae86adf0007e256ebcd9292d226ab1. It exists only to run the lightweight final Lean audit without subsequent proof commits cancelling the workflow.
