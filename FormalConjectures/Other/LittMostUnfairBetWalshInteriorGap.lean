@@ -54,7 +54,7 @@ def stripInteriorShape (n j : ℕ) (S : Finset ℕ) : Finset ℕ :=
   ((S.erase 0).erase (n - 1)).erase j
 
 /-- A full-span base is contained in the coordinate range. -/
-theorem fullSpanBase_subset_range {n : ℕ} (hn : 3 ≤ n) {R : Finset ℕ}
+theorem fullSpanBase_subset_range {n j : ℕ} (hn : 3 ≤ n) {R : Finset ℕ}
     (hR : R ⊆ interiorExcept n j) :
     fullSpanBase n R ⊆ Finset.range n := by
   intro i hi
@@ -193,10 +193,12 @@ theorem card_selectedInteriorShapes {n : ℕ} (hn : 3 ≤ n)
     (hjlast : j.val < n - 1) :
     #((interiorExcept n j.val).powerset.image
       (selectedInteriorShape A B j.val)) = 2 ^ (n - 3) := by
-  rw [Finset.card_image_iff.mpr]
-  · simp [card_interiorExcept hn j hjpos hjlast]
-  · intro R₁ hR₁ R₂ hR₂ heq
+  have hinj : Set.InjOn (selectedInteriorShape A B j.val)
+      (interiorExcept n j.val).powerset := by
+    intro R₁ hR₁ R₂ hR₂ heq
     exact selectedInteriorShape_injective A B j hjpos hjlast hR₁ hR₂ heq
+  rw [Finset.card_image_of_injOn hinj]
+  simp [card_interiorExcept hn j hjpos hjlast]
 
 /-- An interior disagreement forces at least `4 * 2^(n-3)` raw Walsh energy. -/
 theorem rawEnergy_ge_of_interior_disagreement {n : ℕ} (hn : 3 ≤ n)
@@ -224,9 +226,10 @@ theorem rawEnergy_ge_of_interior_disagreement {n : ℕ} (hn : 3 ≤ n)
       _ = 4 * #selected := by simp [mul_comm]
       _ = 4 * 2 ^ (n - 3) := by
         rw [card_selectedInteriorShapes hn A B j hjpos hjlast]
-  rw [rawEnergy]
-  rw [← hselected]
-  exact Finset.sum_le_sum_of_subset_of_nonneg hsubset (by simp)
+  rw [rawEnergy, ← hselected]
+  exact Finset.sum_le_sum_of_subset_of_nonneg hsubset (by
+    intro S hS hnot
+    exact Nat.zero_le _)
 
 #print axioms selectedInteriorShape_square
 #print axioms selectedInteriorShape_injective
