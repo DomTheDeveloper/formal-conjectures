@@ -19,10 +19,10 @@ import FormalConjectures.Paper.MonochromaticQuantumGraph
 /-!
 # Color restriction for the N = 6 monochromatic quantum graph system
 
-This file verifies the reduction from the three-color integer case to every
-larger number of colors. It deliberately takes the still-missing `D = 3`
-nonexistence theorem as a hypothesis rather than importing an unavailable
-private module or pretending that the base case has been proved.
+This kernel-audit copy verifies the reduction from the three-color integer
+case to every larger number of colors. It deliberately takes the still-missing
+`D = 3` nonexistence theorem as a hypothesis rather than importing an
+unavailable private module or pretending that the base case has been proved.
 -/
 
 namespace MonochromaticQuantumGraph
