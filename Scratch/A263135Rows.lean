@@ -42,31 +42,35 @@ def nextDirection : RowKind → Vertex → Direction
 theorem rowCoord_neighbor_prev (r : RowKind) (v : Vertex) :
     rowCoord r (neighbor v (prevDirection r v)) = rowCoord r v := by
   rcases v with ⟨i, j, side⟩
-  cases r <;> cases side <;> simp [rowCoord, prevDirection, neighbor]
+  cases r <;> cases side <;>
+    simp [rowCoord, prevDirection, neighbor] <;> omega
 
 @[simp]
 theorem rowCoord_neighbor_next (r : RowKind) (v : Vertex) :
     rowCoord r (neighbor v (nextDirection r v)) = rowCoord r v := by
   rcases v with ⟨i, j, side⟩
-  cases r <;> cases side <;> simp [rowCoord, nextDirection, neighbor]
+  cases r <;> cases side <;>
+    simp [rowCoord, nextDirection, neighbor] <;> omega
 
 @[simp]
 theorem alongCoord_neighbor_prev (r : RowKind) (v : Vertex) :
     alongCoord r (neighbor v (prevDirection r v)) = alongCoord r v - 1 := by
   rcases v with ⟨i, j, side⟩
-  cases r <;> cases side <;> simp [alongCoord, prevDirection, neighbor]
+  cases r <;> cases side <;>
+    simp [alongCoord, prevDirection, neighbor] <;> omega
 
 @[simp]
 theorem alongCoord_neighbor_next (r : RowKind) (v : Vertex) :
     alongCoord r (neighbor v (nextDirection r v)) = alongCoord r v + 1 := by
   rcases v with ⟨i, j, side⟩
-  cases r <;> cases side <;> simp [alongCoord, nextDirection, neighbor]
+  cases r <;> cases side <;>
+    simp [alongCoord, nextDirection, neighbor] <;> omega
 
 @[simp]
 theorem prevDirection_ne_nextDirection (r : RowKind) (v : Vertex) :
     prevDirection r v ≠ nextDirection r v := by
   rcases v with ⟨i, j, side⟩
-  cases r <;> cases side <;> decide
+  cases r <;> cases side <;> simp [prevDirection, nextDirection]
 
 /-- Directed boundary incidences of a finite honeycomb set. -/
 def boundaryDarts (S : Finset Vertex) : Finset (Vertex × Direction) :=
