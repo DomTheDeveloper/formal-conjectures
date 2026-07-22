@@ -1,0 +1,73 @@
+name: Close final A261865 base arithmetic goals
+
+on:
+  push:
+    branches: [a261865-research]
+    paths:
+      - '.github/workflows/a261865-one-shot-repair-10.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: a261865-research
+          fetch-depth: 0
+
+      - name: Apply exact Lean repairs
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('FormalConjectures/OEIS/A261865Base.lean')
+          text = path.read_text()
+
+          old = '''  have hright' : (m : ℝ) < (n : ℝ) + 1 := by simpa using hright
+  have hmn : m ≤ n := by
+    exact_mod_cast hright'
+  omega
+'''
+          new = '''  have hright' : (m : ℝ) < (n : ℝ) + 1 := by simpa using hright
+  have hmn : m < n + 1 := by
+    exact_mod_cast hright'
+  omega
+'''
+          if text.count(old) != 1:
+              raise SystemExit(f'first replacement count={text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          old = '''          have hspos : 0 < s := by
+            apply Nat.pos_of_ne_zero
+            intro hs0
+            subst s
+            simp at hr
+'''
+          new = '''          have hspos : 0 < s := by
+            apply Nat.pos_of_ne_zero
+            intro hs0
+            have hr0 : r = 0 := by simpa [hs0] using hrs
+            omega
+'''
+          if text.count(old) != 1:
+              raise SystemExit(f'second replacement count={text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          path.write_text(text)
+          Path('.github/workflows/a261865-one-shot-repair-10.yml').unlink()
+          PY
+
+      - name: Commit repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ProofOrchestrator'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add FormalConjectures/OEIS/A261865Base.lean \
+                  .github/workflows/a261865-one-shot-repair-10.yml
+          git commit -m 'Close final A261865 base arithmetic goals'
+          git push origin HEAD:a261865-research
