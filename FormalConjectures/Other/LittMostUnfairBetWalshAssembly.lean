@@ -54,7 +54,7 @@ theorem four_mul_pow_pred_eq_two_mul_pow {n : ℕ} (hn : 3 ≤ n) :
   ring
 
 /-- Assemble the exact variance cases from the remaining two-endpoint lemma. -/
-theorem variance_cases_of_two_endpoint_gap {n : ℕ} (hn : 2 ≤ n)
+theorem variance_cases_of_two_endpoint_gap {n : ℕ} (hn : 3 ≤ n)
     (A B : Word n) (hne : A ≠ B)
     (hboth :
       (∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i) →
@@ -89,9 +89,8 @@ theorem variance_cases_of_two_endpoint_gap {n : ℕ} (hn : 2 ≤ n)
   by_cases hinterior :
       ∃ i : Fin n, 0 < i.val ∧ i.val < n - 1 ∧ A i ≠ B i
   · rcases hinterior with ⟨i, hi0, hilast, hidiff⟩
-    have hn3 : 3 ≤ n := by omega
-    have hraw := rawEnergy_ge_of_interior_disagreement hn3 A B i hi0 hilast hidiff
-    rw [four_mul_pow_pred_eq_two_mul_pow hn3] at hraw
+    have hraw := rawEnergy_ge_of_interior_disagreement hn A B i hi0 hilast hidiff
+    rw [four_mul_pow_pred_eq_two_mul_pow hn] at hraw
     exact finish_energy hraw
   have hagree : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i := by
     intro i hi0 hilast
@@ -138,7 +137,7 @@ theorem variance_cases_of_two_endpoint_gap {n : ℕ} (hn : 2 ≤ n)
       exact hagree i (by omega) (by omega)
 
 /-- The Formal Conjectures inequality follows from the final two-endpoint gap. -/
-theorem most_unfair_litt_bound_of_two_endpoint_gap {n : ℕ} (hn : 2 ≤ n)
+theorem most_unfair_litt_bound_of_two_endpoint_gap {n : ℕ} (hn : 3 ≤ n)
     (A B : Word n) (hne : A ≠ B)
     (hboth :
       (∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i) →
@@ -150,7 +149,7 @@ theorem most_unfair_litt_bound_of_two_endpoint_gap {n : ℕ} (hn : 2 ≤ n)
       candidateNum n ^ 2 * varianceNum A B := by
   rcases variance_cases_of_two_endpoint_gap hn A B hne hboth with
     ⟨q, hq, hcases⟩
-  exact most_unfair_litt_bound_of_variance_cases hn A B q hq hcases
+  exact most_unfair_litt_bound_of_variance_cases (by omega) A B q hq hcases
 
 #print axioms exists_varianceNat
 #print axioms variance_cases_of_two_endpoint_gap
