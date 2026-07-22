@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """Generate the exact mod-2 CNF for the N=6, D=3 quantum-graph equations.
 
-Any integer solution reduces modulo 2 to a Boolean solution.  Symmetry breaking
-is complete in three stages:
+Any integer solution reduces modulo 2 to a Boolean solution. Symmetry breaking
+is complete in four stages:
 
 1. choose an active colour-0 perfect matching and relabel it to ``M0``;
 2. classify an active colour-1 perfect matching under ``Stab(M0)``;
-3. optionally classify an active colour-2 perfect matching under
-   ``Stab(M0, M1)``.
-
-The optional third stage yields 16 exhaustive orbit cases in total.
+3. classify an active colour-2 perfect matching under ``Stab(M0,M1)``;
+4. in the sole surviving K3,3 factorisation, classify a cyclic orbit of three
+   remaining diagonal bits as 000, 111, 100, or 110.
 """
 
 from __future__ import annotations
@@ -28,6 +27,7 @@ M1_CASES = {
     "four_plus_two": ((0, 2), (1, 3), (4, 5)),
     "six_cycle": ((0, 2), (1, 4), (3, 5)),
 }
+K33_PATTERNS = ("000", "111", "100", "110")
 
 
 def normalize_matching(matching: Iterable[Iterable[int]]) -> tuple[tuple[int, int], ...]:
@@ -97,7 +97,6 @@ class CNF:
 
     def xor2(self, a: int, b: int, name: str) -> int:
         y = self.new_var(name)
-        # y <-> a XOR b
         self.add(-a, -b, -y)
         self.add(a, b, -y)
         self.add(a, -b, y)
@@ -116,6 +115,13 @@ def main() -> None:
     parser.add_argument(
         "--case2-index", type=int,
         help="Fix colour 2 to this orbit representative under Stab(M0,M1).",
+    )
+    parser.add_argument(
+        "--k33-pattern", choices=K33_PATTERNS,
+        help=(
+            "For six_cycle case2=6, fix the residual C3 orbit "
+            "(w_0_2_0_0,w_3_5_0_0,w_1_4_0_0) up to cyclic rotation."
+        ),
     )
     parser.add_argument("--list-case2", action="store_true")
     parser.add_argument("--output", type=Path)
@@ -136,6 +142,10 @@ def main() -> None:
         parser.error(
             f"--case2-index must be in [0,{len(color2_representatives)-1}] for {args.case}"
         )
+    if args.k33_pattern is not None and not (
+        args.case == "six_cycle" and args.case2_index == 6
+    ):
+        parser.error("--k33-pattern is valid only for --case six_cycle --case2-index 6")
 
     cnf = CNF()
     weights: dict[tuple[int, int, int, int], int] = {}
@@ -149,9 +159,6 @@ def main() -> None:
     matchings = list(perfect_matchings(tuple(range(N))))
     assert len(matchings) == 15
 
-    # Every monochromatic equation has odd parity, hence contains an active
-    # perfect-matching monomial.  Vertex relabeling and the stabilizers above
-    # justify fixing these representatives without loss of generality.
     for u, v in M0:
         cnf.unit(weights[edge_key(u, v, 0, 0)])
     for u, v in M1_CASES[args.case]:
@@ -161,6 +168,16 @@ def main() -> None:
         fixed_color2 = color2_representatives[args.case2_index]
         for u, v in fixed_color2:
             cnf.unit(weights[edge_key(u, v, 2, 2)])
+
+    residual_orbit = [
+        edge_key(0, 2, 0, 0),
+        edge_key(3, 5, 0, 0),
+        edge_key(1, 4, 0, 0),
+    ]
+    if args.k33_pattern is not None:
+        for key, bit in zip(residual_orbit, args.k33_pattern, strict=True):
+            variable = weights[key]
+            cnf.unit(variable if bit == "1" else -variable)
 
     for assignment_index, colors in enumerate(itertools.product(range(D), repeat=N)):
         monomials: list[int] = []
@@ -188,6 +205,8 @@ def main() -> None:
         "case": args.case,
         "case2_index": args.case2_index,
         "color2_orbit_count": len(color2_representatives),
+        "k33_pattern": args.k33_pattern,
+        "k33_residual_orbit": residual_orbit,
         "vertices": N,
         "colors": D,
         "weight_variables": len(weights),
@@ -203,7 +222,10 @@ def main() -> None:
     args.metadata.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     print(json.dumps({
         k: metadata[k]
-        for k in ("case", "case2_index", "color2_orbit_count", "variables", "clauses")
+        for k in (
+            "case", "case2_index", "k33_pattern", "color2_orbit_count",
+            "variables", "clauses",
+        )
     }, indent=2))
 
 
