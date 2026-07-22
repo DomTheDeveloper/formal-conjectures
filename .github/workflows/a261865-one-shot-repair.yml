@@ -1,0 +1,111 @@
+name: Apply first A261865 Lean repair batch
+
+on:
+  push:
+    branches: [a261865-research]
+    paths:
+      - '.github/workflows/a261865-one-shot-repair.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout proof branch
+        uses: actions/checkout@v4
+        with:
+          ref: a261865-research
+          fetch-depth: 0
+
+      - name: Apply exact Lean repairs
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one match, found {count}: {old!r}')
+              p.write_text(text.replace(old, new, 1))
+
+          sq = 'FormalConjecturesForMathlib/NumberTheory/SquarefreeRadical.lean'
+          replace_once(sq,
+              '  rw [ha.ext_iff hb]\n  intro p hp\n',
+              '  apply (Squarefree.ext_iff ha hb).2\n  intro p hp\n')
+          replace_once(sq,
+              '  have heq : minpoly ℚ x = X ^ 2 - C r :=\n'
+              '    Polynomial.eq_of_monic_of_dvd_of_natDegree_le (minpoly.monic hint) hmonic hdvd\n'
+              '      (by rw [hdeg2, Polynomial.natDegree_X_pow_sub_C])\n',
+              '  have heq_rev : X ^ 2 - C r = minpoly ℚ x :=\n'
+              '    Polynomial.eq_of_monic_of_dvd_of_natDegree_le\n'
+              '      (p := minpoly ℚ x) (q := X ^ 2 - C r)\n'
+              '      (minpoly.monic hint) hmonic hdvd\n'
+              '      (by rw [hdeg2, Polynomial.natDegree_X_pow_sub_C])\n'
+              '  have heq : minpoly ℚ x = X ^ 2 - C r := heq_rev.symm\n')
+          replace_once(sq,
+              '    refine ⟨Polynomial.X ^ 2 - Polynomial.C (s i : ℚ), ?_, ?_⟩\n'
+              '    · exact Polynomial.monic_X_pow_sub_C _ two_ne_zero\n'
+              '    · norm_num [← Polynomial.C_pow]\n'
+              '      norm_cast\n'
+              '      rw [Real.sq_sqrt (Nat.cast_nonneg _)]\n'
+              '      ring\n',
+              '    refine ⟨Polynomial.X ^ 2 - Polynomial.C (s i : ℚ),\n'
+              '      Polynomial.monic_X_pow_sub_C _ two_ne_zero, ?_⟩\n'
+              '    norm_num [← Polynomial.C_pow]\n'
+              '    rw [Real.sq_sqrt (Nat.cast_nonneg _)]\n'
+              '    norm_num\n')
+          replace_once(sq,
+              '  have hroot_sq (i : ι) : (root i) ^ 2 = algebraMap ℚ K (s i : ℚ) := by\n'
+              '    apply Subtype.ext\n'
+              '    simp only [root]\n'
+              '    push_cast\n'
+              '    rw [Real.sq_sqrt (Nat.cast_nonneg _)]\n'
+              '    norm_cast\n',
+              '  have hroot_sq (i : ι) : (root i) ^ 2 = algebraMap ℚ K (s i : ℚ) := by\n'
+              '    apply Subtype.ext\n'
+              '    change (Real.sqrt (s i : ℝ)) ^ 2 = (s i : ℝ)\n'
+              '    exact Real.sq_sqrt (Nat.cast_nonneg _)\n')
+
+          torus = 'FormalConjecturesForMathlib/Analysis/Equidistribution/UnitAddTorus.lean'
+          replace_once(torus,
+              '  rw [dist_eq_norm, norm_sub_rev] at hdist\n',
+              '  rw [dist_eq_norm] at hdist\n')
+          replace_once(torus,
+              '  | zero => simp [mFourier_zero]\n',
+              '  | zero => simp [mFourier, fourier_apply]\n')
+          replace_once(torus,
+              '  obtain ⟨z, hz⟩ := AddCircle.coe_eq_zero_iff.mp hzero\'\n',
+              '  obtain ⟨z, hz⟩ := (AddCircle.coe_eq_zero_iff (1 : ℝ)).mp hzero\'\n')
+          replace_once(torus,
+              '  rw [volume_eq_fourierVolume (d := d)]\n'
+              '  have h := (orthonormal_iff_ite.mp (orthonormal_mFourier (d := d))) (0 : d → ℤ) k\n',
+              '  have h := (orthonormal_iff_ite.mp (orthonormal_mFourier (d := d))) (0 : d → ℤ) k\n')
+          replace_once(torus,
+              '      _ = 2 := by simp [norm_pow, hnorm]\n',
+              '      _ = 2 := by norm_num [norm_pow, hnorm]\n')
+          replace_once(torus,
+              '      simp [mFourier, fourier_apply, norm_prod, Circle.norm_coe]\n',
+              '      simp only [mFourier, fourier_apply, ContinuousMap.coe_mk, norm_prod,\n'
+              '        Circle.norm_coe, Finset.prod_const_one]\n')
+
+          Path('.github/workflows/a261865-one-shot-repair.yml').unlink()
+          PY
+
+      - name: Commit repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ProofOrchestrator'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add FormalConjecturesForMathlib/NumberTheory/SquarefreeRadical.lean \
+                  FormalConjecturesForMathlib/Analysis/Equidistribution/UnitAddTorus.lean \
+                  .github/workflows/a261865-one-shot-repair.yml
+          git commit -m 'Fix A261865 foundation proofs after AXLE diagnostics'
+          git push origin HEAD:a261865-research
