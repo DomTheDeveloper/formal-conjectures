@@ -1,0 +1,112 @@
+name: Apply clean quantum all-colors GDM patch
+
+on:
+  pull_request:
+    branches:
+      - upstream/quantum-gdm-base-20260722
+
+permissions:
+  contents: write
+
+jobs:
+  apply-patch:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/quantum-n6-all-colors-gdm-clean'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/quantum-n6-all-colors-gdm-clean
+          fetch-depth: 0
+
+      - name: Apply four declaration updates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('FormalConjectures/Paper/MonochromaticQuantumGraph.lean')
+          text = path.read_text()
+          proof = 'https://github.com/DomTheDeveloper/formal-conjectures/blob/a76f24bc20db67b27c445faa39571cf5bc03990e/QuantumGraphColorRestriction.lean'
+
+          replacements = [
+          ('''/-- For $N = 6$ and $D = 5$, does there exist no solution to the monochromatic quantum graph
+          equation system over $\\mathbb{Z}$? -/
+          @[category research open, AMS 5 14 81]
+          theorem eqSystem6_no_solution_d5_int :
+              answer(sorry) ↔''',
+          f'''/-- For $N = 6$ and $D = 5$, does there exist no solution to the monochromatic quantum graph
+          equation system over $\\mathbb{{Z}}$?
+
+          This follows from the $D = 3$ result by restricting any five-colour solution to three colours.
+          -/
+          @[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
+          "{{proof}}#L163-L166"]
+          theorem eqSystem6_no_solution_d5_int :
+              answer(True) ↔'''.format(proof=proof)),
+
+          ('''/-- For $N = 6$ and all $D \\geq 3$, does there exist no solution to the monochromatic quantum graph
+          equation system over $\\mathbb{Z}$? -/
+          @[category research open, AMS 5 14 81]
+          theorem eqSystem6_no_solution_ge3_int :
+              answer(sorry) ↔''',
+          f'''/-- For $N = 6$ and all $D \\geq 3$, does there exist no solution to the monochromatic quantum graph
+          equation system over $\\mathbb{{Z}}$?
+
+          This follows from the $D = 3$ result because solution existence is downward-closed in the number
+          of colours.
+          -/
+          @[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
+          "{{proof}}#L169-L174"]
+          theorem eqSystem6_no_solution_ge3_int :
+              answer(True) ↔'''.format(proof=proof)),
+
+          ('''/-- For $N = 6$ and $D = 5$, does there exist no solution to the monochromatic quantum graph
+          equation system over $\\mathbb{Z}$ with weights in $\\{-1, 0, 1\\}$? -/
+          @[category research open, AMS 5 14 81]
+          theorem eqSystem6_no_solution_d5_trinary_int :
+              answer(sorry) ↔''',
+          f'''/-- For $N = 6$ and $D = 5$, does there exist no solution to the monochromatic quantum graph
+          equation system over $\\mathbb{{Z}}$ with weights in $\\{{-1, 0, 1\\}}$?
+
+          This follows from the unrestricted integer result.
+          -/
+          @[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
+          "{{proof}}#L177-L182"]
+          theorem eqSystem6_no_solution_d5_trinary_int :
+              answer(True) ↔'''.format(proof=proof)),
+
+          ('''/-- For $N = 6$ and all $D \\geq 3$, does there exist no solution to the monochromatic quantum graph
+          equation system over $\\mathbb{Z}$ with weights in $\\{-1, 0, 1\\}$? -/
+          @[category research open, AMS 5 14 81]
+          theorem eqSystem6_no_solution_ge3_trinary_int :
+              answer(sorry) ↔''',
+          f'''/-- For $N = 6$ and all $D \\geq 3$, does there exist no solution to the monochromatic quantum graph
+          equation system over $\\mathbb{{Z}}$ with weights in $\\{{-1, 0, 1\\}}$?
+
+          This follows from the unrestricted integer result.
+          -/
+          @[category research solved, AMS 5 14 81, formal_proof using formal_conjectures at
+          "{{proof}}#L185-L192"]
+          theorem eqSystem6_no_solution_ge3_trinary_int :
+              answer(True) ↔'''.format(proof=proof)),
+          ]
+
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected exactly one match, found {count}: {old[:80]!r}')
+              text = text.replace(old, new)
+
+          path.write_text(text)
+          PY
+
+      - name: Commit clean statement-only patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add FormalConjectures/Paper/MonochromaticQuantumGraph.lean
+          git commit -m 'Solve N=6 integer quantum graph cases for all D ≥ 3'
+          git push origin HEAD:agent/quantum-n6-all-colors-gdm-clean
