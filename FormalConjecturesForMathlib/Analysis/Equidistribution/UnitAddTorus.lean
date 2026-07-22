@@ -16,6 +16,8 @@ limitations under the License.
 module
 
 public import Mathlib.Analysis.Fourier.AddCircleMulti
+public import Mathlib.Algebra.Field.GeomSum
+public import Mathlib.Analysis.SpecificLimits.Normed
 
 @[expose] public section
 
@@ -139,5 +141,118 @@ theorem tendsto_average_of_tendsto_mFourier
     rw [heq]
     exact norm_add₃_le
   linarith [htri, h1, h2, hN0', hdist]
+
+/-- There is no nontrivial integer relation among `a` and `1`. -/
+def NoIntegerRelation (a : d → ℝ) : Prop :=
+  ∀ k : d → ℤ, (∃ z : ℤ, ∑ i, (k i : ℝ) * a i = z) → k = 0
+
+/-- A multivariate Fourier monomial turns addition on the torus into multiplication. -/
+lemma mFourier_add_point (k : d → ℤ) (x y : UnitAddTorus d) :
+    mFourier k (x + y) = mFourier k x * mFourier k y := by
+  simp only [mFourier, ContinuousMap.coe_mk, Pi.add_apply, fourier_apply, add_zsmul,
+    AddCircle.toCircle_add, Circle.coe_mul, Finset.prod_mul_distrib]
+
+/-- A Fourier monomial along a rotation orbit is a geometric progression. -/
+lemma mFourier_nsmul (k : d → ℤ) (x : UnitAddTorus d) (n : ℕ) :
+    mFourier k (n • x) = (mFourier k x) ^ n := by
+  induction n with
+  | zero => simp [mFourier_zero]
+  | succ n ih =>
+      rw [succ_nsmul, mFourier_add_point, ih, pow_succ]
+
+/-- A Fourier monomial is the canonical circle character evaluated on the corresponding
+integer linear combination of the coordinates. -/
+lemma mFourier_eq_toCircle_sum (k : d → ℤ) (x : UnitAddTorus d) :
+    mFourier k x =
+      ((AddCircle.toCircle (∑ i, k i • x i) : Circle) : ℂ) := by
+  classical
+  simp only [mFourier, ContinuousMap.coe_mk, fourier_apply]
+  let s : Finset d := Finset.univ
+  change (∏ i ∈ s, ((AddCircle.toCircle (k i • x i) : Circle) : ℂ)) = _
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert a s ha ih =>
+      rw [Finset.prod_insert ha, Finset.sum_insert ha, AddCircle.toCircle_add,
+        Circle.coe_mul, ih]
+
+/-- Under `NoIntegerRelation`, every nonconstant Fourier monomial is nontrivial on the
+rotation vector. -/
+lemma mFourier_coe_ne_one {a : d → ℝ} (ha : NoIntegerRelation a)
+    {k : d → ℤ} (hk : k ≠ 0) :
+    mFourier k (fun i => (a i : UnitAddCircle)) ≠ 1 := by
+  intro h
+  have hcirc :
+      AddCircle.toCircle (∑ i, k i • (a i : UnitAddCircle)) = (1 : Circle) := by
+    apply Subtype.ext
+    simpa [mFourier_eq_toCircle_sum] using h
+  have hzero : (∑ i, k i • (a i : UnitAddCircle)) = 0 := by
+    apply AddCircle.injective_toCircle one_ne_zero
+    simpa using hcirc
+  have hzero' : ((∑ i, (k i : ℝ) * a i : ℝ) : UnitAddCircle) = 0 := by
+    simpa [zsmul_eq_mul] using hzero
+  obtain ⟨z, hz⟩ := AddCircle.coe_eq_zero_iff.mp hzero'
+  apply hk
+  apply ha k
+  exact ⟨z, by simpa [zsmul_eq_mul] using hz.symm⟩
+
+/-- The Haar integral of a torus Fourier monomial is `1` at frequency zero and `0`
+otherwise. -/
+lemma integral_mFourier (k : d → ℤ) :
+    ∫ x : UnitAddTorus d, mFourier k x = if k = 0 then 1 else 0 := by
+  have h := (orthonormal_iff_ite.mp (orthonormal_mFourier (d := d))) (0 : d → ℤ) k
+  simpa only [ContinuousMap.inner_toLp, mFourier_zero, ContinuousMap.one_apply,
+    map_one, one_mul, Pi.zero_apply, neg_zero, zero_add] using h
+
+/-- The Cesàro averages of a nontrivial unit-modulus geometric progression tend to zero. -/
+lemma tendsto_geom_average_zero {z : ℂ} (hz : z ≠ 1) (hnorm : ‖z‖ = 1) :
+    Tendsto (fun N : ℕ => (∑ n ∈ Finset.range N, z ^ n) / N) atTop (𝓝 0) := by
+  have hbound : ∀ N : ℕ,
+      ‖(∑ n ∈ Finset.range N, z ^ n) / N‖ ≤
+        (2 / ‖z - 1‖) / (N : ℝ) := by
+    intro N
+    rw [geom_sum_eq hz, norm_div, norm_div, Complex.norm_natCast]
+    by_cases hN : N = 0
+    · simp [hN]
+    have hden : 0 < ‖z - 1‖ := norm_pos_iff.mpr (sub_ne_zero.mpr hz)
+    have hNpos : (0 : ℝ) < N := by exact_mod_cast Nat.pos_of_ne_zero hN
+    rw [div_div]
+    apply div_le_div_of_nonneg_right _ hNpos.le
+    rw [div_le_iff₀ hden]
+    calc
+      ‖z ^ N - 1‖ ≤ ‖z ^ N‖ + ‖(1 : ℂ)‖ := norm_sub_le _ _
+      _ = 2 := by simp [norm_pow, hnorm]
+  refine squeeze_zero_norm hbound ?_
+  exact tendsto_const_nhds.div_atTop tendsto_natCast_atTop_atTop
+
+/-- Weyl equidistribution for a torus rotation whose coordinates, together with `1`,
+have no nontrivial integer relation. -/
+theorem tendsto_average_rotation
+    (a : d → ℝ) (ha : NoIntegerRelation a) :
+    ∀ F : C(UnitAddTorus d, ℂ),
+      Tendsto
+        (fun N : ℕ =>
+          (∑ n ∈ Finset.range N, F (n • (fun i => (a i : UnitAddCircle)))) / N)
+        atTop
+        (𝓝 (∫ x, F x)) := by
+  apply tendsto_average_of_tendsto_mFourier
+    (Y := fun n => n • (fun i => (a i : UnitAddCircle))) volume
+  intro k
+  by_cases hk : k = 0
+  · subst k
+    have heq :
+        (fun N : ℕ =>
+          (∑ n ∈ Finset.range N,
+            mFourier (0 : d → ℤ) (n • (fun i => (a i : UnitAddCircle)))) / N) =ᶠ[atTop]
+          fun _ => (1 : ℂ) := by
+      filter_upwards [eventually_gt_atTop 0] with N hN
+      simp [mFourier_zero, hN.ne']
+    simpa [integral_mFourier] using tendsto_const_nhds.congr' heq.symm
+  · have hz : mFourier k (fun i => (a i : UnitAddCircle)) ≠ 1 :=
+      mFourier_coe_ne_one ha hk
+    have hnorm : ‖mFourier k (fun i => (a i : UnitAddCircle))‖ = 1 := by
+      simpa using congrArg (fun f : C(UnitAddTorus d, ℂ) => ‖f‖) (rfl : mFourier k = mFourier k)
+    have hgeom := tendsto_geom_average_zero hz hnorm
+    rw [integral_mFourier, if_neg hk]
+    simpa only [mFourier_nsmul] using hgeom
 
 end UnitAddTorus
