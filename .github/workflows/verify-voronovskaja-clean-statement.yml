@@ -1,9 +1,7 @@
 name: Verify clean Voronovskaja statement
 
 on:
-  push:
-    branches:
-      - agent/verify-voronovskaja-clean-statement
+  pull_request:
     paths:
       - 'FormalConjectures/Paper/VoronovskajaTypeFormula.lean'
       - '.github/workflows/verify-voronovskaja-clean-statement.yml'
