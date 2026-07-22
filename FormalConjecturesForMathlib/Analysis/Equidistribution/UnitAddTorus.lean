@@ -91,7 +91,7 @@ theorem tendsto_average_of_tendsto_mFourier
       Submodule.top_coe]
     exact Set.mem_univ F
   obtain ⟨p, hp, hdist⟩ := Metric.mem_closure_iff.mp hF (ε / 3) (by positivity)
-  rw [dist_eq_norm] at hdist
+  rw [dist_eq_norm, norm_sub_rev] at hdist
   obtain ⟨N₀, hN₀⟩ :=
     (Metric.tendsto_atTop.mp (hspan p hp)) (ε / 3) (by positivity)
   refine ⟨N₀, fun N hN => ?_⟩
