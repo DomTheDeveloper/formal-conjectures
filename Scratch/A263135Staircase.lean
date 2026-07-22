@@ -66,7 +66,17 @@ theorem perimeter_square_of_chain_deficiency
   have hsq := sq_le_two_mul_staircaseDeficiency q
   have hm2 : 2 * m + q ^ 2 ≤ 4 * a * b := by
     nlinarith
-  nlinarith [sq_nonneg (a - q), sq_nonneg (b - q),
-    mul_nonneg (Nat.zero_le (a - q)) (Nat.zero_le (b - q))]
+  let x := a - q
+  let z := b - a
+  have haeq : a = q + x := by
+    dsimp [x]
+    omega
+  have hbeq : b = q + x + z := by
+    dsimp [x, z]
+    omega
+  have hceq : c = q + 2 * x + z := by
+    omega
+  rw [haeq, hbeq, hceq] at hm2 ⊢
+  nlinarith [Nat.zero_le (x ^ 2), Nat.zero_le (x * z), Nat.zero_le (z ^ 2)]
 
 end OeisA263135
