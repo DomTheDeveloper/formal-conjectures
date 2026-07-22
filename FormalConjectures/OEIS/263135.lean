@@ -39,8 +39,6 @@ identity with A047932 and A216256.
 
 namespace OeisA263135
 
-open scoped BigOperators
-
 /-- The three edge directions incident to a vertex of the honeycomb graph. -/
 inductive Direction
   | same
@@ -88,8 +86,10 @@ Every honeycomb edge has exactly one endpoint on the `A` side, so summing the
 three neighbor tests only over `A` vertices counts every contact exactly once.
 -/
 def contacts (S : Finset Vertex) : ℕ :=
-  ∑ v in S, if v.side = true then 0 else
-    ∑ d : Direction, if neighbor v d ∈ S then 1 else 0
+  Finset.sum S (fun v =>
+    if v.side = true then 0 else
+      Finset.sum Finset.univ (fun d : Direction =>
+        if neighbor v d ∈ S then 1 else 0))
 
 /-- `k` is the maximum contact count among all `N`-vertex honeycomb subsets. -/
 def IsMaximumContact (N k : ℕ) : Prop :=
