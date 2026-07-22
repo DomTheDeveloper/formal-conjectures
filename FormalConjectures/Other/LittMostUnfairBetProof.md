@@ -3,11 +3,11 @@
 ## Exact proof certificate for the fair binary case
 
 This note proves the finite extremal statement underlying the asymptotic
-unfairness problem posed by Ekhad and Zeilberger.  It also records the exact
+unfairness problem posed by Ekhad and Zeilberger. It also records the exact
 Walsh-energy lemma used by the companion Lean development.
 
 The statement concerns the coefficient in the asymptotic expansion proved by
-Janson, Nica, and Segert.  Their theorem gives, for distinct binary words
+Janson, Nica, and Segert. Their theorem gives, for distinct binary words
 `A,B` of common length `ell`,
 
 \[
@@ -82,8 +82,8 @@ A=H^{\ell-1}T,\qquad B=H^\ell.
 \]
 
 The word `A` has no proper border, while every proper prefix of `B` is also a
-suffix.  Moreover `A` has no suffix equal to a prefix of `B`, whereas every
-proper suffix of `B` equals the corresponding prefix of `A`.  Hence
+suffix. Moreover `A` has no suffix equal to a prefix of `B`, whereas every
+proper suffix of `B` equals the corresponding prefix of `A`. Hence
 
 \[
 a=0,\qquad b=M,\qquad c=0,\qquad d=M.
@@ -93,8 +93,8 @@ Therefore `D=1` and `F(A,B)=M`.
 
 ## 2. Any pair containing a constant word
 
-By complement symmetry it is enough to take `B=H^ell`.  Let `p` and `s` be
-the lengths of the initial and terminal runs of `H` in `A`.  Since `A` is not
+By complement symmetry it is enough to take `B=H^ell`. Let `p` and `s` be
+the lengths of the initial and terminal runs of `H` in `A`. Since `A` is not
 constant,
 
 \[
@@ -139,14 +139,14 @@ Also `0 <= a <= M`, whence
 F(A,H^\ell)=\frac{M-a}{\sqrt D}\le M.
 \]
 
-For equality, necessarily `a=0`, `D=1`, and `c+d=M`.  Equality in the power
-inequality requires both `p+s=ell-1` and `(2^p-1)(2^s-1)=0`.  Therefore
+For equality, necessarily `a=0`, `D=1`, and `c+d=M`. Equality in the power
+inequality requires both `p+s=ell-1` and `(2^p-1)(2^s-1)=0`. Therefore
 `(p,s)=(ell-1,0)` or `(0,ell-1)`, giving exactly
 `H^{ell-1}T` or `TH^{ell-1}`.
 
 ## 3. Walsh translation-shape identity
 
-Encode `H,T` by signs `+1,-1`.  Write the two words as
+Encode `H,T` by signs `+1,-1`. Write the two words as
 
 \[
 A=(a_0,\ldots,a_{\ell-1}),\qquad
@@ -156,42 +156,41 @@ B=(b_0,\ldots,b_{\ell-1}).
 For a finite coordinate set `S`, let
 
 \[
-a_S=\prod_{i\in S}a_i,\qquad b_S=\prod_{i\in S}b_i.
+a_S=\prod_{i\in S}a_i,\qquad b_S=\prod_{i\in S}b_i,
+\qquad q_S=\frac{a_S-b_S}{2}\in\{-1,0,1\}.
 \]
 
-The difference of the two cylinder indicators has Walsh expansion
-
-\[
-1_A(x)-1_B(x)=2^{-\ell}
-\sum_{\varnothing\ne S\subseteq\{0,\ldots,\ell-1\}}
-(a_S-b_S)x_S.
-\]
-
-Normalize every nonempty set by translating its minimum to `0`.  For a
+Normalize every nonempty set by translating its minimum to `0`. For a
 normalized translation shape `T`, define
 
 \[
-m_T=\frac12\sum_{t:\,T+t\subseteq\{0,\ldots,\ell-1\}}
-(a_{T+t}-b_{T+t}).
+m_T=\sum_{t:\,T+t\subseteq\{0,\ldots,\ell-1\}}q_{T+t}.
 \]
 
-When the difference of occurrence counts is written as a sum over consecutive
-windows, equal global Walsh monomials arise exactly from translates belonging
-to the same shape.  Distinct global monomials are orthogonal.  Boundary terms
-are `O(1)`, so division by the number of windows gives the long-run variance
+The cylinder-indicator difference has Walsh expansion
 
 \[
-\sigma^2=4^{1-\ell}\sum_T m_T^2.
+1_A(x)-1_B(x)=2^{1-\ell}
+\sum_{\varnothing\ne S\subseteq\{0,\ldots,\ell-1\}}q_Sx_S.
 \]
 
-Comparing with the overlap formula for `sigma^2` yields the exact identity
+When occurrence-count differences are summed over consecutive windows, equal
+global Walsh monomials arise exactly from translates belonging to one shape.
+Distinct monomials are orthogonal. Boundary terms are `O(1)`, so the long-run
+variance is
 
 \[
-D=2^{1-\ell}\sum_Tm_T^2. \tag{1}
+\sigma^2=2^{2-2\ell}\sum_Tm_T^2.
 \]
 
-This identity also makes positivity and the reversal-degenerate zero-variance
-cases transparent.
+Comparing this with
+`\sigma^2=2^{1-\ell}D` gives the exact identity
+
+\[
+\boxed{D=2^{1-\ell}\sum_Tm_T^2.}\tag{1}
+\]
+
+In particular, `D >= 0`.
 
 ## 4. Exact variance-gap lemma
 
@@ -211,43 +210,45 @@ D\ge\frac14.
 
 ### Proof
 
-Put `q_i=a_i b_i`.  A one-translation shape `S` has `m_S^2=1` precisely when
+Put `z_i=a_i b_i`. A one-translation shape `S` has `m_S^2=1` precisely when
 
 \[
-\prod_{i\in S}q_i=-1.
+\prod_{i\in S}z_i=-1.
 \]
 
 #### Case 1: an interior disagreement
 
-Assume `q_j=-1` for some `1 <= j <= ell-2`.  Consider all full-span shapes
+Assume `z_j=-1` for some `1 <= j <= ell-2`. For every
+`R subseteq {1,...,ell-2}\{j}`, exactly one of
 
 \[
-S_R=\{0,\ell-1\}\cup R,\qquad
-R\subseteq\{1,\ldots,\ell-2\}.
+\{0,\ell-1\}\cup R,
+\qquad
+\{0,\ell-1\}\cup R\cup\{j\}
 \]
 
-Each has only the translation `t=0`.  Toggling the chosen disagreeing
-coordinate `j` is a fixed-point-free involution on the choices of `R` and
-reverses the sign of `prod_{i in S_R} q_i`.  Hence exactly half of the
-`2^{ell-2}` choices have a nonzero coefficient.  Therefore
+has product of the `z_i` equal to `-1`. Choose that set. It spans the full
+word, hence has only one translation, and contributes one unit square. The
+chosen sets are distinct and there are `2^{ell-3}` of them. Therefore
 
 \[
 \sum_Tm_T^2\ge2^{\ell-3},
 \]
 
-and (1) gives `D >= 1/4`.
+so (1) gives `D >= 1/4`.
 
 #### Case 2: the words agree at every interior coordinate
 
-If they differ at exactly one endpoint, every full-span shape above has a
-nonzero unit coefficient.  This gives the stronger bound `D >= 1/2`.
+If they differ at exactly one endpoint, every full-span set
+`{0,ell-1} union R` has a nonzero unit coefficient. This gives the stronger
+bound `D >= 1/2`.
 
 If they differ at neither endpoint, then `A=B`, so their self-overlap sums are
 equal.
 
-It remains to treat the case in which both endpoints differ.  For `ell=2`,
+It remains to treat the case in which both endpoints differ. For `ell=2`,
 the only two nonconstant words are reversals of one another and have equal
-self-overlap sums.  Assume now `ell >= 3`.
+self-overlap sums. Assume now `ell >= 3`.
 
 For every
 
@@ -261,7 +262,7 @@ use the span-`ell-2` shape
 T_R=\{0,\ell-2\}\cup R.
 \]
 
-It has exactly two translations.  Since one translated set contains only the
+It has exactly two translations. Since one translated set contains only the
 left differing endpoint and the other contains only the right differing
 endpoint,
 
@@ -272,43 +273,38 @@ m_{T_R}=a_{T_R}+a_{T_R+1}.
 Thus its square is `4` exactly when
 
 \[
-a_{T_R}a_{T_R+1}=1. \tag{2}
+a_{T_R}a_{T_R+1}=1.\tag{2}
 \]
 
 Expanding the left side gives
 
 \[
 a_0a_1a_{\ell-2}a_{\ell-1}
-\prod_{i\in R}(a_i a_{i+1}). \tag{3}
+\prod_{i\in R}(a_i a_{i+1}).\tag{3}
 \]
 
 If some interior adjacency `a_i a_{i+1}` with `1 <= i <= ell-3` equals `-1`,
-toggling that `i` balances the choices of `R`.  Exactly `2^{ell-4}` shapes
+toggling that `i` balances the choices of `R`. Exactly `2^{ell-4}` shapes
 then satisfy (2), and their square contribution is
 
 \[
 4\cdot2^{\ell-4}=2^{\ell-2}\ge2^{\ell-3}.
 \]
 
-Otherwise the common interior of the two words is constant.  Expression (3)
-reduces to `a_0 a_{ell-1}`.  If the endpoints of `A` are equal, every one of
-the `2^{ell-3}` shapes contributes `4`, again more than enough.  If its
+Otherwise the common interior of the two words is constant. Expression (3)
+reduces to `a_0 a_{ell-1}`. If the endpoints of `A` are equal, every one of
+the `2^{ell-3}` shapes contributes `4`, again more than enough. If its
 endpoints are opposite, then flipping both endpoints turns `A` into its
-reversal.  Thus `B=reverse(A)`.  Reversal preserves every proper border, so
+reversal. Thus `B=reverse(A)`. Reversal preserves every proper border, so
 `theta_AA=theta_BB`.
 
 This exhausts all cases and proves the lemma.
 
 ## 5. Two nonconstant words are strictly suboptimal
 
-A border of length `ell-1` would imply
-
-\[
-w_0w_1\cdots w_{\ell-2}=w_1w_2\cdots w_{\ell-1},
-\]
-
-and hence all adjacent letters are equal.  Therefore a nonconstant word has
-no border of length `ell-1`, and
+A border of length `ell-1` implies equality of every adjacent pair of letters,
+and hence the word is constant. Therefore a nonconstant word has no border of
+length `ell-1`, so
 
 \[
 \theta_{WW}\le\sum_{r=1}^{\ell-2}2^{r-\ell}=M-\frac12.
@@ -320,7 +316,7 @@ For two nonconstant words,
 |a-b|\le M-\frac12.
 \]
 
-If `a=b`, their leading unfairness is zero.  Otherwise the variance-gap lemma
+If `a=b`, their leading unfairness is zero. Otherwise the variance-gap lemma
 gives `D >= 1/4`, and therefore
 
 \[
@@ -341,7 +337,7 @@ S(U,V)=\sum_{\substack{1\le r\le\ell-1\\
 \operatorname{suffix}_r(U)=\operatorname{prefix}_r(V)}}2^r.
 \]
 
-Then `theta_UV=S(U,V)/2^ell`.  Put
+Then `theta_UV=S(U,V)/2^ell`. Put
 
 \[
 \Delta=|S(A,A)-S(B,B)|,
@@ -357,18 +353,18 @@ The desired inequality `F(A,B) <= M` is equivalent, with no division or
 square roots, to
 
 \[
-\Delta^2 2^\ell\le(2^\ell-2)^2Q. \tag{4}
+\Delta^2 2^\ell\le(2^\ell-2)^2Q.\tag{4}
 \]
 
-For a constant-word pair, `Delta <= 2^ell-2` and `Q >= 2^ell`.  For two
+For a constant-word pair, `Delta <= 2^ell-2` and `Q >= 2^ell`. For two
 nonconstant words, either `Delta=0`, or
 
 \[
 \Delta\le2^{\ell-1}-2,\qquad Q\ge2^{\ell-2}.
 \]
 
-These bounds imply (4) by elementary natural-number arithmetic.  The
-candidate pair has
+These bounds imply (4) by elementary natural-number arithmetic. The candidate
+pair has
 
 \[
 \Delta=2^\ell-2,\qquad Q=2^\ell,
@@ -381,6 +377,6 @@ so equality holds.
 - Ekhad and Zeilberger, “How to Answer Questions of the Type: If you toss a
   coin n times, how likely is HH to show up more than HT?” and the associated
   challenge page.
-- Svante Janson, Mihai Nica, and Simon Segert, “The probability of competing
-  binomial pattern counts,” arXiv:2503.19035 / Journal of Theoretical
-  Probability (2025).
+- Svante Janson, Mihai Nica, and Simon Segert, “The generalized Alice HH vs
+  Bob HT problem,” arXiv:2503.19035 / Journal of Theoretical Probability
+  (2025).
