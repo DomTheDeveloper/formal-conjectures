@@ -112,13 +112,17 @@ theorem sphere_subset_pair {c r : ℝ} (hr0 : 0 ≤ r) (hr : r < 1 / 2) :
       _ = ‖x - (c : UnitAddCircle)‖ := congrArg norm hqcoe
       _ = dist x (c : UnitAddCircle) := by rw [dist_eq_norm]
       _ = r := Metric.mem_sphere.mp hx
-  rcases abs_eq (show 0 ≤ r from hr0) |>.mp habs with hq | hq
-  · left
-    apply sub_eq_iff_eq_add.mp
-    simpa [hq, sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using hqcoe.symm
+  rcases (abs_eq hr0).mp habs with hq | hq
   · right
-    apply sub_eq_iff_eq_add.mp
-    simpa [hq, sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using hqcoe.symm
+    have hsub : x - (c : UnitAddCircle) = (r : UnitAddCircle) := by
+      simpa [hq] using hqcoe.symm
+    have hx' := sub_eq_iff_eq_add.mp hsub
+    simpa [add_comm] using hx'
+  · left
+    have hsub : x - (c : UnitAddCircle) = ((-r : ℝ) : UnitAddCircle) := by
+      simpa [hq] using hqcoe.symm
+    have hx' := sub_eq_iff_eq_add.mp hsub
+    simpa [sub_eq_add_neg, add_comm] using hx'
 
 /-- Small spheres in the unit additive circle have Haar measure zero. -/
 theorem volume_sphere_eq_zero {c r : ℝ} (hr0 : 0 ≤ r) (hr : r < 1 / 2) :
@@ -135,8 +139,8 @@ theorem volume_terminalArc {a : ℝ} (ha0 : 0 < a) (ha1 : a < 1) :
   calc
     volume (terminalArc a) =
         volume (Metric.closedBall ((1 - a / 2 : ℝ) : UnitAddCircle) (a / 2)) := by
-          rw [← Metric.closedBall_diff_sphere]
-          exact measure_diff_null hsphere
+          rw [← Metric.closedBall_sdiff_sphere]
+          exact measure_sdiff_null hsphere
     _ = ENNReal.ofReal a := by
       rw [AddCircle.volume_closedBall]
       congr 1
