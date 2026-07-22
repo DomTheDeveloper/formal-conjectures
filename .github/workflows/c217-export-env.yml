@@ -38,11 +38,14 @@ jobs:
           set -euxo pipefail
           lake exe cache get
 
-      - name: Compile the untouched C217 baseline
+      - name: Record untouched C217 baseline diagnostics
         run: |
-          set -euxo pipefail
+          set +e
+          set -o pipefail
           lake env lean FormalConjectures/WrittenOnTheWallII/GraphConjecture217.lean \
             2>&1 | tee c217-baseline.log
+          echo "baseline_exit_code=${PIPESTATUS[0]}" | tee -a c217-baseline.log
+          exit 0
 
       - name: Export exact local checker environment
         run: |
