@@ -38,6 +38,12 @@ namespace UnitAddTorus
 
 variable {d : Type*} [Fintype d]
 
+/-- The standard Haar volume on `UnitAddCircle = AddCircle 1` has total mass one. -/
+instance unitAddCircleVolume_isProbabilityMeasure :
+    IsProbabilityMeasure (volume : Measure UnitAddCircle) :=
+  IsProbabilityMeasure.mk (by
+    simpa using (AddCircle.measure_univ (T := (1 : ℝ))))
+
 /-- On a unit torus, the standard product volume is the product of the probability-normalized
 Haar measures used by Mathlib's Fourier basis. -/
 lemma volume_eq_fourierVolume :
@@ -179,8 +185,7 @@ lemma mFourier_eq_toCircle_sum (k : d → ℤ) (x : UnitAddTorus d) :
   classical
   simp only [mFourier, ContinuousMap.coe_mk, fourier_apply]
   let s : Finset d := Finset.univ
-  change (∏ i ∈ s, ((AddCircle.toCircle (k i • x i) : Circle) : ℂ)) =
-    ((AddCircle.toCircle (∑ i ∈ s, k i • x i) : Circle) : ℂ)
+  change (∏ i ∈ s, ((AddCircle.toCircle (k i • x i) : Circle) : ℂ)) = _
   induction s using Finset.induction_on with
   | empty => simp
   | @insert a s ha ih =>
