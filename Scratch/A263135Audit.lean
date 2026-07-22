@@ -6,6 +6,7 @@ import Scratch.A263135ChainMembership
 import Scratch.A263135ChainOrder
 import Scratch.A263135ClippingCard
 import Scratch.A263135ClippingDarts
+import Scratch.A263135ClippingGeometry
 import Scratch.A263135Endpoints
 import Scratch.A263135Incidence
 import Scratch.A263135Parameters
