@@ -92,6 +92,14 @@ def translate (S : Finset ℕ) (t : ℕ) : Finset ℕ :=
   ext i
   simp [translate]
 
+/-- Translation preserves cardinality. -/
+theorem card_translate (S : Finset ℕ) (t : ℕ) :
+    #(translate S t) = #S := by
+  unfold translate
+  rw [Finset.card_image_iff.mpr]
+  intro a ha b hb hab
+  omega
+
 /-- The raw (undivided) Walsh coefficient difference of two words. -/
 def rawDifference {n : ℕ} (A B : Word n) (S : Finset ℕ) : ℤ :=
   natMonomial A S - natMonomial B S
