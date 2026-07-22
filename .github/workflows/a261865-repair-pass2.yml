@@ -1,10 +1,10 @@
-name: Apply A261865 arithmetic repairs
+name: Apply final A261865 arithmetic repairs
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - '.github/a261865-repair-pass2.trigger'
+      - '.github/a261865-repair-pass3.trigger'
 
 permissions:
   contents: write
@@ -18,86 +18,44 @@ jobs:
         with:
           ref: a261865-research
           fetch-depth: 0
-      - name: Apply focused Lean repairs
+      - name: Apply final Lean repairs
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-
-          def replace_exact(path, old, new):
-              p = Path(path)
-              text = p.read_text()
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'{path}: expected one match, found {count}: {old!r}')
-              p.write_text(text.replace(old, new))
-
-          base = 'FormalConjectures/OEIS/A261865Base.lean'
-          replace_exact(base,
-          '''    have hmcast : (m : ℝ) = (⌊x⌋ : ℝ) + 1 := by
-      simp [m, Int.toNat_of_nonneg hfloor_nonneg]
-''',
-          '''    have hfloor_cast : ((⌊x⌋.toNat : ℕ) : ℝ) = (⌊x⌋ : ℝ) := by
-      exact_mod_cast Int.toNat_of_nonneg hfloor_nonneg
-    have hmcast : (m : ℝ) = (⌊x⌋ : ℝ) + 1 := by
-      simp [m, hfloor_cast]
-''')
-          replace_exact(base,
-          '''  have hmn : m < n + 1 := by
-    exact_mod_cast (by simpa [Nat.cast_add, Nat.cast_one] using hright)
+          path = Path('FormalConjectures/OEIS/A261865Base.lean')
+          text = path.read_text()
+          replacements = [
+            ('''  have hmn : m ≤ n := by
+    exact_mod_cast hright'
   omega
-''',
-          '''  have hmn : m ≤ n := by
+''', '''  have hmn : m ≤ n := by
     by_contra h
     have hle : n + 1 ≤ m := by omega
     have hle' : (n : ℝ) + 1 ≤ (m : ℝ) := by exact_mod_cast hle
     linarith
   omega
-''')
-          replace_exact(base,
-          '''  refine ⟨m * c, Nat.mul_pos hm hc, ?_, ?_⟩
-  · simpa only [hsqrt, Nat.cast_mul, mul_assoc] using hleft
-  · simpa only [hsqrt, Nat.cast_mul, mul_assoc] using hright
-''',
-          '''  have hscale : (((m * c : ℕ) : ℝ) * Real.sqrt (s : ℝ)) =
-      (m : ℝ) * Real.sqrt ((c ^ 2 * s : ℕ) : ℝ) := by
-    rw [Nat.cast_mul, hsqrt]
-    ring
-  refine ⟨m * c, Nat.mul_pos hm hc, ?_, ?_⟩
-  · rw [hscale]
-    exact hleft
-  · rw [hscale]
-    exact hright
-''')
-          replace_exact(base,
-          '''          have hspos : 0 < s := by
-            rw [hrs] at hr
-            positivity
-          have hslt : s < r := by
-            rw [hrs]
-            nlinarith [hdprime.two_le]
-''',
-          '''          have hspos : 0 < s := by
-            rw [hrs] at hr
-            exact (Nat.mul_pos_iff.mp hr).2
-          have hslt : s < r := by
-            rw [hrs]
-            have hdd : 1 < d * d := by nlinarith [hdprime.two_le]
-            calc
-              s = 1 * s := by simp
-              _ < (d * d) * s := Nat.mul_lt_mul_of_pos_right hdd hspos
-''')
-
-          terminal = 'FormalConjecturesForMathlib/Analysis/Equidistribution/TerminalBox.lean'
-          replace_exact(terminal,
-          '''  rw [volume_terminalBox j a ha0 ha1, ENNReal.toReal_ofReal]
-  positivity
-''',
-          '''  rw [volume_terminalBox j a ha0 ha1, ENNReal.toReal_ofReal]
-  exact mul_nonneg (ha0 j).le <|
-    Finset.prod_nonneg fun i _ => sub_nonneg.mpr (ha1 i).le
-''')
+'''),
+            ('''          have hspos : 0 < s := by
+            apply Nat.pos_of_ne_zero
+            intro hs0
+            subst s
+            simp at hr
+''', '''          have hspos : 0 < s := by
+            apply Nat.pos_of_ne_zero
+            intro hs0
+            subst s
+            simp at hrs
+            omega
+'''),
+          ]
+          for old, new in replacements:
+            count = text.count(old)
+            if count != 1:
+              raise SystemExit(f'expected one match, found {count}: {old!r}')
+            text = text.replace(old, new)
+          path.write_text(text)
           PY
       - name: Commit and push repairs
         shell: bash
@@ -105,7 +63,6 @@ jobs:
           set -euo pipefail
           git config user.name 'ProofOrchestrator'
           git config user.email 'actions@users.noreply.github.com'
-          git add FormalConjectures/OEIS/A261865Base.lean \
-                  FormalConjecturesForMathlib/Analysis/Equidistribution/TerminalBox.lean
-          git commit -m 'Fix remaining A261865 arithmetic proof steps'
+          git add FormalConjectures/OEIS/A261865Base.lean
+          git commit -m 'Close final A261865 natural-number goals'
           git push origin HEAD:a261865-research
