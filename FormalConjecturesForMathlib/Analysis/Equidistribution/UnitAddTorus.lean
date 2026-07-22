@@ -38,6 +38,17 @@ namespace UnitAddTorus
 
 variable {d : Type*} [Fintype d]
 
+/-- On a unit torus, the standard product volume is the product of the probability-normalized
+Haar measures used by Mathlib's Fourier basis. -/
+lemma volume_eq_fourierVolume :
+    (volume : Measure (UnitAddTorus d)) =
+      Measure.pi (fun _ : d => AddCircle.haarAddCircle) := by
+  change Measure.pi (fun _ : d => (volume : Measure UnitAddCircle)) =
+    Measure.pi (fun _ : d => AddCircle.haarAddCircle)
+  apply congrArg (fun μ : d → Measure UnitAddCircle => Measure.pi μ)
+  funext i
+  simpa using (AddCircle.volume_eq_smul_haarAddCircle (T := (1 : ℝ)))
+
 /--
 **Continuous Weyl criterion on a finite unit torus.**
 
@@ -199,6 +210,7 @@ lemma mFourier_coe_ne_one {a : d → ℝ} (ha : NoIntegerRelation a)
 otherwise. -/
 lemma integral_mFourier (k : d → ℤ) :
     ∫ x : UnitAddTorus d, mFourier k x = if k = 0 then 1 else 0 := by
+  rw [volume_eq_fourierVolume (d := d)]
   have h := (orthonormal_iff_ite.mp (orthonormal_mFourier (d := d))) (0 : d → ℤ) k
   simpa only [ContinuousMap.inner_toLp, mFourier_zero, ContinuousMap.one_apply,
     map_one, one_mul, Pi.zero_apply, neg_zero, zero_add, eq_comm] using h
