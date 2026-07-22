@@ -62,9 +62,9 @@ theorem chvatalPathCondition_of_countHolds
   have hall :
       (List.range ((degreeSequence G).length + 1)).all (fun i =>
         if 1 ≤ i ∧ 2 * i < (degreeSequence G).length + 1 then
-          decide (((degreeSequence G).countP fun d => d < i) < i ∨
-            ((degreeSequence G).countP fun d => d <
-              (degreeSequence G).length - i) ≤ (degreeSequence G).length - i)
+          decide (((degreeSequence G).countP fun d => decide (d < i)) < i ∨
+            ((degreeSequence G).countP fun d => decide
+              (d < (degreeSequence G).length - i)) ≤ (degreeSequence G).length - i)
         else true) = true := by
     simpa [chvatalCountHolds] using hcount
   have hitem := List.all_eq_true.mp hall i hiRange
