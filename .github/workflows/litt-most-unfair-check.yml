@@ -16,8 +16,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: litt-most-unfair-${{ github.ref }}
-  cancel-in-progress: true
+  group: litt-most-unfair-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
   audit:
