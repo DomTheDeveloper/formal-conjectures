@@ -24,32 +24,6 @@ lemma one_le_numTrianglesAtVertex_of_adj_common
   have hcard : 1 ≤ #(trianglesAt G x) := Finset.one_le_card.mpr ⟨_, ht⟩
   simpa [trianglesAt, numTrianglesAtVertex] using hcard
 
-private lemma localMax_add_four_le_union_of_zero_inter
-    (G : SimpleGraph α) [DecidableRel G.Adj]
-    {x y : α}
-    (hx : indepNeighborsCard G x = localMax160 G)
-    (hy : numTrianglesAtVertex G y = triangleMax160 G)
-    (hTwo : triangleMax160 G = 2)
-    (hInter : (G.neighborFinset x ∩ G.neighborFinset y).card = 0) :
-    localMax160 G + 4 ≤ (G.neighborFinset x ∪ G.neighborFinset y).card := by
-  have hxDeg : localMax160 G ≤ G.degree x := by
-    rw [← hx]
-    rw [← G.card_neighborFinset_eq_degree]
-    exact Finset.card_le_card (chosenLocalIndep_subset_neighborFinset G x)
-  have hyDeg : 4 ≤ G.degree y := by
-    have h := two_mul_numTrianglesAtVertex_le_degree G
-      (by intro bad; exact False.elim (by omega)) y
-    -- This local helper is only used from a C4-free context; its caller
-    -- supplies the actual degree inequality below by rewriting this result.
-    omega
-  have hDiff := Finset.card_sdiff_add_card_inter
-    (G.neighborFinset y) (G.neighborFinset x)
-  have hUnion := Finset.card_sdiff_add_card
-    (G.neighborFinset y) (G.neighborFinset x)
-  rw [Finset.union_comm] at hUnion
-  rw [G.card_neighborFinset_eq_degree, G.card_neighborFinset_eq_degree] at hDiff
-  omega
-
 /-- Corrected C160 in the C4-free case when the maximum triangle count is two. -/
 lemma c4free_triangleMax_two_bound
     (G : SimpleGraph α) [DecidableRel G.Adj]
