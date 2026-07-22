@@ -42,6 +42,86 @@ lemma Walk.IsPath.spanningCoe_toSubgraph_isAcyclic
         Subgraph.spanningCoe_subgraphOfAdj, sup_comm]
       exact (isAcyclic_add_edge_iff_of_not_reachable u v hur).2 (ih hpTail)
 
+/-- Add the edges from `c` to the vertices in a list, processing the tail first. -/
+def attachLeaves (H : SimpleGraph α) (c : α) : List α → SimpleGraph α
+  | [] => H
+  | v :: vs => attachLeaves H c vs ⊔ edge c v
+
+lemma attachLeaves_isolated_of_not_mem
+    (H : SimpleGraph α) (c v : α) (L : List α)
+    (hvH : ∀ z, ¬ H.Adj v z) (hvc : v ≠ c) (hvL : v ∉ L) :
+    ∀ z, ¬ (attachLeaves H c L).Adj v z := by
+  induction L with
+  | nil => simpa [attachLeaves] using hvH
+  | cons w ws ih =>
+      have hvw : v ≠ w := by
+        intro h
+        exact hvL (by simp [h])
+      have hvws : v ∉ ws := by
+        intro h
+        exact hvL (by simp [h])
+      intro z hz
+      change (attachLeaves H c ws).Adj v z ∨ (edge c w).Adj v z at hz
+      rcases hz with hz | hz
+      · exact ih hvws z hz
+      · rw [edge_adj] at hz
+        rcases hz with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+        · exact hvc rfl
+        · exact hvw rfl
+
+lemma attachLeaves_isAcyclic
+    (H : SimpleGraph α) (c : α) (L : List α)
+    (hH : H.IsAcyclic) (hL : L.Nodup) (hcL : c ∉ L)
+    (hIso : ∀ v ∈ L, ∀ z, ¬ H.Adj v z) :
+    (attachLeaves H c L).IsAcyclic := by
+  induction L with
+  | nil => simpa [attachLeaves] using hH
+  | cons v vs ih =>
+      have hnod := List.nodup_cons.mp hL
+      have hcv : c ≠ v := by
+        intro h
+        exact hcL (by simp [h])
+      have hcvs : c ∉ vs := by
+        intro h
+        exact hcL (by simp [h])
+      have hTail : (attachLeaves H c vs).IsAcyclic :=
+        ih hnod.2 hcvs (fun w hw => hIso w (by simp [hw]))
+      have hvIsoH : ∀ z, ¬ H.Adj v z := hIso v (by simp)
+      have hvIsoTail : ∀ z, ¬ (attachLeaves H c vs).Adj v z :=
+        attachLeaves_isolated_of_not_mem H c v vs hvIsoH hcv.symm hnod.1
+      have hUnreach : ¬ (attachLeaves H c vs).Reachable c v :=
+        not_reachable_of_isolated (attachLeaves H c vs) hcv hvIsoTail
+      simpa [attachLeaves] using hTail.sup_edge_of_not_reachable hUnreach
+
+lemma attachLeaves_le
+    (H G : SimpleGraph α) (c : α) (L : List α)
+    (hHG : H ≤ G) (hAdj : ∀ v ∈ L, G.Adj c v) :
+    attachLeaves H c L ≤ G := by
+  induction L with
+  | nil => simpa [attachLeaves] using hHG
+  | cons v vs ih =>
+      intro a b hab
+      change (attachLeaves H c vs).Adj a b ∨ (edge c v).Adj a b at hab
+      rcases hab with hab | hab
+      · exact ih (fun w hw => hAdj w (by simp [hw])) hab
+      · rw [edge_adj] at hab
+        rcases hab with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+        · exact hAdj v (by simp)
+        · exact (hAdj v (by simp)).symm
+
+lemma attachLeaves_adj_of_mem
+    (H : SimpleGraph α) (c : α) (L : List α) {v : α} (hv : v ∈ L) :
+    (attachLeaves H c L).Adj c v := by
+  induction L with
+  | nil => simp at hv
+  | cons w ws ih =>
+      simp only [List.mem_cons] at hv
+      change (attachLeaves H c ws).Adj c v ∨ (edge c w).Adj c v
+      rcases hv with rfl | hv
+      · right
+        simp
+      · exact Or.inl (ih hv)
+
 private noncomputable def leaves (T : SimpleGraph α) [DecidableRel T.Adj] : Finset α :=
   Finset.univ.filter fun v => T.degree v = 1
 
@@ -125,6 +205,7 @@ lemma two_degrees_sub_two_le_leaves (T : SimpleGraph α) [DecidableRel T.Adj]
       linarith
 
 #print axioms Walk.IsPath.spanningCoe_toSubgraph_isAcyclic
+#print axioms attachLeaves_isAcyclic
 #print axioms two_degrees_sub_two_le_leaves
 
 end WrittenOnTheWallII.GraphConjecture160Audit
