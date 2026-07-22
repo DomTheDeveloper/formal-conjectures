@@ -56,7 +56,7 @@ theorem most_unfair_litt_coin_word_bet {n : ℕ} (hn : 2 ≤ n)
       candidateNum n ^ 2 * varianceNum A B := by
   by_cases hn3 : 3 ≤ n
   · apply LittMostUnfairBetWalsh.most_unfair_litt_bound_of_two_endpoint_gap
-      hn A B hne
+      hn3 A B hne
     intro hagree hleft hright
     rcases
         LittMostUnfairBetWalsh.rawEnergy_gap_or_delta_zero_of_two_endpoint_disagreement
