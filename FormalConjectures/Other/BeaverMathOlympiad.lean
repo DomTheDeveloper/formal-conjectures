@@ -228,7 +228,7 @@ A positive answer is witnessed at Lean's zero-based index `1_210_682`, where
 informal sequence above.
 -/
 @[category research solved, AMS 5 11 68,
-  formal_proof using lean4 at "https://github.com/DomTheDeveloper/formal-conjectures/blob/b65d6f24488370d072779d4937a3fd6e792b7f58/FormalConjectures/Other/BeaverMathOlympiad8Proof.lean"]
+  formal_proof using lean4 at "https://github.com/DomTheDeveloper/formal-conjectures/blob/33921983f0c0ce6ebc168da5ed7bdd18c9818f58/FormalConjectures/Other/BeaverMathOlympiad8Proof.lean"]
 theorem beaver_math_olympiad_problem_8 : answer(True) ↔
     ∀ᵉ (a : ℕ → ℕ) (b : ℕ → ℕ)
     (a_ini : a 0 = 10)
