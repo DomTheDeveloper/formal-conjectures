@@ -41,7 +41,7 @@ namespace Arxiv.«2602.19255»
 
 noncomputable section
 
-/-! ## Grammar and generating-function certificate -/
+/- ## Grammar and generating-function certificate -/
 
 abbrev radicand := RNAQuasiPowers.radicand
 abbrev grammarA := RNAQuasiPowers.grammarA
@@ -55,7 +55,7 @@ theorem grammar_discriminant_eq_radicand (t x z : ℝ) :
     grammarDiscriminant t x z = radicand t x z := by
   exact RNAQuasiPowers.grammar_discriminant_eq_radicand t x z
 
-/-! ## Dominant-root and covariance certificate -/
+/- ## Dominant-root and covariance certificate -/
 
 abbrev sqrtFive := RNAQuasiPowers.sqrtFive
 abbrev rho := RNAQuasiPowers.rho
@@ -103,7 +103,7 @@ theorem quasiPowers_algebraic_certificate :
   rcases hAlg with ⟨hroot, hsimple, hrhoPos, hrhoLtOne, hvarH, hvarB, hdet, hcorr⟩
   exact ⟨hroot, hsimple, hrhoPos, hrhoLtOne, hvarH, hvarB, hdet, hcorr, hDeriv⟩
 
-/-! ## Printed-density correction -/
+/- ## Printed-density correction -/
 
 abbrev printedMarginalVariance := RNAQuasiPowers.printedMarginalVarianceAt
 abbrev correctedPrecisionDiagonal := RNAQuasiPowers.correctedPrecisionDiagonal
