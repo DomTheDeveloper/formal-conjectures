@@ -68,10 +68,51 @@ lemma chosenLocalIndep_isIndepSet
     (by simpa using ha') (by simpa using hb') hab'
   simpa using hnot
 
+/-- If `u` belongs to the selected independent set at `v`, then that selected
+set is disjoint from the full neighborhood of `u`. -/
+lemma chosenLocalIndep_disjoint_neighborFinset
+    (G : SimpleGraph α) [DecidableRel G.Adj] {v u : α}
+    (hu : u ∈ chosenLocalIndep G v) :
+    Disjoint (chosenLocalIndep G v) (G.neighborFinset u) := by
+  refine Finset.disjoint_left.2 ?_
+  intro w hwI hwN
+  have huw : G.Adj u w := by simpa using hwN
+  exact (chosenLocalIndep_isIndepSet G v
+    (by simpa using hu) (by simpa using hwI) huw.ne) huw
+
+/-- Pointwise selected-incidence inequality used in the C2 double count. -/
+lemma card_chosenLocalIndep_add_degree_le_neighbor_union
+    (G : SimpleGraph α) [DecidableRel G.Adj] {v u : α}
+    (hu : u ∈ chosenLocalIndep G v) :
+    (chosenLocalIndep G v).card + G.degree u ≤
+      (G.neighborFinset v ∪ G.neighborFinset u).card := by
+  have hd := chosenLocalIndep_disjoint_neighborFinset G hu
+  have hsub : chosenLocalIndep G v ∪ G.neighborFinset u ⊆
+      G.neighborFinset v ∪ G.neighborFinset u := by
+    intro w hw
+    rcases Finset.mem_union.mp hw with hw | hw
+    · exact Finset.mem_union_left _
+        (chosenLocalIndep_subset_neighborFinset G v hw)
+    · exact Finset.mem_union_right _ hw
+  have hc := Finset.card_le_card hsub
+  rw [Finset.card_union_of_disjoint hd] at hc
+  simpa using hc
+
+lemma indepNeighbors_add_degree_le_neighbor_union
+    (G : SimpleGraph α) [DecidableRel G.Adj] {v u : α}
+    (hu : u ∈ chosenLocalIndep G v) :
+    indepNeighborsCard G v + G.degree u ≤
+      (G.neighborFinset v ∪ G.neighborFinset u).card := by
+  rw [← chosenLocalIndep_card G v]
+  exact card_chosenLocalIndep_add_degree_le_neighbor_union G hu
+
 #print axioms chosenLocalIndepSubtype_spec
 #print axioms chosenLocalIndep_card
 #print axioms chosenLocalIndep_subset_neighborFinset
 #print axioms chosenLocalIndep_mem_adj
 #print axioms chosenLocalIndep_isIndepSet
+#print axioms chosenLocalIndep_disjoint_neighborFinset
+#print axioms card_chosenLocalIndep_add_degree_le_neighbor_union
+#print axioms indepNeighbors_add_degree_le_neighbor_union
 
 end WrittenOnTheWallII.GraphConjecture2Audit
