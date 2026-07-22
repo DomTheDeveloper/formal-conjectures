@@ -77,3 +77,7 @@ jobs:
       - name: Compile interior Walsh gap
         run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBetWalshInteriorGap.lean
+
+      - name: Compile fixed-shift Walsh correlations
+        run: |
+          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshShiftCorrelation.lean
