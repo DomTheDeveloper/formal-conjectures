@@ -1,0 +1,60 @@
+name: Temporary A261865 AXLE audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'FormalConjectures/OEIS/261865.lean'
+      - 'FormalConjecturesForMathlib/Analysis/Equidistribution/UnitAddTorus.lean'
+      - '.github/workflows/a261865-axle-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-foundation:
+    name: Check A261865 foundation with AXLE
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Lean 4.27 sources
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import sys
+          import urllib.request
+
+          files = [
+              'FormalConjecturesForMathlib/Analysis/Equidistribution/UnitAddTorus.lean',
+          ]
+          failed = False
+          for filename in files:
+              source = pathlib.Path(filename).read_text()
+              payload = json.dumps({
+                  'content': source,
+                  'environment': 'lean-4.27.0',
+                  'ignore_imports': False,
+                  'mathlib_options': False,
+                  'timeout_seconds': 480,
+              }).encode()
+              request = urllib.request.Request(
+                  'https://axle.axiommath.ai/api/v1/check',
+                  data=payload,
+                  headers={'Content-Type': 'application/json'},
+                  method='POST',
+              )
+              with urllib.request.urlopen(request, timeout=540) as response:
+                  result = json.load(response)
+              print(f'===== {filename} =====')
+              print(json.dumps(result, indent=2))
+              errors = result.get('lean_messages', {}).get('errors', [])
+              tool_errors = result.get('tool_messages', {}).get('errors', [])
+              declarations = result.get('failed_declarations', [])
+              failed |= bool(errors or tool_errors or declarations or not result.get('okay', False))
+          if failed:
+              sys.exit(1)
+          PY
