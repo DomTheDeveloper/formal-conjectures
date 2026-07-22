@@ -116,9 +116,14 @@ theorem volume_terminalBox [DecidableEq ι]
   simp_rw [volume_terminalCoordinateSet j a ha0 ha1]
   rw [← ENNReal.ofReal_prod_of_nonneg]
   · congr 1
-    rw [Finset.prod_ite_eq' Finset.mem_univ]
-    rw [Finset.prod_erase_mul _ (Finset.mem_univ j)]
-    simp [mul_comm]
+    calc
+      (∏ i, if i = j then a i else 1 - a i) =
+          (if j = j then a j else 1 - a j) *
+            ∏ i ∈ Finset.univ.erase j, (if i = j then a i else 1 - a i) := by
+        exact (Finset.mul_prod_erase Finset.univ
+          (fun i => if i = j then a i else 1 - a i) (Finset.mem_univ j)).symm
+      _ = a j * ∏ i ∈ Finset.univ.erase j, (1 - a i) := by
+        simp
   · intro i hi
     split_ifs
     · exact (ha0 i).le
