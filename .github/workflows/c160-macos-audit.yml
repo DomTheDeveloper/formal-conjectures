@@ -37,6 +37,8 @@ jobs:
             ProofAudit/160_local_structure.lean
             ProofAudit/160_petals.lean
             ProofAudit/160_local_count.lean
+            ProofAudit/160_common_neighbors.lean
+            ProofAudit/160_double_star.lean
           )
           : > wowii-focused.log
           for file in "${files[@]}"; do
