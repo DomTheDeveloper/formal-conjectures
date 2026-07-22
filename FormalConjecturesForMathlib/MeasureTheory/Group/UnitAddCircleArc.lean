@@ -88,59 +88,29 @@ theorem nsmul_mem_terminalArc_iff {a : ℝ} (ha0 : 0 < a) (ha1 : a < 1) (n : ℕ
   rw [coe_fract_eq]
   exact coe_mem_terminalArc_iff ha0 ha1 hfract
 
-/-- A sphere of radius less than half the period has at most two points. -/
-theorem sphere_subset_pair {c r : ℝ} (hr0 : 0 ≤ r) (hr : r < 1 / 2) :
-    Metric.sphere (c : UnitAddCircle) r ⊆
-      {((c - r : ℝ) : UnitAddCircle), ((c + r : ℝ) : UnitAddCircle)} := by
-  intro x hx
-  let q : ℝ := (AddCircle.equivIoc (1 : ℝ) (-(1 / 2 : ℝ)) (x - (c : UnitAddCircle))).1
-  have hqmem : q ∈ Set.Ioc (-(1 / 2 : ℝ)) (-(1 / 2 : ℝ) + 1) :=
-    (AddCircle.equivIoc (1 : ℝ) (-(1 / 2 : ℝ)) (x - (c : UnitAddCircle))).2
-  have hqabs : |q| ≤ (1 : ℝ) / 2 := by
-    rw [abs_le]
-    constructor <;> linarith [hqmem.1, hqmem.2]
-  have hqcoe : (q : UnitAddCircle) = x - (c : UnitAddCircle) := by
-    change (AddCircle.equivIoc (1 : ℝ) (-(1 / 2 : ℝ))).symm
-      (AddCircle.equivIoc (1 : ℝ) (-(1 / 2 : ℝ)) (x - (c : UnitAddCircle))) =
-        x - (c : UnitAddCircle)
-    exact (AddCircle.equivIoc (1 : ℝ) (-(1 / 2 : ℝ))).symm_apply_apply _
-  have hnorm : ‖(q : UnitAddCircle)‖ = |q| :=
-    (AddCircle.norm_coe_eq_abs_iff (1 : ℝ) one_ne_zero).2 (by simpa using hqabs)
-  have habs : |q| = r := by
-    calc
-      |q| = ‖(q : UnitAddCircle)‖ := hnorm.symm
-      _ = ‖x - (c : UnitAddCircle)‖ := congrArg norm hqcoe
-      _ = dist x (c : UnitAddCircle) := by rw [dist_eq_norm]
-      _ = r := Metric.mem_sphere.mp hx
-  rcases (abs_eq hr0).mp habs with hq | hq
-  · right
-    have hsub : x - (c : UnitAddCircle) = (r : UnitAddCircle) := by
-      simpa [hq] using hqcoe.symm
-    have hx' := sub_eq_iff_eq_add.mp hsub
-    simpa [add_comm] using hx'
-  · left
-    have hsub : x - (c : UnitAddCircle) = ((-r : ℝ) : UnitAddCircle) := by
-      simpa [hq] using hqcoe.symm
-    have hx' := sub_eq_iff_eq_add.mp hsub
-    simpa [sub_eq_add_neg, add_comm] using hx'
-
-/-- Small spheres in the unit additive circle have Haar measure zero. -/
-theorem volume_sphere_eq_zero {c r : ℝ} (hr0 : 0 ≤ r) (hr : r < 1 / 2) :
+/-- Spheres in the additive circle have Haar measure zero. -/
+theorem volume_sphere_eq_zero {c r : ℝ} (_hr0 : 0 ≤ r) (_hr : r < 1 / 2) :
     volume (Metric.sphere (c : UnitAddCircle) r) = 0 := by
-  apply measure_mono_null (sphere_subset_pair hr0 hr)
-  simp
+  rw [← ae_eq_empty]
+  filter_upwards [AddCircle.closedBall_ae_eq_ball
+    (x := (c : UnitAddCircle)) (ε := r)] with y hy
+  simp only [Set.mem_empty_iff_false, iff_false]
+  intro hysphere
+  have hclosed : y ∈ Metric.closedBall (c : UnitAddCircle) r :=
+    Metric.mem_closedBall.mpr (Metric.mem_sphere.mp hysphere).le
+  have hball : y ∈ Metric.ball (c : UnitAddCircle) r := by
+    rw [← hy]
+    exact hclosed
+  exact (Metric.mem_ball.mp hball).ne (Metric.mem_sphere.mp hysphere)
 
 /-- The terminal arc has length `a`. -/
 theorem volume_terminalArc {a : ℝ} (ha0 : 0 < a) (ha1 : a < 1) :
     volume (terminalArc a) = ENNReal.ofReal a := by
-  have hsphere :
-      volume (Metric.sphere ((1 - a / 2 : ℝ) : UnitAddCircle) (a / 2)) = 0 :=
-    volume_sphere_eq_zero (by positivity) (by linarith)
   calc
     volume (terminalArc a) =
         volume (Metric.closedBall ((1 - a / 2 : ℝ) : UnitAddCircle) (a / 2)) := by
-          rw [← Metric.closedBall_diff_sphere]
-          exact measure_diff_null hsphere
+          exact measure_congr (AddCircle.closedBall_ae_eq_ball
+            (x := ((1 - a / 2 : ℝ) : UnitAddCircle)) (ε := a / 2)).symm
     _ = ENNReal.ofReal a := by
       rw [AddCircle.volume_closedBall]
       congr 1
