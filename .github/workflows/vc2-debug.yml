@@ -6,6 +6,10 @@ on:
       - 'FormalConjectures/Other/VCDimConvexCounterexample.lean'
       - '.github/workflows/vc2-debug.yml'
 
+concurrency:
+  group: vc2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
