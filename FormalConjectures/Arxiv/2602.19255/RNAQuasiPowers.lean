@@ -30,7 +30,8 @@ RNA secondary-structure model:
    implicit-derivative identities and gives a positive-definite covariance
    matrix with the claimed correlation;
 3. the Gaussian density printed in the paper is incompatible with exact
-   coordinatewise standardization.
+   coordinatewise standardization, and the corrected precision entries invert
+   the intended unit-variance covariance entries.
 
 The final parameter-uniform singularity-transfer and multivariate
 weak-convergence layer is not asserted here.
@@ -105,6 +106,10 @@ theorem quasiPowers_algebraic_certificate :
 /-! ## Printed-density correction -/
 
 abbrev printedMarginalVariance := RNAQuasiPowers.printedMarginalVarianceAt
+abbrev correctedPrecisionDiagonal := RNAQuasiPowers.correctedPrecisionDiagonal
+abbrev correctedPrecisionOffDiagonal := RNAQuasiPowers.correctedPrecisionOffDiagonal
+abbrev printedCovarianceDiagonal := RNAQuasiPowers.printedCovarianceDiagonal
+abbrev printedCovarianceOffDiagonal := RNAQuasiPowers.printedCovarianceOffDiagonal
 
 /--
 At the claimed correlation, the density printed in the paper has marginal
@@ -115,6 +120,26 @@ coordinatewise standardization.
 theorem printed_density_not_standardized :
     1 < printedMarginalVariance targetCorrelation := by
   exact RNAQuasiPowers.printedMarginalVarianceAt_target_gt_one
+
+/--
+The corrected target precision entries invert the intended unit-variance
+covariance entries, while the printed precision entries invert to the scaled
+covariance with marginal variance `1/(1-c²)`.
+-/
+@[category research solved, AMS 60]
+theorem gaussian_precision_correction :
+    (correctedPrecisionDiagonal targetCorrelation +
+          correctedPrecisionOffDiagonal targetCorrelation * targetCorrelation = 1 ∧
+      correctedPrecisionDiagonal targetCorrelation * targetCorrelation +
+          correctedPrecisionOffDiagonal targetCorrelation = 0) ∧
+    (printedCovarianceDiagonal targetCorrelation -
+          targetCorrelation * printedCovarianceOffDiagonal targetCorrelation = 1 ∧
+      printedCovarianceOffDiagonal targetCorrelation -
+          targetCorrelation * printedCovarianceDiagonal targetCorrelation = 0) ∧
+    1 < printedMarginalVariance targetCorrelation := by
+  exact ⟨RNAQuasiPowers.correctedTargetPrecision_inverse_entries,
+    RNAQuasiPowers.printedTargetPrecision_inverse_entries,
+    RNAQuasiPowers.printedMarginalVarianceAt_target_gt_one⟩
 
 /-- A single public theorem collecting all three finite certificates. -/
 @[category research solved, AMS 5 60]
