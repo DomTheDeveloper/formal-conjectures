@@ -1,1 +1,1 @@
-Trigger the trusted-base macOS C160 Lean audit after retargeting to the fresh audit base.
+Synchronize the C160 proof branch with the self-consistent v2 macOS audit base.
