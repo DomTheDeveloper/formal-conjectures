@@ -198,65 +198,79 @@ private theorem rankDart_mem_aInternal_iff
     pd ∈ patchContactDarts a b c ↔
       rankDartVertex pd ∈ aInternalDarts (patch a b c) := by
   rcases pd with ⟨p, d⟩
-  cases d
-  · simp only [patchContactDarts, Finset.mem_union, Finset.mem_product,
-      Finset.mem_singleton, Direction.same.injEq, true_and, Direction.same_ne_horizontal,
-      false_and, Direction.same_ne_diagonal]
-    constructor
-    · intro hp
-      have haP := (Finset.mem_filter.mp hp).1
-      have hnot := (Finset.mem_filter.mp hp).2
-      apply Finset.mem_filter.mpr
-      refine ⟨Finset.mem_filter.mpr ⟨Finset.mem_product.mpr
-        ⟨rankPointVertex_mem_patch_iff.mpr (Finset.mem_filter.mp haP).1,
-          Finset.mem_univ _⟩, ?_⟩, ?_⟩
-      · exact (same_neighbor_mem_iff ha hb hc haP).mpr hnot
-      · simpa [rankDartVertex, rankPointVertex] using (Finset.mem_filter.mp haP).2
-    · intro h
-      rcases Finset.mem_filter.mp h with ⟨hint, hside⟩
-      rcases Finset.mem_filter.mp hint with ⟨hprod, hn⟩
-      have hpPatch := rankPointVertex_mem_patch_iff.mp (Finset.mem_product.mp hprod).1
-      have hpA : p ∈ aRankPatch a b c := Finset.mem_filter.mpr
-        ⟨hpPatch, by simpa [rankDartVertex, rankPointVertex] using hside⟩
-      exact Finset.mem_filter.mpr ⟨hpA, (same_neighbor_mem_iff ha hb hc hpA).mp hn⟩
-  · simp only [patchContactDarts, Finset.mem_union, Finset.mem_product,
-      Finset.mem_singleton, Direction.horizontal_ne_same, false_and,
-      Direction.horizontal.injEq, true_and, Direction.horizontal_ne_diagonal]
-    constructor
-    · intro hp
-      have haP := (Finset.mem_filter.mp hp).1
-      have hnot := (Finset.mem_filter.mp hp).2
-      apply Finset.mem_filter.mpr
-      refine ⟨Finset.mem_filter.mpr ⟨Finset.mem_product.mpr
-        ⟨rankPointVertex_mem_patch_iff.mpr (Finset.mem_filter.mp haP).1,
-          Finset.mem_univ _⟩, (horizontal_neighbor_mem_iff ha hb hc haP).mpr hnot⟩, ?_⟩
-      simpa [rankDartVertex, rankPointVertex] using (Finset.mem_filter.mp haP).2
-    · intro h
-      rcases Finset.mem_filter.mp h with ⟨hint, hside⟩
-      rcases Finset.mem_filter.mp hint with ⟨hprod, hn⟩
-      have hpPatch := rankPointVertex_mem_patch_iff.mp (Finset.mem_product.mp hprod).1
-      have hpA : p ∈ aRankPatch a b c := Finset.mem_filter.mpr
-        ⟨hpPatch, by simpa [rankDartVertex, rankPointVertex] using hside⟩
-      exact Finset.mem_filter.mpr ⟨hpA, (horizontal_neighbor_mem_iff ha hb hc hpA).mp hn⟩
-  · simp only [patchContactDarts, Finset.mem_union, Finset.mem_product,
-      Finset.mem_singleton, Direction.diagonal_ne_same, false_and,
-      Direction.diagonal_ne_horizontal, Direction.diagonal.injEq, true_and]
-    constructor
-    · intro hp
-      have haP := (Finset.mem_filter.mp hp).1
-      have hnot := (Finset.mem_filter.mp hp).2
-      apply Finset.mem_filter.mpr
-      refine ⟨Finset.mem_filter.mpr ⟨Finset.mem_product.mpr
-        ⟨rankPointVertex_mem_patch_iff.mpr (Finset.mem_filter.mp haP).1,
-          Finset.mem_univ _⟩, (diagonal_neighbor_mem_iff ha hb hc haP).mpr hnot⟩, ?_⟩
-      simpa [rankDartVertex, rankPointVertex] using (Finset.mem_filter.mp haP).2
-    · intro h
-      rcases Finset.mem_filter.mp h with ⟨hint, hside⟩
-      rcases Finset.mem_filter.mp hint with ⟨hprod, hn⟩
-      have hpPatch := rankPointVertex_mem_patch_iff.mp (Finset.mem_product.mp hprod).1
-      have hpA : p ∈ aRankPatch a b c := Finset.mem_filter.mpr
-        ⟨hpPatch, by simpa [rankDartVertex, rankPointVertex] using hside⟩
-      exact Finset.mem_filter.mpr ⟨hpA, (diagonal_neighbor_mem_iff ha hb hc hpA).mp hn⟩
+  cases d with
+  | same =>
+      constructor
+      · intro hpd
+        have hp : p ∈ sameContactPoints a b c := by
+          simpa [patchContactDarts] using hpd
+        have hpA := (Finset.mem_filter.mp hp).1
+        have hnot := (Finset.mem_filter.mp hp).2
+        apply Finset.mem_filter.mpr
+        refine ⟨Finset.mem_filter.mpr ⟨Finset.mem_product.mpr
+          ⟨rankPointVertex_mem_patch_iff.mpr (Finset.mem_filter.mp hpA).1,
+            Finset.mem_univ _⟩, ?_⟩, ?_⟩
+        · exact (same_neighbor_mem_iff ha hb hc hpA).mpr hnot
+        · simpa [rankDartVertex, rankPointVertex] using
+            (Finset.mem_filter.mp hpA).2
+      · intro hint
+        rcases Finset.mem_filter.mp hint with ⟨hint, hside⟩
+        rcases Finset.mem_filter.mp hint with ⟨hprod, hn⟩
+        have hpPatch := rankPointVertex_mem_patch_iff.mp
+          (Finset.mem_product.mp hprod).1
+        have hpA : p ∈ aRankPatch a b c := Finset.mem_filter.mpr
+          ⟨hpPatch, by simpa [rankDartVertex, rankPointVertex] using hside⟩
+        have hp : p ∈ sameContactPoints a b c := Finset.mem_filter.mpr
+          ⟨hpA, (same_neighbor_mem_iff ha hb hc hpA).mp hn⟩
+        simpa [patchContactDarts] using hp
+  | horizontal =>
+      constructor
+      · intro hpd
+        have hp : p ∈ horizontalContactPoints a b c := by
+          simpa [patchContactDarts] using hpd
+        have hpA := (Finset.mem_filter.mp hp).1
+        have hnot := (Finset.mem_filter.mp hp).2
+        apply Finset.mem_filter.mpr
+        refine ⟨Finset.mem_filter.mpr ⟨Finset.mem_product.mpr
+          ⟨rankPointVertex_mem_patch_iff.mpr (Finset.mem_filter.mp hpA).1,
+            Finset.mem_univ _⟩,
+          (horizontal_neighbor_mem_iff ha hb hc hpA).mpr hnot⟩, ?_⟩
+        simpa [rankDartVertex, rankPointVertex] using
+          (Finset.mem_filter.mp hpA).2
+      · intro hint
+        rcases Finset.mem_filter.mp hint with ⟨hint, hside⟩
+        rcases Finset.mem_filter.mp hint with ⟨hprod, hn⟩
+        have hpPatch := rankPointVertex_mem_patch_iff.mp
+          (Finset.mem_product.mp hprod).1
+        have hpA : p ∈ aRankPatch a b c := Finset.mem_filter.mpr
+          ⟨hpPatch, by simpa [rankDartVertex, rankPointVertex] using hside⟩
+        have hp : p ∈ horizontalContactPoints a b c := Finset.mem_filter.mpr
+          ⟨hpA, (horizontal_neighbor_mem_iff ha hb hc hpA).mp hn⟩
+        simpa [patchContactDarts] using hp
+  | diagonal =>
+      constructor
+      · intro hpd
+        have hp : p ∈ diagonalContactPoints a b c := by
+          simpa [patchContactDarts] using hpd
+        have hpA := (Finset.mem_filter.mp hp).1
+        have hnot := (Finset.mem_filter.mp hp).2
+        apply Finset.mem_filter.mpr
+        refine ⟨Finset.mem_filter.mpr ⟨Finset.mem_product.mpr
+          ⟨rankPointVertex_mem_patch_iff.mpr (Finset.mem_filter.mp hpA).1,
+            Finset.mem_univ _⟩,
+          (diagonal_neighbor_mem_iff ha hb hc hpA).mpr hnot⟩, ?_⟩
+        simpa [rankDartVertex, rankPointVertex] using
+          (Finset.mem_filter.mp hpA).2
+      · intro hint
+        rcases Finset.mem_filter.mp hint with ⟨hint, hside⟩
+        rcases Finset.mem_filter.mp hint with ⟨hprod, hn⟩
+        have hpPatch := rankPointVertex_mem_patch_iff.mp
+          (Finset.mem_product.mp hprod).1
+        have hpA : p ∈ aRankPatch a b c := Finset.mem_filter.mpr
+          ⟨hpPatch, by simpa [rankDartVertex, rankPointVertex] using hside⟩
+        have hp : p ∈ diagonalContactPoints a b c := Finset.mem_filter.mpr
+          ⟨hpA, (diagonal_neighbor_mem_iff ha hb hc hpA).mp hn⟩
+        simpa [patchContactDarts] using hp
 
 /-- Exact contact count of a convex patch. -/
 theorem contacts_patch_formula (a b c : ℕ)
