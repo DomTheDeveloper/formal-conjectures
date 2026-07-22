@@ -35,10 +35,10 @@ theorem eq_of_squarefree_of_isSquare_mul {a b : ℕ} (ha : Squarefree a) (hb : S
   have hfac : a.factorization p + b.factorization p = 2 * c.factorization p := by
     calc
       a.factorization p + b.factorization p = (a * b).factorization p := by
-        rw [factorization_mul ha.ne_zero hb.ne_zero]
+        simpa only [Pi.add_apply] using
+          congrFun (factorization_mul ha.ne_zero hb.ne_zero).symm p
       _ = (c ^ 2).factorization p := by
-        congr 1
-        simpa [pow_two] using hc
+        simpa [pow_two, hc]
       _ = 2 * c.factorization p := by simp [factorization_pow]
   constructor
   · intro hpa
@@ -103,8 +103,6 @@ theorem linearIndependent_sqrt_squarefree {ι : Type*} [Fintype ι]
     refine ⟨Polynomial.X ^ 2 - Polynomial.C (s i : ℚ),
       Polynomial.monic_X_pow_sub_C _ two_ne_zero, ?_⟩
     norm_num [← Polynomial.C_pow]
-    rw [Real.sq_sqrt (Nat.cast_nonneg _)]
-    norm_num
   letI : NumberField K :=
     { to_charZero := inferInstance
       to_finiteDimensional := hfd }
