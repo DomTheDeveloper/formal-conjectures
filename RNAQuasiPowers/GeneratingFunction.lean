@@ -38,7 +38,7 @@ and denominator.
 -/
 
 /-- Right-hand side of the recursive grammar. -/
-def grammarRhs (t x z g : Real) : Real :=
+noncomputable def grammarRhs (t x z g : Real) : Real :=
   1 + t * g + t ^ 2 * z * (g - 1 + (x - 1) * t / (1 - t)) * g
 
 /-- Leading coefficient of the cleared quadratic equation. -/
