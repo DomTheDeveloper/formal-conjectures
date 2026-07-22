@@ -27,6 +27,9 @@ public import FormalConjectures.Util.Linters.ExistsImplicationLinter
 public import FormalConjectures.Util.Linters.ModuleDocstringLinter
 public import FormalConjectures.Util.Linters.NamespaceLinter
 
+/- Audit-branch-only prebuild dependency for ProofAudit/6_dependency_candidate.lean. -/
+public import FormalConjectures.Paper.MonochromaticQuantumGraph
+
 /-!
 # Standard imports for open problems
 
