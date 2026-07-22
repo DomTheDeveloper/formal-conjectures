@@ -9,6 +9,27 @@ namespace WrittenOnTheWallII.GraphConjecture2Audit
 
 open Classical Finset
 
+/-- Number of selected neighborhoods containing a fixed vertex. -/
+def reverseCount {β : Type*} [Fintype β] [DecidableEq β]
+    (I : β → Finset β) (u : β) : ℕ :=
+  (Finset.univ.filter fun v => u ∈ I v).card
+
+/-- Counting selected incidences by their first or second coordinate gives the
+same total. -/
+lemma sum_reverseCount_eq_sum_card
+    {β : Type*} [Fintype β] [DecidableEq β]
+    (I : β → Finset β) :
+    (∑ u, reverseCount I u) = ∑ v, (I v).card := by
+  classical
+  simp [reverseCount, Finset.card_eq_sum_ones, Finset.sum_comm]
+
+/-- Real-valued form of the incidence double count. -/
+lemma sum_reverseCount_cast_eq_sum_card_cast
+    {β : Type*} [Fintype β] [DecidableEq β]
+    (I : β → Finset β) :
+    (∑ u, (reverseCount I u : ℝ)) = ∑ v, ((I v).card : ℝ) := by
+  exact_mod_cast sum_reverseCount_eq_sum_card I
+
 /-- The finite Cauchy inequality in exactly the form needed for both sides of
 the selected-neighborhood incidence count. -/
 lemma square_sum_le_card_mul_sum_square
@@ -51,6 +72,8 @@ lemma average_bound_core
         (mul_le_mul_left hS).mp hprod
       nlinarith)
 
+#print axioms sum_reverseCount_eq_sum_card
+#print axioms sum_reverseCount_cast_eq_sum_card_cast
 #print axioms square_sum_le_card_mul_sum_square
 #print axioms sq_le_mul_of_nonneg_of_le
 #print axioms average_bound_core
