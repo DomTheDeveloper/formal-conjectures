@@ -21,7 +21,24 @@ lemma sum_reverseCount_eq_sum_card
     (I : β → Finset β) :
     (∑ u, reverseCount I u) = ∑ v, (I v).card := by
   classical
-  simp [reverseCount, Finset.card_eq_sum_ones, Finset.sum_comm]
+  calc
+    (∑ u, reverseCount I u) =
+        ∑ u, ∑ v, if u ∈ I v then 1 else 0 := by
+          apply Finset.sum_congr rfl
+          intro u _hu
+          rw [reverseCount, Finset.card_eq_sum_ones, Finset.sum_filter]
+    _ = ∑ v, ∑ u, if u ∈ I v then 1 else 0 := by
+          rw [Finset.sum_comm]
+    _ = ∑ v, (I v).card := by
+          apply Finset.sum_congr rfl
+          intro v _hv
+          calc
+            (∑ u, if u ∈ I v then 1 else 0) =
+                ∑ u ∈ I v, 1 := by
+                  rw [← Finset.sum_filter, Finset.filter_mem_eq_inter,
+                    Finset.univ_inter]
+            _ = (I v).card := by
+                  rw [← Finset.card_eq_sum_ones]
 
 /-- Real-valued form of the incidence double count. -/
 lemma sum_reverseCount_cast_eq_sum_card_cast
@@ -58,7 +75,14 @@ lemma sum_selected_weight_eq_sum_reverseCount_mul
     _ = ∑ u, (reverseCount I u : ℝ) * d u := by
           apply Finset.sum_congr rfl
           intro u _hu
-          simp [reverseCount, Finset.card_eq_sum_ones, nsmul_eq_mul]
+          calc
+            (∑ v, if u ∈ I v then d u else 0) =
+                ∑ v ∈ (Finset.univ.filter fun v => u ∈ I v), d u := by
+                  rw [Finset.sum_filter]
+            _ = ((Finset.univ.filter fun v => u ∈ I v).card : ℝ) * d u := by
+                  simp [nsmul_eq_mul]
+            _ = (reverseCount I u : ℝ) * d u := by
+                  rfl
 
 /-- Sum a pointwise bound over all selected incidences. If `|I v| = a v` and
 `a v + d u ≤ M` whenever `u ∈ I v`, then the first-coordinate square mass and
@@ -189,8 +213,12 @@ lemma average_bound_core
         mul_le_mul_of_nonneg_left hM hn.le
       have hprod : S * (2 * S) ≤ S * (n * M) := by
         nlinarith
-      have hcancel : 2 * S ≤ n * M :=
-        (mul_le_mul_left hS).mp hprod
+      have hcancel : 2 * S ≤ n * M := by
+        by_contra h
+        have hlt : n * M < 2 * S := lt_of_not_ge h
+        have hmul : S * (n * M) < S * (2 * S) :=
+          mul_lt_mul_of_pos_left hlt hS
+        exact (not_lt_of_ge hprod) hmul
       nlinarith)
 
 #print axioms sum_reverseCount_eq_sum_card
