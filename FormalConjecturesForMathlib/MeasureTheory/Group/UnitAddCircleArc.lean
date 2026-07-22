@@ -136,7 +136,7 @@ theorem volume_terminalArc {a : ℝ} (ha0 : 0 < a) (ha1 : a < 1) :
     volume (terminalArc a) =
         volume (Metric.closedBall ((1 - a / 2 : ℝ) : UnitAddCircle) (a / 2)) := by
           rw [← Metric.closedBall_diff_sphere]
-          exact measure_sdiff_null hsphere
+          exact measure_diff_null hsphere
     _ = ENNReal.ofReal a := by
       rw [AddCircle.volume_closedBall]
       congr 1
