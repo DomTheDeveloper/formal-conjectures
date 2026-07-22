@@ -1,4 +1,4 @@
-name: C160 macOS Lean audit
+name: WOWII focused macOS Lean audit
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   audit:
-    if: contains(github.event.pull_request.title, 'C160')
+    if: contains(github.event.pull_request.title, 'C160') || contains(github.event.pull_request.title, 'C2')
     runs-on: macos-14
     timeout-minutes: 45
     steps:
@@ -24,17 +24,26 @@ jobs:
           lint: false
           use-mathlib-cache: true
           use-github-cache: true
+      - name: Build shared Formal Conjectures utilities
+        shell: bash
+        run: lake build FormalConjecturesUtil
       - name: Compile C160 helpers and audit axioms
+        if: contains(github.event.pull_request.title, 'C160')
         shell: bash
         run: |
           set -o pipefail
-          lake build FormalConjecturesUtil
-          lake env lean ProofAudit/160_attempt.lean 2>&1 | tee c160-macos.log
-          lake env lean ProofAudit/160_local_structure.lean 2>&1 | tee -a c160-macos.log
+          lake env lean ProofAudit/160_attempt.lean 2>&1 | tee wowii-focused.log
+          lake env lean ProofAudit/160_local_structure.lean 2>&1 | tee -a wowii-focused.log
+      - name: Compile C2 counting core and audit axioms
+        if: contains(github.event.pull_request.title, 'C2')
+        shell: bash
+        run: |
+          set -o pipefail
+          lake env lean ProofAudit/2_counting_core.lean 2>&1 | tee wowii-focused.log
       - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: c160-macos-audit-log
-          path: c160-macos.log
+          name: wowii-focused-macos-audit-log
+          path: wowii-focused.log
           if-no-files-found: warn
