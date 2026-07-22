@@ -31,7 +31,7 @@ namespace MeasureTheory
 
 variable {Ω : Type*} [MeasurableSpace Ω]
 
-private theorem range_nonempty_of_ne_zero {N : ℕ} (hN : N ≠ 0) :
+theorem empiricalRange_nonempty_of_ne_zero {N : ℕ} (hN : N ≠ 0) :
     (Finset.range N).Nonempty :=
   ⟨0, Finset.mem_range.mpr (Nat.pos_of_ne_zero hN)⟩
 
@@ -41,7 +41,7 @@ def empiricalProbabilityMeasure (Y : ℕ → Ω) (N : ℕ) : ProbabilityMeasure 
   classical
   by_cases hN : N = 0
   · exact ⟨Measure.dirac (Y 0), Measure.dirac.isProbabilityMeasure⟩
-  · let p : PMF ℕ := PMF.uniformOfFinset (Finset.range N) (range_nonempty_of_ne_zero hN)
+  · let p : PMF ℕ := PMF.uniformOfFinset (Finset.range N) (empiricalRange_nonempty_of_ne_zero hN)
     let ν : ProbabilityMeasure ℕ := ⟨p.toMeasure, inferInstance⟩
     exact ProbabilityMeasure.map ν (measurable_of_countable Y).aemeasurable
 
@@ -49,12 +49,12 @@ lemma empiricalProbabilityMeasure_ne_zero (Y : ℕ → Ω) {N : ℕ} (hN : N ≠
     empiricalProbabilityMeasure Y N =
       ProbabilityMeasure.map
         (⟨(PMF.uniformOfFinset (Finset.range N)
-            (range_nonempty_of_ne_zero hN)).toMeasure,
+            (empiricalRange_nonempty_of_ne_zero hN)).toMeasure,
           inferInstance⟩ : ProbabilityMeasure ℕ)
         (measurable_of_countable Y).aemeasurable := by
-  simp [empiricalProbabilityMeasure, hN, range_nonempty_of_ne_zero]
+  simp [empiricalProbabilityMeasure, hN, empiricalRange_nonempty_of_ne_zero]
 
-variable [TopologicalSpace Ω] [BorelSpace Ω]
+variable [PseudoMetricSpace Ω] [BorelSpace Ω]
 
 /-- Integration against the empirical measure is the corresponding finite average. -/
 theorem integral_empiricalProbabilityMeasure
@@ -63,14 +63,16 @@ theorem integral_empiricalProbabilityMeasure
       (∑ n ∈ Finset.range N, f (Y n)) / (N : ℂ) := by
   classical
   rw [empiricalProbabilityMeasure_ne_zero Y hN]
-  let p : PMF ℕ := PMF.uniformOfFinset (Finset.range N) (range_nonempty_of_ne_zero hN)
+  let p : PMF ℕ := PMF.uniformOfFinset (Finset.range N) (empiricalRange_nonempty_of_ne_zero hN)
   have hY : Measurable Y := measurable_of_countable Y
   rw [ProbabilityMeasure.toMeasure_map]
   rw [integral_map hY.aemeasurable f.continuous.aestronglyMeasurable]
   have hfint : Integrable (fun n => f (Y n)) p.toMeasure := by
-    refine (integrable_const ‖f‖).mono ?_ ?_
+    have hc : Integrable (fun _ : ℕ => (‖f‖ : ℂ)) p.toMeasure := integrable_const _
+    refine hc.mono ?_ ?_
     · exact (measurable_of_countable (fun n => f (Y n))).aestronglyMeasurable
-    · exact Filter.Eventually.of_forall fun n => f.norm_coe_le_norm (Y n)
+    · exact Filter.Eventually.of_forall fun n => by
+        simpa using f.norm_coe_le_norm (Y n)
   rw [PMF.integral_eq_tsum p (fun n => f (Y n)) hfint]
   rw [tsum_eq_sum (s := Finset.range N)]
   · calc
@@ -97,14 +99,14 @@ theorem empiricalProbabilityMeasure_apply (Y : ℕ → Ω) {N : ℕ} (hN : N ≠
   rw [empiricalProbabilityMeasure_ne_zero Y hN]
   rw [ProbabilityMeasure.map_apply]
   · change (((PMF.uniformOfFinset (Finset.range N)
-        (range_nonempty_of_ne_zero hN)).toMeasure
+        (empiricalRange_nonempty_of_ne_zero hN)).toMeasure
           (Y ⁻¹' A)).toNNReal) = _
     rw [PMF.toMeasure_uniformOfFinset_apply]
     · norm_num [ENNReal.toNNReal_div, Finset.filter_filter, and_comm]
     · exact (measurable_of_countable Y) hA
   · exact hA
 
-variable [CompactSpace Ω] [PseudoMetricSpace Ω]
+variable [CompactSpace Ω]
 
 /-- Continuous-test-function convergence of finite orbit averages gives weak convergence of the
 empirical probability measures. -/
@@ -119,7 +121,7 @@ theorem tendsto_empiricalProbabilityMeasure
   have h := havg ⟨f, f.continuous⟩
   apply h.congr'
   filter_upwards [eventually_ne_atTop 0] with N hN
-  exact integral_empiricalProbabilityMeasure Y hN f
+  exact (integral_empiricalProbabilityMeasure Y hN f).symm
 
 /-- The finite frequency of a continuity set converges to its limiting probability. -/
 theorem tendsto_frequency_of_null_frontier
@@ -138,6 +140,7 @@ theorem tendsto_frequency_of_null_frontier
   have hcoe := (NNReal.continuous_coe.tendsto (μ A)).comp hport
   apply hcoe.congr'
   filter_upwards [eventually_ne_atTop 0] with N hN
+  simp only [Function.comp_apply]
   rw [empiricalProbabilityMeasure_apply Y hN hA]
   norm_num [NNReal.coe_div]
 
@@ -166,7 +169,7 @@ theorem hasDensity_of_tendsto_average
     rw [Set.ncard_eq_toFinset_card _ hfinite]
     congr 1
     ext n
-    simp [hS]
+    simp [hS, and_comm]
   rw [hcard]
   simp
 
