@@ -16,8 +16,14 @@ limitations under the License.
 
 import RNAQuasiPowers.GeneratingFunction
 import RNAQuasiPowers.AlgebraicCertificate
+import FormalConjectures.Arxiv.«2602.19255».RNAQuasiPowers
 
 #print axioms RNAQuasiPowers.grammar_discriminant_eq_radicand
 #print axioms RNAQuasiPowers.quasiPowers_algebraic_certificate
 #print axioms RNAQuasiPowers.printedMarginalVarianceAt_target_gt_one
 #print axioms RNAQuasiPowers.threeTrack_certificate
+
+#print axioms Arxiv.«2602.19255».grammar_discriminant_eq_radicand
+#print axioms Arxiv.«2602.19255».quasiPowers_algebraic_certificate
+#print axioms Arxiv.«2602.19255».printed_density_not_standardized
+#print axioms Arxiv.«2602.19255».three_track_certificate
