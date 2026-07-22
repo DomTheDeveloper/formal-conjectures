@@ -369,8 +369,10 @@ private theorem tail_log_increment (n : ℕ) (hn : 128 ≤ n) :
   have hB : B ≤ A + C := by exact_mod_cast hBnat
   have hCnat := square_wheelCount_bound n
   have hC : C ≤ ((16 * n + 106 : ℕ) : ℝ) / 35 := by
-    rw [div_eq_iff (by norm_num : (35 : ℝ) ≠ 0)]
-    exact_mod_cast hCnat
+    rw [le_div_iff₀ (by norm_num : (0 : ℝ) < 35)]
+    have hC' : (35 : ℝ) * C ≤ ((16 * n + 106 : ℕ) : ℝ) := by
+      exact_mod_cast hCnat
+    nlinarith
   have hAlower := primeCounting_square_lower n hn
   have hn1 : 1 < n := by omega
   have hlogn : 0 < log (n : ℝ) := Real.log_pos (by exact_mod_cast hn1)
@@ -394,9 +396,11 @@ private theorem tail_log_increment (n : ℕ) (hn : 128 ≤ n) :
     nlinarith
   have hratio : (n : ℝ) * (C / A) ≤ (13 / 9 : ℝ) * log n := by
     have hinvA : 1 / A ≤ (3 * log n) / (n : ℝ) ^ 2 := by
-      rw [div_le_iff₀ hApos, one_mul]
-      rw [← div_le_iff₀ (by positivity : 0 < 3 * log (n : ℝ))]
-      simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using hAlower
+      have hbasepos : 0 < (n : ℝ) ^ 2 / (3 * log n) := by positivity
+      calc
+        1 / A ≤ 1 / ((n : ℝ) ^ 2 / (3 * log n)) :=
+          one_div_le_one_div_of_le hbasepos hAlower
+        _ = (3 * log n) / (n : ℝ) ^ 2 := by field_simp; ring
     calc
       (n : ℝ) * (C / A) = n * C * (1 / A) := by field_simp; ring
       _ ≤ n * (((16 * n + 106 : ℕ) : ℝ) / 35) * ((3 * log n) / n ^ 2) := by
