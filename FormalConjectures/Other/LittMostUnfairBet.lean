@@ -33,7 +33,7 @@ endpoint.
 *References:*
 - [Ekhad--Zeilberger challenge](https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimhtml/litt.html)
 - Svante Janson, Mihai Nica, and Simon Segert,
-  [The probability of competing binomial pattern counts](https://arxiv.org/abs/2503.19035)
+  [The generalized Alice HH vs Bob HT problem](https://arxiv.org/abs/2503.19035)
 -/
 
 namespace LittMostUnfairBet
@@ -89,7 +89,7 @@ Equivalently, the overlap functional
 
 is at most `1 - 2^(1-n)`.
 -/
-@[category research solved, AMS 5 60]
+@[category research open, AMS 5 60]
 theorem most_unfair_litt_coin_word_bet {n : ℕ} (hn : 2 ≤ n)
     (A B : Word n) (hne : A ≠ B) :
     selfOverlapDelta A B ^ 2 * ((2 ^ n : ℕ) : ℤ) ≤
@@ -97,7 +97,7 @@ theorem most_unfair_litt_coin_word_bet {n : ℕ} (hn : 2 ≤ n)
   sorry
 
 /-- The constant/end-flip pair attains the sharp bound. -/
-@[category research solved, AMS 5 60]
+@[category research open, AMS 5 60]
 theorem endpoint_flip_pair_attains (m : ℕ) (hm : 1 ≤ m) (b : Bool) :
     selfOverlapDelta (endpointFlipWord m b) (constantWord (m + 1) b) ^ 2 *
         ((2 ^ (m + 1) : ℕ) : ℤ) =
