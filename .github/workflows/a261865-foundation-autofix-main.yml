@@ -11,15 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# Second push: trigger after workflow installation.
 
 name: Apply A261865 foundation repairs
 
 on:
-  push:
+  pull_request:
     branches: [main]
     paths:
-      - '.github/workflows/a261865-foundation-autofix-main.yml'
+      - '.github/a261865-foundation-repair.trigger'
   workflow_dispatch:
 
 permissions:
@@ -27,6 +26,7 @@ permissions:
 
 jobs:
   patch:
+    if: github.event.pull_request.head.ref == 'a261865-research'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
