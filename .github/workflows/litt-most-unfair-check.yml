@@ -36,6 +36,10 @@ jobs:
           lake exe cache unpack || true
           lake exe cache get
 
-      - name: Compile development
+      - name: Compile statement
+        run: |
+          lake env lean FormalConjectures/Other/LittMostUnfairBet.lean
+
+      - name: Compile proof development
         run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBetProof.lean
