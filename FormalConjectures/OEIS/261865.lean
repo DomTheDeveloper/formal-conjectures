@@ -119,6 +119,23 @@ theorem hits_iff_coordinateHit (s n : ℕ) (hs : 2 ≤ s) :
     apply (lt_div_iff₀ hsqrt_pos).mp
     convert hright using 1 <;> ring
 
+/--
+Removing a positive square factor from a radicand preserves the hitting
+property.  Hence a nonsquarefree radicand can never be a genuinely new least
+value: every hit by `c² s` is already a hit by `s`.
+-/
+theorem hits_square_mul_imp (c s n : ℕ) (hc : 0 < c) :
+    Hits (c ^ 2 * s) n → Hits s n := by
+  rintro ⟨m, hm, hleft, hright⟩
+  have hsqrt :
+      Real.sqrt ((c ^ 2 * s : ℕ) : ℝ) =
+        (c : ℝ) * Real.sqrt (s : ℝ) := by
+    rw [Nat.cast_mul, Nat.cast_pow, Real.sqrt_mul (sq_nonneg (c : ℝ))]
+    rw [Real.sqrt_sq (Nat.cast_nonneg c)]
+  refine ⟨m * c, Nat.mul_pos hm hc, ?_, ?_⟩
+  · simpa [Nat.cast_mul, mul_assoc, hsqrt] using hleft
+  · simpa [Nat.cast_mul, mul_assoc, hsqrt] using hright
+
 /-- The squarefree integers in `[2, j)`. -/
 noncomputable def squarefreeBelow (j : ℕ) : Finset ℕ := by
   classical
@@ -133,6 +150,10 @@ noncomputable def predictedDensity (j : ℕ) : ℝ :=
 
 For every squarefree `j ≥ 2`, the set of positive indices where the least
 successful radicand is `j` has the stated natural density.
+
+The mathematical proof and Lean development were produced by
+ProofOrchestrator, using OpenAI GPT-5.6 Thinking, under Dominic Dabish's
+supervision.
 -/
 @[category research open, AMS 11]
 theorem density_formula (j : ℕ) (hj : 2 ≤ j) (hsq : Squarefree j) :
