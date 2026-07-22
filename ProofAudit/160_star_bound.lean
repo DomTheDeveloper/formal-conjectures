@@ -63,11 +63,15 @@ lemma indepNeighborsCard_le_Ls
     intro v hv
     have hTadj : T.Adj x v := hseedT (starSeed160_adj G x hv)
     simpa using hTadj
+  have hLocalDegreeR : (indepNeighborsCard G x : ℝ) ≤ (G.degree x : ℝ) := by
+    exact_mod_cast hLocalDegree
+  have hDegreeR : (G.degree x : ℝ) ≤ (T.degree x : ℝ) := by
+    exact_mod_cast hDegree
   have hTreeInt := degree_le_treeLeaves160 T hT x
   have hTree : (T.degree x : ℝ) ≤ ((treeLeaves160 T).card : ℝ) := by
     exact_mod_cast hTreeInt
   have hLs := treeLeaves160_card_le_Ls G T hTG hT
-  exact_mod_cast hLocalDegree.trans hDegree |>.trans (hTree.trans hLs)
+  exact hLocalDegreeR.trans (hDegreeR.trans (hTree.trans hLs))
 
 noncomputable def localMax160
     (G : SimpleGraph α) : ℕ :=
