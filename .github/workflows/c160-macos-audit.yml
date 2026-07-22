@@ -34,12 +34,13 @@ jobs:
           set -o pipefail
           lake env lean ProofAudit/160_attempt.lean 2>&1 | tee wowii-focused.log
           lake env lean ProofAudit/160_local_structure.lean 2>&1 | tee -a wowii-focused.log
-      - name: Compile C2 counting core and audit axioms
+      - name: Compile C2 counting and local-choice layers
         if: contains(github.event.pull_request.title, 'C2')
         shell: bash
         run: |
           set -o pipefail
           lake env lean ProofAudit/2_counting_core.lean 2>&1 | tee wowii-focused.log
+          lake env lean ProofAudit/2_local_choice.lean 2>&1 | tee -a wowii-focused.log
       - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
