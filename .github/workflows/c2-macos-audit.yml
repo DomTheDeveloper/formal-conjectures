@@ -1,4 +1,4 @@
-name: C2 macOS Lean audit
+name: C2 focused Lean audit
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   audit:
     if: contains(github.event.pull_request.title, 'C2')
-    runs-on: macos-14
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -42,15 +42,15 @@ jobs:
             ProofAudit/2_tree_bound.lean
             ProofAudit/2_complete.lean
           )
-          : > c2-macos.log
+          : > c2-focused.log
           for file in "${files[@]}"; do
-            echo "=== $file ===" | tee -a c2-macos.log
-            lake env lean "$file" 2>&1 | tee -a c2-macos.log
+            echo "=== $file ===" | tee -a c2-focused.log
+            lake env lean "$file" 2>&1 | tee -a c2-focused.log
           done
       - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: c2-macos-audit-log
-          path: c2-macos.log
+          name: c2-focused-audit-log
+          path: c2-focused.log
           if-no-files-found: warn
