@@ -1,0 +1,69 @@
+name: RNA quasi-powers kernel audit
+
+on:
+  pull_request:
+    paths:
+      - 'RNAQuasiPowers.lean'
+      - 'RNAQuasiPowers/**'
+      - 'FormalConjectures/Arxiv/2602.19255/**'
+      - 'lakefile.toml'
+      - '.github/workflows/rna-quasipowers-kernel-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rna-quasipowers-kernel-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kernel-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pinned Lean toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(cat lean-toolchain)" = "leanprover/lean4:v4.27.0"
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve dependencies and fetch Mathlib cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake update
+          lake exe cache get
+
+      - name: Build internal and public theorem layers
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake build RNAQuasiPowers 2>&1 | tee rna-kernel-audit.log
+          lake env lean FormalConjectures/Arxiv/2602.19255/RNAQuasiPowers.lean \
+            2>&1 | tee -a rna-kernel-audit.log
+
+      - name: Print and inspect theorem axioms
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake env lean RNAQuasiPowers/AxiomAudit.lean \
+            2>&1 | tee -a rna-kernel-audit.log
+          if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' \
+              rna-kernel-audit.log; then
+            echo 'Forbidden axiom or compiler-trust shortcut detected.' >&2
+            exit 1
+          fi
+
+      - name: Upload kernel transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rna-quasipowers-kernel-transcript
+          path: rna-kernel-audit.log
+          if-no-files-found: warn
