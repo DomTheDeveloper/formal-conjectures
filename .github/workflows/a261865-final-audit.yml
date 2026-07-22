@@ -29,8 +29,8 @@ concurrency:
 jobs:
   lean-final:
     name: Lean 4.27 exact theorem and axiom audit
-    runs-on: ubuntu-slim
-    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
