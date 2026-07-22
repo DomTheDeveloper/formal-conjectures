@@ -95,6 +95,7 @@ theorem volume_sphere_eq_zero {c r : ℝ} (_hr0 : 0 ≤ r) (_hr : r < 1 / 2) :
   rw [← ae_eq_empty]
   filter_upwards [AddCircle.closedBall_ae_eq_ball
     (x := (c : UnitAddCircle)) (ε := r)] with y hy
+  apply propext
   constructor
   · intro hysphere
     have hclosed : y ∈ Metric.closedBall (c : UnitAddCircle) r :=

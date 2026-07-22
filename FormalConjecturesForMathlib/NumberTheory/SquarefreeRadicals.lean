@@ -39,6 +39,7 @@ theorem linearIndependent_inv_sqrt_squarefree {ι : Type*} [Fintype ι]
   change 1 / Real.sqrt (s i) =
     (((((s i : ℚ)⁻¹ : ℚ) : ℝ)) * Real.sqrt (s i))
   rw [Rat.cast_inv, Rat.cast_natCast]
-  field_simp [hsqrt, Real.sq_sqrt hpos.le]
+  field_simp [hsqrt]
+  exact (Real.sq_sqrt hpos.le).symm
 
 end Real

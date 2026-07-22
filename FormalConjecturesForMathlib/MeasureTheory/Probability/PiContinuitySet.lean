@@ -99,7 +99,7 @@ theorem measure_frontier_pi_eq_zero
         Set.pi univ (fun j => if j = i then frontier (A j) else univ) := by
     ext x
     simp [Set.mem_pi]
-  rw [heq, Measure.pi_pi]
-  simp [hnull]
+  rw [heq, Measure.pi_pi, Finset.prod_eq_zero_iff]
+  exact ⟨i, Finset.mem_univ i, by simp [hnull i]⟩
 
 end MeasureTheory
