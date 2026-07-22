@@ -5,6 +5,13 @@ Licensed under the Apache License, Version 2.0.
 
 import FormalConjecturesUtil
 
+/-!
+# WOWII Conjecture 2 counting core
+
+Finite incidence double counts, Cauchy bounds, and the algebraic averaging
+endgame used by the complete C2 proof.
+-/
+
 namespace WrittenOnTheWallII.GraphConjecture2Audit
 
 open Classical Finset SimpleGraph
