@@ -54,6 +54,9 @@ jobs:
           set -euo pipefail
           lake env lean RNAQuasiPowers/AxiomAudit.lean \
             2>&1 | tee -a rna-kernel-audit.log
+          lake env lean \
+            FormalConjectures/Arxiv/2602.19255/RNAQuasiPowersAxiomAudit.lean \
+            2>&1 | tee -a rna-kernel-audit.log
           if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' \
               rna-kernel-audit.log; then
             echo 'Forbidden axiom or compiler-trust shortcut detected.' >&2
