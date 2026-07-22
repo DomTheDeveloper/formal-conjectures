@@ -8,6 +8,7 @@ on:
     branches:
       - a261865-research
     paths:
+      - 'FormalConjectures/OEIS/A261865Base.lean'
       - 'FormalConjectures/OEIS/261865.lean'
       - 'FormalConjectures/OEIS/261865Solution.lean'
       - 'FormalConjectures/OEIS/261865FinalAudit.lean'
@@ -20,6 +21,7 @@ on:
     branches:
       - main
     paths:
+      - 'FormalConjectures/OEIS/A261865Base.lean'
       - 'FormalConjectures/OEIS/261865.lean'
       - 'FormalConjectures/OEIS/261865Solution.lean'
       - 'FormalConjectures/OEIS/261865FinalAudit.lean'
@@ -66,9 +68,12 @@ jobs:
         run: |
           set -euo pipefail
           files=(
+            FormalConjectures/OEIS/A261865Base.lean
+            FormalConjectures/OEIS/261865.lean
             FormalConjectures/OEIS/261865Solution.lean
             FormalConjectures/OEIS/261865FinalAudit.lean
             FormalConjecturesForMathlib/Analysis/Equidistribution/TerminalBox.lean
+            FormalConjecturesForMathlib/Analysis/Equidistribution/UnitAddTorus.lean
             FormalConjecturesForMathlib/MeasureTheory/Group/UnitAddCircleArc.lean
             FormalConjecturesForMathlib/MeasureTheory/Probability/Empirical.lean
             FormalConjecturesForMathlib/MeasureTheory/Probability/PiContinuitySet.lean
@@ -87,6 +92,6 @@ jobs:
           output=$(lake env lean FormalConjectures/OEIS/261865FinalAudit.lean 2>&1)
           printf '%s\n' "$output"
           if grep -q 'sorryAx' <<<"$output"; then
-            echo 'The exact solution theorem depends on sorryAx.' >&2
+            echo 'The exact numbered theorem depends on sorryAx.' >&2
             exit 1
           fi
