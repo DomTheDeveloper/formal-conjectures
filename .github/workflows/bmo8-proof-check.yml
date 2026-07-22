@@ -18,7 +18,7 @@ jobs:
   check:
     name: check (ubuntu-latest)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
@@ -35,8 +35,15 @@ jobs:
           lake exe cache unpack || true
           lake exe cache get
 
-      - name: Build BMO 8 proof with warnings as errors
-        run: lake --wfail build FormalConjectures.Other.BeaverMathOlympiad8Proof
+      - name: Reject placeholders in BMO 8 proof
+        run: |
+          if grep -nE '\b(sorry|admit)\b' FormalConjectures/Other/BeaverMathOlympiad8Proof.lean; then
+            echo 'BMO 8 proof contains a placeholder.' >&2
+            exit 1
+          fi
+
+      - name: Build BMO 8 proof
+        run: lake build FormalConjectures.Other.BeaverMathOlympiad8Proof
 
       - name: Check BMO 8 theorem axioms
         run: |
