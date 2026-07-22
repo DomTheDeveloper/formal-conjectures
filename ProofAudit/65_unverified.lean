@@ -5,7 +5,7 @@ Mathematical status: complete proof.
 Lean status: audit copy.
 -/
 
-import FormalConjecturesUtil
+import FormalConjectures.Util.ProblemImports
 
 namespace WrittenOnTheWallII.GraphConjecture65
 
