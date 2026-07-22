@@ -137,7 +137,9 @@ theorem row_5554444443
         _ = 18 := by simp [hCcard]
     have hCsub : C ⊆ Finset.univ \ A := by
       intro c hc
-      have hcA : c ∉ A := Finset.disjoint_left.mp hdisj c · hc
+      have hcA : c ∉ A := by
+        intro hcA
+        exact Finset.disjoint_left.mp hdisj c hcA hc
       simp [hc, hcA]
     have hsumCB : (∑ c ∈ C, crossDegree G A c) ≤
         ∑ v ∈ Finset.univ \ A, crossDegree G A v := by
