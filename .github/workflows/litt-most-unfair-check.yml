@@ -22,7 +22,7 @@ concurrency:
 jobs:
   exact-audit:
     name: exact finite audit
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout project
@@ -32,8 +32,8 @@ jobs:
 
   lean-check:
     name: check Lean 4.27
-    runs-on: macos-15-intel
-    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
@@ -41,7 +41,7 @@ jobs:
       - name: Install elan
         run: |
           set -o pipefail
-          curl -sSfL "https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-apple-darwin.tar.gz" | tar xz
+          curl -sSfL "https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz" | tar xz
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
@@ -50,42 +50,15 @@ jobs:
           lake exe cache unpack || true
           lake exe cache get
 
-      - name: Compile statement
+      - name: Compile statement and overlap core
         run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBet.lean
-
-      - name: Compile overlap and arithmetic core
-        run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBetProof.lean
 
-      - name: Compile Walsh foundations
-        run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBetWalsh.lean
-
-      - name: Compile Walsh correlation identity
-        run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshCorrelation.lean
-
-      - name: Compile Walsh translation shapes
-        run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshShapes.lean
-
-      - name: Compile Walsh gap lemmas
-        run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshGap.lean
-
-      - name: Compile interior Walsh gap
+      - name: Compile Walsh variance-gap modules
         run: |
           lake env lean FormalConjectures/Other/LittMostUnfairBetWalshInteriorGap.lean
 
-      - name: Compile fixed-shift Walsh correlations
+      - name: Compile full Walsh energy and overlap bridge
         run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshShiftCorrelation.lean
-
-      - name: Compile translation normalization
-        run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshNormalize.lean
-
-      - name: Compile translation-orbit equivalence
-        run: |
-          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshOrbit.lean
+          lake env lean FormalConjectures/Other/LittMostUnfairBetWalshOverlapBridge.lean
