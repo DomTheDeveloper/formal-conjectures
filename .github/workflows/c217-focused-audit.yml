@@ -1,7 +1,7 @@
 # Copyright 2026 The Formal Conjectures Authors.
 # Licensed under the Apache License, Version 2.0.
 
-name: Check C217 focused backport
+name: Check C217 integrated proof stack
 
 on:
   pull_request:
@@ -36,47 +36,71 @@ jobs:
       - name: Reject proof holes and trusted computation shortcuts
         run: |
           set -euxo pipefail
-          file=FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianExtras.lean
-          if grep -nE '\b(sorry|admit|native_decide)\b|Lean\.trustCompiler|Lean\.ofReduceBool' "$file"; then
+          files=(
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianExtras.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/PathClosure.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217FiniteCertificate.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/MaximumLeafDegree.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/DegreeTwoTraceable.lean
+            FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217BaseReduction.lean
+          )
+          if grep -nE '\b(sorry|admit|native_decide)\b|Lean\.trustCompiler|Lean\.ofReduceBool|(^|[^A-Za-z])axiom([^A-Za-z]|$)' "${files[@]}"; then
             echo 'Forbidden proof shortcut found.' >&2
             exit 1
           fi
 
-      - name: Compile helper module and audit axioms
+      - name: Compile integrated modules and audit axioms
         id: lean
         continue-on-error: true
         run: |
           set -o pipefail
-          file=FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianExtras.lean
-          lake env lean "$file" 2>&1 | tee c217-focused-audit.log
+          lake build \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.HamiltonianExtras \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.PathClosure \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217FiniteCertificate \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.MaximumLeafDegree \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.DegreeTwoTraceable \
+            FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217BaseReduction \
+            2>&1 | tee c217-focused-audit.log
 
-      - name: Publish compact Lean diagnostics
-        if: steps.lean.outcome == 'failure' && github.event_name == 'pull_request'
+      - name: Replay deterministic certificate
+        id: certificate
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python3 scripts/c217_certificate.py 2>&1 | tee c217-certificate-replay.log
+          git diff --exit-code -- scripts/c217_certificate.json
+
+      - name: Publish compact diagnostics
+        if: (steps.lean.outcome == 'failure' || steps.certificate.outcome == 'failure') && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           {
-            echo '### Focused Lean 4.27.0 diagnostics'
+            echo '### C217 pinned audit diagnostics'
             echo
             echo '```text'
-            grep -E -A3 -B1 'error:|declaration uses|unknown (constant|identifier)|type mismatch|application type mismatch|invalid field' c217-focused-audit.log | tail -n 180
+            grep -E -A4 -B1 'error:|declaration uses|unknown (constant|identifier)|type mismatch|application type mismatch|invalid field|assertion|Traceback' c217-focused-audit.log c217-certificate-replay.log | tail -n 220 || true
             echo '```'
           } > c217-diagnostics.md
           gh pr comment "${{ github.event.pull_request.number }}" --body-file c217-diagnostics.md
 
-      - name: Enforce compile and axiom audit
+      - name: Enforce compile, certificate, and axiom audit
         run: |
           test "${{ steps.lean.outcome }}" = success
+          test "${{ steps.certificate.outcome }}" = success
           if grep -nE 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' c217-focused-audit.log; then
             echo 'Forbidden axiom found in audit output.' >&2
             exit 1
           fi
 
-      - name: Upload focused audit log
+      - name: Upload focused audit logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: c217-focused-audit-log
-          path: c217-focused-audit.log
+          path: |
+            c217-focused-audit.log
+            c217-certificate-replay.log
           compression-level: 0
           retention-days: 7
