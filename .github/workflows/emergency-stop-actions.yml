@@ -8,8 +8,13 @@ on:
   workflow_dispatch:
   pull_request_target:
     types: [opened, synchronize, reopened]
-  issues:
-    types: [opened]
+  workflow_run:
+    workflows:
+      - Build Lean project and deploy docs
+      - Check Copyright Header
+      - RNA quasi-powers kernel audit
+      - C2 focused Lean audit
+    types: [completed]
 
 permissions:
   actions: write
@@ -24,8 +29,8 @@ jobs:
     if: >-
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request_target' && startsWith(github.event.pull_request.head.ref, 'emergency/')) ||
-      (github.event_name == 'issues' && startsWith(github.event.issue.title, '[emergency-stop-actions]'))
+      github.event_name == 'workflow_run' ||
+      (github.event_name == 'pull_request_target' && startsWith(github.event.pull_request.head.ref, 'emergency/'))
     name: Stop runs via ${{ matrix.runner }}
     strategy:
       fail-fast: false
