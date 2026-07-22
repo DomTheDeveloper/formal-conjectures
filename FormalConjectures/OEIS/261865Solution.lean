@@ -37,7 +37,7 @@ theorem alpha_lt_one_of_two_le {s : ℕ} (hs : 2 ≤ s) : alpha s < 1 := by
   have hsqrtone : 1 < Real.sqrt (s : ℝ) := by
     nlinarith [show (2 : ℝ) ≤ s by exact_mod_cast hs]
   unfold alpha
-  exact (one_div_lt_one₀ hsqrtpos).2 hsqrtone
+  exact (div_lt_one hsqrtpos).2 hsqrtone
 
 /-- The distinguished element `j` as an element of the relevant-radicand subtype. -/
 noncomputable def distinguishedRadicand (j : ℕ) : relevantRadicands j :=
