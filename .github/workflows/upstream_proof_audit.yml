@@ -1,0 +1,64 @@
+name: Current upstream Lean proof audit
+
+on:
+  pull_request:
+    branches:
+      - audit/upstream-proof-base-2026-07-21
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pinned Lean and mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: true
+
+      - name: Build current upstream utility module and compile candidates
+        shell: bash
+        run: |
+          set +e
+          mkdir -p proof-audit-logs
+          : > proof-audit-logs/summary.txt
+
+          echo "===== lake build FormalConjecturesUtil =====" | tee -a proof-audit-logs/summary.txt
+          lake build FormalConjecturesUtil > proof-audit-logs/repository-build.log 2>&1
+          build_status=$?
+          echo "exit_code=$build_status" | tee -a proof-audit-logs/summary.txt
+          cat proof-audit-logs/repository-build.log
+          printf '\n' | tee -a proof-audit-logs/summary.txt
+
+          files=(
+            ProofAudit/65.lean
+            ProofAudit/2_attempt.lean
+            ProofAudit/160_attempt.lean
+            ProofAudit/6_dependency_candidate.lean
+          )
+          for file in "${files[@]}"; do
+            base="$(basename "$file" .lean)"
+            echo "===== $file =====" | tee -a proof-audit-logs/summary.txt
+            lake env lean "$file" >"proof-audit-logs/${base}.log" 2>&1
+            status=$?
+            echo "exit_code=$status" | tee -a proof-audit-logs/summary.txt
+            cat "proof-audit-logs/${base}.log"
+            printf '\n' | tee -a proof-audit-logs/summary.txt
+          done
+          cat proof-audit-logs/summary.txt
+
+      - name: Upload audit logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: current-upstream-lean-proof-audit-logs
+          path: proof-audit-logs
+          if-no-files-found: error
