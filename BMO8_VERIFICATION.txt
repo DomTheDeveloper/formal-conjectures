@@ -1,0 +1,4 @@
+Zero-based witness index: 1210682
+Witness state: (1749056, 3498111)
+Check: 3498111 / 2 + 1 = 1749056
+Independent Python and C verifiers agree.
