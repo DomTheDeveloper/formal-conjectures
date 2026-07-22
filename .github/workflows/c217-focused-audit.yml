@@ -1,0 +1,61 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: Check C217 focused backport
+
+on:
+  pull_request:
+    branches:
+      - agent/c217-audit-base
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@v6
+
+      - name: Install pinned Lean toolchain
+        run: |
+          set -euxo pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore repository Mathlib cache
+        run: |
+          set -euxo pipefail
+          lake exe cache get
+
+      - name: Reject proof holes and trusted computation shortcuts
+        run: |
+          set -euxo pipefail
+          file=FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianExtras.lean
+          if grep -nE '\b(sorry|admit|native_decide)\b|Lean\.trustCompiler|Lean\.ofReduceBool' "$file"; then
+            echo 'Forbidden proof shortcut found.' >&2
+            exit 1
+          fi
+
+      - name: Compile helper module and audit axioms
+        run: |
+          set -euxo pipefail
+          file=FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianExtras.lean
+          lake env lean "$file" 2>&1 | tee c217-focused-audit.log
+          if grep -nE 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' c217-focused-audit.log; then
+            echo 'Forbidden axiom found in audit output.' >&2
+            exit 1
+          fi
+
+      - name: Upload focused audit log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c217-focused-audit-log
+          path: c217-focused-audit.log
+          compression-level: 0
+          retention-days: 7
