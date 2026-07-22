@@ -1,0 +1,1 @@
+Temporary proof-audit file; remove before final merge if the proof is inlined into BeaverMathOlympiad.lean.
