@@ -19,5 +19,5 @@ import RNAQuasiPowers.AlgebraicCertificate
 
 #print axioms RNAQuasiPowers.grammar_discriminant_eq_radicand
 #print axioms RNAQuasiPowers.quasiPowers_algebraic_certificate
-#print axioms RNAQuasiPowers.printedMarginalVariance_gt_one
+#print axioms RNAQuasiPowers.printedMarginalVarianceAt_target_gt_one
 #print axioms RNAQuasiPowers.threeTrack_certificate
