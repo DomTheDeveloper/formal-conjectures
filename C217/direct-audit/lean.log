@@ -1,12 +1,12 @@
-✖ [780/803] Running Mathlib.Dynamics.FixedPoints.Increasing
+✖ [779/803] Running Mathlib.Dynamics.FixedPoints.Increasing
 error: no such file or directory (error code: 2)
   file: /Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/mathlib/Mathlib/Dynamics/FixedPoints/Increasing.lean
-✖ [781/803] Running FormalConjecturesForMathlib.Combinatorics.SimpleGraph.PathClosure
+✖ [780/803] Running FormalConjecturesForMathlib.Combinatorics.SimpleGraph.PathClosure
 error: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/PathClosure.lean: bad import 'Mathlib.Dynamics.FixedPoints.Increasing'
-✖ [782/803] Running FormalConjecturesForMathlib.Combinatorics.SimpleGraph.ChvatalPath
+✖ [781/803] Running FormalConjecturesForMathlib.Combinatorics.SimpleGraph.ChvatalPath
 error: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/ChvatalPath.lean: bad import 'FormalConjecturesForMathlib.Combinatorics.SimpleGraph.PathClosure'
-✔ [789/803] Built FormalConjecturesForMathlib.Combinatorics.SimpleGraph.Residue (10s)
-✖ [790/803] Building FormalConjecturesForMathlib.Combinatorics.SimpleGraph.HamiltonianNext (3.6s)
+✔ [791/804] Built FormalConjecturesForMathlib.Combinatorics.SimpleGraph.Residue (9.4s)
+✖ [792/810] Building FormalConjecturesForMathlib.Combinatorics.SimpleGraph.HamiltonianNext (2.0s)
 trace: .> LEAN_PATH=/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/Cli/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/batteries/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/Qq/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/aesop/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/importGraph/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/plausible/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/mathlib/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean /Users/runner/.elan/toolchains/leanprover--lean4---v4.27.0/bin/lean /Users/runner/work/formal-conjectures/formal-conjectures/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianNext.lean -o /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianNext.olean -i /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianNext.ilean -c /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/ir/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianNext.c --setup /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/ir/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianNext.setup.json --json
 error: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianNext.lean:52:8: omega could not prove the goal:
 a possible counterexample may satisfy the constraints
@@ -35,7 +35,7 @@ info: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianNext.lean
 info: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianNext.lean:130:0: 'SimpleGraph.Walk.IsHamiltonianCycle.next_inj' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
 info: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianNext.lean:131:0: 'SimpleGraph.Walk.IsHamiltonianCycle.next_ne' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
 error: Lean exited with code 1
-✖ [796/821] Building FormalConjecturesForMathlib.Combinatorics.SimpleGraph.HamiltonianConstruct (14s)
+✖ [797/818] Building FormalConjecturesForMathlib.Combinatorics.SimpleGraph.HamiltonianConstruct (12s)
 trace: .> LEAN_PATH=/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/Cli/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/batteries/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/Qq/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/aesop/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/importGraph/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/plausible/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/mathlib/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean /Users/runner/.elan/toolchains/leanprover--lean4---v4.27.0/bin/lean /Users/runner/work/formal-conjectures/formal-conjectures/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianConstruct.lean -o /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianConstruct.olean -i /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianConstruct.ilean -c /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/ir/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianConstruct.c --setup /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/ir/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianConstruct.setup.json --json
 error: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianConstruct.lean:46:19: Invalid field `darts_getElem_snd_eq_support_tail`: The environment does not contain `SimpleGraph.Walk.darts_getElem_snd_eq_support_tail`, so it is not possible to project the field `darts_getElem_snd_eq_support_tail` from an expression
   p
@@ -75,7 +75,7 @@ info: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/HamiltonianConstruct
  Classical.choice,
  Quot.sound]
 error: Lean exited with code 1
-✖ [799/821] Building FormalConjecturesForMathlib.Combinatorics.SimpleGraph.ConeBasic (14s)
+✖ [800/818] Building FormalConjecturesForMathlib.Combinatorics.SimpleGraph.ConeBasic (12s)
 trace: .> LEAN_PATH=/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/Cli/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/batteries/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/Qq/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/aesop/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/importGraph/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/plausible/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/mathlib/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean /Users/runner/.elan/toolchains/leanprover--lean4---v4.27.0/bin/lean /Users/runner/work/formal-conjectures/formal-conjectures/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/ConeBasic.lean -o /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/ConeBasic.olean -i /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/ConeBasic.ilean -c /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/ir/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/ConeBasic.c --setup /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/ir/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/ConeBasic.setup.json --json
 error: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/ConeBasic.lean:68:6: Unknown constant `Finset.card_insert_of_not_mem`
 error: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/ConeBasic.lean:65:49: unsolved goals
@@ -104,9 +104,9 @@ u v val✝¹ val✝ : V
 info: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/ConeBasic.lean:83:0: 'SimpleGraph.cone_degree_some' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
 info: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/ConeBasic.lean:84:0: 'SimpleGraph.cone_sup_edge' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
 error: Lean exited with code 1
-✖ [1198/1260] Running FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217DegreeBridge
+✖ [1195/1204] Running FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217DegreeBridge
 error: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217DegreeBridge.lean: bad import 'FormalConjecturesForMathlib.Combinatorics.SimpleGraph.ChvatalPath'
-✖ [1277/1283] Building FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217OrderCertificate (5.4s)
+✖ [1277/1283] Building FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217OrderCertificate (4.3s)
 trace: .> LEAN_PATH=/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/Cli/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/batteries/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/Qq/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/aesop/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/importGraph/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/plausible/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/packages/mathlib/.lake/build/lib/lean:/Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean /Users/runner/.elan/toolchains/leanprover--lean4---v4.27.0/bin/lean /Users/runner/work/formal-conjectures/formal-conjectures/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217OrderCertificate.lean -o /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217OrderCertificate.olean -i /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217OrderCertificate.ilean -c /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/ir/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217OrderCertificate.c --setup /Users/runner/work/formal-conjectures/formal-conjectures/.lake/build/ir/FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217OrderCertificate.setup.json --json
 error: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217OrderCertificate.lean:44:16: unsolved goals
 case cons
@@ -128,8 +128,8 @@ error: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217OrderCertificat
 info: stderr:
 Stack overflow detected. Aborting.
 error: Lean exited with code 134
-✔ [1280/1283] Built FormalConjecturesForMathlib.Combinatorics.SimpleGraph.SpanningTree (6.1s)
-⚠ [1281/1283] Built FormalConjecturesForMathlib.Combinatorics.SimpleGraph.DegreeTwoTraceable (6.0s)
+✔ [1280/1283] Built FormalConjecturesForMathlib.Combinatorics.SimpleGraph.SpanningTree (5.5s)
+⚠ [1281/1283] Built FormalConjecturesForMathlib.Combinatorics.SimpleGraph.DegreeTwoTraceable (6.3s)
 warning: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/DegreeTwoTraceable.lean:16:8: automatically included section variable(s) unused in theorem `_private.FormalConjecturesForMathlib.Combinatorics.SimpleGraph.DegreeTwoTraceable.0.SimpleGraph.exists_adj_crossing`:
   [DecidableEq α]
   [Nontrivial α]
@@ -153,7 +153,7 @@ Note: This linter can be disabled with `set_option linter.unusedSectionVars fals
 info: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/DegreeTwoTraceable.lean:127:0: 'SimpleGraph.Connected.exists_hamiltonianPath_of_degree_le_two' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
-⚠ [1282/1283] Built FormalConjecturesForMathlib.Combinatorics.SimpleGraph.MaximumLeafDegree (5.6s)
+⚠ [1282/1283] Built FormalConjecturesForMathlib.Combinatorics.SimpleGraph.MaximumLeafDegree (4.5s)
 warning: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/MaximumLeafDegree.lean:25:8: automatically included section variable(s) unused in theorem `SimpleGraph.incidentStar_adj`:
   [Fintype α]
   [DecidableEq α]
@@ -190,7 +190,7 @@ consider restructuring your `variable` declarations so that the variables are no
 
 Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
 info: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/MaximumLeafDegree.lean:195:0: 'SimpleGraph.degree_cast_le_Ls_of_connected' depends on axioms: [propext, Classical.choice, Quot.sound]
-⚠ [1283/1283] Built FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217BaseReduction (5.2s)
+⚠ [1283/1283] Built FormalConjecturesForMathlib.Combinatorics.SimpleGraph.C217BaseReduction (3.1s)
 warning: FormalConjecturesForMathlib/Combinatorics/SimpleGraph/C217BaseReduction.lean:34:0: automatically included section variable(s) unused in theorem `SimpleGraph.C217BaseReduction.Ls_le_six_of_residue_eq_two`:
   [DecidableEq α]
   [Nontrivial α]
