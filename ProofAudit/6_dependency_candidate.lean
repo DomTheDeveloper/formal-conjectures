@@ -1,22 +1,37 @@
 /-
-Copyright 2026
+Copyright 2026 The Formal Conjectures Authors.
 
-A color-restriction proof for the N = 6 monochromatic quantum graph system.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-Audit copy. Requires `QuantumGraphGlobal.no_eqSystem_int`.
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 -/
 
-import QuantumGraphGlobal
+import FormalConjectures.Paper.MonochromaticQuantumGraph
 
-open MonochromaticQuantumGraph
+/-!
+# Color restriction for the N = 6 monochromatic quantum graph system
+
+This file verifies the reduction from the three-color integer case to every
+larger number of colors. It deliberately takes the still-missing `D = 3`
+nonexistence theorem as a hypothesis rather than importing an unavailable
+private module or pretending that the base case has been proved.
+-/
 
 namespace MonochromaticQuantumGraph
 
-def restrictColorWeights {N d D : Nat} {alpha : Type}
-    (f : Fin d -> Fin D) (W : WeightsN N D alpha) : WeightsN N d alpha :=
+def restrictColorWeights {N d D : Nat} {α : Type}
+    (f : Fin d → Fin D) (W : WeightsN N D α) : WeightsN N d α :=
   fun e => W (mkEdge e.u e.v (f e.i) (f e.j))
 
-def colorEmbedding {d D : Nat} (h : d ≤ D) : Fin d -> Fin D :=
+def colorEmbedding {d D : Nat} (h : d ≤ D) : Fin d → Fin D :=
   fun i => ⟨i.val, lt_of_lt_of_le i.isLt h⟩
 
 lemma colorEmbedding_injective {d D : Nat} (h : d ≤ D) :
@@ -26,40 +41,40 @@ lemma colorEmbedding_injective {d D : Nat} (h : d ≤ D) :
   exact congrArg Fin.val hij
 
 private lemma pmSumN_six_restrictColorWeights
-    {alpha : Type} [Semiring alpha] {d D : Nat}
-    (f : Fin d -> Fin D) (W : WeightsN 6 D alpha)
-    (iota : V 6 -> Fin d) :
-    pmSumN 6 d (restrictColorWeights f W) iota =
-      pmSumN 6 D W (fun v => f (iota v)) := by
+    {α : Type} [Semiring α] {d D : Nat}
+    (f : Fin d → Fin D) (W : WeightsN 6 D α)
+    (ι : V 6 → Fin d) :
+    pmSumN 6 d (restrictColorWeights f W) ι =
+      pmSumN 6 D W (fun v => f (ι v)) := by
   simp [pmSumN, pmSumList, pmSumListAux, vertices,
     restrictColorWeights, mkEdge]
 
 private lemma allEqual_six_comp_iff
-    {d D : Nat} (f : Fin d -> Fin D) (hf : Function.Injective f)
-    (iota : V 6 -> Fin d) :
-    allEqual (fun v => f (iota v)) ↔ allEqual iota := by
+    {d D : Nat} (f : Fin d → Fin D) (hf : Function.Injective f)
+    (ι : V 6 → Fin d) :
+    allEqual (fun v => f (ι v)) ↔ allEqual ι := by
   simp [allEqual, allEqualList, vertices, hf.eq_iff]
 
 theorem eqSystem6_restrictColors
-    {alpha : Type} [Semiring alpha] {d D : Nat}
-    (f : Fin d -> Fin D) (hf : Function.Injective f)
-    {W : WeightsN 6 D alpha} (hW : EqSystemN 6 D W) :
+    {α : Type} [Semiring α] {d D : Nat}
+    (f : Fin d → Fin D) (hf : Function.Injective f)
+    {W : WeightsN 6 D α} (hW : EqSystemN 6 D W) :
     EqSystemN 6 d (restrictColorWeights f W) := by
-  intro iota
+  intro ι
   calc
-    pmSumN 6 d (restrictColorWeights f W) iota =
-        pmSumN 6 D W (fun v => f (iota v)) :=
-      pmSumN_six_restrictColorWeights f W iota
-    _ = if allEqual (fun v => f (iota v)) then (1 : alpha) else 0 :=
-      hW (fun v => f (iota v))
-    _ = if allEqual iota then (1 : alpha) else 0 := by
-      rw [allEqual_six_comp_iff f hf iota]
+    pmSumN 6 d (restrictColorWeights f W) ι =
+        pmSumN 6 D W (fun v => f (ι v)) :=
+      pmSumN_six_restrictColorWeights f W ι
+    _ = if allEqual (fun v => f (ι v)) then (1 : α) else 0 :=
+      hW (fun v => f (ι v))
+    _ = if allEqual ι then (1 : α) else 0 := by
+      rw [allEqual_six_comp_iff f hf ι]
 
 theorem no_eqSystem6_mono_colors
-    {alpha : Type} [Semiring alpha] {d : Nat}
-    (hd : ¬ ∃ W : WeightsN 6 d alpha, EqSystemN 6 d W) :
+    {α : Type} [Semiring α] {d : Nat}
+    (hd : ¬ ∃ W : WeightsN 6 d α, EqSystemN 6 d W) :
     ∀ D : Nat, d ≤ D →
-      ¬ ∃ W : WeightsN 6 D alpha, EqSystemN 6 D W := by
+      ¬ ∃ W : WeightsN 6 D α, EqSystemN 6 D W := by
   intro D hdD
   rintro ⟨W, hW⟩
   apply hd
@@ -67,73 +82,40 @@ theorem no_eqSystem6_mono_colors
   exact eqSystem6_restrictColors
     (colorEmbedding hdD) (colorEmbedding_injective hdD) hW
 
-theorem no_eqSystem6_ge3_int :
+/-- A proof of the integer `D = 3` case implies all integer cases `D ≥ 3`. -/
+theorem no_eqSystem6_ge3_int_of_d3
+    (h3 : ¬ ∃ W : WeightsN 6 3 ℤ, EqSystemN 6 3 W) :
     ∀ D : Nat, D ≥ 3 →
-      ¬ ∃ W : WeightsN 6 D Int, EqSystemN 6 D W := by
-  exact no_eqSystem6_mono_colors QuantumGraphGlobal.no_eqSystem_int
+      ¬ ∃ W : WeightsN 6 D ℤ, EqSystemN 6 D W := by
+  exact no_eqSystem6_mono_colors h3
 
-theorem no_eqSystem6_d5_int :
-    ¬ ∃ W : WeightsN 6 5 Int, EqSystemN 6 5 W := by
-  exact no_eqSystem6_ge3_int 5 (by decide)
+/-- In particular, the integer `D = 3` case implies `D = 5`. -/
+theorem no_eqSystem6_d5_int_of_d3
+    (h3 : ¬ ∃ W : WeightsN 6 3 ℤ, EqSystemN 6 3 W) :
+    ¬ ∃ W : WeightsN 6 5 ℤ, EqSystemN 6 5 W := by
+  exact no_eqSystem6_ge3_int_of_d3 h3 5 (by decide)
 
-theorem no_eqSystem6_ge3_trinary_int :
+/-- The unrestricted integer result implies the corresponding trinary result. -/
+theorem no_eqSystem6_ge3_trinary_int_of_d3
+    (h3 : ¬ ∃ W : WeightsN 6 3 ℤ, EqSystemN 6 3 W) :
     ∀ D : Nat, D ≥ 3 →
-      ¬ ∃ W : WeightsN 6 D Int,
-        (∀ e, W e = (-1 : Int) ∨ W e = 0 ∨ W e = 1) ∧
+      ¬ ∃ W : WeightsN 6 D ℤ,
+        (∀ e, W e = (-1 : ℤ) ∨ W e = 0 ∨ W e = 1) ∧
           EqSystemN 6 D W := by
   intro D hD
   rintro ⟨W, _, hW⟩
-  exact no_eqSystem6_ge3_int D hD ⟨W, hW⟩
+  exact no_eqSystem6_ge3_int_of_d3 h3 D hD ⟨W, hW⟩
 
-theorem no_eqSystem6_d5_trinary_int :
-    ¬ ∃ W : WeightsN 6 5 Int,
-      (∀ e, W e = (-1 : Int) ∨ W e = 0 ∨ W e = 1) ∧
+/-- In particular, the integer `D = 3` case implies the trinary `D = 5` case. -/
+theorem no_eqSystem6_d5_trinary_int_of_d3
+    (h3 : ¬ ∃ W : WeightsN 6 3 ℤ, EqSystemN 6 3 W) :
+    ¬ ∃ W : WeightsN 6 5 ℤ,
+      (∀ e, W e = (-1 : ℤ) ∨ W e = 0 ∨ W e = 1) ∧
         EqSystemN 6 5 W := by
-  exact no_eqSystem6_ge3_trinary_int 5 (by decide)
+  exact no_eqSystem6_ge3_trinary_int_of_d3 h3 5 (by decide)
 
-theorem eqSystem6_no_solution_d5_int_full :
-    answer(True) ↔
-      ¬ ∃ W : WeightsN 6 5 Int, EqSystemN 6 5 W := by
-  constructor
-  · intro _
-    exact no_eqSystem6_d5_int
-  · intro _
-    trivial
-
-theorem eqSystem6_no_solution_ge3_int_full :
-    answer(True) ↔
-      ∀ D : Nat, D ≥ 3 →
-        ¬ ∃ W : WeightsN 6 D Int, EqSystemN 6 D W := by
-  constructor
-  · intro _
-    exact no_eqSystem6_ge3_int
-  · intro _
-    trivial
-
-theorem eqSystem6_no_solution_d5_trinary_int_full :
-    answer(True) ↔
-      ¬ ∃ W : WeightsN 6 5 Int,
-        (∀ e, W e = (-1 : Int) ∨ W e = 0 ∨ W e = 1) ∧
-          EqSystemN 6 5 W := by
-  constructor
-  · intro _
-    exact no_eqSystem6_d5_trinary_int
-  · intro _
-    trivial
-
-theorem eqSystem6_no_solution_ge3_trinary_int_full :
-    answer(True) ↔
-      ∀ D : Nat, D ≥ 3 →
-        ¬ ∃ W : WeightsN 6 D Int,
-          (∀ e, W e = (-1 : Int) ∨ W e = 0 ∨ W e = 1) ∧
-            EqSystemN 6 D W := by
-  constructor
-  · intro _
-    exact no_eqSystem6_ge3_trinary_int
-  · intro _
-    trivial
-
-#print axioms eqSystem6_no_solution_ge3_int_full
-#print axioms eqSystem6_no_solution_ge3_trinary_int_full
+#print axioms eqSystem6_restrictColors
+#print axioms no_eqSystem6_ge3_int_of_d3
+#print axioms no_eqSystem6_ge3_trinary_int_of_d3
 
 end MonochromaticQuantumGraph
