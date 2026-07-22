@@ -65,19 +65,23 @@ lemma pmSumListAux_restrict {N d D : Nat} (f : Fin d ↪ Fin D)
       pmSumListAux (restrictWeights f W) ι n L =
         pmSumListAux W (fun v => f (ι v)) n L := by
   intro n
-  refine Nat.twoStepInduction ?_ ?_ ?_ n
-  · intro L
-    rfl
-  · intro L
-    rfl
-  · intro n ih _ihSucc L
-    cases L with
-    | nil => rfl
-    | cons v vs =>
-        cases vs with
-        | nil => rfl
-        | cons u us =>
-            simp only [pmSumListAux, restrictWeights_mkEdge, ih]
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      intro L
+      cases n with
+      | zero => rfl
+      | succ n =>
+          cases n with
+          | zero => rfl
+          | succ n =>
+              cases L with
+              | nil => rfl
+              | cons v vs =>
+                  cases vs with
+                  | nil => rfl
+                  | cons u us =>
+                      simp only [pmSumListAux, restrictWeights_mkEdge,
+                        ih n (by omega)]
 
 /-- Pullback leaves the perfect-matching sum on the canonical vertex list unchanged. -/
 lemma pmSumN_restrict {N d D : Nat} (f : Fin d ↪ Fin D)
@@ -99,7 +103,7 @@ lemma eqSystem_restrict {N d D : Nat} (f : Fin d ↪ Fin D)
     _ = (if allEqual (fun v => f (ι v)) then (1 : α) else 0) :=
       hW (fun v => f (ι v))
     _ = (if allEqual ι then (1 : α) else 0) := by
-      rw [allEqual_comp_embedding_iff f ι]
+      simp only [allEqual_comp_embedding_iff f ι]
 
 /-- Solution existence is downward-closed in the number of colors. -/
 theorem exists_eqSystem_of_embedding {N d D : Nat} (f : Fin d ↪ Fin D) :
