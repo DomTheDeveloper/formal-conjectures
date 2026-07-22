@@ -250,7 +250,7 @@ theorem tendsto_average_rotation
   · have hz : mFourier k (fun i => (a i : UnitAddCircle)) ≠ 1 :=
       mFourier_coe_ne_one ha hk
     have hnorm : ‖mFourier k (fun i => (a i : UnitAddCircle))‖ = 1 := by
-      simpa using congrArg (fun f : C(UnitAddTorus d, ℂ) => ‖f‖) (rfl : mFourier k = mFourier k)
+      simp [mFourier, fourier_apply, norm_prod, Circle.norm_coe]
     have hgeom := tendsto_geom_average_zero hz hnorm
     rw [integral_mFourier, if_neg hk]
     simpa only [mFourier_nsmul] using hgeom
