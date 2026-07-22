@@ -1,0 +1,44 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: Audit C217 closure backport
+
+on:
+  push:
+    branches:
+      - agent/c217-closure-backport
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned Lean toolchain
+        run: |
+          set -euxo pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Restore pinned Mathlib cache
+        run: lake exe cache get
+      - name: Fetch source-only Bondy-Chvatal candidate
+        run: |
+          set -euxo pipefail
+          mkdir -p C217
+          curl -L --fail --silent --show-error \
+            https://raw.githubusercontent.com/leanprover-community/mathlib4/c83689ab8f1abfba1f646e65dc8b131fd256b73f/Mathlib/Combinatorics/SimpleGraph/BondyChvatal.lean \
+            -o C217/BondyChvatal.lean
+          ! grep -nE '\bsorry\b|\badmit\b|Lean\.ofReduceBool|Lean\.trustCompiler|native_decide' C217/BondyChvatal.lean
+      - name: Compile candidate and record axioms
+        run: |
+          set -euxo pipefail
+          cat >> C217/BondyChvatal.lean <<'EOF'
+
+#print axioms SimpleGraph.from_ClosureStep
+#print axioms SimpleGraph.from_closure_iff
+#print axioms SimpleGraph.ore_theorem
+EOF
+          lake env lean C217/BondyChvatal.lean 2>&1 | tee c217-closure-backport.log
