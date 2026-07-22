@@ -162,7 +162,11 @@ theorem hasDensity_terminalBox [DecidableEq ι]
   convert hd using 1
   change a j * ∏ i ∈ Finset.univ.erase j, (1 - a i) =
     (volume (terminalBox j a)).toReal
-  rw [volume_terminalBox j a ha0 ha1, ENNReal.toReal_ofReal]
-  positivity
+  have hnonneg : 0 ≤ a j * ∏ i ∈ Finset.univ.erase j, (1 - a i) := by
+    apply mul_nonneg (ha0 j).le
+    apply Finset.prod_nonneg
+    intro i hi
+    exact sub_nonneg.mpr (ha1 i).le
+  rw [volume_terminalBox j a ha0 ha1, ENNReal.toReal_ofReal hnonneg]
 
 end UnitAddTorus

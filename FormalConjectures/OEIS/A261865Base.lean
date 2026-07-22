@@ -68,7 +68,8 @@ theorem exists_nat_between_iff_fract {x a : ℝ} (hx : 0 ≤ x) :
     have hfloor_nonneg : 0 ≤ ⌊x⌋ := Int.floor_nonneg.mpr hx
     let m : ℕ := ⌊x⌋.toNat + 1
     have hmcast : (m : ℝ) = (⌊x⌋ : ℝ) + 1 := by
-      simp [m, Int.toNat_of_nonneg hfloor_nonneg]
+      norm_num [m]
+      exact_mod_cast Int.toNat_of_nonneg hfloor_nonneg
     refine ⟨m, by simp [m], ?_, ?_⟩
     · rw [hmcast]
       exact Int.lt_floor_add_one x
@@ -110,8 +111,9 @@ theorem not_hits_one (n : ℕ) : ¬ Hits 1 n := by
   rintro ⟨m, _hm, hleft, hright⟩
   have hnm : n < m := by
     exact_mod_cast (by simpa using hleft)
-  have hmn : m < n + 1 := by
-    exact_mod_cast (by simpa [Nat.cast_add, Nat.cast_one] using hright)
+  have hright' : (m : ℝ) < (n : ℝ) + 1 := by simpa using hright
+  have hmn : m ≤ n := by
+    exact_mod_cast hright'
   omega
 
 /-- Removing a positive square factor from a radicand preserves the hitting property. -/
@@ -124,8 +126,21 @@ theorem hits_square_mul_imp (c s n : ℕ) (hc : 0 < c) :
     rw [Nat.cast_mul, Nat.cast_pow, Real.sqrt_mul (sq_nonneg (c : ℝ))]
     rw [Real.sqrt_sq (Nat.cast_nonneg c)]
   refine ⟨m * c, Nat.mul_pos hm hc, ?_, ?_⟩
-  · simpa only [hsqrt, Nat.cast_mul, mul_assoc] using hleft
-  · simpa only [hsqrt, Nat.cast_mul, mul_assoc] using hright
+  · calc
+      (n : ℝ) < (m : ℝ) * ((c : ℝ) * Real.sqrt (s : ℝ)) := by
+        rw [← hsqrt]
+        exact hleft
+      _ = ((m * c : ℕ) : ℝ) * Real.sqrt (s : ℝ) := by
+        push_cast
+        ring
+  · calc
+      ((m * c : ℕ) : ℝ) * Real.sqrt (s : ℝ) =
+          (m : ℝ) * ((c : ℝ) * Real.sqrt (s : ℝ)) := by
+            push_cast
+            ring
+      _ < (n : ℝ) + 1 := by
+        rw [← hsqrt]
+        exact hright
 
 /-- Every hit descends to a hit by a positive squarefree radicand no larger than the original. -/
 theorem exists_squarefree_hit_le (r n : ℕ) (hr : 0 < r) (hhit : Hits r n) :
@@ -140,11 +155,14 @@ theorem exists_squarefree_hit_le (r n : ℕ) (hr : 0 < r) (hhit : Hits r n) :
           obtain ⟨s, hrs⟩ := Nat.minSqFac_dvd e
           have hdpos : 0 < d := hdprime.pos
           have hspos : 0 < s := by
-            rw [hrs] at hr
-            positivity
+            apply Nat.pos_of_ne_zero
+            intro hs0
+            subst s
+            simp at hr
           have hslt : s < r := by
             rw [hrs]
-            nlinarith [hdprime.two_le]
+            have hdd : 1 < d * d := by nlinarith [hdprime.two_le]
+            simpa using Nat.mul_lt_mul_of_pos_right hdd hspos
           have hhit_s : Hits s n := by
             apply hits_square_mul_imp d s n hdpos
             simpa [pow_two, hrs] using hhit
