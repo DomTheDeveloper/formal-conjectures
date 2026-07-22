@@ -25,6 +25,9 @@ jobs:
           use-mathlib-cache: true
           use-github-cache: true
 
+      - name: Build repository utility modules
+        run: lake build FormalConjecturesUtil
+
       - name: Compile proof candidates and capture axiom audits
         shell: bash
         run: |
