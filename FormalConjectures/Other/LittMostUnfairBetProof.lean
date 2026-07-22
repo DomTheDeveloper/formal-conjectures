@@ -76,7 +76,7 @@ theorem isConstant_of_top_border {m : ℕ} (A : Word (m + 2))
 numerator is at most `2^(n-1)-2`. -/
 theorem selfOverlapNum_le_nonconstant {n : ℕ} (hn : 2 ≤ n) (A : Word n)
     (hA : ¬ IsConstant A) : overlapNum A A ≤ 2 ^ (n - 1) - 2 := by
-  obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le hn
+  obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
   have htop :
       wordSuffix A ⟨m, by omega⟩ ≠ wordPrefix A ⟨m, by omega⟩ := by
     intro h
@@ -93,7 +93,10 @@ theorem selfOverlapNum_le_nonconstant {n : ℕ} (hn : 2 ≤ n) (A : Word n)
       apply Finset.sum_le_sum
       intro k hk
       by_cases hkm : k.val = m
-      · subst k
+      · have hk_last : k = Fin.last m := by
+          apply Fin.ext
+          simpa using hkm
+        subst k
         simp [htop]
       · have hlt : k.val + 1 < m + 1 := by omega
         by_cases heq : wordSuffix A k.castSucc = wordPrefix A k.castSucc <;>
@@ -103,7 +106,14 @@ theorem selfOverlapNum_le_nonconstant {n : ℕ} (hn : 2 ≤ n) (A : Word n)
 /-- The self-overlap distance is bounded by the largest self-overlap numerator. -/
 theorem selfOverlap_dist_le_candidate {n : ℕ} (A B : Word n) :
     Nat.dist (overlapNum A A) (overlapNum B B) ≤ 2 ^ n - 2 := by
-  exact Nat.dist_le_of_le (overlapNum_le_candidate A A) (overlapNum_le_candidate B B)
+  have hAA := overlapNum_le_candidate A A
+  have hBB := overlapNum_le_candidate B B
+  by_cases hle : overlapNum A A ≤ overlapNum B B
+  · rw [Nat.dist_eq_sub_of_le hle]
+    omega
+  · have hge : overlapNum B B ≤ overlapNum A A := Nat.le_of_lt (Nat.lt_of_not_ge hle)
+    rw [Nat.dist_eq_sub_of_le_right hge]
+    omega
 
 /-- For two nonconstant words, twice the self-overlap distance is at most the
 candidate numerator `2^n-2`. -/
@@ -112,10 +122,15 @@ theorem two_mul_selfOverlap_dist_le_candidate {n : ℕ} (hn : 2 ≤ n)
     2 * Nat.dist (overlapNum A A) (overlapNum B B) ≤ 2 ^ n - 2 := by
   have hAA := selfOverlapNum_le_nonconstant hn A hA
   have hBB := selfOverlapNum_le_nonconstant hn B hB
-  have hdist : Nat.dist (overlapNum A A) (overlapNum B B) ≤ 2 ^ (n - 1) - 2 :=
-    Nat.dist_le_of_le hAA hBB
+  have hdist : Nat.dist (overlapNum A A) (overlapNum B B) ≤ 2 ^ (n - 1) - 2 := by
+    by_cases hle : overlapNum A A ≤ overlapNum B B
+    · rw [Nat.dist_eq_sub_of_le hle]
+      omega
+    · have hge : overlapNum B B ≤ overlapNum A A := Nat.le_of_lt (Nat.lt_of_not_ge hle)
+      rw [Nat.dist_eq_sub_of_le_right hge]
+      omega
   have hpow : 2 ^ n = 2 * 2 ^ (n - 1) := by
-    obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le hn
+    obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
     rw [show m + 2 = (m + 1) + 1 by omega, pow_succ]
     omega
   rw [hpow]
