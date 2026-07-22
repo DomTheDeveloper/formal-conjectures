@@ -97,8 +97,8 @@ def clippedLostDarts (a b d : ℕ) : Finset (RankPoint × Direction) :=
 theorem card_clippedLostDarts
     (a b d : ℕ) (hd : d ≤ a + b - 1) :
     (clippedLostDarts a b d).card = 3 * d := by
-  rw [clippedLostDarts,
-    Finset.card_biUnion (clipLostDarts_pairwise_disjoint a b d hd)]
-  simp [card_clipLostDarts, mul_comm]
+  rw [clippedLostDarts, Finset.card_biUnion]
+  · simp [card_clipLostDarts, mul_comm]
+  · exact clipLostDarts_pairwise_disjoint a b d hd
 
 end OeisA263135
