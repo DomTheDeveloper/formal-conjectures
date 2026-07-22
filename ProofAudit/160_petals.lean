@@ -53,6 +53,10 @@ lemma edgeDisjointTriangles_of_no_four_cycle
     (hC4 : ¬ ∃ z : α, ∃ w : G.Walk z z, w.IsCycle ∧ w.length = 4) :
     G.EdgeDisjointTriangles := by
   intro s hs t ht hst
+  have hsC : G.IsNClique 3 s := by
+    simpa only [mem_cliqueSet_iff] using hs
+  have htC : G.IsNClique 3 t := by
+    simpa only [mem_cliqueSet_iff] using ht
   intro a ha b hb
   by_contra hab
   have haS : a ∈ s := ha.1
@@ -64,24 +68,24 @@ lemma edgeDisjointTriangles_of_no_four_cycle
     push_neg at h
     have hsub : s ⊆ t := h
     have heq : s = t := Finset.eq_of_subset_of_card_le hsub (by
-      rw [hs.card_eq, ht.card_eq])
+      rw [hsC.card_eq, htC.card_eq])
     exact hst heq
   have hd : ∃ d ∈ t, d ∉ s := by
     by_contra h
     push_neg at h
     have hsub : t ⊆ s := h
     have heq : t = s := Finset.eq_of_subset_of_card_le hsub (by
-      rw [ht.card_eq, hs.card_eq])
+      rw [htC.card_eq, hsC.card_eq])
     exact hst heq.symm
   obtain ⟨c, hcS, hcT⟩ := hc
   obtain ⟨d, hdT, hdS⟩ := hd
-  have hca : G.Adj c a := hs.isClique hcS haS (by
+  have hca : G.Adj c a := hsC.isClique hcS haS (by
     intro h; subst c; exact hcT haT)
-  have had : G.Adj a d := ht.isClique haT hdT (by
+  have had : G.Adj a d := htC.isClique haT hdT (by
     intro h; subst d; exact hdS haS)
-  have hdb : G.Adj d b := ht.isClique hdT hbT (by
+  have hdb : G.Adj d b := htC.isClique hdT hbT (by
     intro h; subst d; exact hdS hbS)
-  have hbc : G.Adj b c := hs.isClique hbS hcS (by
+  have hbc : G.Adj b c := hsC.isClique hbS hcS (by
     intro h; subst c; exact hcT hbT)
   have hcb : c ≠ b := by
     intro h; subst c; exact hcT hbT
@@ -99,7 +103,11 @@ lemma pairwise_disjoint_petals {v : α} (hED : G.EdgeDisjointTriangles) :
   intro z hzs hzt
   obtain ⟨hsC, hvS⟩ := (mem_trianglesAt G).mp hs
   obtain ⟨htC, hvT⟩ := (mem_trianglesAt G).mp ht
-  have hsub := hED hsC htC hst
+  have hsSet : s ∈ G.cliqueSet 3 := by
+    simpa only [mem_cliqueSet_iff] using hsC
+  have htSet : t ∈ G.cliqueSet 3 := by
+    simpa only [mem_cliqueSet_iff] using htC
+  have hsub := hED hsSet htSet hst
   have hzS : z ∈ s := (mem_erase.mp hzs).2
   have hzT : z ∈ t := (mem_erase.mp hzt).2
   have hzv : z ≠ v := (mem_erase.mp hzs).1
@@ -126,8 +134,8 @@ lemma independent_inter_petal_card_le_one {v : α} {S t : Finset α}
   intro a ha b hb
   by_contra hab
   obtain ⟨htC, -⟩ := (mem_trianglesAt G).mp ht
-  have haS : a ∈ S := mem_inter.mp ha |>.1
-  have hbS : b ∈ S := mem_inter.mp hb |>.1
+  have haS : a ∈ S := (mem_inter.mp ha).1
+  have hbS : b ∈ S := (mem_inter.mp hb).1
   have haT : a ∈ t := (mem_erase.mp (mem_inter.mp ha).2).2
   have hbT : b ∈ t := (mem_erase.mp (mem_inter.mp hb).2).2
   exact hS haS hbS hab (htC.isClique haT hbT hab)
