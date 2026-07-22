@@ -66,9 +66,6 @@ theorem natCast_rawEnergy_eq_signedRawEnergy {n : ℕ} (A B : Word n) :
   rw [Nat.cast_sum]
   apply Finset.sum_congr rfl
   intro S hS
-  rw [Nat.cast_sum]
-  apply Finset.sum_congr rfl
-  intro _ hmem
   simp only [Nat.cast_pow]
   have habs : ((shapeCoeff A B S).natAbs : ℤ) = |shapeCoeff A B S| :=
     Int.natCast_natAbs _
