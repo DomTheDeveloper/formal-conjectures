@@ -36,7 +36,9 @@ theorem eq_of_squarefree_of_isSquare_mul {a b : ℕ} (ha : Squarefree a) (hb : S
     calc
       a.factorization p + b.factorization p = (a * b).factorization p := by
         rw [factorization_mul ha.ne_zero hb.ne_zero]
-      _ = (c ^ 2).factorization p := by rw [← hc, sq]
+      _ = (c ^ 2).factorization p := by
+        congr 1
+        simpa [pow_two] using hc
       _ = 2 * c.factorization p := by simp [factorization_pow]
   constructor
   · intro hpa
