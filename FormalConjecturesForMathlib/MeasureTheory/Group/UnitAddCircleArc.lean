@@ -162,7 +162,7 @@ theorem volume_frontier_terminalArc_compl {a : ℝ} (ha0 : 0 < a) (ha1 : a < 1) 
 /-- The complement of a terminal arc has length `1-a`. -/
 theorem volume_terminalArc_compl {a : ℝ} (ha0 : 0 < a) (ha1 : a < 1) :
     volume (terminalArc a)ᶜ = ENNReal.ofReal (1 - a) := by
-  rw [measure_compl (measurableSet_terminalArc a)]
+  rw [measure_compl (measurableSet_terminalArc a) (measure_ne_top _ _)]
   rw [AddCircle.measure_univ, volume_terminalArc ha0 ha1]
   norm_num [ENNReal.ofReal_sub 1 ha0.le]
 
