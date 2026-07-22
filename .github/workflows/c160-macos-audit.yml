@@ -12,7 +12,7 @@ jobs:
   audit:
     if: contains(github.event.pull_request.title, 'C160') || contains(github.event.pull_request.title, 'C2')
     runs-on: macos-14
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Set up pinned Lean and mathlib cache
@@ -46,6 +46,10 @@ jobs:
             ProofAudit/160_large_triangle.lean
             ProofAudit/160_full_two_center.lean
             ProofAudit/160_triangle_two.lean
+            ProofAudit/160_except_one.lean
+            ProofAudit/160_triangle_boundary.lean
+            ProofAudit/160_triangle_one.lean
+            ProofAudit/160_complete.lean
           )
           : > wowii-focused.log
           for file in "${files[@]}"; do
