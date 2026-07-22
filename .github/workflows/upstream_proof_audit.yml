@@ -44,6 +44,7 @@ jobs:
             ProofAudit/2_attempt.lean
             ProofAudit/160_attempt.lean
             ProofAudit/6_dependency_candidate.lean
+            ProofAudit/6_restriction_core.lean
           )
           for file in "${files[@]}"; do
             base="$(basename "$file" .lean)"
