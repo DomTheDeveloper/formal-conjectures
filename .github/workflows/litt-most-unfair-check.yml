@@ -41,8 +41,7 @@ jobs:
       - name: Reject proof holes and trust shortcuts
         run: |
           set -euo pipefail
-          files=$(find FormalConjectures/Other -maxdepth 1 \
-            -name 'LittMostUnfairBet*.lean' -print | sort)
+          files=$(printf '%s\n' FormalConjectures/Other/LittMostUnfairBet*.lean)
           if grep -nE '(^|[^[:alnum:]_])(sorry|admit|native_decide)([^[:alnum:]_]|$)' $files; then
             echo 'Proof hole or unsupported decision shortcut found.'
             exit 1
