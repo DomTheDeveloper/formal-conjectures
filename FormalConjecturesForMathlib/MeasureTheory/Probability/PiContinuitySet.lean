@@ -49,7 +49,7 @@ theorem frontier_pi_subset_iUnion (A : ∀ i, Set (α i)) :
       have hUsub : U ⊆ Set.pi univ A := by
         intro y hy i _
         exact interior_subset (hy i trivial)
-      exact hUopen.mem_nhds hxU |> interior_maximal hUsub
+      exact interior_maximal hUsub hUopen hxU
     exact (mem_frontier_iff_notMem_interior hxA).1 hx hxint
   · have hex : ∃ i, x i ∉ A i := by
       simpa only [Set.mem_pi, Set.mem_univ, forall_true_left, not_forall] using hxA
@@ -62,7 +62,7 @@ theorem frontier_pi_subset_iUnion (A : ∀ i, Set (α i)) :
       intro y hy hyA
       exact hy (hyA i trivial)
     have hxcompint : x ∈ interior (Set.pi univ A)ᶜ :=
-      hVopen.mem_nhds hxV |> interior_maximal hVsub
+      interior_maximal hVsub hVopen hxV
     have hxcomp : x ∈ (Set.pi univ A)ᶜ := interior_subset hxcompint
     have : x ∉ frontier (Set.pi univ A)ᶜ :=
       (mem_interior_iff_notMem_frontier hxcomp).1 hxcompint
