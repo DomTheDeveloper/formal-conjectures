@@ -20,8 +20,8 @@ import Mathlib
 # The most unfair Litt coin-word bet
 
 Development file for the finite extremal theorem underlying the fair-coin
-Litt game.  The published asymptotic formula reduces the leading unfairness
-to a self-overlap difference divided by the asymptotic variance.  Here the
+Litt game. The published asymptotic formula reduces the leading unfairness
+to a self-overlap difference divided by the asymptotic variance. Here the
 variance is represented by its Walsh translation-shape energy.
 
 The final target is a natural-number squared inequality, avoiding division
@@ -103,9 +103,9 @@ def constantWord (n : ℕ) (b : Bool) : Word n :=
 def endpointWord (m : ℕ) : Word (m + 1) :=
   ⟨List.replicate m false ++ [true], by simp⟩
 
-/-- Being one of the two constant binary words. -/
+/-- Being a constant binary word. -/
 def IsConstant {n : ℕ} (A : Word n) : Prop :=
-  A = constantWord n false ∨ A = constantWord n true
+  ∃ b : Bool, A = constantWord n b
 
 /-- The largest possible proper-overlap numerator for length `n`. -/
 def maxOverlapNum (n : ℕ) : ℕ := 2 ^ n - 2
@@ -117,6 +117,78 @@ def clearedScoreSq {n : ℕ} (A B : Word n) : ℕ :=
 /-- Cleared-denominator candidate bound. -/
 def clearedCandidateSq {n : ℕ} (A B : Word n) : ℕ :=
   maxOverlapNum n ^ 2 * energy A B
+
+/-! ## Elementary overlap bounds -/
+
+/-- The geometric sum used by all overlap estimates. -/
+lemma sum_pow_two_Ico : ∀ n : ℕ, (∑ k ∈ Finset.Ico 1 n, 2 ^ k) = 2 ^ n - 2
+  | 0 => by simp
+  | 1 => by simp
+  | n + 2 => by
+      rw [Nat.Ico_succ_right_eq_insert_Ico (by omega)]
+      simp [sum_pow_two_Ico (n + 1), pow_succ]
+
+/-- A list whose tail equals its initial segment of the same length is constant. -/
+lemma exists_eq_replicate_of_drop_eq_take : ∀ l : List Bool,
+    l.drop 1 = l.take (l.length - 1) →
+      ∃ b : Bool, l = List.replicate l.length b
+  | [], _ => ⟨false, by simp⟩
+  | [a], _ => ⟨a, by simp⟩
+  | a :: b :: t, h => by
+      have hcons : b :: t = a :: (b :: t).take t.length := by
+        simpa using h
+      have hab : b = a := (List.cons.inj hcons).1
+      have ht : t = (b :: t).take t.length := (List.cons.inj hcons).2
+      have htail : (b :: t).drop 1 = (b :: t).take ((b :: t).length - 1) := by
+        simpa using ht
+      rcases exists_eq_replicate_of_drop_eq_take (b :: t) htail with ⟨c, hc⟩
+      have hbc : b = c := by
+        have hhead := congrArg List.head? hc
+        simpa using hhead
+      refine ⟨c, ?_⟩
+      rw [← hab, hbc, hc]
+      simp
+
+/-- Every proper self-overlap numerator is at most `2^n - 2`. -/
+theorem selfOverlapNum_le_max {n : ℕ} (A : Word n) :
+    selfOverlapNum A ≤ maxOverlapNum n := by
+  calc
+    selfOverlapNum A ≤ ∑ k ∈ Finset.Ico 1 n, 2 ^ k := by
+      apply Finset.sum_le_sum
+      intro k hk
+      split <;> simp
+    _ = maxOverlapNum n := by
+      simp [maxOverlapNum, sum_pow_two_Ico]
+
+/-- A nonconstant word has no overlap of length `n-1`. -/
+theorem selfOverlapNum_le_nonconstant {n : ℕ} (hn : 2 ≤ n) (A : Word n)
+    (hA : ¬ IsConstant A) :
+    selfOverlapNum A ≤ 2 ^ (n - 1) - 2 := by
+  have htopMem : n - 1 ∈ Finset.Ico 1 n := by
+    simp only [Finset.mem_Ico]
+    omega
+  have herase : (Finset.Ico 1 n).erase (n - 1) = Finset.Ico 1 (n - 1) := by
+    ext k
+    simp only [Finset.mem_erase, Finset.mem_Ico]
+    omega
+  have htop : A.1.drop (n - (n - 1)) ≠ A.1.take (n - 1) := by
+    intro h
+    have hone : n - (n - 1) = 1 := by omega
+    rw [hone] at h
+    rcases exists_eq_replicate_of_drop_eq_take A.1 (by simpa [A.2] using h) with ⟨b, hb⟩
+    apply hA
+    refine ⟨b, Subtype.ext ?_⟩
+    simpa [constantWord, A.2] using hb
+  rw [selfOverlapNum, overlapNum, ← Finset.sum_erase_add _ _ htopMem, herase]
+  simp only [htop, if_false, add_zero]
+  calc
+    (∑ k ∈ Finset.Ico 1 (n - 1),
+        if A.1.drop (n - k) = A.1.take k then 2 ^ k else 0) ≤
+        ∑ k ∈ Finset.Ico 1 (n - 1), 2 ^ k := by
+      apply Finset.sum_le_sum
+      intro k hk
+      split <;> simp
+    _ = 2 ^ (n - 1) - 2 := sum_pow_two_Ico (n - 1)
 
 /-! ## Arithmetic endgame -/
 
@@ -137,18 +209,7 @@ theorem nonconstant_branch_arithmetic
     delta ^ 2 * (4 * p) = (2 * delta) ^ 2 * p := by ring
     _ ≤ M ^ 2 * E := Nat.mul_le_mul hsq hE
 
-/-! ## Word-level lemmas still being discharged -/
-
-/-- Every proper self-overlap numerator is at most `2^n - 2`. -/
-theorem selfOverlapNum_le_max {n : ℕ} (A : Word n) :
-    selfOverlapNum A ≤ maxOverlapNum n := by
-  sorry
-
-/-- A nonconstant word has no overlap of length `n-1`. -/
-theorem selfOverlapNum_le_nonconstant {n : ℕ} (hn : 2 ≤ n) (A : Word n)
-    (hA : ¬ IsConstant A) :
-    selfOverlapNum A ≤ 2 ^ (n - 1) - 2 := by
-  sorry
+/-! ## Walsh-energy lemmas -/
 
 /-- If one word is constant and the words are distinct, the Walsh energy is large. -/
 theorem energy_ge_of_constant {n : ℕ} (hn : 1 ≤ n) (A B : Word n)
