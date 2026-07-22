@@ -159,7 +159,7 @@ theorem fullSpanBase_monomial_mul_eq_neg_one_right {n : ℕ} (hn : 2 ≤ n)
   norm_num
 
 /-- One endpoint disagreement forces raw energy at least `4 * 2^(n-2)`. -/
-theorem rawEnergy_ge_of_one_endpoint_disagreement {n : ℕ} (hn : 2 ≤ n)
+theorem rawEnergy_ge_of_one_endpoint_disagreement {n : ℕ} (hn : 3 ≤ n)
     (A B : Word n)
     (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
     (hone :
@@ -174,7 +174,7 @@ theorem rawEnergy_ge_of_one_endpoint_disagreement {n : ℕ} (hn : 2 ≤ n)
     rcases Finset.mem_image.mp hS with ⟨R, hR, rfl⟩
     have hRsub := Finset.mem_powerset.mp hR
     apply mem_shapes.mpr
-    exact ⟨fullSpanBase_subset_range (j := 1) (by omega) (by
+    exact ⟨fullSpanBase_subset_range (j := 1) hn (by
       intro i hi
       have hr := mem_interiorCoordinates.mp (hRsub hi)
       simp [interiorExcept]
@@ -196,9 +196,9 @@ theorem rawEnergy_ge_of_one_endpoint_disagreement {n : ℕ} (hn : 2 ≤ n)
       (last_mem_fullSpanBase n R)]
     apply rawDifference_natAbs_sq_eq_four_of_mul_eq_neg_one
     rcases hone with hone | hone
-    · exact fullSpanBase_monomial_mul_eq_neg_one hn A B hinterior
+    · exact fullSpanBase_monomial_mul_eq_neg_one (by omega) A B hinterior
         hone.1 hone.2 hRsub
-    · exact fullSpanBase_monomial_mul_eq_neg_one_right hn A B hinterior
+    · exact fullSpanBase_monomial_mul_eq_neg_one_right (by omega) A B hinterior
         hone.1 hone.2 hRsub
   have hselected :
       (∑ S ∈ selected, (shapeCoeff A B S).natAbs ^ 2) =
@@ -211,7 +211,7 @@ theorem rawEnergy_ge_of_one_endpoint_disagreement {n : ℕ} (hn : 2 ≤ n)
         rcases Finset.mem_image.mp hS with ⟨R, hR, rfl⟩
         exact hsquare R hR
       _ = 4 * #selected := by simp [mul_comm]
-      _ = 4 * 2 ^ (n - 2) := by rw [card_fullSpanBases hn]
+      _ = 4 * 2 ^ (n - 2) := by rw [card_fullSpanBases (by omega)]
   rw [rawEnergy, ← hselected]
   exact Finset.sum_le_sum_of_subset_of_nonneg hsubset (by
     intro S hS hnot
