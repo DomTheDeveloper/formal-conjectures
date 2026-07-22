@@ -1,0 +1,84 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: A261865 macOS exact audit
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'FormalConjectures/OEIS/A261865Base.lean'
+      - 'FormalConjectures/OEIS/261865.lean'
+      - 'FormalConjectures/OEIS/261865Solution.lean'
+      - 'FormalConjectures/OEIS/261865FinalAudit.lean'
+      - 'FormalConjecturesForMathlib/Analysis/Equidistribution/**'
+      - 'FormalConjecturesForMathlib/MeasureTheory/Group/UnitAddCircleArc.lean'
+      - 'FormalConjecturesForMathlib/MeasureTheory/Probability/**'
+      - 'FormalConjecturesForMathlib/NumberTheory/SquarefreeRadical*.lean'
+      - '.github/workflows/a261865-macos-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: a261865-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lean-final-macos:
+    name: Lean 4.27 exact theorem and axiom audit (macOS)
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Install pinned Lean toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/elan" toolchain install leanprover/lean4:v4.27.0
+
+      - name: Fetch Mathlib cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake exe cache get
+
+      - name: Reject placeholders in the solution chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            FormalConjectures/OEIS/A261865Base.lean
+            FormalConjectures/OEIS/261865.lean
+            FormalConjectures/OEIS/261865Solution.lean
+            FormalConjectures/OEIS/261865FinalAudit.lean
+            FormalConjecturesForMathlib/Analysis/Equidistribution/TerminalBox.lean
+            FormalConjecturesForMathlib/Analysis/Equidistribution/UnitAddTorus.lean
+            FormalConjecturesForMathlib/MeasureTheory/Group/UnitAddCircleArc.lean
+            FormalConjecturesForMathlib/MeasureTheory/Probability/Empirical.lean
+            FormalConjecturesForMathlib/MeasureTheory/Probability/PiContinuitySet.lean
+            FormalConjecturesForMathlib/NumberTheory/SquarefreeRadical.lean
+            FormalConjecturesForMathlib/NumberTheory/SquarefreeRadicals.lean
+          )
+          if grep -nE '\b(sorry|admit)\b|native_decide|unsafe|^axiom\b' "${files[@]}"; then
+            echo 'Forbidden proof placeholder or trust escape found.' >&2
+            exit 1
+          fi
+
+      - name: Compile exact final theorem
+        shell: bash
+        run: |
+          set -euo pipefail
+          output=$(lake env lean FormalConjectures/OEIS/261865FinalAudit.lean 2>&1)
+          printf '%s\n' "$output"
+          if grep -q 'sorryAx' <<<"$output"; then
+            echo 'The exact numbered theorem depends on sorryAx.' >&2
+            exit 1
+          fi
