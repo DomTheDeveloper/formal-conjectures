@@ -7,6 +7,7 @@ on:
       - 'RNAQuasiPowers/**'
       - 'FormalConjectures/Arxiv/2602.19255/**'
       - 'lakefile.toml'
+      - 'lake-manifest.json'
       - '.github/workflows/rna-quasipowers-kernel-audit.yml'
   workflow_dispatch:
 
@@ -29,32 +30,33 @@ jobs:
         run: |
           set -euo pipefail
           test "$(cat lean-toolchain)" = "leanprover/lean4:v4.27.0"
+          test -f lake-manifest.json
           curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
             | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      - name: Resolve dependencies and fetch Mathlib cache
+      - name: Fetch committed dependency cache
         shell: bash
         run: |
           set -euo pipefail
-          lake update
           lake exe cache get
 
-      - name: Build internal and public theorem layers
+      - name: Build internal and public theorem layers with warnings fatal
         shell: bash
         run: |
           set -euo pipefail
-          lake build RNAQuasiPowers 2>&1 | tee rna-kernel-audit.log
-          lake env lean FormalConjectures/Arxiv/2602.19255/RNAQuasiPowers.lean \
+          lake --wfail build RNAQuasiPowers 2>&1 | tee rna-kernel-audit.log
+          lake env lean -DwarningAsError=true \
+            FormalConjectures/Arxiv/2602.19255/RNAQuasiPowers.lean \
             2>&1 | tee -a rna-kernel-audit.log
 
       - name: Print and inspect theorem axioms
         shell: bash
         run: |
           set -euo pipefail
-          lake env lean RNAQuasiPowers/AxiomAudit.lean \
+          lake env lean -DwarningAsError=true RNAQuasiPowers/AxiomAudit.lean \
             2>&1 | tee -a rna-kernel-audit.log
-          lake env lean \
+          lake env lean -DwarningAsError=true \
             FormalConjectures/Arxiv/2602.19255/RNAQuasiPowersAxiomAudit.lean \
             2>&1 | tee -a rna-kernel-audit.log
           if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' \
