@@ -36,8 +36,13 @@ theorem natAbs_add_sq_eq_sixteen_of_raw_product {a b : ℤ}
     (ha : a = 2 ∨ a = -2) (hb : b = 2 ∨ b = -2)
     (hprod : a * b = 4) :
     (a + b).natAbs ^ 2 = 16 := by
-  rcases ha with rfl | rfl <;> rcases hb with rfl | rfl
-  all_goals norm_num at hprod ⊢
+  rcases ha with rfl | rfl
+  · rcases hb with rfl | rfl
+    · norm_num
+    · norm_num at hprod
+  · rcases hb with rfl | rfl
+    · norm_num at hprod
+    · norm_num
 
 theorem rawDifference_eq_two_or_neg_two_of_square {n : ℕ}
     (A B : Word n) (S : Finset ℕ)
