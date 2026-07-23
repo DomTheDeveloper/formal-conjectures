@@ -64,7 +64,8 @@ theorem prod_range_one_add_letterSign_shift {n h : ℕ} (A C : Word n) :
       intro i hi
       have hA : i.val < n := lt_of_lt_of_le i.isLt (Nat.sub_le n h)
       have hC : i.val + h < n := by omega
-      simp [prefixBlock, suffixBlock, letterSign, hA, hC, Nat.add_comm]
+      have hC' : h + i.val < n := by omega
+      simp [prefixBlock, suffixBlock, letterSign, hA, hC, hC']
     _ = if prefixBlock A h = suffixBlock C h then 2 ^ (n - h) else 0 :=
       prod_one_add_coinSign_mul (prefixBlock A h) (suffixBlock C h)
 
@@ -128,7 +129,7 @@ theorem suffixBlock_zero {n : ℕ} (A : Word n) : suffixBlock A 0 = A := by
   funext i
   apply congrArg A
   apply Fin.ext
-  simp [suffixBlock]
+  simp
 
 /-- For distinct words the diagonal raw correlation is `2^(n+1)`. -/
 theorem diagonal_raw_correlation {n : ℕ} (A B : Word n) (hne : A ≠ B) :
@@ -136,8 +137,14 @@ theorem diagonal_raw_correlation {n : ℕ} (A B : Word n) (hne : A ≠ B) :
       rawDifference A B S * rawDifference A B S) = 2 ^ (n + 1) := by
   have hcorr := sum_powerset_rawDifference_mul_shiftedRawDifference
     (n := n) (h := 0) A B
-  simpa [shiftedRawDifference, shiftedMonomial, prefixBlock_zero,
-    suffixBlock_zero, hne, hne.symm, pow_succ] using hcorr
+  calc
+    (∑ S ∈ (Finset.range n).powerset,
+      rawDifference A B S * rawDifference A B S) = 2 ^ n + 2 ^ n := by
+        simpa [shiftedRawDifference, shiftedMonomial, rawDifference, natMonomial,
+          prefixBlock_zero, suffixBlock_zero, hne, hne.symm] using hcorr
+    _ = 2 ^ (n + 1) := by
+      rw [pow_succ]
+      ring
 
 #print axioms sum_powerset_rawDifference_mul_shiftedRawDifference
 #print axioms diagonal_raw_correlation
