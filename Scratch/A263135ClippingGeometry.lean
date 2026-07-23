@@ -282,7 +282,11 @@ theorem mem_clippedLostDarts_iff
               hcoords.2.trans (by simp [clipBPoint, hkb])
             have hlo : b ≤ rankLevel p := hpPatch.2.2.1
             rcases p with ⟨i, j, side⟩
+            change i = k at hfirst
+            change j = b - 1 - k at hsecond
             change side = false at hpSide
+            subst i
+            subst j
             subst side
             simp [rankLevel] at hlo
             omega
