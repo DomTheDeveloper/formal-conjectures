@@ -1,1 +1,1 @@
-Audit exact proof blob on current Google DeepMind main.
+Rerun exact proof audit with compiler diagnostics enabled.
