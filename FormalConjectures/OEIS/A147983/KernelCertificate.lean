@@ -19,9 +19,9 @@ import FormalConjecturesUtil
 /-!
 # Kernel-checked certificates for finite normal-play games
 
-The certificate producer is deliberately untrusted.  A certificate interprets every stored node
-as an actual game position and proves every stored edge is an actual move.  At a losing-labelled
-node it must also prove that every actual move is represented.  Lean then reconstructs the
+The certificate producer is deliberately untrusted. A certificate interprets every stored node
+as an actual game position and proves every stored edge is an actual move. At a losing-labelled
+node it must also prove that every actual move is represented. Lean then reconstructs the
 normal-play outcome proof by strong induction on a strictly decreasing natural-number rank.
 -/
 
@@ -77,6 +77,7 @@ def ValidAt (C : Certificate G n) (i : Fin n) : Prop :=
   | true => ∃ j, C.reply i = some j ∧ j ∈ C.children i ∧ C.label j = false
 
 /-- A valid finite interpreted certificate yields genuine outcome proofs for the actual game. -/
+@[category API, AMS 5]
 theorem outcome_of_valid (C : Certificate G n) (hvalid : ∀ i, C.ValidAt i) (i : Fin n) :
     Outcome G.Move (C.pos i) (C.label i) := by
   have all : ∀ k : ℕ, ∀ i : Fin n, G.rank (C.pos i) = k →
@@ -89,7 +90,6 @@ theorem outcome_of_valid (C : Certificate G n) (hvalid : ∀ i, C.ValidAt i) (i 
         | false =>
             have hv : ∀ j, j ∈ C.children i → C.label j = true := by
               simpa [ValidAt, hi] using hvalid i
-            rw [hi]
             exact Outcome.losing (fun q hq ↦ by
               obtain ⟨j, hj, hpos⟩ := C.losing_complete i hi q hq
               subst q
@@ -101,7 +101,6 @@ theorem outcome_of_valid (C : Certificate G n) (hvalid : ∀ i, C.ValidAt i) (i 
             have hv : ∃ j, C.reply i = some j ∧ j ∈ C.children i ∧ C.label j = false := by
               simpa [ValidAt, hi] using hvalid i
             obtain ⟨j, _, hj, hlabel⟩ := hv
-            rw [hi]
             exact Outcome.winning (C.children_sound hj) (by
               have hlt : G.rank (C.pos j) < k := by
                 simpa [← hrank] using G.decreases (C.children_sound hj)
@@ -110,12 +109,14 @@ theorem outcome_of_valid (C : Certificate G n) (hvalid : ∀ i, C.ValidAt i) (i 
   exact all _ i rfl
 
 /-- A losing-labelled root of a valid certificate has a kernel-checked losing proof. -/
+@[category API, AMS 5]
 theorem losing_of_valid (C : Certificate G n) (hvalid : ∀ i, C.ValidAt i) {i : Fin n}
     (hi : C.label i = false) : IsLosing G.Move (C.pos i) := by
   refine ⟨?_⟩
   simpa [hi] using C.outcome_of_valid hvalid i
 
 /-- A winning-labelled root of a valid certificate has a kernel-checked winning proof. -/
+@[category API, AMS 5]
 theorem winning_of_valid (C : Certificate G n) (hvalid : ∀ i, C.ValidAt i) {i : Fin n}
     (hi : C.label i = true) : IsWinning G.Move (C.pos i) := by
   refine ⟨?_⟩
