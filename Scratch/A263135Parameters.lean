@@ -76,7 +76,10 @@ theorem balanced_corner_width (r : ℕ) (hr : 3 ≤ r) :
     have h2 : (r + 2) / 3 = q := by dsimp [q]; omega
     have hp0 : (r - 1) / 3 = q - 1 := by dsimp [q]; omega
     have hp1 : (r - 1 + 1) / 3 = q := by dsimp [q]; omega
-    have hp2 : (r - 1 + 2) / 3 = q := by dsimp [q]; omega
+    have hp2 : (r - 1 + 2) / 3 = q := by
+      have hnum : r - 1 + 2 = 3 * q + 1 := by omega
+      rw [hnum]
+      omega
     rw [h0, h1, h2, hp0, hp1, hp2]
     omega
   · have hre : r = 3 * q + 1 := by dsimp [q]; omega
@@ -88,7 +91,7 @@ theorem balanced_corner_width (r : ℕ) (hr : 3 ≤ r) :
     have hp1 : (r - 1 + 1) / 3 = q := by dsimp [q]; omega
     have hp2 : (r - 1 + 2) / 3 = q := by dsimp [q]; omega
     rw [h0, h1, h2, hp0, hp1, hp2]
-    ring
+    ring_nf
   · have hre : r = 3 * q + 2 := by dsimp [q]; omega
     have h0 : r / 3 = q := rfl
     have h1 : (r + 1) / 3 = q + 1 := by dsimp [q]; omega
@@ -97,7 +100,7 @@ theorem balanced_corner_width (r : ℕ) (hr : 3 ≤ r) :
     have hp1 : (r - 1 + 1) / 3 = q := by dsimp [q]; omega
     have hp2 : (r - 1 + 2) / 3 = q + 1 := by dsimp [q]; omega
     rw [h0, h1, h2, hp0, hp1, hp2]
-    ring
+    ring_nf
 
 /-- Positivity of the balanced side parameters once `r ≥ 3`. -/
 theorem balanced_positive (r : ℕ) (hr : 3 ≤ r) :
