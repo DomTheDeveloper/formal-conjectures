@@ -57,15 +57,14 @@ private def mkEngine (k n : Nat) : Engine :=
     counts := Array.replicate (n + 1) 0 }
 
 private def getBit (e : Engine) (shadow rank : Nat) : Bool :=
-  let index := e.offsets[shadow]! + rank
-  let word := e.bits[index / 64]!
-  let mask : UInt64 := 1 <<< (index % 64)
+  let wi := e.offsets[shadow]! + rank / 64
+  let word := e.bits[wi]!
+  let mask : UInt64 := 1 <<< (rank % 64)
   (word &&& mask) != 0
 
 private def setBit (e : Engine) (shadow rank : Nat) : Engine :=
-  let index := e.offsets[shadow]! + rank
-  let wi := index / 64
-  let mask : UInt64 := 1 <<< (index % 64)
+  let wi := e.offsets[shadow]! + rank / 64
+  let mask : UInt64 := 1 <<< (rank % 64)
   { e with bits := e.bits.set! wi (e.bits[wi]! ||| mask) }
 
 private partial def clearWords (i stop : Nat) (bits : Array UInt64) : Array UInt64 :=
