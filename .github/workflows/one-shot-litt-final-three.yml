@@ -1,0 +1,78 @@
+# Copyright 2026 Dominic Dabish
+# Licensed under the Apache License, Version 2.0.
+
+name: One-shot Litt final three repairs
+
+on:
+  push:
+    paths:
+      - '.github/workflows/one-shot-litt-final-three.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/litt-most-unfair-proof
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Apply exact terminal repairs
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean')
+          text = p.read_text()
+          old = '''  have h1lt : 1 < n := by omega
+  have h1int : 1 < n - 1 := Nat.lt_sub_of_add_lt (by omega)
+'''
+          new = '''  have h1lt : 1 < n := by omega
+  have hnPred : n - 1 + 1 = n := Nat.sub_add_cancel (by omega)
+  have h1int : 1 < n - 1 := by omega
+'''
+          if old not in text:
+              raise SystemExit('constant predecessor target not found')
+          text = text.replace(old, new, 1)
+
+          old = '''      have hrev : ((⟨n - 1, by omega⟩ : Fin n).rev) = ⟨0, by omega⟩ := by
+        apply Fin.ext
+        simp
+'''
+          new = '''      have hrev : ((⟨n - 1, by omega⟩ : Fin n).rev) = ⟨0, by omega⟩ := by
+        apply Fin.ext
+        change n - (n - 1 + 1) = 0
+        rw [hnPred]
+        simp
+'''
+          if old not in text:
+              raise SystemExit('constant reverse target not found')
+          p.write_text(text.replace(old, new, 1))
+
+          p = Path('FormalConjectures/Other/LittMostUnfairBetWalshVariance.lean')
+          text = p.read_text()
+          old = '''  rw [signedRawEnergy_eq_correlations]
+  rw [diagonal_raw_correlation A B hne]
+  unfold shiftVarianceNum shiftOverlapNum
+'''
+          new = '''  rw [signedRawEnergy_eq_correlations]
+  have hdiag :
+      (∑ U ∈ (Finset.range n).powerset, rawDifference A B U ^ 2) = (2 ^ n : ℤ) := by
+    simpa [pow_two] using diagonal_raw_correlation A B hne
+  rw [hdiag]
+  unfold shiftVarianceNum shiftOverlapNum
+'''
+          if old not in text:
+              raise SystemExit('variance target not found')
+          p.write_text(text.replace(old, new, 1))
+          PY
+          git config user.name 'ProofOrchestrator'
+          git config user.email 'actions@users.noreply.github.com'
+          git add FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean \
+                  FormalConjectures/Other/LittMostUnfairBetWalshVariance.lean
+          git commit -m 'Close final Litt compatibility goals'
+          git push origin HEAD:agent/litt-most-unfair-proof
