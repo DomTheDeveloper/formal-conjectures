@@ -39,15 +39,14 @@ noncomputable def shapeTranslationPairs (n : ℕ) : Finset (Finset ℕ × ℕ) :
     p ∈ shapeTranslationPairs n ↔
       p.1 ∈ shapes n ∧ p.2 ∈ translations n p.1 := by
   classical
-  unfold shapeTranslationPairs
-  rw [Finset.mem_filter, Finset.mem_product]
+  rcases p with ⟨S, t⟩
+  simp only [shapeTranslationPairs, Finset.mem_filter, Finset.mem_product,
+    Finset.mem_range, Prod.fst, Prod.snd]
   constructor
   · rintro ⟨⟨hshape, _hrange⟩, htrans⟩
     exact ⟨hshape, htrans⟩
   · rintro ⟨hshape, htrans⟩
-    have hrange : p.2 ∈ Finset.range n :=
-      Finset.mem_range.mpr (mem_translations.mp htrans).1
-    exact ⟨⟨hshape, hrange⟩, htrans⟩
+    exact ⟨⟨hshape, (mem_translations.mp htrans).1⟩, htrans⟩
 
 /-- The finite type of valid shape-translation pairs. -/
 abbrev ShapeTranslation (n : ℕ) := ↥(shapeTranslationPairs n)
