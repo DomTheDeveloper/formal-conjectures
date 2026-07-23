@@ -114,7 +114,7 @@ theorem rawDifference_insert_of_word_eq {n j : ℕ} (A B : Word n)
     simp [letterSign, hj, heq]
   rw [rawDifference, natMonomial_insert A S hjS,
     natMonomial_insert B S hjS, hsign]
-  ring_nf
+  ring
 
 /-- A near-full base includes only the left endpoint among the two endpoints. -/
 theorem nearFullBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 3 ≤ n)
@@ -186,8 +186,10 @@ theorem translated_nearFullBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 3 ≤ n)
     have hipos : 0 < i := by
       rcases Finset.mem_image.mp hiSet with ⟨j, hj, rfl⟩
       exact Nat.zero_lt_succ j
+    have hile : i ≤ n - 1 := by omega
+    have hilast : i < n - 1 := lt_of_le_of_ne hile hine
     apply letterSign_mul_eq_one_of_word_eq A B hirange
-    exact hinterior ⟨i, hirange⟩ hipos (by omega)
+    exact hinterior ⟨i, hirange⟩ hipos hilast
   have hrightSign := letterSign_mul_eq_neg_one_of_word_ne A B
     (j := n - 1) (by omega) hright
   unfold natMonomial
