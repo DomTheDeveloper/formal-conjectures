@@ -4,17 +4,12 @@ on:
   pull_request:
     branches: [main]
     types: [reopened]
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   lean:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.head.repo.full_name == github.repository &&
-       github.event.pull_request.head.ref == 'ci/chomp-native-final-audit')
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
