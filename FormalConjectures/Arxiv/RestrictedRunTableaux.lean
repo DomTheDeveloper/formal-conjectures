@@ -33,7 +33,7 @@ of the cited paper, its first values for positive `n` are
 *Reference:*
 
 - [M. Kauers and D. Zeilberger, *Counting Standard Young Tableaux With
-  Restricted Runs*](https://arxiv.org/abs/2006.10205)
+  Restricted Runs*, arXiv:2006.10205](https://arxiv.org/abs/2006.10205)
 -/
 
 open Filter
