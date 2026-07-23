@@ -8,13 +8,19 @@ permissions:
 
 jobs:
   worldcup7:
-    if: startsWith(github.head_ref, 'worldcup7-targeted-check')
-    name: Compile WorldCup7.lean
+    if: github.head_ref == 'ci/chomp-native-final-audit'
+    name: Compile immutable Chomp checker
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 120
     steps:
-      - name: Checkout pull request
+      - name: Checkout immutable Chomp proof commit
         uses: actions/checkout@v6
+        with:
+          repository: DomTheDeveloper/formal-conjectures
+          ref: 36fca20b64b95fd3daffcac33293251cda296be8
+
+      - name: Confirm immutable source
+        run: test "$(git rev-parse HEAD)" = "36fca20b64b95fd3daffcac33293251cda296be8"
 
       - name: Install elan
         run: |
@@ -26,5 +32,16 @@ jobs:
       - name: Get Mathlib cache
         run: lake exe cache get
 
-      - name: Compile exact file
-        run: lake env lean FormalConjectures/Other/WorldCup7.lean
+      - name: Compile exact Lean-native Chomp checker
+        run: |
+          set -o pipefail
+          /usr/bin/time -v lake env lean FormalConjectures/Paper/ChompThreeOpeningsNative.lean \
+            2>&1 | tee chomp-native-proof.log
+
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chomp-native-proof-36fca20-log
+          path: chomp-native-proof.log
+          if-no-files-found: warn
