@@ -21,5 +21,6 @@ import FormalConjectures.GreensOpenProblems.«14»
 
 The certificate proof is kept outside the catalog file and imports the exact
 `Green14.mixedMonoAPGuaranteeSet` and `Green14.W` definitions from problem 14.
-No catalog definition or theorem statement is duplicated here.
+No catalog definition or theorem statement is duplicated here; the proof
+therefore checks the same objects used by `Green14.W_3_20_lower`.
 -/
