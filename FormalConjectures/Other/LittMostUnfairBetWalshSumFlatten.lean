@@ -18,10 +18,6 @@ import FormalConjectures.Other.LittMostUnfairBetWalshUpperOrbit
 
 /-!
 # Flattening the finite orbit index types
-
-These lemmas connect sums over the finite subtype encodings used by the orbit
-`Equiv`s with the nested shape/translation and shift/subset sums appearing in
-the energy calculation.
 -/
 
 set_option autoImplicit false
@@ -30,7 +26,6 @@ namespace LittMostUnfairBetWalsh
 
 open Finset
 
-/-- A sum over valid shape-translation pairs is the corresponding nested sum. -/
 theorem sum_shapeTranslation_nested {n : ℕ} {R : Type*} [AddCommMonoid R]
     (f : Finset ℕ → ℕ → R) :
     (∑ p : ShapeTranslation n, f p.1.1 p.1.2) =
@@ -40,12 +35,11 @@ theorem sum_shapeTranslation_nested {n : ℕ} {R : Type*} [AddCommMonoid R]
         p.1 ∈ shapes n ∧ p.2 ∈ translations n p.1 := by
     intro p
     exact mem_shapeTranslationPairs
-  simpa using
-    (Finset.sum_finset_product'
-      (shapeTranslationPairs n) (shapes n) (translations n) hmem
-      (f := f))
+  change (∑ p ∈ (shapeTranslationPairs n).attach, f p.1.1 p.1.2) = _
+  rw [Finset.sum_attach]
+  exact Finset.sum_finset_product'
+    (shapeTranslationPairs n) (shapes n) (translations n) hmem (f := f)
 
-/-- A sum over increasing orbit pairs is the corresponding three-level sum. -/
 theorem sum_upperOrbit_nested {n : ℕ} {R : Type*} [AddCommMonoid R]
     (f : Finset ℕ → ℕ → ℕ → R) :
     (∑ p : UpperOrbitPair n, f p.1.1.1 p.1.1.2 p.1.2) =
@@ -57,16 +51,18 @@ theorem sum_upperOrbit_nested {n : ℕ} {R : Type*} [AddCommMonoid R]
           p.2 ∈ (translations n p.1.1).filter (fun u => p.1.2 < u) := by
     intro p
     simp [mem_upperOrbitPairs, mem_shapeTranslationPairs, and_assoc]
+  change (∑ p ∈ (upperOrbitPairs n).attach,
+    f p.1.1.1 p.1.1.2 p.1.2) = _
+  rw [Finset.sum_attach]
   calc
-    (∑ p : UpperOrbitPair n, f p.1.1.1 p.1.1.2 p.1.2) =
+    (∑ p ∈ upperOrbitPairs n, f p.1.1 p.1.2 p.2) =
         ∑ st ∈ shapeTranslationPairs n,
           ∑ u ∈ (translations n st.1).filter (fun u => st.2 < u),
             f st.1 st.2 u := by
-      simpa using
-        (Finset.sum_finset_product'
-          (upperOrbitPairs n) (shapeTranslationPairs n)
-          (fun st => (translations n st.1).filter (fun u => st.2 < u))
-          houter (f := fun st u => f st.1 st.2 u))
+      exact Finset.sum_finset_product'
+        (upperOrbitPairs n) (shapeTranslationPairs n)
+        (fun st => (translations n st.1).filter (fun u => st.2 < u))
+        houter (f := fun st u => f st.1 st.2 u)
     _ = ∑ S ∈ shapes n, ∑ t ∈ translations n S,
         ∑ u ∈ (translations n S).filter (fun u => t < u), f S t u := by
       have hinner : ∀ p : Finset ℕ × ℕ,
@@ -76,8 +72,9 @@ theorem sum_upperOrbit_nested {n : ℕ} {R : Type*} [AddCommMonoid R]
         exact mem_shapeTranslationPairs
       exact Finset.sum_finset_product'
         (shapeTranslationPairs n) (shapes n) (translations n) hinner
+        (f := fun S t =>
+          ∑ u ∈ (translations n S).filter (fun u => t < u), f S t u)
 
-/-- A sum over positive-shift subsets is the corresponding dependent nested sum. -/
 theorem sum_positiveShift_nested {n : ℕ} {R : Type*} [AddCommMonoid R]
     (f : ℕ → Finset ℕ → R) :
     (∑ q : PositiveShiftSubset n, f q.1.1 q.1.2) =
@@ -87,10 +84,11 @@ theorem sum_positiveShift_nested {n : ℕ} {R : Type*} [AddCommMonoid R]
         p.1 ∈ Finset.Ico 1 n ∧ p.2 ∈ nonemptySubsets (n - p.1) := by
     intro p
     exact mem_positiveShiftSubsets
-  simpa using
-    (Finset.sum_finset_product'
-      (positiveShiftSubsets n) (Finset.Ico 1 n)
-      (fun h => nonemptySubsets (n - h)) hmem (f := f))
+  change (∑ q ∈ (positiveShiftSubsets n).attach, f q.1.1 q.1.2) = _
+  rw [Finset.sum_attach]
+  exact Finset.sum_finset_product'
+    (positiveShiftSubsets n) (Finset.Ico 1 n)
+    (fun h => nonemptySubsets (n - h)) hmem (f := f)
 
 #print axioms sum_shapeTranslation_nested
 #print axioms sum_upperOrbit_nested
