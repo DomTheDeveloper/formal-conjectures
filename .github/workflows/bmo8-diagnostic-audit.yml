@@ -47,7 +47,7 @@ jobs:
           set -euo pipefail
           cat > BMO8Axioms.lean <<'EOF'
           import FormalConjectures.Other.BeaverMathOlympiad8Proof
-          #print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_8_proof
+          #print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_8_solved
           EOF
           "$HOME/.elan/bin/lake" env lean BMO8Axioms.lean > BMO8Axioms.log 2>&1
           cat BMO8Axioms.log
