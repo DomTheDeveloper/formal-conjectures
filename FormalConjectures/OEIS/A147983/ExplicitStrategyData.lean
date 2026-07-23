@@ -107,7 +107,7 @@ def strategyCertificate (D : ExplicitStrategyData) (hD : D.Valid) : StrategyCert
     let response := D.replyAt i rowFin targetFin
     rcases hvalid with ⟨next, _, hreplyRow, hreplyTarget, hreplyPoison, hreplyEq⟩
     refine ⟨D.positions[next], ⟨next, rfl⟩, ?_⟩
-    exact ⟨response.row, response.target, hreplyRow, hreplyTarget, hreplyPoison, hreplyEq.symm⟩
+    exact ⟨response.row, response.target, hreplyRow, hreplyTarget, hreplyPoison, hreplyEq⟩
   child₁_mem := by
     rcases hD.2.2.1 with ⟨i, hi⟩
     exact ⟨i, hi⟩
