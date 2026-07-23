@@ -47,7 +47,8 @@ private theorem a_b_rankPatch_disjoint (a b c : ℕ) :
   intro p ha hb
   have hf := (Finset.mem_filter.mp ha).2
   have ht := (Finset.mem_filter.mp hb).2
-  simp at hf ht
+  have hft : false = true := hf.symm.trans ht
+  cases hft
 
 private theorem a_union_b_rankPatch (a b c : ℕ) :
     aRankPatch a b c ∪ bRankPatch a b c = rankPatch a b c := by
@@ -72,6 +73,8 @@ private theorem reflectRankPoint_involutive
   rw [mem_rankPatch] at hp
   rcases p with ⟨i, j, side⟩
   rcases hp with ⟨hi, hj, hlo, hhi⟩
+  change i < a + b at hi
+  change j < b + c at hj
   apply RankPoint.ext
   · simp [reflectRankPoint]
     omega
@@ -103,10 +106,8 @@ theorem card_aRankPatch (a b c : ℕ) :
   have htotal := congrArg Finset.card (a_union_b_rankPatch a b c)
   rw [Finset.card_union_of_disjoint (a_b_rankPatch_disjoint a b c),
     card_rankPatch, card_aRankPatch_eq_card_bRankPatch] at htotal
-  have hdouble :
-      2 * (aRankPatch a b c).card = 2 * (a * b + b * c + c * a) := by
-    simpa [two_mul] using htotal
-  exact Nat.mul_left_cancel hdouble
+  rw [card_aRankPatch_eq_card_bRankPatch]
+  omega
 
 /-- A-side vertices on the top diagonal row. -/
 def topARankPatch (a b c : ℕ) : Finset RankPoint :=
@@ -144,6 +145,7 @@ theorem card_topARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) 
     rcases Finset.mem_filter.mp haP with ⟨hpatch, hside⟩
     rw [mem_rankPatch] at hpatch
     rcases p with ⟨i, j, side⟩
+    change side = false at hside
     subst side
     simp [rankLevel] at htop hpatch
     refine ⟨i - a, Finset.mem_range.mpr (by omega), ?_⟩
@@ -171,6 +173,8 @@ theorem card_firstZeroARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0
     rcases Finset.mem_filter.mp haP with ⟨hpatch, hside⟩
     rw [mem_rankPatch] at hpatch
     rcases p with ⟨i, j, side⟩
+    change i = 0 at hfirst
+    change side = false at hside
     subst i
     subst side
     simp [rankLevel] at hpatch
@@ -199,6 +203,8 @@ theorem card_secondZeroARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 
     rcases Finset.mem_filter.mp haP with ⟨hpatch, hside⟩
     rw [mem_rankPatch] at hpatch
     rcases p with ⟨i, j, side⟩
+    change j = 0 at hsecond
+    change side = false at hside
     subst j
     subst side
     simp [rankLevel] at hpatch
