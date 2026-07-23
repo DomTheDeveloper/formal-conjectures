@@ -1,0 +1,34 @@
+name: BMO8 targeted Lean audit
+
+on:
+  pull_request:
+    paths:
+      - 'FormalConjectures/Other/BeaverMathOlympiad8Proof.lean'
+      - '.github/workflows/bmo8-targeted-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bmo8:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Install elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Get olean cache
+        run: lake exe cache get
+
+      - name: Build BMO8 certificate
+        run: lake env lean FormalConjectures/Other/BeaverMathOlympiad8Proof.lean
+
+      - name: Reject placeholders
+        run: |
+          ! grep -nE '\b(sorry|admit)\b' FormalConjectures/Other/BeaverMathOlympiad8Proof.lean
