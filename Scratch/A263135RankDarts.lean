@@ -18,8 +18,11 @@ theorem clippingRankDartVertex_snd (pd : RankPoint × Direction) :
 theorem clippingRankDartVertex_injective : Function.Injective clippingRankDartVertex := by
   intro p q h
   apply Prod.ext
-  · exact rankPointVertex_injective (congrArg Prod.fst h)
-  · exact congrArg Prod.snd h
+  · have hv := congrArg (fun z : Vertex × Direction => z.1) h
+    apply rankPointVertex_injective
+    simpa [clippingRankDartVertex] using hv
+  · have hd := congrArg (fun z : Vertex × Direction => z.2) h
+    simpa [clippingRankDartVertex] using hd
 
 private theorem clipping_same_neighbor_mem_iff
     {a b c : ℕ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
@@ -31,8 +34,9 @@ private theorem clipping_same_neighbor_mem_iff
   rw [neighbor_rankPointVertex_same hside, rankPointVertex_mem_patch_iff, mem_rankPatch]
   rw [mem_rankPatch] at hpatch
   rcases p with ⟨i, j, side⟩
-  simp [sameRankNeighbor, rankLevel] at hside hpatch ⊢
+  change side = false at hside
   subst side
+  simp [sameRankNeighbor, rankLevel] at hpatch ⊢
   omega
 
 private theorem clipping_horizontal_neighbor_mem_iff
@@ -44,20 +48,22 @@ private theorem clipping_horizontal_neighbor_mem_iff
   constructor
   · intro hn hzero
     rcases Finset.mem_image.mp hn with ⟨q, hq, heq⟩
-    have hi := congrArg Vertex.i heq
+    have hi := congrArg (fun v : Vertex => v.i) heq
     rcases p with ⟨i, j, side⟩
     rcases q with ⟨k, l, side'⟩
-    simp [rankPointVertex, neighbor] at hside hzero hi
-    subst side
-    omega
+    change side = false at hside
+    change i = 0 at hzero
+    simpa [rankPointVertex, neighbor, hside, hzero] using hi
   · intro hzero
     have hi : 0 < p.first := Nat.pos_of_ne_zero hzero
     rw [neighbor_rankPointVertex_horizontal hside hi, rankPointVertex_mem_patch_iff,
       mem_rankPatch]
     rw [mem_rankPatch] at hpatch
     rcases p with ⟨i, j, side⟩
-    simp [horizontalRankNeighbor, rankLevel] at hside hpatch ⊢
+    change side = false at hside
+    change 0 < i at hi
     subst side
+    simp [horizontalRankNeighbor, rankLevel] at hpatch ⊢
     omega
 
 private theorem clipping_diagonal_neighbor_mem_iff
@@ -69,11 +75,13 @@ private theorem clipping_diagonal_neighbor_mem_iff
   constructor
   · intro hn hzero
     rcases Finset.mem_image.mp hn with ⟨q, hq, heq⟩
-    have hj := congrArg Vertex.j heq
+    have hj := congrArg (fun v : Vertex => v.j) heq
     rcases p with ⟨i, j, side⟩
     rcases q with ⟨k, l, side'⟩
-    simp [rankPointVertex, neighbor] at hside hzero hj
-    subst side
+    change side = false at hside
+    change j = 0 at hzero
+    have hj' : (l : ℤ) - 1 = -2 := by
+      simpa [rankPointVertex, neighbor, hside, hzero] using hj
     omega
   · intro hzero
     have hj : 0 < p.second := Nat.pos_of_ne_zero hzero
@@ -81,8 +89,10 @@ private theorem clipping_diagonal_neighbor_mem_iff
       mem_rankPatch]
     rw [mem_rankPatch] at hpatch
     rcases p with ⟨i, j, side⟩
-    simp [diagonalRankNeighbor, rankLevel] at hside hpatch ⊢
+    change side = false at hside
+    change 0 < j at hj
     subst side
+    simp [diagonalRankNeighbor, rankLevel] at hpatch ⊢
     omega
 
 /-- A ranked dart is a listed patch contact exactly when its concrete dart is
