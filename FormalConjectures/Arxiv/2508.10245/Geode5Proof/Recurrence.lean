@@ -88,24 +88,22 @@ theorem qMoment_recurrence_raw (n k : ℕ) (hk : 0 < k) :
   have hboundary :
       integral01 ((qt ^ k * qKernel ^ (n + 1)).derivative) = 0 := by
     rw [integral01_derivative]
-    simp [Polynomial.eval_mul, qKernel_eval_one, hk.ne']
+    simp [Polynomial.eval_mul, qt, qKernel_eval_one, hk.ne']
   have hderiv :
       (qt ^ k * qKernel ^ (n + 1)).derivative =
-        Polynomial.C (k : QYPoly) * qt ^ (k - 1) * qKernel ^ (n + 1) +
+        Polynomial.C (k : QYPoly) *
+            (qt ^ (k - 1) * qKernel ^ (n + 1)) +
           Polynomial.C (n + 1 : QYPoly) *
             (qMomentQuotient k * qKernel ^ (n + 1) +
               qMomentRemainder k * qKernel ^ n) := by
-    rw [Polynomial.derivative_mul, Polynomial.derivative_X_pow,
-      Polynomial.derivative_pow_succ, qMoment_division_identity]
+    rw [Polynomial.derivative_mul]
+    simp only [qt, Polynomial.derivative_X_pow,
+      Polynomial.derivative_pow_succ]
+    rw [qMoment_division_identity]
     ring
   rw [hderiv] at hboundary
-  simp only [map_add, ← Polynomial.smul_eq_C_mul, map_smul] at hboundary
-  change
-    (k : QYPoly) * qMoment (n + 1) (k - 1) +
-        (n + 1 : QYPoly) *
-          (integral01 (qMomentQuotient k * qKernel ^ (n + 1)) +
-            integral01 (qMomentRemainder k * qKernel ^ n)) = 0 at hboundary
-  linear_combination hboundary
+  simpa only [map_add, ← Polynomial.smul_eq_C_mul, map_smul,
+    smul_eq_mul, qMoment] using hboundary
 
 #print axioms qMoment_recurrence_raw
 
