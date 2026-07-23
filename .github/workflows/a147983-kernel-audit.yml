@@ -72,6 +72,9 @@ jobs:
         run: |
           set -euo pipefail
           cat > A147983AxiomAudit.lean <<'EOF'
+          /-! Focused axiom audit for the OEIS A147983 certificate theorem layers. -/
+          import FormalConjectures.OEIS.A147983.KernelPSet
+          import FormalConjectures.OEIS.A147983.MDDCertificate
           import FormalConjectures.OEIS.A147983.SymbolicCertificate
 
           #print axioms OeisA147983.cutSuffix_sum_le
