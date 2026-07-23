@@ -1,0 +1,47 @@
+name: Chomp native proof audit
+
+on:
+  push:
+    branches:
+      - work/chomp-native-proof
+    paths:
+      - 'FormalConjectures/Paper/ChompThreeOpeningsNative.lean'
+      - '.github/workflows/chomp-native-proof-audit.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chomp-native-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lean:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lean
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/elan" toolchain install "$(cat lean-toolchain)"
+      - name: Fetch Mathlib cache
+        shell: bash
+        run: lake exe cache get
+      - name: Compile native Chomp checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v lake lean FormalConjectures/Paper/ChompThreeOpeningsNative.lean \
+            2>&1 | tee chomp-native-proof.log
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chomp-native-proof-log
+          path: chomp-native-proof.log
+          if-no-files-found: warn
