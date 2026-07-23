@@ -30,6 +30,11 @@ there are positive integers `c`, `x`, and `y`, with `x, y < n`, such that
 The OEIS entry conjectures that, for each fixed `k > 1`, one eventually has
 `T(p, k) = k * rad(k)` as `p` ranges over sufficiently large primes.
 
+This is false for `k = 12`: the proposed value is `72`, but the exponent
+vectors of `12` and `72` have determinant one modulo every prime, so no
+allowed positive exponents can make `12 ^ x * 72 ^ y` a prime-th power.
+In fact, the obstruction holds for every prime, with no asymptotic lower bound.
+
 *Reference:* [OEIS A343881](https://oeis.org/A343881)
 -/
 
@@ -50,10 +55,68 @@ def IsTValue (n k m : ℕ) : Prop :=
 def a064549 (k : ℕ) : ℕ :=
   k * ∏ q ∈ k.primeFactors, q
 
-@[category research open, AMS 11]
-theorem conjecture : answer(sorry) ↔
+@[category API, AMS 11]
+lemma a064549_twelve : a064549 12 = 72 := by
+  norm_num [a064549, Nat.primeFactors, Nat.primeFactorsList]
+
+/-- The proposed value `72` is never admissible for `k = 12` at a prime exponent. -/
+@[category research solved, AMS 11]
+lemma twelve_seventy_two_not_candidate {p : ℕ} (hp : p.Prime) :
+    ¬ IsCandidate p 12 72 := by
+  rintro ⟨_, c, x, y, hc, hx, hxp, hy, hyp, hpow⟩
+  have hfac :
+      x • (12 : ℕ).factorization + y • (72 : ℕ).factorization =
+        p • c.factorization := by
+    calc
+      x • (12 : ℕ).factorization + y • (72 : ℕ).factorization =
+          (12 ^ x).factorization + (72 ^ y).factorization := by
+            rw [Nat.factorization_pow, Nat.factorization_pow]
+      _ = (12 ^ x * 72 ^ y).factorization := by
+            rw [Nat.factorization_mul (pow_ne_zero x (by norm_num))
+              (pow_ne_zero y (by norm_num))]
+      _ = (c ^ p).factorization := congrArg Nat.factorization hpow
+      _ = p • c.factorization := Nat.factorization_pow c p
+  have h12two : (12 : ℕ).factorization 2 = 2 := by
+    rw [← Nat.primeFactorsList_count_eq]
+    norm_num [Nat.primeFactorsList]
+  have h12three : (12 : ℕ).factorization 3 = 1 := by
+    rw [← Nat.primeFactorsList_count_eq]
+    norm_num [Nat.primeFactorsList]
+  have h72two : (72 : ℕ).factorization 2 = 3 := by
+    rw [← Nat.primeFactorsList_count_eq]
+    norm_num [Nat.primeFactorsList]
+  have h72three : (72 : ℕ).factorization 3 = 2 := by
+    rw [← Nat.primeFactorsList_count_eq]
+    norm_num [Nat.primeFactorsList]
+  have htwo := congrArg (fun f : ℕ →₀ ℕ => f 2) hfac
+  have hthree := congrArg (fun f : ℕ →₀ ℕ => f 3) hfac
+  simp [h12two, h12three, h72two, h72three, nsmul_eq_mul] at htwo hthree
+  have htwoZ := congrArg (fun z : ℕ => (z : ZMod p)) htwo
+  have hthreeZ := congrArg (fun z : ℕ => (z : ZMod p)) hthree
+  push_cast at htwoZ hthreeZ
+  simp at htwoZ hthreeZ
+  have hyZ : (y : ZMod p) = 0 := by
+    linear_combination 2 * hthreeZ - htwoZ
+  have hpy : p ∣ y := (CharP.cast_eq_zero_iff (ZMod p) p y).mp hyZ
+  exact (Nat.not_dvd_of_pos_of_lt hy hyp) hpy
+
+/--
+The eventual-value conjecture in OEIS A343881 is false. The fixed value
+`k = 12` is a counterexample for every prime exponent.
+-/
+@[category research solved, AMS 11]
+theorem conjecture : answer(False) ↔
     ∀ k : ℕ, 1 < k → ∃ N : ℕ, ∀ p : ℕ, N ≤ p → p.Prime →
       IsTValue p k (a064549 k) := by
-  sorry
+  constructor
+  · simp
+  · intro h
+    obtain ⟨N, hN⟩ := h 12 (by norm_num)
+    obtain ⟨p, hpN, hp⟩ := Nat.exists_infinite_primes N
+    have hleast := hN p hpN hp
+    have hcandidate : IsCandidate p 12 72 := by
+      rw [← a064549_twelve]
+      exact hleast.1
+    exact twelve_seventy_two_not_candidate hp hcandidate
 
 end OeisA343881
