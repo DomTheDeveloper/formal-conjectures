@@ -23,10 +23,6 @@ permissions:
   contents: read
   statuses: write
 
-concurrency:
-  group: w320-pr-kernel-audit
-  cancel-in-progress: true
-
 jobs:
   verify:
     if: >-
