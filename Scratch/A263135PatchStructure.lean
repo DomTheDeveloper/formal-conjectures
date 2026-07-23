@@ -12,13 +12,15 @@ theorem mem_rankPatch {a b c : ℕ} {p : RankPoint} :
     rcases Finset.mem_image.mp hp with ⟨x, hx, rfl⟩
     rcases Finset.mem_filter.mp hx with ⟨hbox, hlev⟩
     rcases x with ⟨⟨i, j⟩, side⟩
-    simpa [rankBox, tripleRankPoint] using And.intro hbox hlev
+    simp [rankBox] at hbox
+    exact ⟨hbox.1, hbox.2, hlev.1, hlev.2⟩
   · rintro ⟨hi, hj, hlo, hhi⟩
     let x : (ℕ × ℕ) × Bool := ((p.first, p.second), p.side)
     apply Finset.mem_image.mpr
     refine ⟨x, ?_, ?_⟩
     · apply Finset.mem_filter.mpr
-      exact ⟨by simp [rankBox, x, hi, hj], by simpa [x, tripleRankPoint]⟩
+      refine ⟨by simp [rankBox, x, hi, hj], ?_⟩
+      simpa [x, tripleRankPoint] using And.intro hlo hhi
     · rcases p with ⟨i, j, side⟩
       rfl
 
@@ -45,7 +47,7 @@ private theorem a_b_rankPatch_disjoint (a b c : ℕ) :
   intro p ha hb
   have hf := (Finset.mem_filter.mp ha).2
   have ht := (Finset.mem_filter.mp hb).2
-  simp [hf] at ht
+  simp at hf ht
 
 private theorem a_union_b_rankPatch (a b c : ℕ) :
     aRankPatch a b c ∪ bRankPatch a b c = rankPatch a b c := by
@@ -69,8 +71,13 @@ private theorem reflectRankPoint_involutive
     reflectRankPoint a b c (reflectRankPoint a b c p) = p := by
   rw [mem_rankPatch] at hp
   rcases p with ⟨i, j, side⟩
-  simp [reflectRankPoint]
-  omega
+  rcases hp with ⟨hi, hj, hlo, hhi⟩
+  apply RankPoint.ext
+  · simp [reflectRankPoint]
+    omega
+  · simp [reflectRankPoint]
+    omega
+  · simp [reflectRankPoint]
 
 /-- The two bipartite sides of a convex patch have equal cardinality. -/
 theorem card_aRankPatch_eq_card_bRankPatch (a b c : ℕ) :
@@ -96,7 +103,10 @@ theorem card_aRankPatch (a b c : ℕ) :
   have htotal := congrArg Finset.card (a_union_b_rankPatch a b c)
   rw [Finset.card_union_of_disjoint (a_b_rankPatch_disjoint a b c),
     card_rankPatch, card_aRankPatch_eq_card_bRankPatch] at htotal
-  omega
+  have hdouble :
+      2 * (aRankPatch a b c).card = 2 * (a * b + b * c + c * a) := by
+    simpa [two_mul] using htotal
+  exact Nat.mul_left_cancel hdouble
 
 /-- A-side vertices on the top diagonal row. -/
 def topARankPatch (a b c : ℕ) : Finset RankPoint :=
@@ -126,14 +136,16 @@ theorem card_topARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) 
     · simp [rankLevel]
       omega
   · intro k hk l hl h
-    have := congrArg RankPoint.first h
+    have hfirst : a + k = a + l := by
+      simpa using congrArg RankPoint.first h
     omega
   · intro p hp
     rcases Finset.mem_filter.mp hp with ⟨haP, htop⟩
     rcases Finset.mem_filter.mp haP with ⟨hpatch, hside⟩
     rw [mem_rankPatch] at hpatch
     rcases p with ⟨i, j, side⟩
-    simp [rankLevel] at hside htop hpatch
+    subst side
+    simp [rankLevel] at htop hpatch
     refine ⟨i - a, Finset.mem_range.mpr (by omega), ?_⟩
     apply RankPoint.ext <;> simp <;> omega
 
@@ -151,14 +163,17 @@ theorem card_firstZeroARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 0
     simp [rankLevel]
     omega
   · intro k hk l hl h
-    have := congrArg RankPoint.second h
+    have hsecond : b + k = b + l := by
+      simpa using congrArg RankPoint.second h
     omega
   · intro p hp
     rcases Finset.mem_filter.mp hp with ⟨haP, hfirst⟩
     rcases Finset.mem_filter.mp haP with ⟨hpatch, hside⟩
     rw [mem_rankPatch] at hpatch
     rcases p with ⟨i, j, side⟩
-    simp [rankLevel] at hfirst hside hpatch
+    subst i
+    subst side
+    simp [rankLevel] at hpatch
     refine ⟨j - b, Finset.mem_range.mpr (by omega), ?_⟩
     apply RankPoint.ext <;> simp <;> omega
 
@@ -176,14 +191,17 @@ theorem card_secondZeroARankPatch (a b c : ℕ) (ha : 0 < a) (hb : 0 < b) (hc : 
     simp [rankLevel]
     omega
   · intro k hk l hl h
-    have := congrArg RankPoint.first h
+    have hfirst : b + k = b + l := by
+      simpa using congrArg RankPoint.first h
     omega
   · intro p hp
     rcases Finset.mem_filter.mp hp with ⟨haP, hsecond⟩
     rcases Finset.mem_filter.mp haP with ⟨hpatch, hside⟩
     rw [mem_rankPatch] at hpatch
     rcases p with ⟨i, j, side⟩
-    simp [rankLevel] at hsecond hside hpatch
+    subst j
+    subst side
+    simp [rankLevel] at hpatch
     refine ⟨i - b, Finset.mem_range.mpr (by omega), ?_⟩
     apply RankPoint.ext <;> simp <;> omega
 
