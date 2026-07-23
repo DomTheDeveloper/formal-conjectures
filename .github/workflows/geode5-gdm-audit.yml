@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
   lean:
@@ -18,4 +19,23 @@ jobs:
           build: false
           test: false
       - name: Compile Geode5 against the GDM-clean branch
+        id: compile
+        continue-on-error: true
         run: lake env lean -DwarningAsError=true FormalConjectures/Arxiv/2508.10245/Geode5.lean
+      - name: Publish audit status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const passed = '${{ steps.compile.outcome }}' === 'success'
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: passed ? 'success' : 'failure',
+              context: 'geode5-gdm-clean',
+              description: passed ? 'Geode5 Lean compile passed' : 'Geode5 Lean compile failed'
+            })
+      - name: Enforce audit result
+        if: steps.compile.outcome != 'success'
+        run: exit 1
