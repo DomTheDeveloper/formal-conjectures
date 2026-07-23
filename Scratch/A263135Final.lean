@@ -22,7 +22,7 @@ private theorem card_twoVertexWitness : twoVertexWitness.card = 2 := by
 
 @[simp]
 private theorem contacts_twoVertexWitness : contacts twoVertexWitness = 1 := by
-  norm_num [twoVertexWitness, contacts, neighbor]
+  decide
 
 /-- Complete even-index extremal theorem for OEIS A263135. -/
 @[category research solved, AMS 05]
