@@ -1,21 +1,18 @@
-# Triggered after the audit PR exists so GitHub schedules the new workflow.
 name: OEIS A263135 native Lean audit
 
 on:
-  pull_request:
-    branches: [audit-base/a263135-native]
+  push:
+    branches: [audit/a263135-native]
     paths:
       - '.github/workflows/a263135-native-audit.yml'
-      - 'FormalConjectures/OEIS/263135.lean'
-      - 'Scratch/A263135*.lean'
-      - 'lakefile.toml'
+      - 'audits/A263135_TRIGGER'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: a263135-native-${{ github.event.pull_request.number || github.ref }}
+  group: a263135-native-dtd
   cancel-in-progress: false
 
 jobs:
@@ -23,8 +20,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-      - name: Checkout proof branch
+      - name: Checkout audit harness
         uses: actions/checkout@v6
+        with:
+          path: audit-harness
+
+      - name: Checkout live A263135 proof branch
+        uses: actions/checkout@v6
+        with:
+          repository: DomTheDeveloper/formal-conjectures
+          ref: agent/solve-oeis-a263135
+          path: formal-conjectures
 
       - name: Install pinned Lean
         shell: bash
@@ -38,16 +44,18 @@ jobs:
         id: lean-build-cache
         uses: actions/cache/restore@v4
         with:
-          path: .lake/build
-          key: a263135-dtd-lean427-v1-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
+          path: formal-conjectures/.lake/build
+          key: a263135-dtd-lean427-v2-${{ hashFiles('formal-conjectures/lean-toolchain', 'formal-conjectures/lake-manifest.json') }}
 
       - name: Fetch pinned Mathlib cache
+        working-directory: formal-conjectures
         shell: bash
         run: |
           set -euo pipefail
           lake exe cache get
 
       - name: Reject proof shortcuts
+        working-directory: formal-conjectures
         shell: bash
         run: |
           set -euo pipefail
@@ -58,6 +66,7 @@ jobs:
           fi
 
       - name: Register complete A263135 module graph
+        working-directory: formal-conjectures
         shell: bash
         run: |
           set -euo pipefail
@@ -78,27 +87,51 @@ jobs:
           print(f'Registered {len(modules)} A263135 modules')
           PY
 
-      - name: Build theorem and audit axioms
+      - name: Build theorem and capture status
+        working-directory: formal-conjectures
         shell: bash
         run: |
-          set -euo pipefail
+          set +e
           lake build A263135ScratchAudit 2>&1 | tee "$RUNNER_TEMP/a263135-native.log"
+          status=${PIPESTATUS[0]}
           if grep -E 'sorryAx|Lean\.(trustCompiler|ofReduce|ofReduceBool)' "$RUNNER_TEMP/a263135-native.log"; then
-            echo 'Unacceptable axiom dependency found.' >&2
-            exit 1
+            status=2
+            echo 'Unacceptable axiom dependency found.' | tee -a "$RUNNER_TEMP/a263135-native.log"
           fi
+          echo "A263135_BUILD_STATUS=$status" >> "$GITHUB_ENV"
+          exit 0
 
       - name: Save Lean build cache
         if: always() && steps.lean-build-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: .lake/build
-          key: a263135-dtd-lean427-v1-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
+          path: formal-conjectures/.lake/build
+          key: a263135-dtd-lean427-v2-${{ hashFiles('formal-conjectures/lean-toolchain', 'formal-conjectures/lake-manifest.json') }}
 
-      - name: Upload audit transcript
+      - name: Publish exact audit transcript
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: a263135-dtd-native-audit
-          path: ${{ runner.temp }}/a263135-native.log
-          if-no-files-found: warn
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit-harness/audits
+          proof_sha=$(git -C formal-conjectures rev-parse HEAD)
+          {
+            echo "Proof commit: $proof_sha"
+            echo "Build status: ${A263135_BUILD_STATUS:-setup-failed}"
+            echo
+            cat "$RUNNER_TEMP/a263135-native.log" 2>/dev/null || true
+          } > audit-harness/audits/A263135_NATIVE.log
+          cd audit-harness
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add audits/A263135_NATIVE.log
+          if ! git diff --cached --quiet; then
+            git commit -m "audit(A263135): publish native Lean transcript"
+            git push origin HEAD:audit/a263135-native
+          fi
+
+      - name: Enforce audit result
+        if: always()
+        shell: bash
+        run: |
+          test "${A263135_BUILD_STATUS:-1}" -eq 0
