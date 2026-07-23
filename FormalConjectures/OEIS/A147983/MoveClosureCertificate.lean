@@ -54,6 +54,7 @@ def strategy (C : MoveClosureCertificate) : StrategyCertificate where
   child₃_mem := C.child₃_mem
 
 /-- A complete move-closure certificate proves the exact three-opening statement. -/
+@[category API, AMS 5]
 theorem three_openings (C : MoveClosureCertificate) :
     IsWinningOpening rectangle child₁ ∧
       IsWinningOpening rectangle child₂ ∧
