@@ -53,8 +53,20 @@ def NoThreeInLine {n : ℕ} (s : Finset (Point n)) : Prop :=
 /--
 For every `n ≥ 6`, every no-three-in-line subset of either monochromatic
 checkerboard color class has cardinality at most `2n-4`.
+
+The proof combines exact `6 × 6` certificates, a small exceptional `7 × 7`
+line-cover certificate, and uniform nonnegative quadratic weighted-line
+certificates for all larger odd and even boards.
+
+Solved by Dominic Dabish.
+
+ProofOrchestrator, using OpenAI GPT-5.6 Thinking, assisted with the mathematical
+argument and Lean formalization; all formal claims were checked by the pinned
+Lean compiler.
 -/
-@[category research open, AMS 5 52]
+@[category research solved, AMS 5 52,
+  formal_proof using lean4 at
+    "https://github.com/DomTheDeveloper/crl/blob/27a800672db58c9fe0c3d02b48c798347fb02fd5/proofs/lean/Checkerboard/Checkerboard/AllNTheorem.lean"]
 theorem checkerboard_upper_all_n {n parity : ℕ}
     (hn : 6 ≤ n) (hp : parity = 0 ∨ parity = 1)
     (s : Finset (Point n))
