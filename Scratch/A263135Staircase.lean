@@ -64,8 +64,10 @@ theorem perimeter_square_of_chain_deficiency
     dsimp [q]
     omega
   have hsq := sq_le_two_mul_staircaseDeficiency q
+  have hm' : m + staircaseDeficiency q ≤ 2 * a * b := by
+    simpa [q] using hm
   have hm2 : 2 * m + q ^ 2 ≤ 4 * a * b := by
-    nlinarith
+    nlinarith [hm', hsq]
   let x := a - q
   let z := b - a
   have haeq : a = q + x := by
@@ -76,7 +78,8 @@ theorem perimeter_square_of_chain_deficiency
     omega
   have hceq : c = q + 2 * x + z := by
     omega
-  rw [haeq, hbeq, hceq] at hm2 ⊢
+  rw [haeq, hbeq] at hm2
+  rw [haeq, hbeq, hceq]
   nlinarith [Nat.zero_le (x ^ 2), Nat.zero_le (x * z), Nat.zero_le (z ^ 2)]
 
 end OeisA263135
