@@ -1,0 +1,46 @@
+name: OEIS A343881 PR audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - FormalConjectures/OEIS/343881.lean
+      - A343881Audit.lean
+
+permissions:
+  contents: read
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+      - name: Compile exact theorem
+        run: |
+          set -o pipefail
+          lake build FormalConjectures.OEIS.«343881» 2>&1 | tee build.log
+      - name: Audit theorem axioms
+        run: |
+          cat > A343881Audit.lean <<'EOF'
+          import FormalConjectures.OEIS.«343881»
+          #print axioms OeisA343881.conjecture
+          EOF
+          set -o pipefail
+          lake env lean A343881Audit.lean 2>&1 | tee axioms.log
+          if grep -q 'sorryAx' axioms.log; then
+            echo 'Unexpected sorryAx in theorem dependencies'
+            exit 1
+          fi
+      - name: Upload audit logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oeis-a343881-pr-audit-logs
+          path: |
+            build.log
+            axioms.log
