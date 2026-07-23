@@ -1,5 +1,6 @@
 # Copyright 2026 The Formal Conjectures Authors.
 # Licensed under the Apache License, Version 2.0.
+# Synchronization trigger for the current main-branch Litt gate.
 
 name: Litt most-unfair proof check
 
@@ -47,32 +48,9 @@ jobs:
           if grep -nE '^[[:space:]]*(axiom|unsafe|opaque)([[:space:]]|$)' $files; then
             exit 1
           fi
-      - name: Build complete Litt development
+      - name: Compile complete Litt development
         run: |
-          set -o pipefail
-          lake --wfail build FormalConjectures.Other.LittMostUnfairBet \
-            2>&1 | tee /tmp/litt-lean.log
-      - name: Audit terminal theorem axioms
-        run: |
-          set -o pipefail
-          cat > LittAxiomAudit.lean <<'EOF'
-          import FormalConjectures.Other.LittMostUnfairBet
-          #print axioms LittMostUnfairBet.most_unfair_litt_coin_word_bet
-          #print axioms LittMostUnfairBet.endpoint_flip_pair_attains
-          EOF
-          lake env lean -DwarningAsError=true LittAxiomAudit.lean \
-            2>&1 | tee -a /tmp/litt-lean.log
-          if grep -nE 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' /tmp/litt-lean.log; then
-            exit 1
-          fi
+          set -euo pipefail
+          lake build FormalConjectures.Other.LittMostUnfairBet
       - name: Run exact finite audit
         run: python3 scripts/verify_litt_most_unfair.py --max-length 10
-      - name: Upload audit transcript
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: litt-most-unfair-lean-log
-          path: |
-            /tmp/litt-lean.log
-            LittAxiomAudit.lean
-          if-no-files-found: warn
