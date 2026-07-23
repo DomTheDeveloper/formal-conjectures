@@ -43,7 +43,8 @@ lemma chosenLocalIndep_subset_neighborFinset
   intro u hu
   rw [chosenLocalIndep, Finset.mem_map] at hu
   obtain ⟨w, _hw, rfl⟩ := hu
-  simpa using w.property
+  change G.Adj v (w : α)
+  exact w.property
 
 lemma chosenLocalIndep_mem_adj
     (G : SimpleGraph α) [DecidableRel G.Adj] {v u : α}
