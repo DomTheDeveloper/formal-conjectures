@@ -3,7 +3,7 @@ name: OEIS A263135 native Lean audit
 
 on:
   pull_request:
-    branches: [main]
+    branches: [audit-base/a263135-native]
     paths:
       - '.github/workflows/a263135-native-audit.yml'
       - 'FormalConjectures/OEIS/263135.lean'
