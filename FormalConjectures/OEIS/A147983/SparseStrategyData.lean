@@ -65,7 +65,7 @@ def rowMoveCount (p : List ℕ) (row : ℕ) : ℕ :=
 
 /-- Number of legal moves in rows strictly before `row`. -/
 def movesBefore (p : List ℕ) (row : ℕ) : ℕ :=
-  (List.range row).sum fun r => rowMoveCount p r
+  ((List.range row).map fun r => rowMoveCount p r).sum
 
 /-- Zero-based response index within one position's sparse block. -/
 def localMoveIndex (p : List ℕ) (row target : ℕ) : ℕ :=
@@ -121,13 +121,15 @@ def strategyCertificate (D : SparseStrategyData) (hD : D.Valid) : StrategyCertif
     rcases hp with ⟨i, rfl⟩
     rcases hpq with ⟨row, target, hrow, htarget, hpoison, rfl⟩
     have hlength : (D.positionAt i).length = 10 := (hshape i).1
-    have hrow10 : row < 10 := by omega
-    let rowFin : Fin 10 := ⟨row, hrow10⟩
-    have hwidth : (D.positionAt i).getD row 0 ≤ 42 := by
-      simpa [rowFin] using (hshape i).2 rowFin
+    have hrow10 : row < 10 := by
+      rw [hlength] at hrow
+      exact hrow
+    have hwidth : (D.positionAt i).getD row 0 ≤ 42 :=
+      (hshape i).2 ⟨row, hrow10⟩
     have htarget43 : target < 43 := by omega
+    let rowFin : Fin 10 := ⟨row, hrow10⟩
     let targetFin : Fin 43 := ⟨target, htarget43⟩
-    have hvalid := hresponse i rowFin targetFin (by simpa [rowFin] using htarget) (by
+    have hvalid := hresponse i rowFin targetFin (by simpa [rowFin, targetFin] using htarget) (by
       simpa [rowFin, targetFin] using hpoison)
     let response := D.replyAt i rowFin targetFin
     rcases hvalid with ⟨hnext, hreplyRow, hreplyTarget, hreplyPoison, hreplyEq⟩
