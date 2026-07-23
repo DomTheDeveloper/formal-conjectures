@@ -19,9 +19,9 @@ import FormalConjectures.OEIS.A147983.KernelCertificate
 /-!
 # Closed two-ply response sets
 
-A certificate may be represented extensionally as a set of purported losing positions.  Soundness
+A certificate may be represented extensionally as a set of purported losing positions. Soundness
 requires only that every opponent move has a legal reply back into the set and that the reply
-strictly decreases a natural-number measure.  The certificate producer is untrusted; Lean checks
+strictly decreases a natural-number measure. The certificate producer is untrusted; Lean checks
 this closure condition and reconstructs the complete normal-play proof by strong induction.
 -/
 
@@ -38,6 +38,7 @@ structure ClosedResponseSet (Move : P → P → Prop) (measure : P → ℕ) wher
 namespace ClosedResponseSet
 
 /-- Every member of a closed response set is genuinely losing. -/
+@[category API, AMS 5]
 theorem outcome (C : ClosedResponseSet Move measure) {p : P} (hp : p ∈ C.carrier) :
     Outcome Move p false := by
   have all : ∀ k : ℕ, ∀ p : P, measure p = k → p ∈ C.carrier → Outcome Move p false := by
@@ -52,6 +53,7 @@ theorem outcome (C : ClosedResponseSet Move measure) {p : P} (hp : p ∈ C.carri
   exact all _ p rfl hp
 
 /-- Every member of a closed response set has a kernel-checked losing proof. -/
+@[category API, AMS 5]
 theorem isLosing (C : ClosedResponseSet Move measure) {p : P} (hp : p ∈ C.carrier) :
     IsLosing Move p :=
   ⟨C.outcome hp⟩
