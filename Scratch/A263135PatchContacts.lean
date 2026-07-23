@@ -101,7 +101,9 @@ private theorem diagonal_neighbor_mem_iff
     rcases q with ⟨k, l, side'⟩
     change side = false at hside
     change j = 0 at hzero
-    simpa [rankPointVertex, neighbor, hside, hzero] using hj
+    have hj' : (l : ℤ) - 1 = -2 := by
+      simpa [rankPointVertex, neighbor, hside, hzero] using hj
+    omega
   · intro hzero
     have hj : 0 < p.second := Nat.pos_of_ne_zero hzero
     rw [neighbor_rankPointVertex_diagonal hside hj, rankPointVertex_mem_patch_iff,
