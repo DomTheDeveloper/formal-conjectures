@@ -100,6 +100,13 @@ private theorem reflectTriple_mem_box
   simp [rankBox, reflectTriple] at hx ⊢
   omega
 
+private theorem rankBox_dimensions_positive
+    {A B : ℕ} {x : (ℕ × ℕ) × Bool} (hx : x ∈ rankBox A B) :
+    0 < A ∧ 0 < B := by
+  rcases x with ⟨⟨i, j⟩, side⟩
+  simp [rankBox] at hx
+  omega
+
 private theorem rankLevel_reflectTriple
     {A B : ℕ} {x : (ℕ × ℕ) × Bool} (hx : x ∈ rankBox A B) :
     rankLevel (tripleRankPoint (reflectTriple A B x)) +
@@ -126,6 +133,7 @@ theorem card_upperCornerTriples
     apply Finset.mem_filter.mpr
     refine ⟨reflectTriple_mem_box hxbox, ?_⟩
     have hlevel := rankLevel_reflectTriple hxbox
+    have hpos := rankBox_dimensions_positive hxbox
     omega
   · intro x hx y hy hxy
     have hxbox := (Finset.mem_filter.mp hx).1
@@ -139,6 +147,7 @@ theorem card_upperCornerTriples
       refine ⟨reflectTriple_mem_box hybox, ?_⟩
       have hylower := (Finset.mem_filter.mp hy).2
       have hlevel := rankLevel_reflectTriple hybox
+      have hpos := rankBox_dimensions_positive hybox
       omega
     · exact reflectTriple_involutive_on_box hybox
 
