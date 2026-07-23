@@ -30,6 +30,8 @@ words with content `(n, n, n)` and no singleton constant run. In the notation
 of the cited paper, its first values for positive `n` are
 `0, 1, 1, 5, 15, 69, 304, 1518, 7807, 42314`.
 
+The asymptotic assertion below is Conjecture 2a in the cited paper.
+
 *Reference:*
 
 - [M. Kauers and D. Zeilberger, *Counting Standard Young Tableaux With
