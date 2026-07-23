@@ -47,45 +47,22 @@ jobs:
           if grep -nE '^[[:space:]]*(axiom|unsafe|opaque)([[:space:]]|$)' $files; then
             exit 1
           fi
-      - name: Compile complete Litt development
+      - name: Build complete Litt development
         run: |
-          set -euo pipefail
-          files=(
-            FormalConjectures/Other/LittMostUnfairBetDefs.lean
-            FormalConjectures/Other/LittMostUnfairBetProof.lean
-            FormalConjectures/Other/LittMostUnfairBetWalsh.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshCorrelation.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshShapes.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshGap.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshInteriorGap.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshShiftCorrelation.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshNormalize.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshOrbit.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshPairSum.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshUpperOrbit.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshSumFlatten.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshEnergyTranslate.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshEnergyDiagonal.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshEnergyUpper.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshEnergyIdentity.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshVariance.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshOverlapBridge.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshConstantGap.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshOneEndpointGap.lean
-            FormalConjectures/Other/LittMostUnfairBetReversal.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointCore.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointToggle.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointComplete.lean
-            FormalConjectures/Other/LittMostUnfairBetWalshAssembly.lean
-            FormalConjectures/Other/LittMostUnfairBet.lean
-          )
-          : > /tmp/litt-lean.log
-          for file in "${files[@]}"; do
-            echo "=== $file ===" | tee -a /tmp/litt-lean.log
-            lake env lean -DwarningAsError=true "$file" 2>&1 | tee -a /tmp/litt-lean.log
-          done
-          if grep -nE 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce' /tmp/litt-lean.log; then
+          set -o pipefail
+          lake --wfail build FormalConjectures.Other.LittMostUnfairBet \
+            2>&1 | tee /tmp/litt-lean.log
+      - name: Audit terminal theorem axioms
+        run: |
+          set -o pipefail
+          cat > LittAxiomAudit.lean <<'EOF'
+          import FormalConjectures.Other.LittMostUnfairBet
+          #print axioms LittMostUnfairBet.most_unfair_litt_coin_word_bet
+          #print axioms LittMostUnfairBet.endpoint_flip_pair_attains
+          EOF
+          lake env lean -DwarningAsError=true LittAxiomAudit.lean \
+            2>&1 | tee -a /tmp/litt-lean.log
+          if grep -nE 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' /tmp/litt-lean.log; then
             exit 1
           fi
       - name: Run exact finite audit
@@ -95,5 +72,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: litt-most-unfair-lean-log
-          path: /tmp/litt-lean.log
+          path: |
+            /tmp/litt-lean.log
+            LittAxiomAudit.lean
           if-no-files-found: warn
