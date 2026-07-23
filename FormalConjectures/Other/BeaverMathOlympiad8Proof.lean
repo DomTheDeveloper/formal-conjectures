@@ -78,7 +78,7 @@ theorem beaver_math_olympiad_problem_8_positive :
           simp [bmo8_step, h, a_rec, b_rec]
   refine ⟨1_210_682, ?_⟩
   have hcalc : bmo8_orbit 1_210_682 = (1_749_056, 3_498_111) := by
-    native_decide
+    decide +native
   have hstate := (h_eq 1_210_682).trans hcalc
   have ha : a 1_210_682 = 1_749_056 := by
     simpa using congrArg Prod.fst hstate
