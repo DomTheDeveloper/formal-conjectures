@@ -45,7 +45,7 @@ jobs:
           cd repo
           lake exe cache get >/dev/null 2>&1
           set +e
-          lake env lean FormalConjectures/Other/WorldCup7.lean 2>&1 | tee /tmp/worldcup7-lean.log
+          lake --wfail build FormalConjectures.Other.WorldCup7 2>&1 | tee /tmp/worldcup7-lean.log
           status=${PIPESTATUS[0]}
           cat /tmp/worldcup7-lean.log >> "$GITHUB_STEP_SUMMARY"
           exit "$status"
