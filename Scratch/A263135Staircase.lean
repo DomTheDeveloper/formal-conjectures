@@ -56,34 +56,64 @@ theorem perimeter_square_of_chain_deficiency
     (hbc : b ≤ c)
     (hm : m + staircaseDeficiency (a + b - c) ≤ 2 * a * b) :
     6 * m ≤ (a + b + c) ^ 2 := by
-  let q := a + b - c
-  have hq : q ≤ a := by
-    dsimp [q]
-    omega
-  have hc : a + b = c + q := by
-    dsimp [q]
-    omega
-  have hsq : q ^ 2 ≤ 2 * staircaseDeficiency q :=
-    sq_le_two_mul_staircaseDeficiency q
-  have hm2 : 2 * m + q ^ 2 ≤ 4 * a * b := by
-    calc
-      2 * m + q ^ 2 ≤ 2 * m + 2 * staircaseDeficiency q :=
-        Nat.add_le_add_left hsq (2 * m)
-      _ = 2 * (m + staircaseDeficiency q) := by ring
-      _ ≤ 2 * (2 * a * b) := Nat.mul_le_mul_left 2 hm
-      _ = 4 * a * b := by ring
-  let x := a - q
-  let z := b - a
-  have haeq : a = q + x := by
-    dsimp [x]
-    omega
-  have hbeq : b = q + x + z := by
-    dsimp [x, z]
-    omega
-  have hceq : c = q + 2 * x + z := by
-    omega
-  rw [haeq, hbeq] at hm2
-  rw [haeq, hbeq, hceq]
-  nlinarith [Nat.zero_le (x ^ 2), Nat.zero_le (x * z), Nat.zero_le (z ^ 2)]
+  by_cases htri : c ≤ a + b
+  · let q := a + b - c
+    have hq : q ≤ a := by
+      dsimp [q]
+      clear hm
+      omega
+    have hc : a + b = c + q := by
+      dsimp [q]
+      clear hm
+      omega
+    have hmq : m + staircaseDeficiency q ≤ 2 * a * b := by
+      simpa [q] using hm
+    have hsq : q ^ 2 ≤ 2 * staircaseDeficiency q :=
+      sq_le_two_mul_staircaseDeficiency q
+    have hm2 : 2 * m + q ^ 2 ≤ 4 * a * b := by
+      calc
+        2 * m + q ^ 2 ≤ 2 * m + 2 * staircaseDeficiency q :=
+          Nat.add_le_add_left hsq (2 * m)
+        _ = 2 * (m + staircaseDeficiency q) := by ring
+        _ ≤ 2 * (2 * a * b) := Nat.mul_le_mul_left 2 hmq
+        _ = 4 * a * b := by ring
+    let x := a - q
+    let z := b - a
+    have haeq : a = q + x := by
+      dsimp [x]
+      clear hm hmq hsq hm2
+      omega
+    have hbeq : b = q + x + z := by
+      dsimp [x, z]
+      clear hm hmq hsq hm2
+      omega
+    have hceq : c = q + 2 * x + z := by
+      clear hm hmq hsq hm2
+      omega
+    rw [haeq, hbeq] at hm2
+    rw [haeq, hbeq, hceq]
+    nlinarith [Nat.zero_le (x ^ 2), Nat.zero_le (x * z), Nat.zero_le (z ^ 2)]
+  · have hsum : a + b < c := Nat.lt_of_not_ge htri
+    have hm' : m ≤ 2 * a * b := by
+      omega
+    let z := b - a
+    have hbeq : b = a + z := by
+      dsimp [z]
+      clear hm
+      omega
+    have hab4 : 4 * a * b ≤ (a + b) ^ 2 := by
+      rw [hbeq]
+      nlinarith [Nat.zero_le (z ^ 2)]
+    have hm6 : 6 * m ≤ 12 * a * b := by
+      nlinarith
+    have h12 : 12 * a * b ≤ 3 * (a + b) ^ 2 := by
+      nlinarith
+    have h34 : 3 * (a + b) ^ 2 ≤ 4 * (a + b) ^ 2 := by
+      nlinarith
+    have hs : 2 * (a + b) ≤ a + b + c := by
+      omega
+    have hsq : 4 * (a + b) ^ 2 ≤ (a + b + c) ^ 2 := by
+      nlinarith
+    exact hm6.trans (h12.trans (h34.trans hsq))
 
 end OeisA263135
