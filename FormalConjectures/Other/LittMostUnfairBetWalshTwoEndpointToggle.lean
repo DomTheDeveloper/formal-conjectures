@@ -36,8 +36,8 @@ theorem natAbs_add_sq_eq_sixteen_of_raw_product {a b : ℤ}
     (ha : a = 2 ∨ a = -2) (hb : b = 2 ∨ b = -2)
     (hprod : a * b = 4) :
     (a + b).natAbs ^ 2 = 16 := by
-  rcases ha with rfl | rfl <;> rcases hb with rfl | rfl <;>
-    norm_num at hprod ⊢
+  rcases ha with rfl | rfl <;> rcases hb with rfl | rfl
+  all_goals norm_num at hprod ⊢
 
 theorem rawDifference_eq_two_or_neg_two_of_square {n : ℕ}
     (A B : Word n) (S : Finset ℕ)
@@ -99,14 +99,19 @@ theorem nearFull_product_toggle_neg {n : ℕ} (hn : 4 ≤ n)
         rawDifference A B (translate (nearFullBase n (insert j.val R)) 1) =
       -(rawDifference A B (nearFullBase n R) *
         rawDifference A B (translate (nearFullBase n R) 1)) := by
+  have hnsub : n - 2 + 2 = n := Nat.sub_add_cancel (by omega)
   have hj0 : j.val ≠ 0 := Nat.ne_of_gt hjpos
   have hjend : j.val ≠ n - 2 := Nat.ne_of_lt hjpen
-  have hAjBj : A j = B j := hinterior j hjpos (by omega)
-  let js : Fin n := ⟨j.val + 1, by omega⟩
-  have hAjsBjs : A js = B js := hinterior js (by omega) (by omega)
+  have hjlast : j.val < n - 1 := by omega
+  have hAjBj : A j = B j := hinterior j hjpos hjlast
+  have hjsN : j.val + 1 < n := by omega
+  let js : Fin n := ⟨j.val + 1, hjsN⟩
+  have hjslast : js.val < n - 1 := by
+    dsimp [js]
+    omega
+  have hAjsBjs : A js = B js := hinterior js (by dsimp [js]; omega) hjslast
   have hsign : letterSign A j.val * letterSign A (j.val + 1) = -1 := by
-    simp only [letterSign_of_lt A j.isLt,
-      letterSign_of_lt A (show j.val + 1 < n by omega)]
+    simp only [letterSign_of_lt A j.isLt, letterSign_of_lt A hjsN]
     exact coinSign_mul_eq_neg_one_of_ne hadj
   rw [translate_nearFullBase_insert hj0 hjend,
     nearFullBase_insert hj0 hjend]
@@ -115,7 +120,7 @@ theorem nearFull_product_toggle_neg {n : ℕ} (hn : 4 ≤ n)
   rw [rawDifference_insert_of_word_eq A B
     (translate (nearFullBase n R) 1)
     (succ_distinguished_not_mem_translated_nearFullBase j hjpos hjpen hR)
-    (by omega) hAjsBjs]
+    hjsN hAjsBjs]
   calc
     (letterSign A j.val * rawDifference A B (nearFullBase n R)) *
         (letterSign A (j.val + 1) *
@@ -206,7 +211,32 @@ theorem selectedTwoEndpointShape_injective {n : ℕ} (A B : Word n)
     have hj0 : j.val ≠ 0 := Nat.ne_of_gt hjpos
     have hjend : j.val ≠ n - 2 := Nat.ne_of_lt hjpen
     unfold stripTwoEndpointShape selectedTwoEndpointShape
-    split <;> simp [nearFullBase, hR0, hRpen, hRj, hj0, hjend]
+    split
+    · ext i
+      simp only [nearFullBase, Finset.mem_erase, Finset.mem_insert]
+      constructor
+      · rintro ⟨hij, hipen, hi0, hi0eq | hipeneq | hiR⟩
+        · exact (hi0 hi0eq).elim
+        · exact (hipen hipeneq).elim
+        · exact hiR
+      · intro hiR
+        refine ⟨?_, ?_, ?_, Or.inr (Or.inr hiR)⟩
+        · intro e; subst i; exact hRj hiR
+        · intro e; subst i; exact hRpen hiR
+        · intro e; subst i; exact hR0 hiR
+    · ext i
+      simp only [nearFullBase, Finset.mem_erase, Finset.mem_insert]
+      constructor
+      · rintro ⟨hij, hipen, hi0, hi0eq | hipeneq | hijeq | hiR⟩
+        · exact (hi0 hi0eq).elim
+        · exact (hipen hipeneq).elim
+        · exact (hij hijeq).elim
+        · exact hiR
+      · intro hiR
+        refine ⟨?_, ?_, ?_, Or.inr (Or.inr (Or.inr hiR))⟩
+        · intro e; subst i; exact hRj hiR
+        · intro e; subst i; exact hRpen hiR
+        · intro e; subst i; exact hR0 hiR
   have hrec₁ := recover (Finset.mem_powerset.mp hR₁)
   have hrec₂ := recover (Finset.mem_powerset.mp hR₂)
   rw [← hrec₁, ← hrec₂, heq]
