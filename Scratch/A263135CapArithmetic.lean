@@ -3,11 +3,12 @@ import Scratch.A263135ChainCount
 namespace OeisA263135
 
 private theorem sum_sub_two_mul_eq_staircase (q a : ℕ) (hqa : q ≤ a) :
-    (∑ t ∈ Finset.range a, q - 2 * t) = staircase q := by
+    Finset.sum (Finset.range a) (fun t => q - 2 * t) = staircase q := by
   unfold staircase
   nth_rewrite 1 [← Nat.add_sub_of_le hqa]
   rw [Finset.sum_range_add]
-  have hzero : (∑ t ∈ Finset.range (a - q), q - 2 * (q + t)) = 0 := by
+  have hzero :
+      Finset.sum (Finset.range (a - q)) (fun t => q - 2 * (q + t)) = 0 := by
     apply Finset.sum_eq_zero
     intro t ht
     omega
@@ -31,8 +32,8 @@ private theorem min_short_add_deficit (a b c t : ℕ) :
     omega
 
 private theorem sum_chain_lengths (a b : ℕ) (hab : a ≤ b) :
-    (∑ t ∈ Finset.range a,
-      ((a + b - 2 * t) + (a + b - 2 - 2 * t))) = 2 * a * b := by
+    Finset.sum (Finset.range a) (fun t =>
+      (a + b - 2 * t) + (a + b - 2 - 2 * t)) = 2 * a * b := by
   have hterm : ∀ t ∈ Finset.range a,
       ((a + b - 2 * t) + (a + b - 2 - 2 * t)) + 4 * t =
         2 * (a + b - 1) := by
@@ -42,8 +43,8 @@ private theorem sum_chain_lengths (a b : ℕ) (hab : a ≤ b) :
   have hsum := Finset.sum_congr rfl hterm
   simp only [Finset.sum_add_distrib, Finset.sum_const, Finset.card_range,
     Nat.nsmul_eq_mul] at hsum
-  have hfour : (∑ t ∈ Finset.range a, 4 * t) =
-      4 * ∑ t ∈ Finset.range a, t := by
+  have hfour : Finset.sum (Finset.range a) (fun t => 4 * t) =
+      4 * Finset.sum (Finset.range a) (fun t => t) := by
     rw [Finset.mul_sum]
   rw [hfour] at hsum
   have hgauss := Finset.sum_range_id_mul_two a
