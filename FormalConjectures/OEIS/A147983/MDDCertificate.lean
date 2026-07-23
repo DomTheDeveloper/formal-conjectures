@@ -56,6 +56,7 @@ namespace InclusionCertificate
 variable {A : Automaton σ n} {B : Automaton σ m}
 
 /-- Related states accept an included language. -/
+@[category API, AMS 5]
 theorem accepts_mono (C : InclusionCertificate A B) {i : Fin n} {j : Fin m}
     (hrel : C.Rel i j) (word : List σ) :
     A.acceptsFrom i word = true → B.acceptsFrom j word = true := by
@@ -88,6 +89,7 @@ namespace DisjointnessCertificate
 variable {A : Automaton σ n} {B : Automaton σ m}
 
 /-- Related product states cannot both accept the same word. -/
+@[category API, AMS 5]
 theorem not_both_accept (C : DisjointnessCertificate A B) {i : Fin n} {j : Fin m}
     (hrel : C.Rel i j) (word : List σ) :
     ¬ (A.acceptsFrom i word = true ∧ B.acceptsFrom j word = true) := by
@@ -115,6 +117,7 @@ theorem not_both_accept (C : DisjointnessCertificate A B) {i : Fin n} {j : Fin m
 end DisjointnessCertificate
 
 /-- Opposite inclusions prove language equality at related roots. -/
+@[category API, AMS 5]
 theorem language_eq_of_inclusions
     {A : Automaton σ n} {B : Automaton σ m}
     (AB : InclusionCertificate A B) (BA : InclusionCertificate B A)
