@@ -28,7 +28,8 @@ The displayed answer uses the centered variable `x = r + 3` and `y = x²`.
 
 *References:*
 
-- [Doron Zeilberger, *A Computational Approach to Enumeration* (DIMACS 2026 challenge)]
+- [Doron Zeilberger, *Attendance Quizzes, Solutions, and Some Challenges Related to Dr. Z.'s
+  June 30, 2026, DIMACS REU*]
   (https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimhtml/DIMACS2026.html)
 - [Shalosh B. Ekhad and Doron Zeilberger, *World Cup Enumerative Combinatorics*]
   (https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimhtml/worldcup.html)
