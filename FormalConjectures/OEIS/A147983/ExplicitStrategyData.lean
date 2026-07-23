@@ -38,11 +38,7 @@ structure ExplicitReply where
   target : ℕ
   deriving DecidableEq, Repr
 
-/-- Explicit carrier positions and a three-dimensional response table.
-
-The nested response array is indexed by carrier index, opponent row, and opponent target. Missing
-or out-of-range entries evaluate to `defaultReply` and therefore cannot satisfy validity for a
-legal opponent move. -/
+/-- Explicit carrier positions and a three-dimensional response table. -/
 structure ExplicitStrategyData where
   positions : Array (List ℕ)
   replies : Array (Array (Array ExplicitReply))
@@ -68,11 +64,12 @@ def ReplyValid (D : ExplicitStrategyData) (i : Fin D.positions.size)
   let p := D.positions[i]
   let q := bite row.1 target.1 p
   let response := D.replyAt i row target
-  response.next < D.positions.size ∧
-    response.row < q.length ∧
-    response.target < q.getD response.row 0 ∧
-    (response.row = 0 → 0 < response.target) ∧
-    D.positions.getD response.next [] = bite response.row response.target q
+  ∃ next : Fin D.positions.size,
+    response.next = next.1 ∧
+      response.row < q.length ∧
+      response.target < q.getD response.row 0 ∧
+      (response.row = 0 → 0 < response.target) ∧
+      D.positions[next] = bite response.row response.target q
 
 /-- Finite validity conditions for an explicit strategy table.
 
@@ -108,11 +105,9 @@ def strategyCertificate (D : ExplicitStrategyData) (hD : D.Valid) : StrategyCert
     have hvalid := hresponse i rowFin targetFin (by simpa [rowFin] using htarget) (by
       simpa [rowFin, targetFin] using hpoison)
     let response := D.replyAt i rowFin targetFin
-    rcases hvalid with ⟨hnext, hreplyRow, hreplyTarget, hreplyPoison, hreplyEq⟩
-    let next : Fin D.positions.size := ⟨response.next, hnext⟩
+    rcases hvalid with ⟨next, _, hreplyRow, hreplyTarget, hreplyPoison, hreplyEq⟩
     refine ⟨D.positions[next], ⟨next, rfl⟩, ?_⟩
-    refine ⟨response.row, response.target, hreplyRow, hreplyTarget, hreplyPoison, ?_⟩
-    simpa [response, rowFin, targetFin, next, Array.getD, hnext] using hreplyEq
+    exact ⟨response.row, response.target, hreplyRow, hreplyTarget, hreplyPoison, hreplyEq.symm⟩
   child₁_mem := by
     rcases hD.2.2.1 with ⟨i, hi⟩
     exact ⟨i, hi⟩
