@@ -18,9 +18,12 @@ lemma neighbor_union_card_le_Ls_add_two
     (G : SimpleGraph α) [DecidableRel G.Adj] (hG : G.Connected)
     {x y : α} (hxy : G.Adj x y) :
     ((G.neighborFinset x ∪ G.neighborFinset y).card : ℝ) ≤ Ls G + 2 := by
-  obtain ⟨T, hseedT, hTG, hT⟩ :=
-    hG.exists_isTree_le_of_le_of_isAcyclic
+  have hex :
+      ∃ T : SimpleGraph α,
+        doubleStarSeed G x y ≤ T ∧ T ≤ G ∧ T.IsTree :=
+    SimpleGraph.Connected.exists_isTree_le_of_le_of_isAcyclic hG
       (doubleStarSeed_le G x y) (doubleStarSeed_isAcyclic G x y)
+  rcases hex with ⟨T, hseedT, hTG, hT⟩
   letI : DecidableRel T.Adj := Classical.decRel T.Adj
   have hUnionNat :=
     neighbor_union_card_le_degree_sum_of_doubleStarSeed_le G T x y hseedT
