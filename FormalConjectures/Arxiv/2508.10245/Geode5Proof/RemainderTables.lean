@@ -35,8 +35,6 @@ structure SparseTerm where
   coefficient : ℤ
   deriving DecidableEq, Repr
 
-private def y : YPoly := Polynomial.X
-private def t : TYPoly := Polynomial.X
 
 /-- Interpret a sparse C++ table as a nested polynomial. -/
 def sparsePolynomial (terms : List SparseTerm) : TYPoly :=
