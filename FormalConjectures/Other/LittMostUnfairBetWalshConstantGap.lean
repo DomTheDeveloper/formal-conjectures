@@ -72,7 +72,8 @@ theorem rawDifference_mul_nonneg_of_right_monomial_eq {n : ℕ}
   rcases natMonomial_eq_one_or_neg_one A S with hAS | hAS <;>
     rcases natMonomial_eq_one_or_neg_one A T with hAT | hAT <;>
     rcases natMonomial_eq_one_or_neg_one B S with hBS | hBS <;>
-    simp [rawDifference, hAS, hAT, hBS, hB] at *
+    rcases natMonomial_eq_one_or_neg_one B T with hBT | hBT <;>
+    simp [rawDifference, hAS, hAT, hBS, hBT] at hB ⊢
 
 /-- If the left-word monomials agree, two raw differences have nonnegative product. -/
 theorem rawDifference_mul_nonneg_of_left_monomial_eq {n : ℕ}
@@ -113,7 +114,9 @@ theorem shift_correlation_nonneg_of_constant {n h : ℕ} (A B : Word n)
 theorem signedRawEnergy_ge_of_constant {n : ℕ} (A B : Word n)
     (hne : A ≠ B) (hconst : IsConstant A ∨ IsConstant B) :
     (2 ^ (n + 1) : ℤ) ≤ signedRawEnergy A B := by
-  rw [signedRawEnergy_eq_correlations, diagonal_raw_correlation A B hne]
+  rw [signedRawEnergy_eq_correlations]
+  simp_rw [pow_two]
+  rw [diagonal_raw_correlation A B hne]
   have hshift :
       0 ≤ ∑ h ∈ Finset.Ico 1 n,
         ∑ S ∈ (Finset.range (n - h)).powerset,
@@ -141,7 +144,6 @@ theorem varianceNum_ge_of_constant {n : ℕ} (A B : Word n)
     exact_mod_cast henergy
   rw [hid] at hcast
   norm_num [pow_succ] at hcast ⊢
-  omega
 
 #print axioms rawEnergy_ge_of_constant
 #print axioms varianceNum_ge_of_constant
