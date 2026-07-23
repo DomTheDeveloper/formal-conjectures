@@ -17,13 +17,10 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: DomTheDeveloper/formal-conjectures
-          ref: 36fca20b64b95fd3daffcac33293251cda296be8
+          ref: 4a84dec796d9bcef8ae42a8006e8c6766b002468
 
       - name: Confirm immutable source
-        run: test "$(git rev-parse HEAD)" = "36fca20b64b95fd3daffcac33293251cda296be8"
-
-      - name: Isolate checker from missing fork aggregate import
-        run: sed -i '1s/import FormalConjecturesUtil/import Mathlib/' FormalConjectures/Paper/ChompThreeOpeningsNative.lean
+        run: test "$(git rev-parse HEAD)" = "4a84dec796d9bcef8ae42a8006e8c6766b002468"
 
       - name: Install elan
         run: |
@@ -45,6 +42,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: chomp-native-proof-36fca20-log
+          name: chomp-native-proof-4a84dec-log
           path: chomp-native-proof.log
           if-no-files-found: warn
