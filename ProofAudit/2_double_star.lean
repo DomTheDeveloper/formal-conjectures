@@ -5,6 +5,10 @@ Licensed under the Apache License, Version 2.0.
 
 import ProofAudit.«2_ls_bridge»
 
+/-!
+# WOWII Conjecture 2: the double-star forest seed
+-/
+
 namespace WrittenOnTheWallII.GraphConjecture2Audit
 
 open Classical Finset SimpleGraph
@@ -32,7 +36,7 @@ lemma base_le_attachLeaves
     H ≤ attachLeaves H c L := by
   induction L with
   | nil => simp [attachLeaves]
-  | cons v vs ih =>
+  | cons head tail ih =>
       exact ih.trans le_sup_left
 
 lemma attachLeaves_isolated_of_not_mem
@@ -41,21 +45,21 @@ lemma attachLeaves_isolated_of_not_mem
     ∀ z, ¬ (attachLeaves H c L).Adj v z := by
   induction L with
   | nil => simpa [attachLeaves] using hvH
-  | cons w ws ih =>
-      have hvw : v ≠ w := by
+  | cons head tail ih =>
+      have hvhead : v ≠ head := by
         intro h
         exact hvL (by simp [h])
-      have hvws : v ∉ ws := by
+      have hvtail : v ∉ tail := by
         intro h
         exact hvL (by simp [h])
       intro z hz
-      change (attachLeaves H c ws).Adj v z ∨ (edge c w).Adj v z at hz
+      change (attachLeaves H c tail).Adj v z ∨ (edge c head).Adj v z at hz
       rcases hz with hz | hz
-      · exact ih hvws z hz
+      · exact ih hvtail z hz
       · rw [edge_adj] at hz
         rcases hz with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
         · exact hvc rfl
-        · exact hvw rfl
+        · exact hvhead rfl
 
 lemma attachLeaves_isAcyclic
     (H : SimpleGraph α) (c : α) (L : List α)
@@ -64,22 +68,23 @@ lemma attachLeaves_isAcyclic
     (attachLeaves H c L).IsAcyclic := by
   induction L with
   | nil => simpa [attachLeaves] using hH
-  | cons v vs ih =>
+  | cons head tail ih =>
       have hnod := List.nodup_cons.mp hL
-      have hcv : c ≠ v := by
+      have hchead : c ≠ head := by
         intro h
         exact hcL (by simp [h])
-      have hcvs : c ∉ vs := by
+      have hctail : c ∉ tail := by
         intro h
         exact hcL (by simp [h])
-      have hTail : (attachLeaves H c vs).IsAcyclic :=
-        ih hnod.2 hcvs (fun w hw => hIso w (by simp [hw]))
-      have hvIsoH : ∀ z, ¬ H.Adj v z := hIso v (by simp)
-      have hvIsoTail : ∀ z, ¬ (attachLeaves H c vs).Adj v z :=
-        attachLeaves_isolated_of_not_mem H c v vs hvIsoH hcv.symm hnod.1
-      have hUnreach : ¬ (attachLeaves H c vs).Reachable c v :=
-        not_reachable_of_isolated (attachLeaves H c vs) hcv hvIsoTail
-      simpa [attachLeaves] using hTail.sup_edge_of_not_reachable hUnreach
+      have hTail : (attachLeaves H c tail).IsAcyclic :=
+        ih hnod.2 hctail (fun w hw => hIso w (by simp [hw]))
+      have hheadIsoH : ∀ z, ¬ H.Adj head z := hIso head (by simp)
+      have hheadIsoTail : ∀ z, ¬ (attachLeaves H c tail).Adj head z :=
+        attachLeaves_isolated_of_not_mem H c head tail hheadIsoH hchead.symm hnod.1
+      have hUnreach : ¬ (attachLeaves H c tail).Reachable c head :=
+        not_reachable_of_isolated (attachLeaves H c tail) hchead hheadIsoTail
+      simpa [attachLeaves] using
+        (SimpleGraph.IsAcyclic.sup_edge_of_not_reachable hUnreach hTail)
 
 lemma attachLeaves_le
     (H G : SimpleGraph α) (c : α) (L : List α)
@@ -87,27 +92,27 @@ lemma attachLeaves_le
     attachLeaves H c L ≤ G := by
   induction L with
   | nil => simpa [attachLeaves] using hHG
-  | cons v vs ih =>
+  | cons head tail ih =>
       intro a b hab
-      change (attachLeaves H c vs).Adj a b ∨ (edge c v).Adj a b at hab
+      change (attachLeaves H c tail).Adj a b ∨ (edge c head).Adj a b at hab
       rcases hab with hab | hab
-      · exact ih (fun w hw => hAdj w (by simp [hw])) hab
+      · exact ih (fun w hw => hAdj w (List.mem_cons_of_mem head hw)) hab
       · rw [edge_adj] at hab
         rcases hab with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-        · exact hAdj v (by simp)
-        · exact (hAdj v (by simp)).symm
+        · exact hAdj head (List.mem_cons_self)
+        · exact (hAdj head List.mem_cons_self).symm
 
 lemma attachLeaves_adj_of_mem
     (H : SimpleGraph α) (c : α) (L : List α) {v : α} (hv : v ∈ L) :
     (attachLeaves H c L).Adj c v := by
   induction L with
   | nil => simp at hv
-  | cons w ws ih =>
+  | cons head tail ih =>
       simp only [List.mem_cons] at hv
-      change (attachLeaves H c ws).Adj c v ∨ (edge c w).Adj c v
+      change (attachLeaves H c tail).Adj c v ∨ (edge c head).Adj c v
       rcases hv with rfl | hv
       · right
-        simp
+        exact edge_adj.mpr (Or.inl ⟨rfl, rfl⟩)
       · exact Or.inl (ih hv)
 
 noncomputable def firstLeaves
@@ -132,14 +137,15 @@ lemma doubleStarSeed_isAcyclic
   let Ly := secondLeaves G x y
   let Hx := attachLeaves (⊥ : SimpleGraph α) x Lx
   have hLx : Lx.Nodup := by
-    simp [Lx, firstLeaves]
+    simpa [Lx, firstLeaves] using (G.neighborFinset x).nodup_toList
   have hxLx : x ∉ Lx := by
     simp [Lx, firstLeaves]
   have hHx : Hx.IsAcyclic := by
     apply attachLeaves_isAcyclic (⊥ : SimpleGraph α) x Lx isAcyclic_bot hLx hxLx
     simp
   have hLy : Ly.Nodup := by
-    simp [Ly, secondLeaves]
+    simpa [Ly, secondLeaves] using
+      ((G.neighborFinset y \ G.neighborFinset x).erase x).nodup_toList
   have hyLy : y ∉ Ly := by
     simp [Ly, secondLeaves]
   have hIso : ∀ v ∈ Ly, ∀ z, ¬ Hx.Adj v z := by
@@ -167,14 +173,14 @@ lemma doubleStarSeed_le
     intro v hv
     have hv' : v ∈ G.neighborFinset x := by
       simpa [Lx, firstLeaves] using hv
-    simpa using hv'
+    exact (G.mem_neighborFinset x v).1 hv'
   apply attachLeaves_le Hx G y Ly hHx
   intro v hv
   have hv' : v ∈ (G.neighborFinset y \ G.neighborFinset x).erase x := by
     simpa [Ly, secondLeaves] using hv
   have hvNy : v ∈ G.neighborFinset y :=
     (Finset.mem_sdiff.mp (Finset.mem_erase.mp hv').2).1
-  simpa using hvNy
+  exact (G.mem_neighborFinset y v).1 hvNy
 
 #print axioms doubleStarSeed_isAcyclic
 #print axioms doubleStarSeed_le
