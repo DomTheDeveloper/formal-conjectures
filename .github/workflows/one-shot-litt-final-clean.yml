@@ -1,6 +1,6 @@
 # Copyright 2026 Dominic Dabish
 # Licensed under the Apache License, Version 2.0.
-# Synchronization trigger for clean final Litt source.
+# Final trigger after restoring the exact endpoint-module blob.
 
 name: One-shot Litt final clean repairs
 
@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Apply only the two final arithmetic repairs
+      - name: Apply the remaining clean arithmetic repair
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -39,11 +39,12 @@ jobs:
 
           p = Path('FormalConjectures/Other/LittMostUnfairBetWalshConstantGap.lean')
           text = p.read_text()
-          old = '  norm_num [pow_succ] at hcast ⊢\n'
-          new = '  norm_num [pow_succ] at hcast ⊢\n  linarith\n'
-          if old not in text:
-              raise SystemExit('Litt variance target not found')
-          p.write_text(text.replace(old, new, 1))
+          needle = '  norm_num [pow_succ] at hcast ⊢\n'
+          if needle not in text:
+              raise SystemExit('Litt variance normalization target not found')
+          if needle + '  linarith\n' not in text:
+              text = text.replace(needle, needle + '  linarith\n', 1)
+              p.write_text(text)
           PY
 
       - name: Install repository-pinned Lean
@@ -65,7 +66,7 @@ jobs:
             FormalConjectures.Other.LittMostUnfairBetWalshTwoEndpointConstant \
             FormalConjectures.Other.LittMostUnfairBetWalshConstantGap
 
-      - name: Commit verified repairs
+      - name: Commit verified repair
         run: |
           set -euo pipefail
           git config user.name 'ProofOrchestrator'
