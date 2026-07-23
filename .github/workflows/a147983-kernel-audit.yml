@@ -1,0 +1,89 @@
+name: OEIS A147983 focused kernel audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'audits/a147983-kernel/**'
+      - '.github/workflows/a147983-kernel-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: a147983-kernel-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout immutable proof branch head
+        uses: actions/checkout@v4
+        with:
+          ref: proof/oeis-a147983-chomp-kernel
+
+      - name: Install pinned Lean toolchain
+        run: |
+          set -euo pipefail
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch Mathlib cache
+        run: |
+          set -euo pipefail
+          lake exe cache get
+
+      - name: Reject proof placeholders and trust escapes
+        run: |
+          set -euo pipefail
+          files=(FormalConjectures/OEIS/A147983/*.lean)
+          if grep -nE '(^|[[:space:]])(sorry|admit)([[:space:]]|$)|native_decide|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool|^[[:space:]]*axiom[[:space:]]' "${files[@]}"; then
+            echo 'Forbidden placeholder or trust escape found.' >&2
+            exit 1
+          fi
+
+      - name: Build focused proof modules with warnings fatal
+        run: |
+          set -euo pipefail
+          lake --wfail build \
+            FormalConjectures.OEIS.A147983.ChompRank \
+            FormalConjectures.OEIS.A147983.KernelPSet \
+            FormalConjectures.OEIS.A147983.MDDCertificate \
+            FormalConjectures.OEIS.A147983.StrategyCertificate \
+            FormalConjectures.OEIS.A147983.MoveClosureCertificate \
+            FormalConjectures.OEIS.A147983.SymbolicCertificate
+
+      - name: Print theorem axioms
+        run: |
+          set -euo pipefail
+          cat > A147983AxiomAudit.lean <<'EOF'
+          import FormalConjectures.OEIS.A147983.SymbolicCertificate
+
+          #print axioms OeisA147983.cutSuffix_sum_le
+          #print axioms OeisA147983.bite_sum_lt
+          #print axioms OeisA147983.move_sum_lt
+          #print axioms OeisA147983.KernelCertificate.RankedGame.outcomes_of_pSet
+          #print axioms OeisA147983.KernelCertificate.MDD.Automaton.InclusionCertificate.accepts_mono
+          #print axioms OeisA147983.KernelCertificate.MDD.Automaton.DisjointnessCertificate.not_both_accept
+          #print axioms OeisA147983.StrategyCertificate.three_openings
+          #print axioms OeisA147983.MoveClosureCertificate.three_openings
+          #print axioms OeisA147983.three_openings_of_symbolic_certificate
+          EOF
+          lake env lean A147983AxiomAudit.lean 2>&1 | tee a147983-axioms.log
+          if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' a147983-axioms.log; then
+            echo 'Forbidden axiom dependency found.' >&2
+            exit 1
+          fi
+
+      - name: Upload focused audit transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a147983-focused-kernel-audit
+          path: |
+            a147983-axioms.log
+            A147983AxiomAudit.lean
+          if-no-files-found: warn
