@@ -59,11 +59,12 @@ theorem qMoment_division_identity (k : ℕ) :
 
 /-- Evaluation at `t = 1` vanishes because the `w = 0` factor is `1 - t`. -/
 theorem qKernel_eval_one : qKernel.eval 1 = 0 := by
-  native_decide
+  simp [qKernel, qy, qt, Finset.prod_range_succ]
 
 /-- Evaluation at `t = 0` is `y^(0+1+2+3+4) = y^10`. -/
 theorem qKernel_eval_zero : qKernel.eval 0 = qy ^ 10 := by
-  native_decide
+  simp [qKernel, qy, qt, Finset.prod_range_succ]
+  ring
 
 /-- The exact polynomial moment `J_{n,k}(y)`. -/
 def qMoment (n k : ℕ) : QYPoly :=
