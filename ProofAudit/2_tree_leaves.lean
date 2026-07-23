@@ -71,10 +71,8 @@ private lemma internal_term_nonneg
     0 ≤ (T.degree v : ℤ) - 2 := by
   have hne : T.degree v ≠ 1 := by
     simpa [internalVertices] using hv
-  obtain ⟨w, hw⟩ := exists_ne v
-  have hvw : v ≠ w := Ne.symm hw
   have hpos : 0 < T.degree v :=
-    SimpleGraph.Reachable.degree_pos_left hvw (hT.connected v w)
+    hT.connected.preconnected.degree_pos_of_nontrivial v
   omega
 
 /-- In a finite nontrivial tree, the number of leaves is at least the sum of
@@ -104,7 +102,9 @@ lemma two_degrees_sub_two_le_treeLeaves
         dsimp [S]
         exact I.single_le_sum hnonneg hyI
       calc
-        (T.degree x : ℤ) + T.degree y - 2 = (T.degree y : ℤ) - 1 := by simp [hx]
+        (T.degree x : ℤ) + T.degree y - 2 = (T.degree y : ℤ) - 1 := by
+          rw [hx]
+          norm_num
         _ ≤ 2 + S := by linarith
         _ = ((treeLeaves T).card : ℤ) := hleafid.symm
   · by_cases hy : T.degree y = 1
@@ -113,7 +113,9 @@ lemma two_degrees_sub_two_le_treeLeaves
         dsimp [S]
         exact I.single_le_sum hnonneg hxI
       calc
-        (T.degree x : ℤ) + T.degree y - 2 = (T.degree x : ℤ) - 1 := by simp [hy]
+        (T.degree x : ℤ) + T.degree y - 2 = (T.degree x : ℤ) - 1 := by
+          rw [hy]
+          norm_num
         _ ≤ 2 + S := by linarith
         _ = ((treeLeaves T).card : ℤ) := hleafid.symm
     · have hxI : x ∈ I := by simp [I, internalVertices, hx]
