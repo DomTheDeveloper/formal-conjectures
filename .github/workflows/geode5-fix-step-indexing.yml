@@ -1,0 +1,42 @@
+name: Fix Geode5 recurrence indexing
+
+on:
+  push:
+    branches: [audit-geode5-crt-proof]
+    paths:
+      - '.github/workflows/geode5-fix-step-indexing.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit-geode5-crt-proof
+      - name: Add total Fin-vector adapter
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('FormalConjectures/Arxiv/2508.10245/Geode5Proof/RecurrenceStep.lean')
+          s = p.read_text()
+          marker = '''/-- Apply a sparse remainder table to a vector of polynomial moments. -/\ndef qSparseAction'''
+          insert = '''/-- View a five-vector as a total natural-indexed function. -/\ndef finVectorToNat (v : Fin 5 → QYPoly) (j : ℕ) : QYPoly :=\n  if h : j < 5 then v ⟨j, h⟩ else 0\n\n/-- Apply a sparse remainder table to a vector of polynomial moments. -/\ndef qSparseAction'''
+          assert marker in s
+          s = s.replace(marker, insert, 1)
+          s = s.replace('(fun j => prev ⟨j, by omega⟩)', 'finVectorToNat prev')
+          start = s.index('/-- The lower quotient contribution in row `i`. -/')
+          end = s.index('/-- Solve one diagonal row over `Polynomial ℚ`. -/', start)
+          s = s[:start] + s[end:]
+          p.write_text(s)
+          PY
+          rm .github/workflows/geode5-fix-step-indexing.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add FormalConjectures/Arxiv/2508.10245/Geode5Proof/RecurrenceStep.lean .github/workflows/geode5-fix-step-indexing.yml
+          git commit -m 'Fix Geode5 recurrence vector indexing [skip ci]'
+          git push origin HEAD:audit-geode5-crt-proof
