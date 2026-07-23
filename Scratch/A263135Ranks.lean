@@ -31,7 +31,8 @@ theorem rowRank_eq_iff_rowCoord_eq (r : RowKind) (S : Finset Vertex) (v w : ↥S
       (congrArg ((occupiedRows r S).orderIsoOfFin rfl) h)
     simpa [orderIso_rowRank, rowLabel] using this
   · intro h
-    apply ((occupiedRows r S).orderIsoOfFin rfl).symm.injective
+    unfold rowRank
+    apply congrArg ((occupiedRows r S).orderIsoOfFin rfl).symm
     apply Subtype.ext
     exact h
 
@@ -74,8 +75,9 @@ def isRectangleChainLast {a b : ℕ} (p : Fin a × Fin b) : Prop :=
   p.1.val = a - 1 ∧
     p.2.val = b - 1 - rectangleChainIndex p
 
-instance {a b : ℕ} (p : Fin a × Fin b) : Decidable (isRectangleChainLast p) :=
-  inferInstance
+instance {a b : ℕ} (p : Fin a × Fin b) : Decidable (isRectangleChainLast p) := by
+  unfold isRectangleChainLast
+  infer_instance
 
 /-- The two chains obtained after multiplying a rectangle chain by the two honeycomb sides.
 `false` denotes the long chain (all `A` points plus the last `B` point); `true` denotes the short
