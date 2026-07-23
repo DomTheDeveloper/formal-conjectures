@@ -57,6 +57,7 @@ theorem signedRawEnergy_eq_two_mul_shiftVarianceNum {n : ℕ}
     (A B : Word n) (hne : A ≠ B) :
     signedRawEnergy A B = 2 * shiftVarianceNum A B := by
   rw [signedRawEnergy_eq_correlations]
+  simp_rw [pow_two]
   rw [diagonal_raw_correlation A B hne]
   unfold shiftVarianceNum shiftOverlapNum
   simp_rw [shift_correlation_eq_overlap_terms]
