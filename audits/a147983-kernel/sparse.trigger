@@ -1,1 +1,1 @@
-compile and axiom-audit SparseStrategyData at the current proof-branch head
+compile and axiom-audit SparseStrategyData at proof head f0561a8
