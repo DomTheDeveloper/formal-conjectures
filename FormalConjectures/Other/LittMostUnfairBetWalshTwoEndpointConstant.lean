@@ -103,7 +103,7 @@ theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
   have hn2int : n - 2 < n - 1 := by omega
   have hpen : A ⟨n - 2, hn2lt⟩ = c := hconst _ hn2pos hn2int
   have h1lt : 1 < n := by omega
-  have h1int : 1 < n - 1 := by omega
+  have h1int : 1 < n - 1 := Nat.lt_sub_of_add_lt (by omega)
   have hone : A ⟨1, h1lt⟩ = c := hconst _ (by omega) h1int
   have hnlast : n - 1 < n := Nat.sub_lt (by omega) (by omega)
   rw [translate_nearFullBase_eq (by omega)]
