@@ -1,12 +1,14 @@
 # Copyright 2026 Dominic Dabish
 # Licensed under the Apache License, Version 2.0.
 
-name: One-shot repair Litt terminal compatibility
+name: One-shot repair Litt constant interior
 
 on:
-  push:
+  pull_request:
+    branches: [main]
     paths:
-      - '.github/workflows/one-shot-repair-litt.yml'
+      - 'audits/triggers/litt-constant-repair.md'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -22,40 +24,93 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Apply exact compatibility repairs
+      - name: Apply exact constant-interior repairs
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
+          p = Path('FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean')
+          text = p.read_text()
 
-          toggle = Path('FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointToggle.lean')
-          text = toggle.read_text()
-          old = '''  rcases ha with rfl | rfl <;> rcases hb with rfl | rfl
-  all_goals norm_num at hprod ⊢
-'''
-          new = '''  rcases ha with rfl | rfl
-  · rcases hb with rfl | rfl
-    · norm_num
-    · norm_num at hprod
-  · rcases hb with rfl | rfl
-    · norm_num at hprod
-    · norm_num
-'''
-          if old not in text:
-              raise SystemExit('expected Litt four-case block not found')
-          toggle.write_text(text.replace(old, new, 1))
+          replacements = [
+          ('''      have hsi := mem_interiorCoordinates.mp (hS hi)
+      have hval := hconst ⟨i, by omega⟩ (by omega) (by omega)
+      simp [letterSign, hval]
+''', '''      have hsi := mem_interiorCoordinates.mp (hS hi)
+      have hiN : i < n := by omega
+      have hval := hconst ⟨i, hiN⟩ hsi.1 hsi.2
+      rw [letterSign_of_lt A hiN, hval]
+'''),
+          ('''theorem translate_nearFullBase_eq {n : ℕ} {R : Finset ℕ} :
+    translate (nearFullBase n R) 1 =
+      insert 1 (insert (n - 1) (translate R 1)) := by
+  ext i
+  simp [translate, nearFullBase, or_left_comm, or_assoc]
+''', '''theorem translate_nearFullBase_eq {n : ℕ} (hn : 2 ≤ n) {R : Finset ℕ} :
+    translate (nearFullBase n R) 1 =
+      insert 1 (insert (n - 1) (translate R 1)) := by
+  have hsub : n - 2 + 1 = n - 1 := by omega
+  ext i
+  simp [translate, nearFullBase, hsub, or_left_comm, or_assoc]
+'''),
+          ('''  have hpen : A ⟨n - 2, by omega⟩ = c := hconst _ (by omega) (by omega)
+  have hone : A ⟨1, by omega⟩ = c := hconst _ (by omega) (by omega)
+  rw [translate_nearFullBase_eq]
+''', '''  have hn2lt : n - 2 < n := by omega
+  have hn2pos : 0 < n - 2 := by omega
+  have hn2int : n - 2 < n - 1 := by omega
+  have hpen : A ⟨n - 2, hn2lt⟩ = c := hconst _ hn2pos hn2int
+  have h1lt : 1 < n := by omega
+  have h1int : 1 < n - 1 := by omega
+  have hone : A ⟨1, h1lt⟩ = c := hconst _ (by omega) h1int
+  rw [translate_nearFullBase_eq (by omega)]
+'''),
+          ('''      ext i
+      simp [nearFullBase, hR0, hRpen]
+''', '''      ext i
+      simp only [Finset.mem_erase, Finset.mem_insert, nearFullBase]
+      constructor
+      · rintro ⟨hine, hi0, hieq | hiR⟩
+        · exact (hine hieq).elim
+        · exact hiR
+      · intro hiR
+        refine ⟨?_, ?_, Or.inr hiR⟩
+        · intro e; subst i; exact hRpen hiR
+        · intro e; subst i; exact hR0 hiR
+'''),
+          ('''    have hi : i = ⟨0, by omega⟩ := Fin.ext hi0
+    subst i
+    have hB0 := bool_eq_not_of_ne hleft
+''', '''    have hi : i = ⟨0, by omega⟩ := Fin.ext hi0
+    rw [hi]
+    have hB0 := bool_eq_not_of_ne hleft
+'''),
+          ('''      have hi : i = ⟨n - 1, by omega⟩ := Fin.ext hilast
+      subst i
+      have hBlast := bool_eq_not_of_ne hright
+''', '''      have hi : i = ⟨n - 1, by omega⟩ := Fin.ext hilast
+      rw [hi]
+      have hBlast := bool_eq_not_of_ne hright
+'''),
+          ('''      have hirevpos : 0 < i.rev.val := by
+        have h := i.rev_add_cast
+        omega
+      have hirevint : i.rev.val < n - 1 := by
+        have h := i.rev_add_cast
+        omega
+''', '''      have hirevpos : 0 < i.rev.val := by
+        change 0 < n - (i.val + 1)
+        omega
+      have hirevint : i.rev.val < n - 1 := by
+        change n - (i.val + 1) < n - 1
+        omega
+''')]
 
-          diagonal = Path('FormalConjectures/Other/LittMostUnfairBetWalshEnergyDiagonal.lean')
-          text = diagonal.read_text()
-          old = '''    _ = ∑ U ∈ nonemptySubsets n, rawDifference A B U ^ 2 := by
-      simp
-'''
-          new = '''    _ = ∑ U ∈ nonemptySubsets n, rawDifference A B U ^ 2 := by
-      rw [Finset.sum_attach]
-'''
-          if old not in text:
-              raise SystemExit('expected Litt sum-attach block not found')
-          diagonal.write_text(text.replace(old, new, 1))
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit('expected Litt constant-interior block not found:\n' + old)
+              text = text.replace(old, new, 1)
+          p.write_text(text)
           PY
 
       - name: Commit repaired proof source
@@ -63,8 +118,7 @@ jobs:
           set -euo pipefail
           git config user.name 'ProofOrchestrator'
           git config user.email 'proof-orchestrator@users.noreply.github.com'
-          git add FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointToggle.lean \
-                  FormalConjectures/Other/LittMostUnfairBetWalshEnergyDiagonal.lean
+          git add FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean
           git diff --cached --check
-          git commit -m 'Close Litt terminal arithmetic and subtype-sum goals'
+          git commit -m 'Close Litt constant-interior dependent goals'
           git push origin HEAD:agent/litt-most-unfair-proof
