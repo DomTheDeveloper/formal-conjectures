@@ -1,0 +1,1 @@
+Trigger the isolated WorldCup7 Lean audit against the unchanged candidate file.
