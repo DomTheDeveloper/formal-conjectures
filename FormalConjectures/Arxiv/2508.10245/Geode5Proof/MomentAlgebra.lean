@@ -38,9 +38,14 @@ abbrev YPoly := Polynomial ℤ
 /-- Polynomials in `t` whose coefficients are polynomials in `y`. -/
 abbrev TYPoly := Polynomial YPoly
 
-private def y : YPoly := Polynomial.X
-private def t : TYPoly := Polynomial.X
-private def five : TYPoly := Polynomial.C (5 : YPoly)
+/-- The parameter variable `y`. -/
+def y : YPoly := Polynomial.X
+
+/-- The moment variable `t`. -/
+def t : TYPoly := Polynomial.X
+
+/-- The constant polynomial five in the nested polynomial ring. -/
+def five : TYPoly := Polynomial.C (5 : YPoly)
 
 /-- `1 + y^d + y^(2d) + y^(3d) + y^(4d)`. -/
 def powerSum (d : ℕ) : YPoly :=
