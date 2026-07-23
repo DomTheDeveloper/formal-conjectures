@@ -3,7 +3,7 @@ name: OEIS A343881 PR audit
 on:
   pull_request:
     branches: [main]
-    types: [opened]
+    types: [reopened]
 
 permissions:
   contents: read
