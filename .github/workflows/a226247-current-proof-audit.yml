@@ -10,7 +10,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 concurrency:
   group: a226247-current-upstream-proof
@@ -18,7 +17,7 @@ concurrency:
 
 jobs:
   lean:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -39,46 +38,31 @@ jobs:
           set -o pipefail
           lake env lean -DwarningAsError=true FormalConjectures/OEIS/226247.lean \
             2>&1 | tee /tmp/a226247-compile.log
-      - name: Report compiler diagnostic
-        if: always()
-        uses: actions/github-script@v7
-        env:
-          COMPILE_OUTCOME: ${{ steps.compile.outcome }}
-        with:
-          script: |
-            const fs = require('fs');
-            let log = '';
-            try { log = fs.readFileSync('/tmp/a226247-compile.log', 'utf8'); } catch (_) {}
-            const excerpt = log.split(/\r?\n/).slice(-300).join('\n').slice(-55000);
-            const passed = process.env.COMPILE_OUTCOME === 'success';
-            const marker = '<!-- a226247-current-upstream-diagnostic -->';
-            const body = [marker,
-              `## A226247 current-upstream Lean audit: **${passed ? 'PASS' : 'FAIL'}**`,
-              '', `Commit: \`${context.payload.pull_request.head.sha}\``, '',
-              '```text', excerpt || '(no compiler output)', '```'].join('\n');
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner: context.repo.owner, repo: context.repo.repo,
-              issue_number: context.issue.number, per_page: 100
-            });
-            const prior = comments.find(c => c.body && c.body.includes(marker));
-            if (prior) {
-              await github.rest.issues.updateComment({owner: context.repo.owner, repo: context.repo.repo,
-                comment_id: prior.id, body});
-            } else {
-              await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo,
-                issue_number: context.issue.number, body});
-            }
       - name: Audit theorem axioms
-        if: steps.compile.outcome == 'success'
+        if: always() && steps.compile.outcome == 'success'
+        id: axioms
+        continue-on-error: true
+        shell: bash
         run: |
+          set -o pipefail
           cat > /tmp/A226247Audit.lean <<'EOF'
           import FormalConjectures.OEIS.«226247»
           #print axioms OeisA226247.blue_iff_negative
           #print axioms OeisA226247.depth_is_shortest
           #print axioms OeisA226247.rank_recurrence
           EOF
-          lake env lean /tmp/A226247Audit.lean | tee /tmp/a226247-axioms.log
+          lake env lean /tmp/A226247Audit.lean 2>&1 | tee /tmp/a226247-axioms.log
           ! grep -E 'sorryAx|Lean\.(trustCompiler|ofReduce|ofReduceBool)' /tmp/a226247-axioms.log
-      - name: Enforce compiler result
-        if: steps.compile.outcome != 'success'
+      - name: Upload audit transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a226247-audit-${{ github.run_id }}
+          path: |
+            /tmp/a226247-compile.log
+            /tmp/a226247-axioms.log
+            /tmp/A226247Audit.lean
+          if-no-files-found: warn
+      - name: Enforce audit result
+        if: always() && (steps.compile.outcome != 'success' || steps.axioms.outcome == 'failure')
         run: exit 1
