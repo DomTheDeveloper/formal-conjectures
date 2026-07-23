@@ -73,7 +73,12 @@ private theorem prev_minRowVertex_not_mem (r : RowKind) (S : Finset Vertex)
     (x : ↥(occupiedRows r S)) :
     neighbor (minRowVertex r S x) (prevDirection r (minRowVertex r S x)) ∉ S := by
   intro hmem
-  have hmin := (minRowVertex_spec r S x).2.2 _ hmem (by simp)
+  have hrow :
+      rowCoord r (neighbor (minRowVertex r S x)
+        (prevDirection r (minRowVertex r S x))) = x := by
+    rw [rowCoord_neighbor_prev]
+    exact (minRowVertex_spec r S x).2.1
+  have hmin := (minRowVertex_spec r S x).2.2 _ hmem hrow
   rw [alongCoord_neighbor_prev] at hmin
   omega
 
@@ -81,7 +86,12 @@ private theorem next_maxRowVertex_not_mem (r : RowKind) (S : Finset Vertex)
     (x : ↥(occupiedRows r S)) :
     neighbor (maxRowVertex r S x) (nextDirection r (maxRowVertex r S x)) ∉ S := by
   intro hmem
-  have hmax := (maxRowVertex_spec r S x).2.2 _ hmem (by simp)
+  have hrow :
+      rowCoord r (neighbor (maxRowVertex r S x)
+        (nextDirection r (maxRowVertex r S x))) = x := by
+    rw [rowCoord_neighbor_next]
+    exact (maxRowVertex_spec r S x).2.1
+  have hmax := (maxRowVertex_spec r S x).2.2 _ hmem hrow
   rw [alongCoord_neighbor_next] at hmax
   omega
 
