@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-
 import FormalConjecturesUtil
 
 /-!
@@ -36,8 +35,15 @@ WOWII [Conjecture 2](http://cms.dt.uh.edu/faculty/delavinae/research/wowII/)
 For a simple connected graph `G`,
 `Ls(G) ≥ 2 · (l(G) - 1)` where `l(G)` is the average independence number of
 the neighbourhoods of the vertices of `G`.
+
+The proof double-counts selected independent neighbourhood incidences to find
+an adjacent pair whose combined neighbourhood is large.  A double-star forest
+through that pair extends to a spanning tree; the standard tree leaf identity
+then bounds the neighbourhood union by `Ls G + 2`.
 -/
-@[category research open, AMS 5]
+@[category research solved, AMS 5,
+  formal_proof using lean4 at
+    "https://github.com/DomTheDeveloper/formal-conjectures/blob/bb22eb0e9cf492f21676ea4e3f5d0d3edebf08ff/ProofAudit/2_complete.lean"]
 theorem conjecture2 (G : SimpleGraph α) (h : G.Connected) :
   2 * (averageIndepNeighbors G - 1) ≤ Ls G := by sorry
 
