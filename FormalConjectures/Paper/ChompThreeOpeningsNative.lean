@@ -2,6 +2,7 @@ import FormalConjecturesUtil
 
 namespace ChompThreeOpeningsNative
 
+/-- Mutable state for the exact retrograde search. -/
 structure Engine where
   k : Nat
   n : Nat
