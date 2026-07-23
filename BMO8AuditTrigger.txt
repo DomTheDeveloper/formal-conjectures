@@ -1,2 +1,2 @@
 This file exists only to trigger the isolated BMO8 pull-request audit.
-Diagnostic run 4: exact pinned c2cd certificate.
+Final run: corrected Lake build and exact pinned theorem axioms.
