@@ -22,8 +22,9 @@ lemma treeLeaves_card_le_Ls
     (G T : SimpleGraph α) [DecidableRel G.Adj] [DecidableRel T.Adj]
     (hTG : T ≤ G) (hT : T.IsTree) :
     ((treeLeaves T).card : ℝ) ≤ Ls G := by
-  let S : G.Subgraph := T.toSubgraph hTG
-  have hSspan : S.IsSpanning := SimpleGraph.toSubgraph.isSpanning T hTG
+  let S : G.Subgraph := SimpleGraph.toSubgraph T hTG
+  have hSspan : S.IsSpanning := by
+    simpa [S] using SimpleGraph.toSubgraph.isSpanning T hTG
   have hScoe : S.coe.IsTree := by
     have hSpanTree : S.spanningCoe.IsTree := by
       simpa [S] using hT
@@ -38,7 +39,7 @@ lemma treeLeaves_card_le_Ls
     exact_mod_cast
       (U.verts.toFinset.filter (fun v => U.degree v = 1)).card_le_univ
   · refine ⟨S, ⟨hSspan, hScoe⟩, ?_⟩
-    simp [treeLeaves, S]
+    simp [treeLeaves, S, SimpleGraph.toSubgraph]
 
 #print axioms treeLeaves_card_le_Ls
 
