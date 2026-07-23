@@ -1,13 +1,15 @@
 # Copyright 2026 Dominic Dabish
 # Licensed under the Apache License, Version 2.0.
-# Trigger the branch repair after the workflow exists on the default branch.
+# Same-repository PR trigger applies the exact source repair with write permission.
 
 name: One-shot repair WOWII 59
 
 on:
-  push:
+  pull_request:
+    branches: [main]
     paths:
-      - '.github/workflows/one-shot-repair-wowii59.yml'
+      - 'audits/triggers/wowii59-repair.md'
+  workflow_dispatch:
 
 permissions:
   contents: write
