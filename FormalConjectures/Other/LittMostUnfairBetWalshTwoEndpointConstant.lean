@@ -139,11 +139,11 @@ theorem selfOverlapDelta_eq_zero_of_constant_interior_opposite_endpoints
       simp [hal, har, hbr] at hends' hright' ⊢
   have hrevLeft : left.rev = right := by
     apply Fin.ext
-    simp only [Fin.rev, Fin.val_mk]
+    dsimp [left, right, Fin.rev]
     omega
   have hrevRight : right.rev = left := by
     apply Fin.ext
-    simp only [Fin.rev, Fin.val_mk]
+    dsimp [left, right, Fin.rev]
     omega
   have hrev : B = reverseWord A := by
     funext i
