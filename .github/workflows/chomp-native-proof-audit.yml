@@ -7,10 +7,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: chomp-native-proof-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
   lean:
     if: startsWith(github.head_ref, 'ci/chomp-native-final-audit')
