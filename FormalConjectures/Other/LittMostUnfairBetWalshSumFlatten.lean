@@ -35,10 +35,14 @@ theorem sum_shapeTranslation_nested {n : ℕ} {R : Type*} [AddCommMonoid R]
         p.1 ∈ shapes n ∧ p.2 ∈ translations n p.1 := by
     intro p
     exact mem_shapeTranslationPairs
-  change (∑ p ∈ (shapeTranslationPairs n).attach, f p.1.1 p.1.2) = _
-  rw [Finset.sum_attach]
-  exact Finset.sum_finset_product'
-    (shapeTranslationPairs n) (shapes n) (translations n) hmem (f := f)
+  calc
+    (∑ p : ShapeTranslation n, f p.1.1 p.1.2) =
+        ∑ p ∈ shapeTranslationPairs n, f p.1 p.2 := by
+          exact Finset.sum_attach (shapeTranslationPairs n)
+            (fun p : Finset ℕ × ℕ => f p.1 p.2)
+    _ = ∑ S ∈ shapes n, ∑ t ∈ translations n S, f S t := by
+      exact Finset.sum_finset_product'
+        (shapeTranslationPairs n) (shapes n) (translations n) hmem (f := f)
 
 theorem sum_upperOrbit_nested {n : ℕ} {R : Type*} [AddCommMonoid R]
     (f : Finset ℕ → ℕ → ℕ → R) :
@@ -51,12 +55,12 @@ theorem sum_upperOrbit_nested {n : ℕ} {R : Type*} [AddCommMonoid R]
           p.2 ∈ (translations n p.1.1).filter (fun u => p.1.2 < u) := by
     intro p
     simp [mem_upperOrbitPairs, mem_shapeTranslationPairs, and_assoc]
-  change (∑ p ∈ (upperOrbitPairs n).attach,
-    f p.1.1.1 p.1.1.2 p.1.2) = _
-  rw [Finset.sum_attach]
   calc
-    (∑ p ∈ upperOrbitPairs n, f p.1.1 p.1.2 p.2) =
-        ∑ st ∈ shapeTranslationPairs n,
+    (∑ p : UpperOrbitPair n, f p.1.1.1 p.1.1.2 p.1.2) =
+        ∑ p ∈ upperOrbitPairs n, f p.1.1 p.1.2 p.2 := by
+          exact Finset.sum_attach (upperOrbitPairs n)
+            (fun p : (Finset ℕ × ℕ) × ℕ => f p.1.1 p.1.2 p.2)
+    _ = ∑ st ∈ shapeTranslationPairs n,
           ∑ u ∈ (translations n st.1).filter (fun u => st.2 < u),
             f st.1 st.2 u := by
       exact Finset.sum_finset_product'
@@ -84,11 +88,15 @@ theorem sum_positiveShift_nested {n : ℕ} {R : Type*} [AddCommMonoid R]
         p.1 ∈ Finset.Ico 1 n ∧ p.2 ∈ nonemptySubsets (n - p.1) := by
     intro p
     exact mem_positiveShiftSubsets
-  change (∑ q ∈ (positiveShiftSubsets n).attach, f q.1.1 q.1.2) = _
-  rw [Finset.sum_attach]
-  exact Finset.sum_finset_product'
-    (positiveShiftSubsets n) (Finset.Ico 1 n)
-    (fun h => nonemptySubsets (n - h)) hmem (f := f)
+  calc
+    (∑ q : PositiveShiftSubset n, f q.1.1 q.1.2) =
+        ∑ q ∈ positiveShiftSubsets n, f q.1 q.2 := by
+          exact Finset.sum_attach (positiveShiftSubsets n)
+            (fun q : ℕ × Finset ℕ => f q.1 q.2)
+    _ = ∑ h ∈ Finset.Ico 1 n, ∑ S ∈ nonemptySubsets (n - h), f h S := by
+      exact Finset.sum_finset_product'
+        (positiveShiftSubsets n) (Finset.Ico 1 n)
+        (fun h => nonemptySubsets (n - h)) hmem (f := f)
 
 #print axioms sum_shapeTranslation_nested
 #print axioms sum_upperOrbit_nested
