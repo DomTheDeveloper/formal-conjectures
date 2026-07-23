@@ -51,8 +51,9 @@ def IsScoreMatrix {n r : ℕ}
 
 /-- The number of `n × n` score matrices with zero diagonal and every row and column sum equal to
 `r`. -/
-def scoreMatrixCount (n r : ℕ) : ℕ :=
-  ((Finset.univ : Finset (Matrix (Fin n) (Fin n) (Fin (r + 1)))).filter
+noncomputable def scoreMatrixCount (n r : ℕ) : ℕ := by
+  classical
+  exact ((Finset.univ : Finset (Matrix (Fin n) (Fin n) (Fin (r + 1)))).filter
     fun A ↦ IsScoreMatrix A).card
 
 /-- The proposed degree-29 counting polynomial for the seven-team problem. -/
