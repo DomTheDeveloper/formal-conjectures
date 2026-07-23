@@ -1,0 +1,18 @@
+commit=a128092ffafb6c3ec7b0ff3b390ccecc3da92f5c
+outcome=failure
+
+FormalConjectures/OEIS/343881.lean:16:0: error: unknown module prefix 'FormalConjectures'
+
+No directory 'FormalConjectures' or file 'FormalConjectures.olean' in the search path entries:
+/home/runner/work/formal-conjectures/formal-conjectures/.lake/packages/Cli/.lake/build/lib/lean
+/home/runner/work/formal-conjectures/formal-conjectures/.lake/packages/batteries/.lake/build/lib/lean
+/home/runner/work/formal-conjectures/formal-conjectures/.lake/packages/Qq/.lake/build/lib/lean
+/home/runner/work/formal-conjectures/formal-conjectures/.lake/packages/aesop/.lake/build/lib/lean
+/home/runner/work/formal-conjectures/formal-conjectures/.lake/packages/proofwidgets/.lake/build/lib/lean
+/home/runner/work/formal-conjectures/formal-conjectures/.lake/packages/importGraph/.lake/build/lib/lean
+/home/runner/work/formal-conjectures/formal-conjectures/.lake/packages/LeanSearchClient/.lake/build/lib/lean
+/home/runner/work/formal-conjectures/formal-conjectures/.lake/packages/plausible/.lake/build/lib/lean
+/home/runner/work/formal-conjectures/formal-conjectures/.lake/packages/mathlib/.lake/build/lib/lean
+/home/runner/work/formal-conjectures/formal-conjectures/.lake/build/lib/lean
+/home/runner/.elan/toolchains/leanprover--lean4---v4.27.0/lib/lean
+/home/runner/.elan/toolchains/leanprover--lean4---v4.27.0/lib/lean
