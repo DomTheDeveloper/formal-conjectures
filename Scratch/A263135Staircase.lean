@@ -4,7 +4,7 @@ namespace OeisA263135
 
 /-- Sum of the positive terms in the arithmetic progression `q, q-2, q-4, ...`. -/
 def staircase (q : ℕ) : ℕ :=
-  ∑ t ∈ Finset.range q, q - 2 * t
+  Finset.sum (Finset.range q) (fun t => q - 2 * t)
 
 private theorem staircase_add_two (q : ℕ) :
     staircase (q + 2) = staircase q + q + 2 := by
@@ -12,8 +12,8 @@ private theorem staircase_add_two (q : ℕ) :
   rw [Finset.sum_range_succ']
   simp only [Nat.mul_zero, Nat.sub_zero]
   have hshift :
-      (∑ t ∈ Finset.range (q + 1), q + 2 - 2 * (t + 1)) =
-        ∑ t ∈ Finset.range (q + 1), q - 2 * t := by
+      Finset.sum (Finset.range (q + 1)) (fun t => q + 2 - 2 * (t + 1)) =
+        Finset.sum (Finset.range (q + 1)) (fun t => q - 2 * t) := by
     apply Finset.sum_congr rfl
     intro t ht
     omega
@@ -63,9 +63,15 @@ theorem perimeter_square_of_chain_deficiency
   have hc : a + b = c + q := by
     dsimp [q]
     omega
-  have hsq := sq_le_two_mul_staircaseDeficiency q
+  have hsq : q ^ 2 ≤ 2 * staircaseDeficiency q :=
+    sq_le_two_mul_staircaseDeficiency q
   have hm2 : 2 * m + q ^ 2 ≤ 4 * a * b := by
-    nlinarith
+    calc
+      2 * m + q ^ 2 ≤ 2 * m + 2 * staircaseDeficiency q :=
+        Nat.add_le_add_left hsq (2 * m)
+      _ = 2 * (m + staircaseDeficiency q) := by ring
+      _ ≤ 2 * (2 * a * b) := Nat.mul_le_mul_left 2 hm
+      _ = 4 * a * b := by ring
   let x := a - q
   let z := b - a
   have haeq : a = q + x := by
@@ -76,7 +82,8 @@ theorem perimeter_square_of_chain_deficiency
     omega
   have hceq : c = q + 2 * x + z := by
     omega
-  rw [haeq, hbeq, hceq] at hm2 ⊢
+  rw [haeq, hbeq] at hm2
+  rw [haeq, hbeq, hceq]
   nlinarith [Nat.zero_le (x ^ 2), Nat.zero_le (x * z), Nat.zero_le (z ^ 2)]
 
 end OeisA263135
