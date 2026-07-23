@@ -28,22 +28,31 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
-          root=FormalConjectures/Arxiv/2508.10245/Geode5Proof
-          out=.lake/build/lib/lean/FormalConjectures/Arxiv/2508.10245/Geode5Proof
+          arxiv=FormalConjectures/Arxiv/2508.10245
+          root=$arxiv/Geode5Proof
+          outBase=.lake/build/lib/lean/FormalConjectures/Arxiv/2508.10245
+          out=$outBase/Geode5Proof
           mkdir -p "$out"
           test -z "$(grep -RInE '\b(sorry|admit)\b' "$root" || true)"
-          modules=(Reduction IntegralityReduction MultinomialDivisibility HyperCatalanIntegrality CastBridges)
           set +e
           status=0
           : > geode5-arithmetic.log
-          for module in "${modules[@]}"; do
-            echo "===== $module =====" | tee -a geode5-arithmetic.log
-            lake env lean -DwarningAsError=true \
-              "$root/$module.lean" -o "$out/$module.olean" \
-              2>&1 | tee -a geode5-arithmetic.log
-            status=${PIPESTATUS[0]}
-            if [ "$status" -ne 0 ]; then break; fi
-          done
+          echo "===== Geode5 benchmark dependency =====" | tee -a geode5-arithmetic.log
+          lake env lean -DwarningAsError=true \
+            "$arxiv/Geode5.lean" -o "$outBase/Geode5.olean" \
+            2>&1 | tee -a geode5-arithmetic.log
+          status=${PIPESTATUS[0]}
+          modules=(Reduction IntegralityReduction MultinomialDivisibility HyperCatalanIntegrality CastBridges)
+          if [ "$status" -eq 0 ]; then
+            for module in "${modules[@]}"; do
+              echo "===== $module =====" | tee -a geode5-arithmetic.log
+              lake env lean -DwarningAsError=true \
+                "$root/$module.lean" -o "$out/$module.olean" \
+                2>&1 | tee -a geode5-arithmetic.log
+              status=${PIPESTATUS[0]}
+              if [ "$status" -ne 0 ]; then break; fi
+            done
+          fi
           echo "status=$status" >> "$GITHUB_OUTPUT"
           exit 0
       - name: Upload compiler diagnostics
