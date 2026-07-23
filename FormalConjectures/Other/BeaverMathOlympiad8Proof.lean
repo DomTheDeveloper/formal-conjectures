@@ -39,6 +39,7 @@ private def bmo8Run : ℕ → ℕ × ℕ → ℕ × ℕ
 private def bmo8Orbit (n : ℕ) : ℕ × ℕ :=
   bmo8Run n (10, 12)
 
+@[category API, AMS 5 11 68]
 private lemma bmo8Run_step (n : ℕ) (s : ℕ × ℕ) :
     bmo8Run n (bmo8Step s) = bmo8Step (bmo8Run n s) := by
   induction n generalizing s with
@@ -46,10 +47,12 @@ private lemma bmo8Run_step (n : ℕ) (s : ℕ × ℕ) :
   | succ n ih =>
       simpa only [bmo8Run] using ih (bmo8Step s)
 
+@[category API, AMS 5 11 68]
 private lemma bmo8Orbit_succ (n : ℕ) :
     bmo8Orbit (n + 1) = bmo8Step (bmo8Orbit n) := by
   simpa only [bmo8Orbit, bmo8Run] using bmo8Run_step n (10, 12)
 
+@[category test, AMS 5 11 68]
 private theorem bmo8_positive :
     ∀ᵉ (a : ℕ → ℕ) (b : ℕ → ℕ)
     (_a_ini : a 0 = 10)
