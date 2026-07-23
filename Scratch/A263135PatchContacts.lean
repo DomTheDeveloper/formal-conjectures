@@ -15,58 +15,66 @@ def diagonalRankNeighbor (p : RankPoint) : RankPoint :=
 
 @[simp]
 theorem neighbor_rankPointVertex_same {p : RankPoint} (hside : p.side = false) :
-    neighbor (rankPointVertex p) .same = rankPointVertex (sameRankNeighbor p) := by
+    neighbor (rankPointVertex p) Direction.same = rankPointVertex (sameRankNeighbor p) := by
   rcases p with ⟨i, j, side⟩
-  simp [rankPointVertex, sameRankNeighbor, neighbor] at hside ⊢
+  change side = false at hside
   subst side
   rfl
 
 @[simp]
 theorem neighbor_rankPointVertex_horizontal {p : RankPoint}
     (hside : p.side = false) (hi : 0 < p.first) :
-    neighbor (rankPointVertex p) .horizontal = rankPointVertex (horizontalRankNeighbor p) := by
+    neighbor (rankPointVertex p) Direction.horizontal =
+      rankPointVertex (horizontalRankNeighbor p) := by
   rcases p with ⟨i, j, side⟩
-  simp [rankPointVertex, horizontalRankNeighbor, neighbor] at hside hi ⊢
+  change side = false at hside
+  change 0 < i at hi
   subst side
-  apply Vertex.ext <;> simp <;> omega
+  simp [rankPointVertex, horizontalRankNeighbor, neighbor, Nat.cast_sub hi.le]
 
 @[simp]
 theorem neighbor_rankPointVertex_diagonal {p : RankPoint}
     (hside : p.side = false) (hj : 0 < p.second) :
-    neighbor (rankPointVertex p) .diagonal = rankPointVertex (diagonalRankNeighbor p) := by
+    neighbor (rankPointVertex p) Direction.diagonal =
+      rankPointVertex (diagonalRankNeighbor p) := by
   rcases p with ⟨i, j, side⟩
-  simp [rankPointVertex, diagonalRankNeighbor, neighbor] at hside hj ⊢
+  change side = false at hside
+  change 0 < j at hj
   subst side
-  apply Vertex.ext <;> simp <;> omega
+  simp [rankPointVertex, diagonalRankNeighbor, neighbor, Nat.cast_sub hj.le]
 
 private theorem same_neighbor_mem_iff
     {a b c : ℕ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
     {p : RankPoint} (hp : p ∈ aRankPatch a b c) :
-    neighbor (rankPointVertex p) .same ∈ patch a b c ↔
+    neighbor (rankPointVertex p) Direction.same ∈ patch a b c ↔
       rankLevel p ≠ a + b + c - 1 := by
   have hpatch := (Finset.mem_filter.mp hp).1
   have hside := (Finset.mem_filter.mp hp).2
   rw [neighbor_rankPointVertex_same hside, rankPointVertex_mem_patch_iff, mem_rankPatch]
   rw [mem_rankPatch] at hpatch
   rcases p with ⟨i, j, side⟩
-  simp [sameRankNeighbor, rankLevel] at hside hpatch ⊢
+  change side = false at hside
   subst side
+  simp [sameRankNeighbor, rankLevel] at hpatch ⊢
   omega
 
 private theorem horizontal_neighbor_mem_iff
     {a b c : ℕ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
     {p : RankPoint} (hp : p ∈ aRankPatch a b c) :
-    neighbor (rankPointVertex p) .horizontal ∈ patch a b c ↔ p.first ≠ 0 := by
+    neighbor (rankPointVertex p) Direction.horizontal ∈ patch a b c ↔ p.first ≠ 0 := by
   have hpatch := (Finset.mem_filter.mp hp).1
   have hside := (Finset.mem_filter.mp hp).2
   constructor
   · intro hn hzero
     rcases Finset.mem_image.mp hn with ⟨q, hq, heq⟩
-    have hi := congrArg Vertex.i heq
+    have hi := congrArg (fun v : Vertex => v.i) heq
     rcases p with ⟨i, j, side⟩
     rcases q with ⟨k, l, side'⟩
-    simp [rankPointVertex, neighbor] at hside hzero hi
+    change side = false at hside
+    change i = 0 at hzero
     subst side
+    subst i
+    simp [rankPointVertex, neighbor] at hi
     omega
   · intro hzero
     have hi : 0 < p.first := Nat.pos_of_ne_zero hzero
@@ -74,24 +82,29 @@ private theorem horizontal_neighbor_mem_iff
       mem_rankPatch]
     rw [mem_rankPatch] at hpatch
     rcases p with ⟨i, j, side⟩
-    simp [horizontalRankNeighbor, rankLevel] at hside hpatch ⊢
+    change side = false at hside
+    change 0 < i at hi
     subst side
+    simp [horizontalRankNeighbor, rankLevel] at hpatch ⊢
     omega
 
 private theorem diagonal_neighbor_mem_iff
     {a b c : ℕ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
     {p : RankPoint} (hp : p ∈ aRankPatch a b c) :
-    neighbor (rankPointVertex p) .diagonal ∈ patch a b c ↔ p.second ≠ 0 := by
+    neighbor (rankPointVertex p) Direction.diagonal ∈ patch a b c ↔ p.second ≠ 0 := by
   have hpatch := (Finset.mem_filter.mp hp).1
   have hside := (Finset.mem_filter.mp hp).2
   constructor
   · intro hn hzero
     rcases Finset.mem_image.mp hn with ⟨q, hq, heq⟩
-    have hj := congrArg Vertex.j heq
+    have hj := congrArg (fun v : Vertex => v.j) heq
     rcases p with ⟨i, j, side⟩
     rcases q with ⟨k, l, side'⟩
-    simp [rankPointVertex, neighbor] at hside hzero hj
+    change side = false at hside
+    change j = 0 at hzero
     subst side
+    subst j
+    simp [rankPointVertex, neighbor] at hj
     omega
   · intro hzero
     have hj : 0 < p.second := Nat.pos_of_ne_zero hzero
@@ -99,8 +112,10 @@ private theorem diagonal_neighbor_mem_iff
       mem_rankPatch]
     rw [mem_rankPatch] at hpatch
     rcases p with ⟨i, j, side⟩
-    simp [diagonalRankNeighbor, rankLevel] at hside hpatch ⊢
+    change side = false at hside
+    change 0 < j at hj
     subst side
+    simp [diagonalRankNeighbor, rankLevel] at hpatch ⊢
     omega
 
 /-- A points contributing a same-direction internal dart. -/
@@ -123,7 +138,8 @@ private theorem card_complementary_filter
     by_cases h : P x <;> simp [h]
   have hd : Disjoint (S.filter fun x => ¬ P x) (S.filter P) := by
     rw [Finset.disjoint_left]
-    simp
+    intro x hxN hxP
+    exact (Finset.mem_filter.mp hxN).2 (Finset.mem_filter.mp hxP).2
   simpa [Finset.card_union_of_disjoint hd] using congrArg Finset.card hu
 
 private theorem card_sameContactPoints (a b c : ℕ)
@@ -132,8 +148,8 @@ private theorem card_sameContactPoints (a b c : ℕ)
   have h := card_complementary_filter (aRankPatch a b c)
     (fun p => rankLevel p = a + b + c - 1)
   rw [← topARankPatch, card_topARankPatch a b c ha hb hc, card_aRankPatch] at h
-  simpa [sameContactPoints] using (show
-    (sameContactPoints a b c).card + b = a * b + b * c + c * a by simpa using h)
+  change (sameContactPoints a b c).card + b = a * b + b * c + c * a at h
+  omega
 
 private theorem card_horizontalContactPoints (a b c : ℕ)
     (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
@@ -141,8 +157,8 @@ private theorem card_horizontalContactPoints (a b c : ℕ)
   have h := card_complementary_filter (aRankPatch a b c) (fun p => p.first = 0)
   rw [← firstZeroARankPatch, card_firstZeroARankPatch a b c ha hb hc,
     card_aRankPatch] at h
-  simpa [horizontalContactPoints] using (show
-    (horizontalContactPoints a b c).card + c = a * b + b * c + c * a by simpa using h)
+  change (horizontalContactPoints a b c).card + c = a * b + b * c + c * a at h
+  omega
 
 private theorem card_diagonalContactPoints (a b c : ℕ)
     (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
@@ -150,22 +166,42 @@ private theorem card_diagonalContactPoints (a b c : ℕ)
   have h := card_complementary_filter (aRankPatch a b c) (fun p => p.second = 0)
   rw [← secondZeroARankPatch, card_secondZeroARankPatch a b c ha hb hc,
     card_aRankPatch] at h
-  simpa [diagonalContactPoints] using (show
-    (diagonalContactPoints a b c).card + a = a * b + b * c + c * a by simpa using h)
+  change (diagonalContactPoints a b c).card + a = a * b + b * c + c * a at h
+  omega
 
 /-- Ranked representatives of all A-based internal darts of the convex patch. -/
 def patchContactDarts (a b c : ℕ) : Finset (RankPoint × Direction) :=
-  (sameContactPoints a b c ×ˢ {.same}) ∪
-    (horizontalContactPoints a b c ×ˢ {.horizontal}) ∪
-      (diagonalContactPoints a b c ×ˢ {.diagonal})
+  (sameContactPoints a b c ×ˢ {Direction.same}) ∪
+    (horizontalContactPoints a b c ×ˢ {Direction.horizontal}) ∪
+      (diagonalContactPoints a b c ×ˢ {Direction.diagonal})
 
 private theorem patchContactDarts_pairwise_disjoint (a b c : ℕ) :
-    Disjoint (sameContactPoints a b c ×ˢ {.same})
-      (horizontalContactPoints a b c ×ˢ {.horizontal}) ∧
-    Disjoint ((sameContactPoints a b c ×ˢ {.same}) ∪
-      (horizontalContactPoints a b c ×ˢ {.horizontal}))
-      (diagonalContactPoints a b c ×ˢ {.diagonal}) := by
-  constructor <;> rw [Finset.disjoint_left] <;> simp
+    Disjoint (sameContactPoints a b c ×ˢ {Direction.same})
+      (horizontalContactPoints a b c ×ˢ {Direction.horizontal}) ∧
+    Disjoint ((sameContactPoints a b c ×ˢ {Direction.same}) ∪
+      (horizontalContactPoints a b c ×ˢ {Direction.horizontal}))
+      (diagonalContactPoints a b c ×ˢ {Direction.diagonal}) := by
+  constructor
+  · rw [Finset.disjoint_left]
+    intro x hs hh
+    have hsame := (Finset.mem_product.mp hs).2
+    have hhoriz := (Finset.mem_product.mp hh).2
+    simp only [Finset.mem_singleton] at hsame hhoriz
+    have hbad : Direction.same = Direction.horizontal := hsame.symm.trans hhoriz
+    cases hbad
+  · rw [Finset.disjoint_left]
+    intro x hsh hd
+    rcases Finset.mem_union.mp hsh with hs | hh
+    · have hsame := (Finset.mem_product.mp hs).2
+      have hdiag := (Finset.mem_product.mp hd).2
+      simp only [Finset.mem_singleton] at hsame hdiag
+      have hbad : Direction.same = Direction.diagonal := hsame.symm.trans hdiag
+      cases hbad
+    · have hhoriz := (Finset.mem_product.mp hh).2
+      have hdiag := (Finset.mem_product.mp hd).2
+      simp only [Finset.mem_singleton] at hhoriz hdiag
+      have hbad : Direction.horizontal = Direction.diagonal := hhoriz.symm.trans hdiag
+      cases hbad
 
 private theorem card_patchContactDarts (a b c : ℕ)
     (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
@@ -189,8 +225,11 @@ private def rankDartVertex (pd : RankPoint × Direction) : Vertex × Direction :
 private theorem rankDartVertex_injective : Function.Injective rankDartVertex := by
   intro p q h
   apply Prod.ext
-  · exact rankPointVertex_injective (congrArg Prod.fst h)
-  · exact congrArg Prod.snd h
+  · have hv := congrArg (fun z : Vertex × Direction => z.1) h
+    apply rankPointVertex_injective
+    simpa [rankDartVertex] using hv
+  · have hd := congrArg (fun z : Vertex × Direction => z.2) h
+    simpa [rankDartVertex] using hd
 
 private theorem rankDart_mem_aInternal_iff
     {a b c : ℕ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
