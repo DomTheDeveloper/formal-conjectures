@@ -8,6 +8,7 @@ on:
       - 'ProofArtifacts/OEIS/A147983/chomp_p_mdd_serialize.cpp'
       - 'ProofArtifacts/OEIS/A147983/chomp_compact_carrier.cpp'
       - 'audits/a147983-compact-carrier/**'
+      - '.github/workflows/a147983-compact-carrier.yml'
   workflow_dispatch:
 
 permissions:
@@ -19,7 +20,7 @@ concurrency:
 
 jobs:
   measure:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
@@ -54,21 +55,21 @@ jobs:
             > mdd.stdout 2> mdd.stderr
           grep -F 'words=107342138 total_nodes=16906422 total_transitions=96754877' mdd.stdout
 
-      - name: Complete high-area greedy carrier
+      - name: Measure low-area greedy carrier
         working-directory: ProofArtifacts/OEIS/A147983
         shell: bash
         run: |
           set +e
-          /usr/bin/time -v ./chomp_compact_carrier p10x42.mdd 100000 high \
-            > carrier-high.stdout 2> carrier-high.stderr
+          /usr/bin/time -v ./chomp_compact_carrier p10x42.mdd 100000 low \
+            > carrier-low.stdout 2> carrier-low.stderr
           status=$?
           set -e
           if [[ $status -ne 0 && $status -ne 3 ]]; then
-            cat carrier-high.stderr >&2
+            cat carrier-low.stderr >&2
             exit "$status"
           fi
-          grep -E '^(COMPLETE|LIMIT) carrier=' carrier-high.stdout
-          echo "$status" > carrier-high.status
+          grep -E '^(COMPLETE|LIMIT) carrier=' carrier-low.stdout
+          echo "$status" > carrier-low.status
 
       - name: Write compact report
         if: always()
@@ -78,18 +79,18 @@ jobs:
           {
             echo '# OEIS A147983 compact closed-carrier measurement'
             echo
-            echo '## High-area greedy carrier, 100000-node gate'
-            cat carrier-high.stdout 2>/dev/null || true
-            tail -n 60 carrier-high.stderr 2>/dev/null || true
+            echo '## Low-area greedy carrier, 100000-node gate'
+            cat carrier-low.stdout 2>/dev/null || true
+            tail -n 60 carrier-low.stderr 2>/dev/null || true
           } > COMPACT_CARRIER_REPORT.md
 
       - name: Upload compact report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: a147983-compact-carrier-report
+          name: a147983-low-area-compact-carrier-report
           path: |
             ProofArtifacts/OEIS/A147983/COMPACT_CARRIER_REPORT.md
-            ProofArtifacts/OEIS/A147983/carrier-high.stdout
-            ProofArtifacts/OEIS/A147983/carrier-high.stderr
+            ProofArtifacts/OEIS/A147983/carrier-low.stdout
+            ProofArtifacts/OEIS/A147983/carrier-low.stderr
           if-no-files-found: warn
