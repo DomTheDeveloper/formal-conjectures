@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$HOME/.elan/bin/lake" env lean FormalConjectures/Other/BeaverMathOlympiad8Proof.lean
+          "$HOME/.elan/bin/lake" build FormalConjectures.Other.BeaverMathOlympiad8Proof
 
       - name: Check theorem axioms
         shell: bash
@@ -46,7 +46,7 @@ jobs:
           set -euo pipefail
           cat > BMO8Axioms.lean <<'EOF'
           import FormalConjectures.Other.BeaverMathOlympiad8Proof
-          #print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_8_proof
+          #print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_8_solved
           EOF
           "$HOME/.elan/bin/lake" env lean BMO8Axioms.lean | tee BMO8Axioms.log
           if grep -q 'sorryAx' BMO8Axioms.log; then
