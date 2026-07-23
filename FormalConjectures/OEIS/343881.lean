@@ -59,10 +59,9 @@ def a064549 (k : ℕ) : ℕ :=
 lemma a064549_twelve : a064549 12 = 72 := by
   norm_num [a064549, Nat.primeFactors, Nat.primeFactorsList]
 
-/-- The proposed value `72` is never admissible for `k = 12` at a prime exponent. -/
+/-- The proposed value `72` is never admissible for `k = 12`. -/
 @[category research solved, AMS 11]
-lemma twelve_seventy_two_not_candidate {p : ℕ} (hp : p.Prime) :
-    ¬ IsCandidate p 12 72 := by
+lemma twelve_seventy_two_not_candidate {p : ℕ} : ¬ IsCandidate p 12 72 := by
   rintro ⟨_, c, x, y, hc, hx, hxp, hy, hyp, hpow⟩
   have hfac :
       x • (12 : ℕ).factorization + y • (72 : ℕ).factorization =
@@ -117,6 +116,6 @@ theorem conjecture : answer(False) ↔
     have hcandidate : IsCandidate p 12 72 := by
       rw [← a064549_twelve]
       exact hleast.1
-    exact twelve_seventy_two_not_candidate hp hcandidate
+    exact twelve_seventy_two_not_candidate hcandidate
 
 end OeisA343881
