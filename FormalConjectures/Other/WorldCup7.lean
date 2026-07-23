@@ -33,6 +33,8 @@ The displayed answer uses the centered variable `x = r + 3` and `y = x²`.
   (https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimhtml/DIMACS2026.html)
 - [Shalosh B. Ekhad and Doron Zeilberger, *World Cup Enumerative Combinatorics*]
   (https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimhtml/worldcup.html)
+- [Exact seven-team solution, recurrence, data, and independent regression checks]
+  (https://github.com/DomTheDeveloper/ProofPlaygrond/tree/bf698f9a00ffb142966c4b0412528042b6510db5/WorldCup7)
 -/
 
 open scoped BigOperators
