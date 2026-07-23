@@ -97,7 +97,7 @@ lemma attachLeaves_adj_of_mem
       rcases hv with rfl | hv
       · right
         rw [edge_adj]
-        exact ⟨hcv, Or.inl ⟨rfl, rfl⟩⟩
+        exact ⟨Or.inl ⟨rfl, rfl⟩, hcv⟩
       · exact Or.inl (ih hv)
 
 noncomputable def firstLeaves
