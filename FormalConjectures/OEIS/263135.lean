@@ -20,12 +20,12 @@ import FormalConjectures.Util.ProblemImports
 # Maximum contacts on the honeycomb lattice
 
 OEIS A263135 is the maximum number of contacts among `m` vertices of the
-infinite honeycomb graph.  The conjectured even-index closed form is
+infinite honeycomb graph. The conjectured even-index closed form is
 
 `A263135 (2 * n) = 3 * n - ceil (sqrt (3 * n))`.
 
 This file gives a concrete coordinate model of the infinite honeycomb graph
-and states that exact extremal theorem.  It also contains the fully proved
+and states that exact extremal theorem. It also contains the fully proved
 integer ceiling arithmetic that turns the closed form into Peter Kagey's OEIS
 identity with A047932 and A216256.
 
@@ -68,13 +68,13 @@ def neighbor : Vertex → Direction → Vertex
   | ⟨i, j, true⟩, .horizontal => ⟨i + 1, j, false⟩
   | ⟨i, j, true⟩, .diagonal => ⟨i, j + 1, false⟩
 
-@[simp]
+@[simp, category API, AMS 5]
 theorem neighbor_neighbor (v : Vertex) (d : Direction) :
     neighbor (neighbor v d) d = v := by
   rcases v with ⟨i, j, side⟩
   cases side <;> cases d <;> simp [neighbor]
 
-@[simp]
+@[simp, category API, AMS 5]
 theorem neighbor_ne (v : Vertex) (d : Direction) : neighbor v d ≠ v := by
   rcases v with ⟨i, j, side⟩
   cases side <;> cases d <;> simp [neighbor]
@@ -85,8 +85,10 @@ Every honeycomb edge has exactly one endpoint on the `A` side, so summing the
 three neighbor tests only over `A` vertices counts every contact exactly once.
 -/
 def contacts (S : Finset Vertex) : ℕ :=
-  ∑ v in S, if v.side = true then 0 else
-    ∑ d : Direction, if neighbor v d ∈ S then 1 else 0
+  Finset.sum S fun v =>
+    if v.side = true then 0 else
+      Finset.sum Finset.univ fun d : Direction =>
+        if neighbor v d ∈ S then 1 else 0
 
 /-- `k` is the maximum contact count among all `N`-vertex honeycomb subsets. -/
 def IsMaximumContact (N k : ℕ) : Prop :=
@@ -105,7 +107,8 @@ def IsCeilSqrt (x r : ℤ) : Prop :=
 def IsA216256Index (n k : ℤ) : Prop :=
   0 ≤ k ∧ k ^ 2 - k + 1 < 3 * n ∧ 3 * n ≤ k ^ 2 + k + 1
 
-private lemma isCeilSqrt_unique {x a b : ℤ} (hx : 0 < x)
+@[category API, AMS 11]
+private lemma isCeilSqrt_unique {x a b : ℤ} (_hx : 0 < x)
     (ha : IsCeilSqrt x a) (hb : IsCeilSqrt x b) : a = b := by
   rcases ha with ⟨ha0, haLower, haUpper⟩
   rcases hb with ⟨hb0, hbLower, hbUpper⟩
@@ -188,7 +191,7 @@ theorem ceiling_difference
 number of contacts among `2 * n` vertices of the infinite honeycomb graph is
 `3 * n - ceil (sqrt (3 * n))`.
 -/
-@[category research open, AMS 05]
+@[category research open, AMS 5]
 theorem conjecture (n : ℕ) (hn : 0 < n) :
     ∃ r : ℕ, IsNatCeilSqrt (3 * n) r ∧
       IsMaximumContact (2 * n) (3 * n - r) := by
