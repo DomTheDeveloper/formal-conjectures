@@ -15,7 +15,7 @@ limitations under the License.
 -/
 module
 
-public import FormalConjecturesUtil
+public import FormalConjectures.Util.ProblemImports
 
 @[expose] public section
 
