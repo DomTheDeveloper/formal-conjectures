@@ -47,15 +47,12 @@ There is a positive constant `C₁` such that
 
 `G(n) ∼ C₁ · 8ⁿ / n⁴`.
 
-The limit formulation avoids division by `n⁴` at `n = 0` while expressing the
-same asymptotic assertion.
+The normalized formulation avoids division by `n⁴` at `n = 0` while expressing
+the same asymptotic assertion.
 -/
 @[category research open, AMS 05]
 theorem conjecture_2a :
-    ∃ C₁ : ℝ, 0 < C₁ ∧
-      Tendsto
-        (fun n : ℕ => ((G n : ℝ) * (n : ℝ) ^ 4) / (8 : ℝ) ^ n)
-        atTop (𝓝 C₁) := by
+    ∃ C₁ : ℝ, 0 < C₁ ∧ Tendsto normalizedCount atTop (𝓝 C₁) := by
   sorry
 
 end RestrictedRunTableaux
