@@ -58,6 +58,7 @@ def a064549 (k : ℕ) : ℕ :=
 lemma a064549_twelve : a064549 12 = 72 := by
   norm_num [a064549, Nat.primeFactors, Nat.primeFactorsList]
 
+/-- The proposed value `72` is never admissible for `k = 12` at a prime exponent. -/
 lemma twelve_seventy_two_not_candidate {p : ℕ} (hp : p.Prime) :
     ¬ IsCandidate p 12 72 := by
   rintro ⟨_, c, x, y, hc, hx, hxp, hy, hyp, hpow⟩
