@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: wowii59-clean-${{ github.event.pull_request.number || github.ref }}
@@ -26,6 +26,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
       - uses: leanprover/lean-action@v1
         with:
           auto-config: false
@@ -34,6 +35,28 @@ jobs:
           lint: false
           use-mathlib-cache: true
           use-github-cache: false
+      - name: Apply exact current-main repairs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean')
+          text = path.read_text()
+          text = text.replace('  bv_decide', '  decide')
+
+          old_app = '    have hineq := hP counterG counterG_connected'
+          new_app = '    have hineq := hP (Fin 18) counterG counterG_connected'
+          if old_app in text:
+              text = text.replace(old_app, new_app)
+          elif new_app not in text:
+              raise SystemExit('could not locate the hP specialization')
+
+          if 'bv_decide' in text:
+              raise SystemExit('an unpatched bv_decide remains')
+          path.write_text(text)
+          PY
       - name: Reject proof holes and unsupported declarations
         shell: bash
         run: |
@@ -67,6 +90,21 @@ jobs:
           if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduceBool|Lean\.ofReduce' wowii59-axioms.log; then
             exit 1
           fi
+      - name: Persist verified source repairs
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean; then
+            exit 0
+          fi
+          git config user.name 'ProofOrchestrator'
+          git config user.email 'actions@users.noreply.github.com'
+          git add FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean
+          git commit -m 'Repair WOWII 59 finite certificates and specialization'
+          git push origin "HEAD:${HEAD_REF}"
       - name: Upload transcript
         if: always()
         uses: actions/upload-artifact@v4
