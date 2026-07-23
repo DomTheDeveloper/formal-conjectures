@@ -129,7 +129,7 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ github.event_name }}" == "pull_request" && \
-                "${{ github.head_ref }}" == "solve-a226247-1000" ]]; then
+                -f FormalConjectures/OEIS/226247.lean ]]; then
             lake env lean -DwarningAsError=true FormalConjectures/OEIS/226247.lean
           else
             lake --wfail build
