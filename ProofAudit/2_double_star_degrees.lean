@@ -16,9 +16,11 @@ lemma doubleStarSeed_adj_first
     (hz : z ∈ G.neighborFinset x) :
     (doubleStarSeed G x y).Adj x z := by
   let Hx := attachLeaves (⊥ : SimpleGraph α) x (firstLeaves G x)
+  have hxzAdj : G.Adj x z := (G.mem_neighborFinset x z).1 hz
   have hxz : Hx.Adj x z := by
     apply attachLeaves_adj_of_mem
-    simpa [firstLeaves] using hz
+    · exact G.ne_of_adj hxzAdj
+    · simpa [firstLeaves] using hz
   exact (base_le_attachLeaves Hx y (secondLeaves G x y)) hxz
 
 lemma doubleStarSeed_adj_second_sdiff
@@ -32,9 +34,10 @@ lemma doubleStarSeed_adj_second_sdiff
     exact (doubleStarSeed_adj_first G x y hyNx).symm
   · have hzLy : z ∈ secondLeaves G x y := by
       simp [secondLeaves, hz.1, hz.2, hzx]
+    have hyz : G.Adj y z := (G.mem_neighborFinset y z).1 hz.1
     exact attachLeaves_adj_of_mem
       (attachLeaves (⊥ : SimpleGraph α) x (firstLeaves G x))
-      y (secondLeaves G x y) hzLy
+      y (secondLeaves G x y) (G.ne_of_adj hyz) hzLy
 
 lemma degree_le_degree_of_doubleStarSeed_le
     (G T : SimpleGraph α) [DecidableRel G.Adj] [DecidableRel T.Adj]
