@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - 'FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean'
+      - '.github/workflows/wowii59-clean-audit.yml'
   workflow_dispatch:
 
 permissions:
@@ -56,6 +57,9 @@ jobs:
           set -o pipefail
           cat > WOWII59AxiomAudit.lean <<'EOF'
           import FormalConjectures.WrittenOnTheWallII.GraphConjecture59
+
+          /-! Focused axiom audit for the WOWII 59 counterexample theorem. -/
+
           #print axioms WrittenOnTheWallII.GraphConjecture59.conjecture59
           EOF
           lake env lean -DwarningAsError=true WOWII59AxiomAudit.lean \
