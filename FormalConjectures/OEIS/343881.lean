@@ -33,7 +33,7 @@ The OEIS entry conjectures that, for each fixed `k > 1`, one eventually has
 This is false for `k = 12`: the proposed value is `72`, but the exponent
 vectors of `12` and `72` have determinant one modulo every prime, so no
 allowed positive exponents can make `12 ^ x * 72 ^ y` a prime-th power.
-Thus the obstruction holds for every prime, with no asymptotic lower bound.
+In fact, the obstruction holds for every prime, with no asymptotic lower bound.
 
 *Reference:* [OEIS A343881](https://oeis.org/A343881)
 -/
