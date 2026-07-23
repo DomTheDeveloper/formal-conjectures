@@ -1,2 +1,2 @@
 This file exists only to trigger the isolated BMO8 pull-request audit.
-Diagnostic run 3: Lake module build.
+Diagnostic run 4: exact pinned c2cd certificate.
