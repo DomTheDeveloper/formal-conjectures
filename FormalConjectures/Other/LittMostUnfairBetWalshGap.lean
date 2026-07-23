@@ -32,11 +32,6 @@ namespace LittMostUnfairBetWalsh
 open Finset
 open LittMostUnfairBet
 
-@[simp] theorem natMonomial_insert {n : ℕ} (A : Word n) (S : Finset ℕ)
-    {j : ℕ} (hj : j ∉ S) :
-    natMonomial A (insert j S) = letterSign A j * natMonomial A S := by
-  simp [natMonomial, hj]
-
 /-- Different letters have opposite extended signs at an in-range coordinate. -/
 theorem letterSign_mul_eq_neg_one_of_word_ne {n j : ℕ} (A B : Word n)
     (hj : j < n) (hne : A ⟨j, hj⟩ ≠ B ⟨j, hj⟩) :
@@ -61,8 +56,8 @@ theorem rawDifference_natAbs_sq_eq_four_of_mul_eq_neg_one {n : ℕ}
     (rawDifference A B S).natAbs ^ 2 = 4 := by
   apply rawDifference_natAbs_sq_eq_four_of_ne_zero
   intro hzero
-  have heq : natMonomial A S = natMonomial B S := by
-    simpa [rawDifference] using hzero
+  have heq : natMonomial A S = natMonomial B S :=
+    sub_eq_zero.mp hzero
   rw [heq, natMonomial_mul_self] at hprod
   norm_num at hprod
 
@@ -74,8 +69,8 @@ theorem inserted_rawDifference_natAbs_sq_eq_four {n j : ℕ}
     (hzero : rawDifference A B S = 0) :
     (rawDifference A B (insert j S)).natAbs ^ 2 = 4 := by
   apply rawDifference_natAbs_sq_eq_four_of_mul_eq_neg_one
-  have hmono : natMonomial A S = natMonomial B S := by
-    simpa [rawDifference] using hzero
+  have hmono : natMonomial A S = natMonomial B S :=
+    sub_eq_zero.mp hzero
   rw [natMonomial_insert A S hjS, natMonomial_insert B S hjS]
   calc
     (letterSign A j * natMonomial A S) *
