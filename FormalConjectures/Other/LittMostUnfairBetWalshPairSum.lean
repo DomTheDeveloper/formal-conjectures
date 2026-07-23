@@ -47,30 +47,41 @@ def lowerPairs (s : Finset α) : Finset (α × α) :=
 theorem pair_partition (s : Finset α) :
     diagonalPairs s ∪ upperPairs s ∪ lowerPairs s = s ×ˢ s := by
   ext p
-  simp [diagonalPairs, upperPairs, lowerPairs]
-  omega
+  constructor
+  · intro hp
+    rcases Finset.mem_union.mp hp with hp | hp
+    · rcases Finset.mem_union.mp hp with hp | hp
+      · exact (Finset.mem_filter.mp hp).1
+      · exact (Finset.mem_filter.mp hp).1
+    · exact (Finset.mem_filter.mp hp).1
+  · intro hp
+    rcases lt_trichotomy p.1 p.2 with hlt | heq | hgt
+    · exact Finset.mem_union_left _
+        (Finset.mem_union_right _ (Finset.mem_filter.mpr ⟨hp, hlt⟩))
+    · exact Finset.mem_union_left _
+        (Finset.mem_union_left _ (Finset.mem_filter.mpr ⟨hp, heq⟩))
+    · exact Finset.mem_union_right _ (Finset.mem_filter.mpr ⟨hp, hgt⟩)
 
 /-- Diagonal and increasing pairs are disjoint. -/
 theorem diagonalPairs_disjoint_upperPairs (s : Finset α) :
     Disjoint (diagonalPairs s) (upperPairs s) := by
   rw [Finset.disjoint_left]
   intro p hpdiag hpupper
-  simp [diagonalPairs] at hpdiag
-  simp [upperPairs] at hpupper
-  omega
+  have heq : p.1 = p.2 := (Finset.mem_filter.mp hpdiag).2
+  have hlt : p.1 < p.2 := (Finset.mem_filter.mp hpupper).2
+  exact (ne_of_lt hlt) heq
 
 /-- The first two classes are disjoint from decreasing pairs. -/
 theorem diagonal_union_upper_disjoint_lower (s : Finset α) :
     Disjoint (diagonalPairs s ∪ upperPairs s) (lowerPairs s) := by
   rw [Finset.disjoint_left]
   intro p hp hplower
+  have hltLower : p.2 < p.1 := (Finset.mem_filter.mp hplower).2
   rcases Finset.mem_union.mp hp with hpdiag | hpupper
-  · simp [diagonalPairs] at hpdiag
-    simp [lowerPairs] at hplower
-    omega
-  · simp [upperPairs] at hpupper
-    simp [lowerPairs] at hplower
-    omega
+  · have heq : p.1 = p.2 := (Finset.mem_filter.mp hpdiag).2
+    exact (ne_of_lt hltLower) heq.symm
+  · have hltUpper : p.1 < p.2 := (Finset.mem_filter.mp hpupper).2
+    exact (asymm hltUpper hltLower)
 
 /-- Diagonal pairs are the image of `i ↦ (i,i)`. -/
 theorem diagonalPairs_eq_image (s : Finset α) :
@@ -115,7 +126,7 @@ theorem sum_diagonalPairs (s : Finset α) (f : α → R) :
     intro i hi
     ring
   · intro a ha b hb hab
-    exact Prod.mk.inj_iff.mp hab |>.1
+    exact congrArg Prod.fst hab
 
 /-- The decreasing and increasing pair sums agree by swapping coordinates. -/
 theorem sum_lowerPairs_eq_sum_upperPairs (s : Finset α) (f : α → R) :
