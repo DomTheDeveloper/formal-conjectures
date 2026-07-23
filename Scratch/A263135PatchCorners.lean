@@ -100,6 +100,15 @@ private theorem reflectTriple_mem_box
   simp [rankBox, reflectTriple] at hx ⊢
   omega
 
+private theorem rankLevel_reflectTriple
+    {A B : ℕ} {x : (ℕ × ℕ) × Bool} (hx : x ∈ rankBox A B) :
+    rankLevel (tripleRankPoint (reflectTriple A B x)) +
+      rankLevel (tripleRankPoint x) = A + B - 1 := by
+  rcases x with ⟨⟨i, j⟩, side⟩
+  simp [rankBox] at hx
+  rcases hx with ⟨hi, hj⟩
+  cases side <;> simp [reflectTriple, rankLevel, tripleRankPoint] <;> omega
+
 /-- Upper excluded corner of the patch interval. -/
 def upperCornerTriples (A B b C : ℕ) : Finset ((ℕ × ℕ) × Bool) :=
   (rankBox A B).filter fun x => b + C ≤ rankLevel (tripleRankPoint x)
@@ -116,8 +125,8 @@ theorem card_upperCornerTriples
     have hxupper := (Finset.mem_filter.mp hx).2
     apply Finset.mem_filter.mpr
     refine ⟨reflectTriple_mem_box hxbox, ?_⟩
-    rcases x with ⟨⟨i, j⟩, side⟩
-    cases side <;> simp [reflectTriple, rankLevel, tripleRankPoint] at hxbox hxupper ⊢ <;> omega
+    have hlevel := rankLevel_reflectTriple hxbox
+    omega
   · intro x hx y hy hxy
     have hxbox := (Finset.mem_filter.mp hx).1
     have hybox := (Finset.mem_filter.mp hy).1
@@ -129,8 +138,8 @@ theorem card_upperCornerTriples
     · apply Finset.mem_filter.mpr
       refine ⟨reflectTriple_mem_box hybox, ?_⟩
       have hylower := (Finset.mem_filter.mp hy).2
-      rcases y with ⟨⟨i, j⟩, side⟩
-      cases side <;> simp [reflectTriple, rankLevel, tripleRankPoint] at hybox hylower ⊢ <;> omega
+      have hlevel := rankLevel_reflectTriple hybox
+      omega
     · exact reflectTriple_involutive_on_box hybox
 
 end OeisA263135
