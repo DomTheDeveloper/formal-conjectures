@@ -57,7 +57,7 @@ lemma attachLeaves_isolated_of_not_mem
       rcases hz with hz | hz
       · exact ih hvtail z hz
       · rw [edge_adj] at hz
-        rcases hz with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+        rcases hz.1 with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
         · exact hvc rfl
         · exact hvhead rfl
 
@@ -83,8 +83,7 @@ lemma attachLeaves_isAcyclic
         attachLeaves_isolated_of_not_mem H c head tail hheadIsoH hchead.symm hnod.1
       have hUnreach : ¬ (attachLeaves H c tail).Reachable c head :=
         not_reachable_of_isolated (attachLeaves H c tail) hchead hheadIsoTail
-      simpa [attachLeaves] using
-        (SimpleGraph.IsAcyclic.isAcyclic_sup_fromEdgeSet_of_not_reachable hUnreach hTail)
+      simpa [attachLeaves] using hTail.sup_edge_of_not_reachable hUnreach
 
 lemma attachLeaves_le
     (H G : SimpleGraph α) (c : α) (L : List α)
@@ -99,7 +98,7 @@ lemma attachLeaves_le
       · exact ih (fun w hw => hAdj w (List.mem_cons_of_mem head hw)) hab
       · have hchead : G.Adj c head := hAdj head List.mem_cons_self
         rw [edge_adj] at hab
-        rcases hab with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+        rcases hab.1 with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
         · exact hchead
         · exact hchead.symm
 
@@ -113,7 +112,7 @@ lemma attachLeaves_adj_of_mem
       change (attachLeaves H c tail).Adj c v ∨ (edge c head).Adj c v
       rcases hv with rfl | hv
       · right
-        exact edge_adj.2 (Or.inl ⟨rfl, rfl⟩)
+        exact edge_adj.2 ⟨Or.inl ⟨rfl, rfl⟩, by simp⟩
       · exact Or.inl (ih hv)
 
 noncomputable def firstLeaves
