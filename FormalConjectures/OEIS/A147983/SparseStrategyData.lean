@@ -21,10 +21,11 @@ import FormalConjectures.OEIS.A147983.StrategyCertificate
 
 A concrete certificate stores every ten-row position in one 60-bit natural number and one packed
 30-bit response for each legal opponent move.  `offsets[i]` points to the first response for
-carrier position `i`; legal moves are ordered lexicographically by bite row and target.  Missing or
-malformed data evaluates to an invalid default, so the data producer is not trusted.  A proof of
-`SparseStrategyData.Valid` is converted into the exact `StrategyCertificate` used by the final
-theorem.
+carrier position `i`; legal moves are ordered lexicographically by bite row and target.  The reply
+storage is a total lookup function, allowing generated data to be split into independent chunks.
+Missing or malformed data evaluates to an invalid default, so the data producer is not trusted.
+A proof of `SparseStrategyData.Valid` is converted into the exact `StrategyCertificate` used by the
+final theorem.
 -/
 
 namespace OeisA147983
@@ -36,11 +37,11 @@ structure SparseReply where
   target : ℕ
   deriving DecidableEq, Repr
 
-/-- Packed carrier positions, per-position offsets, and packed sparse replies. -/
+/-- Packed carrier positions, per-position offsets, and a total packed-reply lookup. -/
 structure SparseStrategyData where
   positions : Array ℕ
   offsets : Array ℕ
-  replies : Array ℕ
+  replyCode : ℕ → ℕ
 
 namespace SparseStrategyData
 
@@ -70,12 +71,12 @@ def movesBefore (p : List ℕ) (row : ℕ) : ℕ :=
 def localMoveIndex (p : List ℕ) (row target : ℕ) : ℕ :=
   movesBefore p row + if row = 0 then target - 1 else target
 
-/-- Read and decode one response without trusting any array dimension. -/
+/-- Read and decode one response without trusting any generated dimension. -/
 def replyAt (D : SparseStrategyData) (i : Fin D.positions.size)
     (row : Fin 10) (target : Fin 43) : SparseReply :=
   let p := D.positionAt i
   let base := D.offsets.getD i.1 0
-  unpackReply (D.replies.getD (base + localMoveIndex p row.1 target.1) 0)
+  unpackReply (D.replyCode (base + localMoveIndex p row.1 target.1))
 
 /-- The finite carrier represented by the packed position array. -/
 def carrier (D : SparseStrategyData) : Set (List ℕ) :=
@@ -96,7 +97,7 @@ def ReplyValid (D : SparseStrategyData) (i : Fin D.positions.size)
 
 /-- Finite validity conditions for a packed sparse response table.
 
-The offset and response arrays are deliberately not trusted separately: every legal move must
+The offset and reply functions are deliberately not trusted separately: every legal move must
 retrieve a sound response through `replyAt`.  Incorrect dimensions or offsets therefore make this
 proposition false. -/
 def Valid (D : SparseStrategyData) : Prop :=
