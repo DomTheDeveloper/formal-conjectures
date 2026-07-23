@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   worldcup7:
-    if: github.head_ref == 'formalize-worldcup7-polynomial'
+    if: startsWith(github.head_ref, 'worldcup7-targeted-check')
     name: Compile WorldCup7.lean
     runs-on: ubuntu-latest
     timeout-minutes: 30
