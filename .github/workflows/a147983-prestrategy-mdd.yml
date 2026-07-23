@@ -52,13 +52,13 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          /usr/bin/time -v ./chomp_prestrategy_mdd p10x42.mdd 5000000 5000000 \
+          /usr/bin/time -v ./chomp_prestrategy_mdd p10x42.mdd 10000000 10000000 \
             > prestrategy.stdout 2> prestrategy.stderr
       - name: Upload experiment transcript
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: a147983-separated-prestrategy
+          name: a147983-separated-prestrategy-10m
           path: |
             ProofArtifacts/OEIS/A147983/prestrategy.stdout
             ProofArtifacts/OEIS/A147983/prestrategy.stderr
