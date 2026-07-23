@@ -1,0 +1,70 @@
+# Copyright 2026 Dominic Dabish
+# Licensed under the Apache License, Version 2.0.
+
+name: One-shot repair Litt terminal compatibility
+
+on:
+  push:
+    paths:
+      - '.github/workflows/one-shot-repair-litt.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Litt proof branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/litt-most-unfair-proof
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply exact compatibility repairs
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          toggle = Path('FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointToggle.lean')
+          text = toggle.read_text()
+          old = '''  rcases ha with rfl | rfl <;> rcases hb with rfl | rfl
+  all_goals norm_num at hprod ⊢
+'''
+          new = '''  rcases ha with rfl | rfl
+  · rcases hb with rfl | rfl
+    · norm_num
+    · norm_num at hprod
+  · rcases hb with rfl | rfl
+    · norm_num at hprod
+    · norm_num
+'''
+          if old not in text:
+              raise SystemExit('expected Litt four-case block not found')
+          toggle.write_text(text.replace(old, new, 1))
+
+          diagonal = Path('FormalConjectures/Other/LittMostUnfairBetWalshEnergyDiagonal.lean')
+          text = diagonal.read_text()
+          old = '''    _ = ∑ U ∈ nonemptySubsets n, rawDifference A B U ^ 2 := by
+      simp
+'''
+          new = '''    _ = ∑ U ∈ nonemptySubsets n, rawDifference A B U ^ 2 := by
+      rw [Finset.sum_attach]
+'''
+          if old not in text:
+              raise SystemExit('expected Litt sum-attach block not found')
+          diagonal.write_text(text.replace(old, new, 1))
+          PY
+
+      - name: Commit repaired proof source
+        run: |
+          set -euo pipefail
+          git config user.name 'ProofOrchestrator'
+          git config user.email 'proof-orchestrator@users.noreply.github.com'
+          git add FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointToggle.lean \
+                  FormalConjectures/Other/LittMostUnfairBetWalshEnergyDiagonal.lean
+          git diff --cached --check
+          git commit -m 'Close Litt terminal arithmetic and subtype-sum goals'
+          git push origin HEAD:agent/litt-most-unfair-proof
