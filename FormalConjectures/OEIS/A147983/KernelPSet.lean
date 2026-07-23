@@ -30,6 +30,7 @@ namespace RankedGame
 variable {P : Type} {G : RankedGame P}
 
 /-- A predicate satisfying the two P-position laws produces genuine losing and winning proofs. -/
+@[category API, AMS 5]
 theorem outcomes_of_pSet
     (S : P → Prop)
     (noMove : ∀ {p : P}, S p → ∀ q, G.Move p q → ¬ S q)
@@ -57,6 +58,7 @@ theorem outcomes_of_pSet
   exact all _ p rfl
 
 /-- Membership in a certified P-set gives a kernel-checked losing proof. -/
+@[category API, AMS 5]
 theorem losing_of_pSet
     (S : P → Prop)
     (noMove : ∀ {p : P}, S p → ∀ q, G.Move p q → ¬ S q)
@@ -65,6 +67,7 @@ theorem losing_of_pSet
   exact ⟨(outcomes_of_pSet S noMove hasReply p).1 hp⟩
 
 /-- Nonmembership in a certified P-set gives a kernel-checked winning proof. -/
+@[category API, AMS 5]
 theorem winning_of_not_pSet
     (S : P → Prop)
     (noMove : ∀ {p : P}, S p → ∀ q, G.Move p q → ¬ S q)
