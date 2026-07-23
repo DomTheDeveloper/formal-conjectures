@@ -1,0 +1,65 @@
+name: A226247 Windows proof audit
+
+on:
+  pull_request:
+    branches:
+      - mirror/gdm-e751-proof-a226247
+    paths:
+      - 'FormalConjectures/OEIS/226247.lean'
+      - 'AuditTriggers/A226247-current-upstream.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: a226247-windows-proof
+  cancel-in-progress: true
+
+jobs:
+  lean:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+      - name: Reject placeholders and trust shortcuts
+        shell: pwsh
+        run: |
+          $source = Get-Content -Raw 'FormalConjectures/OEIS/226247.lean'
+          $forbidden = '\b(sorry|admit|native_decide|unsafe)\b|(^|[^A-Za-z])axiom([^A-Za-z]|$)|Lean\.(trustCompiler|ofReduce|ofReduceBool)'
+          if ($source -match $forbidden) { throw 'Forbidden placeholder or trust shortcut found.' }
+      - name: Compile exact proof
+        shell: pwsh
+        run: |
+          lake env lean -DwarningAsError=true FormalConjectures/OEIS/226247.lean 2>&1 |
+            Tee-Object -FilePath "$env:RUNNER_TEMP\a226247-compile.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Audit theorem axioms
+        shell: pwsh
+        run: |
+          @'
+          import FormalConjectures.OEIS.«226247»
+          #print axioms OeisA226247.blue_iff_negative
+          #print axioms OeisA226247.depth_is_shortest
+          #print axioms OeisA226247.rank_recurrence
+          '@ | Set-Content -Encoding utf8 "$env:RUNNER_TEMP\A226247Audit.lean"
+          lake env lean "$env:RUNNER_TEMP\A226247Audit.lean" 2>&1 |
+            Tee-Object -FilePath "$env:RUNNER_TEMP\a226247-axioms.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $axioms = Get-Content -Raw "$env:RUNNER_TEMP\a226247-axioms.log"
+          if ($axioms -match 'sorryAx|Lean\.(trustCompiler|ofReduce|ofReduceBool)') {
+            throw 'Forbidden axiom or compiler-trust dependency found.'
+          }
+      - name: Upload audit transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a226247-windows-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}\a226247-compile.log
+            ${{ runner.temp }}\a226247-axioms.log
+            ${{ runner.temp }}\A226247Audit.lean
+          if-no-files-found: warn
