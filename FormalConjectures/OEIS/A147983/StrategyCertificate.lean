@@ -50,6 +50,7 @@ def closedResponseSet (C : StrategyCertificate) :
     exact lt_trans (move_sum_lt hqr) (move_sum_lt hpq)
 
 /-- A closed response strategy proves the exact three-opening statement. -/
+@[category API, AMS 5]
 theorem three_openings (C : StrategyCertificate) :
     IsWinningOpening rectangle child₁ ∧
       IsWinningOpening rectangle child₂ ∧
