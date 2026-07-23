@@ -128,42 +128,42 @@ theorem r4Terms_shift_le : ∀ a ∈ r4Terms, a.shift ≤ 26 := by native_decide
 set_option maxHeartbeats 1000000 in
 theorem momentRemainder_eq_r0 : momentRemainder 1 = sparsePolynomial r0Terms := by
   simp [momentRemainder, geodeKernel, momentQuotient, powerSum, sparsePolynomial,
-    r0Terms, y, t, Finset.prod_range_succ, Finset.sum_range_succ,
+    r0Terms, y, t, Finset.prod_range_succ,
     Polynomial.derivative_sub, Polynomial.derivative_mul, Polynomial.derivative_C,
     Polynomial.derivative_X]
-  ring
+  ring_nf
 
 set_option maxHeartbeats 1000000 in
 theorem momentRemainder_eq_r1 : momentRemainder 2 = sparsePolynomial r1Terms := by
   simp [momentRemainder, geodeKernel, momentQuotient, powerSum, sparsePolynomial,
-    r1Terms, y, t, Finset.prod_range_succ, Finset.sum_range_succ,
+    r1Terms, y, t, Finset.prod_range_succ,
     Polynomial.derivative_sub, Polynomial.derivative_mul, Polynomial.derivative_C,
     Polynomial.derivative_X]
-  ring
+  ring_nf
 
 set_option maxHeartbeats 1000000 in
 theorem momentRemainder_eq_r2 : momentRemainder 3 = sparsePolynomial r2Terms := by
   simp [momentRemainder, geodeKernel, momentQuotient, powerSum, sparsePolynomial,
-    r2Terms, y, t, Finset.prod_range_succ, Finset.sum_range_succ,
+    r2Terms, y, t, Finset.prod_range_succ,
     Polynomial.derivative_sub, Polynomial.derivative_mul, Polynomial.derivative_C,
     Polynomial.derivative_X]
-  ring
+  ring_nf
 
 set_option maxHeartbeats 1000000 in
 theorem momentRemainder_eq_r3 : momentRemainder 4 = sparsePolynomial r3Terms := by
   simp [momentRemainder, geodeKernel, momentQuotient, powerSum, sparsePolynomial,
-    r3Terms, y, t, Finset.prod_range_succ, Finset.sum_range_succ,
+    r3Terms, y, t, Finset.prod_range_succ,
     Polynomial.derivative_sub, Polynomial.derivative_mul, Polynomial.derivative_C,
     Polynomial.derivative_X]
-  ring
+  ring_nf
 
 set_option maxHeartbeats 1000000 in
 theorem momentRemainder_eq_r4 : momentRemainder 5 = sparsePolynomial r4Terms := by
   simp [momentRemainder, geodeKernel, momentQuotient, powerSum, sparsePolynomial,
-    r4Terms, y, t, Finset.prod_range_succ, Finset.sum_range_succ,
+    r4Terms, y, t, Finset.prod_range_succ,
     Polynomial.derivative_sub, Polynomial.derivative_mul, Polynomial.derivative_C,
     Polynomial.derivative_X]
-  ring
+  ring_nf
 
 #print axioms momentRemainder_eq_r0
 #print axioms momentRemainder_eq_r1
