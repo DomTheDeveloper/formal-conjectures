@@ -91,19 +91,40 @@ theorem qMoment_recurrence_raw (n k : ℕ) (hk : 0 < k) :
     simp [Polynomial.eval_mul, qt, qKernel_eval_one, hk.ne']
   have hderiv :
       (qt ^ k * qKernel ^ (n + 1)).derivative =
-        Polynomial.C (k : QYPoly) *
-            (qt ^ (k - 1) * qKernel ^ (n + 1)) +
-          Polynomial.C (n + 1 : QYPoly) *
+        (k : QYPoly) • (qt ^ (k - 1) * qKernel ^ (n + 1)) +
+          (n + 1 : QYPoly) •
             (qMomentQuotient k * qKernel ^ (n + 1) +
               qMomentRemainder k * qKernel ^ n) := by
     rw [Polynomial.derivative_mul]
     simp only [qt, Polynomial.derivative_X_pow,
       Polynomial.derivative_pow_succ]
-    rw [qMoment_division_identity]
-    ring
+    have hdiv := qMoment_division_identity k
+    simp only [qt] at hdiv
+    simp only [Polynomial.smul_eq_C_mul]
+    calc
+      Polynomial.C (k : QYPoly) * Polynomial.X ^ (k - 1) *
+            qKernel ^ (n + 1) +
+          Polynomial.X ^ k *
+            (Polynomial.C (n + 1 : QYPoly) * qKernel ^ n *
+              qKernel.derivative) =
+        Polynomial.C (k : QYPoly) *
+            (Polynomial.X ^ (k - 1) * qKernel ^ (n + 1)) +
+          Polynomial.C (n + 1 : QYPoly) *
+            ((Polynomial.X ^ k * qKernel.derivative) * qKernel ^ n) := by
+              ring
+      _ = Polynomial.C (k : QYPoly) *
+            (Polynomial.X ^ (k - 1) * qKernel ^ (n + 1)) +
+          Polynomial.C (n + 1 : QYPoly) *
+            ((qMomentQuotient k * qKernel + qMomentRemainder k) *
+              qKernel ^ n) := by rw [hdiv]
+      _ = Polynomial.C (k : QYPoly) *
+            (Polynomial.X ^ (k - 1) * qKernel ^ (n + 1)) +
+          Polynomial.C (n + 1 : QYPoly) *
+            (qMomentQuotient k * qKernel ^ (n + 1) +
+              qMomentRemainder k * qKernel ^ n) := by ring
   rw [hderiv] at hboundary
-  simpa only [map_add, ← Polynomial.smul_eq_C_mul, map_smul,
-    smul_eq_mul, qMoment] using hboundary
+  simp only [map_add, map_smul, smul_eq_mul, RingHom.id_apply, qMoment] at hboundary
+  linear_combination hboundary
 
 #print axioms qMoment_recurrence_raw
 
