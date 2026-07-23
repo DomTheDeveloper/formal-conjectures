@@ -42,15 +42,21 @@ jobs:
           "$HOME/.elan/bin/elan" toolchain install leanprover/lean4:v4.27.0
       - name: Fetch Mathlib cache
         run: lake exe cache get
-      - name: Compile full symbolic bound stack
+      - name: Build final theorem and audit axioms
         id: compile
         continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
-          lake env lean -DwarningAsError=true \
-            FormalConjectures/Arxiv/2508.10245/Geode5Proof/AbsoluteBound.lean \
-            2>&1 | tee geode5-macos-audit.log
+          lake build 'FormalConjectures.Arxiv.«2508.10245».Geode5' 2>&1 | tee geode5-macos-audit.log
+          cat > Geode5FinalAudit.lean <<'EOF'
+          import FormalConjectures.Arxiv.«2508.10245».Geode5
+          #print axioms Arxiv.«2508.10245».geode5_1000
+          EOF
+          lake env lean -DwarningAsError=true Geode5FinalAudit.lean 2>&1 | tee -a geode5-macos-audit.log
+          if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduceBool|Lean\.ofReduce' geode5-macos-audit.log; then
+            exit 1
+          fi
       - name: Upload transcript
         if: always()
         uses: actions/upload-artifact@v4
@@ -67,14 +73,14 @@ jobs:
         run: |
           set -euo pipefail
           {
-            echo "## Geode5 macOS exact audit"
+            echo "## Geode5 macOS final-theorem audit"
             echo
             echo "Commit: \`${GITHUB_SHA}\`"
-            echo "Module: \`Geode5Proof/AbsoluteBound.lean\`"
+            echo "Target: \`FormalConjectures.Arxiv.«2508.10245».Geode5\`"
             echo "Result: **${COMPILE_OUTCOME}**"
             echo
             echo '```text'
-            tail -n 120 geode5-macos-audit.log 2>/dev/null || true
+            tail -n 160 geode5-macos-audit.log 2>/dev/null || true
             echo '```'
           } > /tmp/geode5-comment.md
           gh pr comment 184 --repo DomTheDeveloper/formal-conjectures --body-file /tmp/geode5-comment.md
