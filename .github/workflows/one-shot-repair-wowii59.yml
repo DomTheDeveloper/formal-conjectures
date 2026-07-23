@@ -1,0 +1,132 @@
+# Copyright 2026 Dominic Dabish
+# Licensed under the Apache License, Version 2.0.
+
+name: One-shot repair WOWII 59
+
+on:
+  push:
+    paths:
+      - '.github/workflows/one-shot-repair-wowii59.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout WOWII 59 source branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/solve-wowii-59
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply exact finite-certificate and theorem repairs
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean')
+          text = p.read_text()
+
+          old = '''private lemma counterG_residue : residue counterG = 10 := by
+  unfold residue
+  bv_decide
+'''
+          new = '''private lemma counterG_residue : residue counterG = 10 := by
+  unfold residue
+  change residueAux [17, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1] = 10
+  decide
+'''
+          if old not in text:
+              raise SystemExit('residue block not found')
+          text = text.replace(old, new, 1)
+
+          old = '''      Contains6 s 0 8 1 7 4 9 ∨
+      Contains4 s 0 5 4 9 := by
+  bv_decide
+'''
+          new = '''      Contains6 s 0 8 1 7 4 9 ∨
+      Contains4 s 0 5 4 9 := by
+  letI : DecidablePred (fun s : Finset (Fin 18) =>
+      14 ≤ s.card →
+        Contains3 s 4 7 10 ∨
+        Contains4 s 1 5 3 8 ∨
+        Contains3 s 0 9 10 ∨
+        Contains4 s 2 6 4 9 ∨
+        Contains3 s 2 6 10 ∨
+        Contains4 s 1 6 3 7 ∨
+        Contains4 s 0 5 2 9 ∨
+        Contains4 s 1 5 4 6 ∨
+        Contains4 s 3 7 4 9 ∨
+        Contains4 s 0 5 3 8 ∨
+        Contains3 s 1 8 10 ∨
+        Contains3 s 3 5 10 ∨
+        Contains4 s 0 8 3 9 ∨
+        Contains4 s 0 5 1 8 ∨
+        Contains4 s 3 6 4 7 ∨
+        Contains4 s 1 6 4 7 ∨
+        Contains4 s 1 5 4 7 ∨
+        Contains4 s 1 6 3 8 ∨
+        Contains4 s 1 5 2 6 ∨
+        Contains6 s 0 8 1 6 2 9 ∨
+        Contains4 s 2 6 3 9 ∨
+        Contains4 s 2 5 4 6 ∨
+        Contains4 s 1 7 3 8 ∨
+        Contains6 s 0 8 1 7 4 9 ∨
+        Contains4 s 0 5 4 9) := by
+    intro s
+    infer_instance
+  exact of_decide_eq_true rfl
+'''
+          if old not in text:
+              raise SystemExit('large subset certificate block not found')
+          text = text.replace(old, new, 1)
+
+          start = text.index('/--\nWOWII Conjecture 59 is false.')
+          end = text.index('\nend WrittenOnTheWallII.GraphConjecture59', start)
+          replacement = '''/--
+WOWII Conjecture 59 is false. The explicit connected graph `counterG` on
+`Fin 18` violates the proposed inequality.
+-/
+@[category research solved, AMS 5]
+theorem conjecture59 :
+    ¬ (∀ (G : SimpleGraph (Fin 18)) [DecidableRel G.Adj] (_h : G.Connected),
+      ⌈Real.sqrt ((residue G : ℝ) * b G)⌉ ≤
+        (G.largestInducedForestSize : ℝ)) := by
+  intro hP
+  have hineq := hP counterG counterG_connected
+  have hf : (counterG.largestInducedForestSize : ℝ) ≤ 13 := by
+    exact_mod_cast counterG_forest_le
+  have hprod : (170 : ℝ) ≤ (residue counterG : ℝ) * b counterG := by
+    calc
+      (170 : ℝ) = 10 * 17 := by norm_num
+      _ ≤ 10 * b counterG := mul_le_mul_of_nonneg_left counterG_b_ge (by norm_num)
+      _ = (residue counterG : ℝ) * b counterG := by rw [counterG_residue]; norm_num
+  have hsqrt170 : (13 : ℝ) < Real.sqrt 170 := by
+    rw [Real.lt_sqrt (by norm_num : (0 : ℝ) ≤ 13)]
+    norm_num
+  have hsqrt : (13 : ℝ) < Real.sqrt ((residue counterG : ℝ) * b counterG) :=
+    hsqrt170.trans_le (Real.sqrt_le_sqrt hprod)
+  have hceilInt : (13 : ℤ) < ⌈Real.sqrt ((residue counterG : ℝ) * b counterG)⌉ := by
+    rw [Int.lt_ceil]
+    simpa using hsqrt
+  have hceil : (13 : ℝ) <
+      (⌈Real.sqrt ((residue counterG : ℝ) * b counterG)⌉ : ℝ) := by
+    exact_mod_cast hceilInt
+  linarith
+'''
+          text = text[:start] + replacement + text[end:]
+          p.write_text(text)
+          PY
+
+      - name: Commit repaired proof source
+        run: |
+          set -euo pipefail
+          git config user.name 'ProofOrchestrator'
+          git config user.email 'proof-orchestrator@users.noreply.github.com'
+          git add FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean
+          git diff --cached --check
+          git commit -m 'Prove explicit WOWII 59 counterexample'
+          git push origin HEAD:agent/solve-wowii-59
