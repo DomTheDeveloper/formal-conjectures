@@ -144,6 +144,7 @@ theorem varianceNum_ge_of_constant {n : ℕ} (A B : Word n)
     exact_mod_cast henergy
   rw [hid] at hcast
   norm_num [pow_succ] at hcast ⊢
+  linarith
 
 #print axioms rawEnergy_ge_of_constant
 #print axioms varianceNum_ge_of_constant
