@@ -37,7 +37,8 @@ private lemma tree_leaf_identity
     linarith
   have huniv : (Finset.univ : Finset α) = L ∪ I := by
     ext v
-    simp [L, I, treeLeaves, internalVertices]
+    by_cases hv : T.degree v = 1 <;>
+      simp [L, I, treeLeaves, internalVertices, hv]
   have hdisj : Disjoint L I := by
     rw [Finset.disjoint_left]
     intro v hvL hvI
@@ -70,7 +71,9 @@ private lemma internal_term_nonneg
     0 ≤ (T.degree v : ℤ) - 2 := by
   have hne : T.degree v ≠ 1 := by
     simpa [internalVertices] using hv
-  have hpos : 0 < T.degree v := hT.isConnected.degree_pos_of_nontrivial v
+  obtain ⟨w, hw⟩ : ∃ w : α, v ≠ w := exists_ne v
+  have hpos : 0 < T.degree v :=
+    (hT.isConnected v w).degree_pos_left hw
   omega
 
 /-- In a finite nontrivial tree, the number of leaves is at least the sum of
@@ -79,27 +82,38 @@ lemma two_degrees_sub_two_le_treeLeaves
     (T : SimpleGraph α) [DecidableRel T.Adj] (hT : T.IsTree)
     {x y : α} (hxy : x ≠ y) :
     (T.degree x : ℤ) + T.degree y - 2 ≤ ((treeLeaves T).card : ℤ) := by
-  rw [tree_leaf_identity T hT]
   let I := internalVertices T
+  let S : ℤ := ∑ v ∈ I, ((T.degree v : ℤ) - 2)
+  have hleafid : ((treeLeaves T).card : ℤ) = 2 + S := by
+    simpa [S, I] using tree_leaf_identity T hT
   have hnonneg : ∀ v ∈ I, 0 ≤ (T.degree v : ℤ) - 2 := by
     intro v hv
     exact internal_term_nonneg T hT (by simpa [I])
+  have hsum_nonneg : 0 ≤ S := by
+    dsimp [S]
+    exact Finset.sum_nonneg fun v hv => hnonneg v hv
   by_cases hx : T.degree x = 1
   · by_cases hy : T.degree y = 1
-    · simp [hx, hy]
-      exact Finset.sum_nonneg fun v hv => hnonneg v hv
+    · rw [hx, hy]
+      linarith
     · have hyI : y ∈ I := by simp [I, internalVertices, hy]
-      have hle := I.single_le_sum hnonneg hyI
-      simp [hx]
+      have hle : (T.degree y : ℤ) - 2 ≤ S := by
+        dsimp [S]
+        exact I.single_le_sum hnonneg hyI
+      rw [hx]
       linarith
   · by_cases hy : T.degree y = 1
     · have hxI : x ∈ I := by simp [I, internalVertices, hx]
-      have hle := I.single_le_sum hnonneg hxI
-      simp [hy]
+      have hle : (T.degree x : ℤ) - 2 ≤ S := by
+        dsimp [S]
+        exact I.single_le_sum hnonneg hxI
+      rw [hy]
       linarith
     · have hxI : x ∈ I := by simp [I, internalVertices, hx]
       have hyI : y ∈ I := by simp [I, internalVertices, hy]
-      have hle := I.add_le_sum hnonneg hxI hyI hxy
+      have hle : (T.degree x : ℤ) - 2 + ((T.degree y : ℤ) - 2) ≤ S := by
+        dsimp [S]
+        exact I.add_le_sum hnonneg hxI hyI hxy
       linarith
 
 #print axioms two_degrees_sub_two_le_treeLeaves
