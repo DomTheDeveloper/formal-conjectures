@@ -24,9 +24,14 @@ which a positive integer multiple of `√k` lies strictly between `n` and
 `n + 1`.
 
 For every squarefree `j ≥ 2`, the set of positive indices where the sequence
-has value `j` is conjectured to have natural density
+has value `j` has natural density
 
 `(1 / √j) * ∏_{2 ≤ s < j, Squarefree s} (1 - 1 / √s)`.
+
+The proof converts the interval-hitting conditions into terminal arcs for a
+finite torus rotation. Rational independence of the reciprocal square roots
+and multidimensional Weyl equidistribution then reduce the density to the Haar
+measure of the corresponding terminal box.
 
 *References:*
 - [OEIS A261865](https://oeis.org/A261865)
@@ -57,7 +62,9 @@ noncomputable def predictedDensity (j : ℕ) : ℝ :=
 For every squarefree `j ≥ 2`, the positive indices where `j` is the least
 successful radicand have the predicted natural density.
 -/
-@[category research open, AMS 11]
+@[category research solved, AMS 11,
+  formal_proof using lean4 at
+    "https://github.com/DomTheDeveloper/formal-conjectures/blob/796f5e8919a844d78e8bb683d1974e118aa263ee/FormalConjectures/OEIS/261865FinalAudit.lean"]
 theorem density_formula (j : ℕ) (hj : 2 ≤ j) (hsq : Squarefree j) :
     {n : ℕ | 0 < n ∧ IsValue n j}.HasDensity (predictedDensity j) := by
   sorry
