@@ -46,7 +46,6 @@ theorem normalizedCount_eq_bridgeNormalized (n : ℕ) :
   unfold normalizedCount bridgeNormalized bridgeMass
   have h8 : (8 : ℝ) ^ n ≠ 0 := by positivity
   field_simp [h8]
-  ring
 
 /-- The inverse exact rescaling. -/
 theorem bridgeNormalized_eq_normalizedCount (n : ℕ) :
@@ -58,13 +57,21 @@ theorem bridgeNormalized_eq_normalizedCount (n : ℕ) :
 theorem tendsto_normalizedCount_of_bridge {c : ℝ}
     (h : Tendsto bridgeNormalized atTop (𝓝 c)) :
     Tendsto normalizedCount atTop (𝓝 ((3 / 4 : ℝ) * c)) := by
-  simpa only [normalizedCount_eq_bridgeNormalized] using h.const_mul (3 / 4 : ℝ)
+  have heq : normalizedCount = fun n => (3 / 4 : ℝ) * bridgeNormalized n := by
+    funext n
+    exact normalizedCount_eq_bridgeNormalized n
+  rw [heq]
+  exact h.const_mul (3 / 4 : ℝ)
 
 /-- The normalized tableau limit determines the bridge limit. -/
 theorem tendsto_bridge_of_normalizedCount {C : ℝ}
     (h : Tendsto normalizedCount atTop (𝓝 C)) :
     Tendsto bridgeNormalized atTop (𝓝 ((4 / 3 : ℝ) * C)) := by
-  simpa only [bridgeNormalized_eq_normalizedCount] using h.const_mul (4 / 3 : ℝ)
+  have heq : bridgeNormalized = fun n => (4 / 3 : ℝ) * normalizedCount n := by
+    funext n
+    exact bridgeNormalized_eq_normalizedCount n
+  rw [heq]
+  exact h.const_mul (4 / 3 : ℝ)
 
 /-- Conjecture 2a is exactly equivalent to convergence of the normalized
 bridge mass to a positive constant. -/
@@ -81,7 +88,7 @@ theorem conjecture_2a_iff_bridge_limit :
 
 /-- The quadratic form of the candidate asymptotic covariance matrix
 `(5/9) * [[2,-1],[-1,2]]`. -/
-def covarianceQuadratic (x y : ℝ) : ℝ :=
+noncomputable def covarianceQuadratic (x y : ℝ) : ℝ :=
   (5 / 9 : ℝ) * (2 * x ^ 2 - 2 * x * y + 2 * y ^ 2)
 
 /-- A sum-of-squares certificate for the covariance quadratic form. -/
