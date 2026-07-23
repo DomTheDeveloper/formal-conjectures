@@ -45,9 +45,10 @@ private theorem chainFiber_rankPoint_mem
         longBoxChain (occupiedRows .first S).card (occupiedRows .second S).card k.1 := by
   have hchosen := vertexRankPoint_mem_chosenChain S v hab
   have hkey := chainFiber_key hv
-  have ht := congrArg Prod.fst hkey
-  have hs := congrArg Prod.snd hkey
-  simpa [vertexChainKey, ht, hs] using hchosen
+  have ht : vertexChainIndex S v = k.1 := congrArg Prod.fst hkey
+  have hs : vertexSubchain S v = k.2 := congrArg Prod.snd hkey
+  rw [← ht, ← hs]
+  exact hchosen
 
 private theorem chainFiber_card_le_boxChain
     (S : Finset Vertex) (k : ℕ × Bool)
@@ -79,19 +80,49 @@ private theorem chainFiber_card_le_diagonalRows
     intro v hv w hw hlabel
     have hkeyv := chainFiber_key hv
     have hkeyw := chainFiber_key hw
-    have ht : vertexChainIndex S v = vertexChainIndex S w := by
-      have hvf := congrArg Prod.fst hkeyv
-      have hwf := congrArg Prod.fst hkeyw
-      exact hvf.trans hwf.symm
+    have hvindex : vertexChainIndex S v = k.1 := congrArg Prod.fst hkeyv
+    have hwindex : vertexChainIndex S w = k.1 := congrArg Prod.fst hkeyw
+    have ht : vertexChainIndex S v = vertexChainIndex S w :=
+      hvindex.trans hwindex.symm
     have hdiag : rowCoord .diagonal v = rowCoord .diagonal w := by
       exact congrArg Subtype.val hlabel
     have hvchain := chainFiber_rankPoint_mem hab hv
     have hwchain := chainFiber_rankPoint_mem hab hw
     cases hk : k.2
-    · exact diagonal_injective_on_longChain S v w hab ht
-        (by simpa [hk] using hvchain) (by simpa [hk] using hwchain) hdiag
-    · exact diagonal_injective_on_shortChain S v w ht
-        (by simpa [hk] using hvchain) (by simpa [hk] using hwchain) hdiag
+    · have hvlong : vertexRankPoint S v ∈
+          longBoxChain (occupiedRows .first S).card (occupiedRows .second S).card k.1 := by
+        simpa [hk] using hvchain
+      have hwlong : vertexRankPoint S w ∈
+          longBoxChain (occupiedRows .first S).card (occupiedRows .second S).card k.1 := by
+        simpa [hk] using hwchain
+      have hvlong' : vertexRankPoint S v ∈
+          longBoxChain (occupiedRows .first S).card (occupiedRows .second S).card
+            (vertexChainIndex S v) := by
+        rw [hvindex]
+        exact hvlong
+      have hwlong' : vertexRankPoint S w ∈
+          longBoxChain (occupiedRows .first S).card (occupiedRows .second S).card
+            (vertexChainIndex S w) := by
+        rw [hwindex]
+        exact hwlong
+      exact diagonal_injective_on_longChain S v w hab ht hvlong' hwlong' hdiag
+    · have hvshort : vertexRankPoint S v ∈
+          shortBoxChain (occupiedRows .first S).card (occupiedRows .second S).card k.1 := by
+        simpa [hk] using hvchain
+      have hwshort : vertexRankPoint S w ∈
+          shortBoxChain (occupiedRows .first S).card (occupiedRows .second S).card k.1 := by
+        simpa [hk] using hwchain
+      have hvshort' : vertexRankPoint S v ∈
+          shortBoxChain (occupiedRows .first S).card (occupiedRows .second S).card
+            (vertexChainIndex S v) := by
+        rw [hvindex]
+        exact hvshort
+      have hwshort' : vertexRankPoint S w ∈
+          shortBoxChain (occupiedRows .first S).card (occupiedRows .second S).card
+            (vertexChainIndex S w) := by
+        rw [hwindex]
+        exact hwshort
+      exact diagonal_injective_on_shortChain S v w ht hvshort' hwshort' hdiag
   have hcard := Finset.card_le_card_of_injOn (rowLabel .diagonal S)
     (t := (Finset.univ : Finset ↥(occupiedRows .diagonal S)))
     (fun _ _ => Finset.mem_univ _) hinj
