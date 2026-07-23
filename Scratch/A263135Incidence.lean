@@ -122,8 +122,29 @@ theorem contacts_eq_card_aInternalDarts (S : Finset Vertex) :
   apply Finset.sum_congr rfl
   intro v hv
   cases hside : v.side
+  · let E : Finset Direction := Finset.univ.filter fun d => neighbor v d ∈ S
+    let F : Finset (Vertex × Direction) := D.filter fun vd => Prod.fst vd = v
+    have hsum :
+        (∑ d ∈ Finset.univ, if neighbor v d ∈ S then 1 else 0) = E.card := by
+      rw [Finset.card_eq_sum_ones]
+      simp [E]
+    rw [hsum]
+    change E.card = F.card
+    refine Finset.card_bij (fun d _hd => (v, d)) ?_ ?_ ?_
+    · intro d hd
+      have hdn : neighbor v d ∈ S := (Finset.mem_filter.mp hd).2
+      simp [F, D, hv, hside, hdn]
+    · intro d₁ hd₁ d₂ hd₂ hpair
+      exact congrArg Prod.snd hpair
+    · intro vd hvd
+      rcases vd with ⟨w, d⟩
+      have hwv : w = v := (Finset.mem_filter.mp hvd).2
+      subst w
+      have hvdD : (v, d) ∈ D := (Finset.mem_filter.mp hvd).1
+      have hn : neighbor v d ∈ S :=
+        (Finset.mem_filter.mp (Finset.mem_filter.mp hvdD).1).2
+      refine ⟨d, Finset.mem_filter.mpr ⟨Finset.mem_univ d, hn⟩, rfl⟩
   · simp [D, hside]
-  · simp [D, hside, Finset.card_eq_sum_ones]
 
 /-- The number of directed internal darts is twice the contact count. -/
 theorem card_internalDarts_eq_two_mul_contacts (S : Finset Vertex) :
