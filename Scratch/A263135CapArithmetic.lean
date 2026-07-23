@@ -33,31 +33,38 @@ private theorem min_short_add_deficit (a b c t : ℕ) :
 private theorem sum_chain_lengths (a b : ℕ) (hab : a ≤ b) :
     Finset.sum (Finset.range a)
       (fun t => (a + b - 2 * t) + (a + b - 2 - 2 * t)) = 2 * a * b := by
-  by_cases ha0 : a = 0
-  · subst a
-    simp
-  have ha1 : 1 ≤ a := Nat.one_le_iff_ne_zero.mpr ha0
-  have hterm : ∀ t ∈ Finset.range a,
-      ((a + b - 2 * t) + (a + b - 2 - 2 * t)) + 4 * t =
-        2 * (a + b - 1) := by
-    intro t ht
-    have hta := Finset.mem_range.mp ht
-    omega
-  have hsum := Finset.sum_congr rfl hterm
-  simp only [Finset.sum_add_distrib, Finset.sum_const, Finset.card_range,
-    Nat.nsmul_eq_mul] at hsum
-  have hfour : Finset.sum (Finset.range a) (fun t => 4 * t) =
-      4 * Finset.sum (Finset.range a) (fun t => t) := by
-    rw [Finset.mul_sum]
-  rw [hfour] at hsum
-  have hgauss := Finset.sum_range_id_mul_two a
-  let d := a - 1
-  have haeq : a = d + 1 := by
-    dsimp [d]
-    omega
-  rw [haeq] at hsum hgauss ⊢
-  simp at hgauss
-  nlinarith
+  induction a generalizing b with
+  | zero => simp
+  | succ a ih =>
+      rw [Finset.sum_range_succ]
+      have hab' : a ≤ b := by omega
+      have hshift :
+          Finset.sum (Finset.range a)
+              (fun t => (a + 1 + b - 2 * t) + (a + 1 + b - 2 - 2 * t)) =
+            Finset.sum (Finset.range a)
+              (fun t => (a + b - 2 * t) + (a + b - 2 - 2 * t)) + 2 * a := by
+        calc
+          Finset.sum (Finset.range a)
+              (fun t => (a + 1 + b - 2 * t) + (a + 1 + b - 2 - 2 * t)) =
+              Finset.sum (Finset.range a)
+                (fun t => ((a + b - 2 * t) + (a + b - 2 - 2 * t)) + 2) := by
+            apply Finset.sum_congr rfl
+            intro t ht
+            have hta := Finset.mem_range.mp ht
+            omega
+          _ = Finset.sum (Finset.range a)
+                (fun t => (a + b - 2 * t) + (a + b - 2 - 2 * t)) +
+              Finset.sum (Finset.range a) (fun _ => 2) := by
+            rw [Finset.sum_add_distrib]
+          _ = Finset.sum (Finset.range a)
+                (fun t => (a + b - 2 * t) + (a + b - 2 - 2 * t)) + 2 * a := by
+            simp [Nat.mul_comm]
+      rw [hshift, ih b hab']
+      have hlast :
+          (a + 1 + b - 2 * a) + (a + 1 + b - 2 - 2 * a) = 2 * (b - a) := by
+        omega
+      rw [hlast]
+      omega
 
 /-- The total unused capacity of the product chains is the staircase deficiency. -/
 theorem chainCapSum_add_deficiency (a b c : ℕ)
