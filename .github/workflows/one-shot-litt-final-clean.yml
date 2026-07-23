@@ -1,0 +1,76 @@
+# Copyright 2026 Dominic Dabish
+# Licensed under the Apache License, Version 2.0.
+
+name: One-shot Litt final clean repairs
+
+on:
+  push:
+    paths:
+      - '.github/workflows/one-shot-litt-final-clean.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/litt-most-unfair-final-clean
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply only the two final arithmetic repairs
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean')
+          text = p.read_text()
+          old = '  have h2pred : 2 ≤ n - 1 := Nat.le_sub_of_add_le (by omega)\n'
+          new = '  have h2pred : 2 ≤ n - 1 := Nat.le_sub_of_add_le hn\n'
+          if old not in text:
+              raise SystemExit('Litt predecessor target not found')
+          p.write_text(text.replace(old, new, 1))
+
+          p = Path('FormalConjectures/Other/LittMostUnfairBetWalshConstantGap.lean')
+          text = p.read_text()
+          old = '  norm_num [pow_succ] at hcast ⊢\n'
+          new = '  norm_num [pow_succ] at hcast ⊢\n  linarith\n'
+          if old not in text:
+              raise SystemExit('Litt variance target not found')
+          p.write_text(text.replace(old, new, 1))
+          PY
+
+      - name: Install repository-pinned Lean
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore pinned Mathlib cache
+        run: |
+          set -euo pipefail
+          "$HOME/.elan/bin/lake" exe cache get
+
+      - name: Compile repaired modules
+        run: |
+          set -euo pipefail
+          "$HOME/.elan/bin/lake" build \
+            FormalConjectures.Other.LittMostUnfairBetWalshTwoEndpointConstant \
+            FormalConjectures.Other.LittMostUnfairBetWalshConstantGap
+
+      - name: Commit verified repairs
+        run: |
+          set -euo pipefail
+          git config user.name 'ProofOrchestrator'
+          git config user.email 'proof-orchestrator@users.noreply.github.com'
+          git add FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean \
+                  FormalConjectures/Other/LittMostUnfairBetWalshConstantGap.lean
+          git diff --cached --check
+          git commit -m 'Close final Litt arithmetic goals cleanly'
+          git push origin HEAD:agent/litt-most-unfair-final-clean
