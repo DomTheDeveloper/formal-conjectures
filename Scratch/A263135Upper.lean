@@ -27,7 +27,9 @@ theorem two_mul_ceilSqrt_le_edgeBoundary
       sum_occupiedRows_card_le_edgeBoundary S
   have hquad := six_mul_card_le_row_sum_sq S
   rw [hcard] at hquad
+  have hcoef : 6 * (2 * n) = 12 * n := by ring
   have hquadR : 12 * n ≤ R ^ 2 := by
+    rw [← hcoef]
     simpa [R] using hquad
   have hboundarySq : 12 * n ≤ (edgeBoundary S) ^ 2 := by
     have hsq : R ^ 2 ≤ (edgeBoundary S) ^ 2 :=
