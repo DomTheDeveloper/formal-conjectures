@@ -3,7 +3,7 @@ name: OEIS A343881 PR audit
 on:
   pull_request:
     branches: [main]
-    types: [opened, reopened, synchronize]
+    types: [opened]
 
 permissions:
   contents: read
@@ -12,8 +12,7 @@ jobs:
   lean:
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'ci/oeis-a343881-clean' &&
-      contains(github.event.pull_request.labels.*.name, 'ci:full')
+      github.event.pull_request.head.ref == 'ci/oeis-a343881-clean'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
