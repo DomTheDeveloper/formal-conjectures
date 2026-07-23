@@ -68,15 +68,18 @@ def constantWord (n : ℕ) (b : Bool) : Word n := fun _ => b
 def endpointFlipWord (m : ℕ) (b : Bool) : Word (m + 1) :=
   fun i => if i = 0 then !b else b
 
-/-! ## Exact evaluation of the sharp pair -/
+/- ## Exact evaluation of the sharp pair -/
 
 lemma sum_pow_two_fin : ∀ n : ℕ,
     (∑ i : Fin n, 2 ^ (i.val + 1)) = 2 ^ (n + 1) - 2
   | 0 => by simp
   | n + 1 => by
-      rw [Fin.sum_univ_castSucc, sum_pow_two_fin n]
-      simp only [Fin.val_castSucc, Fin.val_last]
-      rw [pow_succ]
+      rw [Fin.sum_univ_castSucc]
+      change (∑ i : Fin n, 2 ^ (i.val + 1)) + 2 ^ (n + 1) =
+        2 ^ (n + 2) - 2
+      rw [sum_pow_two_fin n]
+      have hn : n + 2 = (n + 1) + 1 := by omega
+      rw [hn, pow_succ]
       omega
 
 lemma sum_proper_pow_two (n : ℕ) :
