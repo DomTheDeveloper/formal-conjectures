@@ -20,7 +20,7 @@ import Mathlib
 # Walsh foundations for the most unfair Litt coin-word bet
 
 This file develops the finite Boolean-cube identities needed for the remaining
-variance bridge.  It contains no probability theory: the core facts are the
+variance bridge. It contains no probability theory: the core facts are the
 powerset product expansion and orthogonality of the `±1` characters.
 -/
 
@@ -70,12 +70,13 @@ theorem coinSign_mul_eq_neg_one_of_ne {a b : Bool} (h : a ≠ b) :
 
 /-- The Boolean-cube character product is `2^n` on the diagonal and zero off it. -/
 theorem prod_one_add_coinSign_mul {n : ℕ} (A B : Fin n → Bool) :
-    (∏ i ∈ Finset.univ, (1 : ℤ) + coinSign (A i) * coinSign (B i)) =
+    Finset.prod Finset.univ
+      (fun i : Fin n => (1 : ℤ) + coinSign (A i) * coinSign (B i)) =
       if A = B then 2 ^ n else 0 := by
   classical
   by_cases hAB : A = B
   · subst B
-    simp [hAB]
+    simp [Finset.prod_const, Finset.card_univ]
   · rw [if_neg hAB]
     have hex : ∃ i : Fin n, A i ≠ B i := by
       by_contra hnone
