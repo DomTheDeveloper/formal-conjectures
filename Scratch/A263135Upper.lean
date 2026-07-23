@@ -20,14 +20,19 @@ theorem two_mul_ceilSqrt_le_edgeBoundary
     2 * r ≤ edgeBoundary S := by
   let R := (occupiedRows .first S).card + (occupiedRows .second S).card +
     (occupiedRows .diagonal S).card
+  have hU : (Finset.univ : Finset RowKind) =
+      {RowKind.first, RowKind.second, RowKind.diagonal} := by decide
   have hrow : R ≤ edgeBoundary S := by
-    simpa [R] using sum_occupiedRows_card_le_edgeBoundary S
+    simpa [R, hU, add_assoc, add_left_comm, add_comm] using
+      sum_occupiedRows_card_le_edgeBoundary S
   have hquad := six_mul_card_le_row_sum_sq S
   rw [hcard] at hquad
+  have hquadR : 12 * n ≤ R ^ 2 := by
+    simpa [R] using hquad
   have hboundarySq : 12 * n ≤ (edgeBoundary S) ^ 2 := by
-    have hsq : R ^ 2 ≤ (edgeBoundary S) ^ 2 := by
-      nlinarith
-    nlinarith
+    have hsq : R ^ 2 ≤ (edgeBoundary S) ^ 2 :=
+      Nat.pow_le_pow_left hrow 2
+    exact hquadR.trans hsq
   rcases edgeBoundary_even_of_card_eq_two_mul S n hcard with ⟨q, hq⟩
   have hqSq : 3 * n ≤ q ^ 2 := by
     rw [hq] at hboundarySq
