@@ -65,6 +65,7 @@ private theorem clipLostDarts_pairwise_disjoint
   intro k hk l hl hkl
   have hkd : k < a + b - 1 := lt_of_lt_of_le (Finset.mem_range.mp hk) hd
   have hld : l < a + b - 1 := lt_of_lt_of_le (Finset.mem_range.mp hl) hd
+  change Disjoint (clipLostDarts a b k) (clipLostDarts a b l)
   rw [Finset.disjoint_left]
   intro pd hpk hpl
   simp only [clipLostDarts, Finset.mem_insert, Finset.mem_singleton] at hpk hpl
