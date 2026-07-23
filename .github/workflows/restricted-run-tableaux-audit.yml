@@ -21,29 +21,16 @@ jobs:
         with:
           build: false
           test: false
-      - name: Compile definitions
-        id: definitions
+      - name: Run Lean audit
         run: |
           set +e
-          lake env lean FormalConjecturesForMathlib/Combinatorics/RestrictedRunTableaux.lean > definitions.log 2>&1
-          code=$?
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          exit 0
-      - name: Compile conjecture
-        id: conjecture
-        run: |
-          set +e
-          lake env lean FormalConjectures/Arxiv/RestrictedRunTableaux.lean > conjecture.log 2>&1
-          code=$?
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          exit 0
-      - name: Build indexed helper library
-        id: indexed
-        run: |
-          set +e
+          lake build FormalConjecturesForMathlib.Combinatorics.RestrictedRunTableaux > definitions.log 2>&1
+          definitions_code=$?
+          lake build FormalConjectures.Arxiv.RestrictedRunTableaux > conjecture.log 2>&1
+          conjecture_code=$?
           lake build FormalConjecturesForMathlib > indexed.log 2>&1
-          code=$?
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          indexed_code=$?
+          echo "$definitions_code $conjecture_code $indexed_code" > exit-codes.txt
           exit 0
       - name: Upload audit logs
         if: always()
@@ -54,9 +41,11 @@ jobs:
             definitions.log
             conjecture.log
             indexed.log
+            exit-codes.txt
       - name: Enforce audit result
         if: always()
         run: |
-          test "${{ steps.definitions.outputs.exit_code }}" = "0"
-          test "${{ steps.conjecture.outputs.exit_code }}" = "0"
-          test "${{ steps.indexed.outputs.exit_code }}" = "0"
+          read definitions_code conjecture_code indexed_code < exit-codes.txt
+          test "$definitions_code" = "0"
+          test "$conjecture_code" = "0"
+          test "$indexed_code" = "0"
