@@ -78,6 +78,8 @@ jobs:
           import FormalConjectures.OEIS.A147983.SparseStrategyData
           import FormalConjectures.OEIS.A147983.SymbolicCertificate
 
+          /-! Focused axiom audit for the OEIS A147983 certificate theorem layers. -/
+
           #print axioms OeisA147983.cutSuffix_sum_le
           #print axioms OeisA147983.bite_sum_lt
           #print axioms OeisA147983.move_sum_lt
