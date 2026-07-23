@@ -54,6 +54,7 @@ jobs:
             FormalConjectures.OEIS.A147983.KernelPSet
             FormalConjectures.OEIS.A147983.MDDCertificate
             FormalConjectures.OEIS.A147983.StrategyCertificate
+            FormalConjectures.OEIS.A147983.SparseStrategyData
             FormalConjectures.OEIS.A147983.MoveClosureCertificate
             FormalConjectures.OEIS.A147983.SymbolicCertificate
           )
@@ -75,6 +76,7 @@ jobs:
           /-! Focused axiom audit for the OEIS A147983 certificate theorem layers. -/
           import FormalConjectures.OEIS.A147983.KernelPSet
           import FormalConjectures.OEIS.A147983.MDDCertificate
+          import FormalConjectures.OEIS.A147983.SparseStrategyData
           import FormalConjectures.OEIS.A147983.SymbolicCertificate
 
           #print axioms OeisA147983.cutSuffix_sum_le
@@ -84,6 +86,8 @@ jobs:
           #print axioms OeisA147983.KernelCertificate.MDD.Automaton.InclusionCertificate.accepts_mono
           #print axioms OeisA147983.KernelCertificate.MDD.Automaton.DisjointnessCertificate.not_both_accept
           #print axioms OeisA147983.StrategyCertificate.three_openings
+          #print axioms OeisA147983.SparseStrategyData.strategyCertificate
+          #print axioms OeisA147983.SparseStrategyData.three_openings
           #print axioms OeisA147983.MoveClosureCertificate.three_openings
           #print axioms OeisA147983.three_openings_of_symbolic_certificate
           EOF
