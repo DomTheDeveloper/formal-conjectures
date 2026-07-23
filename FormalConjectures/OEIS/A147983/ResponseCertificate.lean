@@ -19,9 +19,9 @@ import FormalConjectures.OEIS.A147983.KernelCertificate
 /-!
 # Two-ply losing-position certificates
 
-A Chomp P-position certificate does not need to store the intermediate N-positions.  It stores
+A Chomp P-position certificate does not need to store the intermediate N-positions. It stores
 only losing positions and, for every opponent move, a legal reply leading to another stored
-losing position.  The certificate producer remains untrusted; `reply_sound` is the proof boundary
+losing position. The certificate producer remains untrusted; `reply_sound` is the proof boundary
 checked by Lean.
 -/
 
@@ -40,6 +40,7 @@ structure ResponseCertificate (G : RankedGame P) (n : ℕ) where
 namespace ResponseCertificate
 
 /-- Every stored position in a sound two-ply response certificate is genuinely losing. -/
+@[category API, AMS 5]
 theorem outcome (C : ResponseCertificate G n) (i : Fin n) :
     Outcome G.Move (C.pos i) false := by
   have all : ∀ k : ℕ, ∀ i : Fin n, G.rank (C.pos i) = k →
@@ -59,6 +60,7 @@ theorem outcome (C : ResponseCertificate G n) (i : Fin n) :
   exact all _ i rfl
 
 /-- Every stored position has a kernel-checked losing proof. -/
+@[category API, AMS 5]
 theorem isLosing (C : ResponseCertificate G n) (i : Fin n) :
     IsLosing G.Move (C.pos i) :=
   ⟨C.outcome i⟩
