@@ -16,19 +16,50 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install elan
         run: |
-          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
       - name: Get olean cache
         run: lake exe cache get
 
-      - name: Build BMO8 certificate
-        run: lake env lean FormalConjectures/Other/BeaverMathOlympiad8Proof.lean
+      - name: Build BMO8 certificate and preserve diagnostics
+        run: |
+          set +e
+          set -o pipefail
+          lake --wfail build FormalConjectures.Other.BeaverMathOlympiad8Proof 2>&1 | tee BMO8Build.log
+          echo "${PIPESTATUS[0]}" > BMO8Build.status
+          exit 0
+
+      - name: Upload BMO8 build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bmo8-build-diagnostics
+          path: |
+            BMO8Build.log
+            BMO8Build.status
+
+      - name: Enforce compilation success
+        run: test "$(cat BMO8Build.status)" = "0"
 
       - name: Reject placeholders
         run: |
           ! grep -nE '\b(sorry|admit)\b' FormalConjectures/Other/BeaverMathOlympiad8Proof.lean
+
+      - name: Audit theorem axioms
+        run: |
+          cat > BMO8Audit.lean <<'EOF'
+          import FormalConjectures.Other.BeaverMathOlympiad8Proof
+          #print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_8_solved
+          EOF
+          lake env lean BMO8Audit.lean | tee BMO8Audit.log
+          if grep -q 'sorryAx' BMO8Audit.log; then
+            echo 'Unexpected sorryAx dependency'
+            exit 1
+          fi
