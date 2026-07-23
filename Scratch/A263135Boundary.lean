@@ -6,12 +6,22 @@ namespace OeisA263135
 def preservedRows (vd : Vertex × Direction) : Finset RowKind :=
   Finset.univ.filter fun r => rowCoord r (neighbor vd.1 vd.2) = rowCoord r vd.1
 
+private theorem preservedRows_eq (v : Vertex) (d : Direction) :
+    preservedRows (v, d) =
+      match d with
+      | .same => {RowKind.first, RowKind.second}
+      | .horizontal => {RowKind.second, RowKind.diagonal}
+      | .diagonal => {RowKind.first, RowKind.diagonal} := by
+  rcases v with ⟨i, j, side⟩
+  cases side <;> cases d <;>
+    ext r <;> cases r <;>
+      simp [preservedRows, rowCoord, neighbor] <;> omega
+
 @[simp]
 theorem card_preservedRows (v : Vertex) (d : Direction) :
     (preservedRows (v, d)).card = 2 := by
-  rcases v with ⟨i, j, side⟩
-  cases side <;> cases d <;>
-    simp [preservedRows, rowCoord, neighbor]
+  rw [preservedRows_eq]
+  cases d <;> simp
 
 /-- Boundary darts lying along the rows of kind `r`. -/
 def rowBoundaryDarts (r : RowKind) (S : Finset Vertex) : Finset (Vertex × Direction) :=
@@ -21,20 +31,35 @@ def rowBoundaryDarts (r : RowKind) (S : Finset Vertex) : Finset (Vertex × Direc
 theorem sum_rowBoundaryDarts_card (S : Finset Vertex) :
     (∑ r : RowKind, (rowBoundaryDarts r S).card) = 2 * edgeBoundary S := by
   classical
-  simp_rw [rowBoundaryDarts, Finset.card_eq_sum_ones, Finset.sum_filter]
-  rw [Finset.sum_comm]
-  simp only [edgeBoundary]
+  have hrow (r : RowKind) :
+      (rowBoundaryDarts r S).card =
+        ∑ vd ∈ boundaryDarts S, if r ∈ preservedRows vd then 1 else 0 := by
+    symm
+    simpa [rowBoundaryDarts] using
+      (Finset.sum_boole (R := ℕ)
+        (fun vd : Vertex × Direction => r ∈ preservedRows vd) (boundaryDarts S))
   calc
-    (∑ vd ∈ boundaryDarts S, ∑ r : RowKind, if r ∈ preservedRows vd then 1 else 0) =
-        ∑ vd ∈ boundaryDarts S, (preservedRows vd).card := by
-          apply Finset.sum_congr rfl
-          intro vd hv
-          simp [Finset.card_eq_sum_ones]
-    _ = ∑ _vd ∈ boundaryDarts S, 2 := by
-          apply Finset.sum_congr rfl
-          intro vd hv
-          rcases vd with ⟨v, d⟩
-          simp
-    _ = 2 * (boundaryDarts S).card := by simp [mul_comm]
+    (∑ r : RowKind, (rowBoundaryDarts r S).card) =
+        ∑ r : RowKind, ∑ vd ∈ boundaryDarts S,
+          if r ∈ preservedRows vd then 1 else 0 := by
+            apply Finset.sum_congr rfl
+            intro r hr
+            exact hrow r
+    _ = ∑ vd ∈ boundaryDarts S, ∑ r : RowKind,
+          if r ∈ preservedRows vd then 1 else 0 := by
+            rw [Finset.sum_comm]
+    _ = ∑ vd ∈ boundaryDarts S, (preservedRows vd).card := by
+            apply Finset.sum_congr rfl
+            intro vd hv
+            simpa using
+              (Finset.sum_boole (R := ℕ)
+                (fun r : RowKind => r ∈ preservedRows vd) Finset.univ)
+    _ = ∑ vd ∈ boundaryDarts S, 2 := by
+            apply Finset.sum_congr rfl
+            intro vd hv
+            rcases vd with ⟨v, d⟩
+            simp
+    _ = 2 * edgeBoundary S := by
+            simp [edgeBoundary, mul_comm]
 
 end OeisA263135
