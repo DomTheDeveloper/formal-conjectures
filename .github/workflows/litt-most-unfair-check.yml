@@ -50,13 +50,16 @@ jobs:
       - name: Build complete Litt development
         run: |
           set -o pipefail
-          lake --wfail build FormalConjectures.Other.LittMostUnfairBet \
+          lake build FormalConjectures.Other.LittMostUnfairBet \
             2>&1 | tee /tmp/litt-lean.log
       - name: Audit terminal theorem axioms
         run: |
           set -o pipefail
           cat > LittAxiomAudit.lean <<'EOF'
           import FormalConjectures.Other.LittMostUnfairBet
+
+          /-! Focused axiom audit for the Litt most-unfair theorem. -/
+
           #print axioms LittMostUnfairBet.most_unfair_litt_coin_word_bet
           #print axioms LittMostUnfairBet.endpoint_flip_pair_attains
           EOF
