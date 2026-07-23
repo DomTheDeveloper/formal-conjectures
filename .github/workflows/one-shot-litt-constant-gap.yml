@@ -1,5 +1,6 @@
 # Copyright 2026 Dominic Dabish
 # Licensed under the Apache License, Version 2.0.
+# Synchronization trigger for the current Litt source.
 
 name: One-shot Litt constant branch repair
 
