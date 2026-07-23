@@ -4,7 +4,7 @@ namespace OeisA263135
 
 /-- Sum of the positive terms in the arithmetic progression `q, q-2, q-4, ...`. -/
 def staircase (q : ℕ) : ℕ :=
-  ∑ t ∈ Finset.range q, q - 2 * t
+  Finset.sum (Finset.range q) fun t => q - 2 * t
 
 private theorem staircase_add_two (q : ℕ) :
     staircase (q + 2) = staircase q + q + 2 := by
@@ -12,8 +12,8 @@ private theorem staircase_add_two (q : ℕ) :
   rw [Finset.sum_range_succ']
   simp only [Nat.mul_zero, Nat.sub_zero]
   have hshift :
-      (∑ t ∈ Finset.range (q + 1), q + 2 - 2 * (t + 1)) =
-        ∑ t ∈ Finset.range (q + 1), q - 2 * t := by
+      Finset.sum (Finset.range (q + 1)) (fun t => q + 2 - 2 * (t + 1)) =
+        Finset.sum (Finset.range (q + 1)) (fun t => q - 2 * t) := by
     apply Finset.sum_congr rfl
     intro t ht
     omega
