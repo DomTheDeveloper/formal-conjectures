@@ -1,3 +1,3 @@
-Immutable proof commit: 1136ebda2f789e38496432818b7f6505ef1ceb12
-Lean 4.27 API corrected audit trigger.
-Nonce: 2026-07-23T08:55Z
+Immutable proof commit: 0e5ff5b9bbef619bebfe9e6e04e212ed6a3f7d53
+Direct-getElem corrected audit trigger.
+Nonce: 2026-07-23T09:02Z
