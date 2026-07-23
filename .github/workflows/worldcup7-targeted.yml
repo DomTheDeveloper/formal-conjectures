@@ -35,7 +35,7 @@ jobs:
       - name: Compile exact Lean-native Chomp checker
         run: |
           set -o pipefail
-          /usr/bin/time -v lake env lean FormalConjectures/Paper/ChompThreeOpeningsNative.lean \
+          /usr/bin/time -v lake build FormalConjectures.Paper.ChompThreeOpeningsNative \
             2>&1 | tee chomp-native-proof.log
 
       - name: Upload log
