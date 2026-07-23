@@ -3,11 +3,11 @@ import Scratch.A263135ChainCount
 namespace OeisA263135
 
 private theorem sum_sub_two_mul_eq_staircase (q a : ℕ) (hqa : q ≤ a) :
-    (∑ t ∈ Finset.range a, q - 2 * t) = staircase q := by
+    (∑ t in Finset.range a, q - 2 * t) = staircase q := by
   unfold staircase
   nth_rewrite 1 [← Nat.add_sub_of_le hqa]
   rw [Finset.sum_range_add]
-  have hzero : (∑ t ∈ Finset.range (a - q), q - 2 * (q + t)) = 0 := by
+  have hzero : (∑ t in Finset.range (a - q), q - 2 * (q + t)) = 0 := by
     apply Finset.sum_eq_zero
     intro t ht
     omega
@@ -31,8 +31,12 @@ private theorem min_short_add_deficit (a b c t : ℕ) :
     omega
 
 private theorem sum_chain_lengths (a b : ℕ) (hab : a ≤ b) :
-    (∑ t ∈ Finset.range a,
+    (∑ t in Finset.range a,
       ((a + b - 2 * t) + (a + b - 2 - 2 * t))) = 2 * a * b := by
+  by_cases ha0 : a = 0
+  · subst a
+    simp
+  have ha1 : 1 ≤ a := Nat.one_le_iff_ne_zero.mpr ha0
   have hterm : ∀ t ∈ Finset.range a,
       ((a + b - 2 * t) + (a + b - 2 - 2 * t)) + 4 * t =
         2 * (a + b - 1) := by
@@ -42,11 +46,17 @@ private theorem sum_chain_lengths (a b : ℕ) (hab : a ≤ b) :
   have hsum := Finset.sum_congr rfl hterm
   simp only [Finset.sum_add_distrib, Finset.sum_const, Finset.card_range,
     Nat.nsmul_eq_mul] at hsum
-  have hfour : (∑ t ∈ Finset.range a, 4 * t) =
-      4 * ∑ t ∈ Finset.range a, t := by
+  have hfour : (∑ t in Finset.range a, 4 * t) =
+      4 * ∑ t in Finset.range a, t := by
     rw [Finset.mul_sum]
   rw [hfour] at hsum
   have hgauss := Finset.sum_range_id_mul_two a
+  let d := a - 1
+  have haeq : a = d + 1 := by
+    dsimp [d]
+    omega
+  rw [haeq] at hsum hgauss ⊢
+  simp at hgauss
   nlinarith
 
 /-- The total unused capacity of the product chains is the staircase deficiency. -/
@@ -69,11 +79,11 @@ theorem chainCapSum_add_deficiency (a b c : ℕ)
     rw [← min_long_add_deficit a b c t, ← min_short_add_deficit a b c t]
     omega
   have hsum := Finset.sum_congr rfl hterm
-  simp only [Finset.sum_add_distrib] at hsum
+  have hlen := sum_chain_lengths a b hab
+  simp only [Finset.sum_add_distrib] at hsum hlen
   unfold chainCapSum staircaseDeficiency
   rw [← hdef1, ← hdef2]
   simp only [Finset.sum_add_distrib]
-  rw [sum_chain_lengths a b hab] at hsum
   omega
 
 /-- Sorted row counts imply the required quadratic size bound. -/
@@ -86,10 +96,13 @@ theorem six_mul_card_le_row_sum_sq_of_sorted (S : Finset Vertex)
   let a := (occupiedRows .first S).card
   let b := (occupiedRows .second S).card
   let c := (occupiedRows .diagonal S).card
-  have hcard := card_le_chainCapSum S hab
-  have hcap := chainCapSum_add_deficiency a b c hab hbc
+  have hcard : S.card ≤ chainCapSum a b c := by
+    simpa [a, b, c] using card_le_chainCapSum S hab
+  have hcap : chainCapSum a b c + staircaseDeficiency (a + b - c) = 2 * a * b :=
+    chainCapSum_add_deficiency a b c hab hbc
   have hm : S.card + staircaseDeficiency (a + b - c) ≤ 2 * a * b := by
     omega
+  change 6 * S.card ≤ (a + b + c) ^ 2
   exact perimeter_square_of_chain_deficiency a b c S.card hab hbc hm
 
 end OeisA263135
