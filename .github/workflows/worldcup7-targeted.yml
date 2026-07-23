@@ -22,6 +22,9 @@ jobs:
       - name: Confirm immutable source
         run: test "$(git rev-parse HEAD)" = "36fca20b64b95fd3daffcac33293251cda296be8"
 
+      - name: Isolate checker from missing fork aggregate import
+        run: sed -i '1s/import FormalConjecturesUtil/import Mathlib/' FormalConjectures/Paper/ChompThreeOpeningsNative.lean
+
       - name: Install elan
         run: |
           set -o pipefail
@@ -32,7 +35,7 @@ jobs:
       - name: Get Mathlib cache
         run: lake exe cache get
 
-      - name: Compile exact Lean-native Chomp checker
+      - name: Compile Lean-native Chomp checker
         run: |
           set -o pipefail
           /usr/bin/time -v lake build FormalConjectures.Paper.ChompThreeOpeningsNative \
