@@ -1,1 +1,1 @@
-Run the diagnostic-first isolated Lean audit.
+Run the dependency-aware isolated WorldCup7 Lean audit.
