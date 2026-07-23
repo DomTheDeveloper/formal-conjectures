@@ -1,6 +1,12 @@
 name: Chomp native proof audit
 
 on:
+  push:
+    branches:
+      - work/chomp-native-proof-v3
+    paths:
+      - 'FormalConjectures/Paper/ChompThreeOpeningsNative.lean'
+      - '.github/workflows/chomp-native-proof-audit.yml'
   pull_request:
     branches: [main]
     paths:
