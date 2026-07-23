@@ -63,7 +63,7 @@ theorem translate_nearFullBase_eq {n : ℕ} (hn : 2 ≤ n) {R : Finset ℕ} :
       insert 1 (insert (n - 1) (translate R 1)) := by
   have hsub : n - 2 + 1 = n - 1 := by omega
   ext i
-  simp [translate, nearFullBase, hsub, or_left_comm, or_assoc]
+  simp [translate, nearFullBase, hsub]
 
 /-- With constant interior and equal endpoints, the two near-full monomials agree. -/
 theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
@@ -105,6 +105,7 @@ theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
   have h1lt : 1 < n := by omega
   have h1int : 1 < n - 1 := by omega
   have hone : A ⟨1, h1lt⟩ = c := hconst _ (by omega) h1int
+  have hnlast : n - 1 < n := Nat.sub_lt (by omega) (by omega)
   rw [translate_nearFullBase_eq (by omega)]
   change natMonomial A (insert 0 (insert (n - 2) R)) =
     natMonomial A (insert 1 (insert (n - 1) (translate R 1)))
@@ -117,9 +118,9 @@ theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
   rw [natMonomial_interior_constant A c hconst (translate R 1) hTRint]
   rw [card_translate]
   rw [letterSign_of_lt A (by omega : 0 < n)]
-  rw [letterSign_of_lt A (by omega : n - 2 < n)]
-  rw [letterSign_of_lt A (by omega : 1 < n)]
-  rw [letterSign_of_lt A (by omega : n - 1 < n)]
+  rw [letterSign_of_lt A hn2lt]
+  rw [letterSign_of_lt A h1lt]
+  rw [letterSign_of_lt A hnlast]
   rw [hpen, hone, hends]
   ring
 
@@ -184,11 +185,12 @@ theorem rawEnergy_ge_of_constant_interior_equal_endpoints {n : ℕ}
       ext i
       simp only [Finset.mem_erase, Finset.mem_insert, nearFullBase]
       constructor
-      · rintro ⟨hine, hi0, hieq | hiR⟩
-        · exact (hine hieq).elim
+      · rintro ⟨hine, hi0, hi0eq | hipenEq | hiR⟩
+        · exact (hi0 hi0eq).elim
+        · exact (hine hipenEq).elim
         · exact hiR
       · intro hiR
-        refine ⟨?_, ?_, Or.inr hiR⟩
+        refine ⟨?_, ?_, Or.inr (Or.inr hiR)⟩
         · intro e; subst i; exact hRpen hiR
         · intro e; subst i; exact hR0 hiR
     rw [← recover (Finset.mem_powerset.mp hR₁),
@@ -231,14 +233,25 @@ theorem eq_reverse_of_constant_interior_opposite_endpoints {n : ℕ}
     rw [hi]
     have hB0 := bool_eq_not_of_ne hleft
     have hAlast := bool_eq_not_of_ne hopposite
-    simp [reverseWord, hB0, hAlast]
+    change B (⟨0, by omega⟩ : Fin n) = A ((⟨0, by omega⟩ : Fin n).rev)
+    have hrev : ((⟨0, by omega⟩ : Fin n).rev) = ⟨n - 1, by omega⟩ := by
+      apply Fin.ext
+      simp
+    rw [hrev]
+    exact hB0.trans hAlast.symm
   · by_cases hilast : i.val = n - 1
     · have hi : i = ⟨n - 1, by omega⟩ := Fin.ext hilast
       rw [hi]
       have hBlast := bool_eq_not_of_ne hright
       have hA0 : A ⟨0, by omega⟩ = !A ⟨n - 1, by omega⟩ := by
         simpa using (bool_eq_not_of_ne hopposite).symm
-      simp [reverseWord, hBlast, hA0]
+      change B (⟨n - 1, by omega⟩ : Fin n) =
+        A ((⟨n - 1, by omega⟩ : Fin n).rev)
+      have hrev : ((⟨n - 1, by omega⟩ : Fin n).rev) = ⟨0, by omega⟩ := by
+        apply Fin.ext
+        simp
+      rw [hrev]
+      exact hBlast.trans hA0.symm
     · have hipos : 0 < i.val := by omega
       have hiint : i.val < n - 1 := by omega
       have hirevpos : 0 < i.rev.val := by
