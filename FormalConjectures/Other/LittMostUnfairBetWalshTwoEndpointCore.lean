@@ -16,14 +16,6 @@ limitations under the License.
 
 import FormalConjectures.Other.LittMostUnfairBetWalshOneEndpointGap
 
-/-!
-# Near-full shapes for the two-endpoint Litt gap
-
-For words agreeing internally and differing at both endpoints, the useful
-shapes span coordinates `0` through `n-2`. They have exactly two valid
-translations, at offsets zero and one, and both raw coefficients are `±2`.
--/
-
 set_option autoImplicit false
 
 namespace LittMostUnfairBetWalsh
@@ -31,14 +23,12 @@ namespace LittMostUnfairBetWalsh
 open Finset
 open LittMostUnfairBet
 
-/-- Coordinates strictly between `0` and `n-2`. -/
 def middleCoordinates (n : ℕ) : Finset ℕ := Finset.Ico 1 (n - 2)
 
 @[simp] theorem mem_middleCoordinates {n i : ℕ} :
     i ∈ middleCoordinates n ↔ 1 ≤ i ∧ i < n - 2 := by
   simp [middleCoordinates]
 
-/-- A shape spanning `0` through `n-2`. -/
 def nearFullBase (n : ℕ) (R : Finset ℕ) : Finset ℕ :=
   insert 0 (insert (n - 2) R)
 
@@ -48,7 +38,6 @@ def nearFullBase (n : ℕ) (R : Finset ℕ) : Finset ℕ :=
 @[simp] theorem penultimate_mem_nearFullBase (n : ℕ) (R : Finset ℕ) :
     n - 2 ∈ nearFullBase n R := by simp [nearFullBase]
 
-/-- A near-full base lies in the coordinate range. -/
 theorem nearFullBase_subset_range {n : ℕ} (hn : 3 ≤ n) {R : Finset ℕ}
     (hR : R ⊆ middleCoordinates n) :
     nearFullBase n R ⊆ Finset.range n := by
@@ -60,14 +49,12 @@ theorem nearFullBase_subset_range {n : ℕ} (hn : 3 ≤ n) {R : Finset ℕ}
   · have hr := mem_middleCoordinates.mp (hR hi)
     simp; omega
 
-/-- Every near-full base is a normalized shape. -/
 theorem nearFullBase_mem_shapes {n : ℕ} (hn : 3 ≤ n) {R : Finset ℕ}
     (hR : R ⊆ middleCoordinates n) :
     nearFullBase n R ∈ shapes n := by
   exact mem_shapes.mpr ⟨nearFullBase_subset_range hn hR,
     zero_mem_nearFullBase n R⟩
 
-/-- Near-full bases have exactly the translations zero and one. -/
 theorem translations_nearFullBase {n : ℕ} (hn : 3 ≤ n) {R : Finset ℕ}
     (hR : R ⊆ middleCoordinates n) :
     translations n (nearFullBase n R) = {0, 1} := by
@@ -95,7 +82,6 @@ theorem translations_nearFullBase {n : ℕ} (hn : 3 ≤ n) {R : Finset ℕ}
       · have hr := mem_middleCoordinates.mp (hR hi)
         omega
 
-/-- The coefficient of a near-full shape is the sum of its two raw translates. -/
 theorem shapeCoeff_nearFullBase {n : ℕ} (hn : 3 ≤ n)
     (A B : Word n) {R : Finset ℕ} (hR : R ⊆ middleCoordinates n) :
     shapeCoeff A B (nearFullBase n R) =
@@ -104,7 +90,6 @@ theorem shapeCoeff_nearFullBase {n : ℕ} (hn : 3 ≤ n)
   rw [shapeCoeff, translations_nearFullBase hn hR]
   simp
 
-/-- Inserting an equal-coordinate letter multiplies a raw difference by its sign. -/
 theorem rawDifference_insert_of_word_eq {n j : ℕ} (A B : Word n)
     (S : Finset ℕ) (hjS : j ∉ S) (hj : j < n)
     (heq : A ⟨j, hj⟩ = B ⟨j, hj⟩) :
@@ -114,9 +99,9 @@ theorem rawDifference_insert_of_word_eq {n j : ℕ} (A B : Word n)
     simp [letterSign, hj, heq]
   rw [rawDifference, natMonomial_insert A S hjS,
     natMonomial_insert B S hjS, hsign]
+  unfold rawDifference
   ring
 
-/-- A near-full base includes only the left endpoint among the two endpoints. -/
 theorem nearFullBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 3 ≤ n)
     (A B : Word n)
     (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
@@ -156,7 +141,6 @@ theorem nearFullBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 3 ≤ n)
   rw [hprodR, hleftSign, hpen]
   norm_num
 
-/-- The translated near-full base includes only the right endpoint. -/
 theorem translated_nearFullBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 3 ≤ n)
     (A B : Word n)
     (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
@@ -198,7 +182,6 @@ theorem translated_nearFullBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 3 ≤ n)
   rw [hprodInterior, hrightSign]
   norm_num
 
-/-- Both raw coefficients of a two-endpoint near-full shape have square `4`. -/
 theorem nearFull_rawDifference_squares {n : ℕ} (hn : 3 ≤ n)
     (A B : Word n)
     (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
