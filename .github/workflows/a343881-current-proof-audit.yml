@@ -1,0 +1,42 @@
+name: A343881 current-upstream proof audit
+
+on:
+  pull_request:
+    branches:
+      - mirror/gdm-e751-proof-a343881
+    paths:
+      - 'FormalConjectures/OEIS/343881.lean'
+      - 'AuditTriggers/A343881-current-upstream.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: a343881-current-upstream-proof
+  cancel-in-progress: true
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+      - name: Reject placeholders and trust shortcuts
+        run: |
+          if grep -nE '\b(sorry|admit|native_decide|unsafe)\b|(^|[^A-Za-z])axiom([^A-Za-z]|$)|Lean\.(trustCompiler|ofReduce|ofReduceBool)' FormalConjectures/OEIS/343881.lean; then
+            exit 1
+          fi
+      - name: Compile exact proof
+        run: lake env lean -DwarningAsError=true FormalConjectures/OEIS/343881.lean
+      - name: Audit theorem axioms
+        run: |
+          cat > /tmp/A343881Audit.lean <<'EOF'
+          import FormalConjectures.OEIS.«343881»
+          #print axioms OeisA343881.conjecture
+          EOF
+          lake env lean /tmp/A343881Audit.lean | tee /tmp/a343881-axioms.log
+          ! grep -E 'sorryAx|Lean\.(trustCompiler|ofReduce|ofReduceBool)' /tmp/a343881-axioms.log
