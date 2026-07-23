@@ -1,0 +1,38 @@
+name: Patch Geode5 table normalization
+
+on:
+  push:
+    branches: [audit-geode5-crt-proof]
+    paths:
+      - '.github/workflows/geode5-patch-table-normalization.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit-geode5-crt-proof
+      - name: Expand power derivatives and fixed sums
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=FormalConjectures/Arxiv/2508.10245/Geode5Proof/RemainderTables.lean
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('FormalConjectures/Arxiv/2508.10245/Geode5Proof/RemainderTables.lean')
+          s = p.read_text()
+          old = 'Polynomial.derivative_X]\n  ring_nf'
+          new = 'Polynomial.derivative_X, Polynomial.derivative_pow, Finset.sum_range_succ]\n  ring_nf'
+          assert s.count(old) == 5, s.count(old)
+          p.write_text(s.replace(old, new))
+          PY
+          rm .github/workflows/geode5-patch-table-normalization.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add "$file" .github/workflows/geode5-patch-table-normalization.yml
+          git commit -m 'Expand Geode5 table derivative normalization [skip ci]'
+          git push origin HEAD:audit-geode5-crt-proof
