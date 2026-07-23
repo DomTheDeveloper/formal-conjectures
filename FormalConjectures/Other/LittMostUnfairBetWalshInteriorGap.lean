@@ -167,10 +167,16 @@ theorem strip_selectedInteriorShape {n : ℕ} (A B : Word n) (j : Fin n)
     simp [stripInteriorShape, selectedInteriorShape, chooseDifferingShape,
       fullSpanBase, hRj]
   · by_cases hzero : rawDifference A B (fullSpanBase n R) = 0
-    · simp [stripInteriorShape, selectedInteriorShape, chooseDifferingShape,
-        fullSpanBase, hi0, hilast, hij, hzero]
-    · simp [stripInteriorShape, selectedInteriorShape, chooseDifferingShape,
-        fullSpanBase, hi0, hilast, hij, hzero]
+    · have hzero' :
+          rawDifference A B (insert 0 (insert (n - 1) R)) = 0 := by
+        simpa [fullSpanBase] using hzero
+      simp [stripInteriorShape, selectedInteriorShape, chooseDifferingShape,
+        fullSpanBase, hi0, hilast, hij, hzero']
+    · have hzero' :
+          ¬ rawDifference A B (insert 0 (insert (n - 1) R)) = 0 := by
+        simpa [fullSpanBase] using hzero
+      simp [stripInteriorShape, selectedInteriorShape, chooseDifferingShape,
+        fullSpanBase, hi0, hilast, hij, hzero']
 
 /-- The selected-shape map is injective on the interior powerset. -/
 theorem selectedInteriorShape_injective {n : ℕ} (A B : Word n)
