@@ -1,0 +1,31 @@
+name: Patch Geode5 remainder table generators
+
+on:
+  push:
+    branches: [audit-geode5-crt-proof]
+    paths:
+      - '.github/workflows/geode5-patch-remainder-tables.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit-geode5-crt-proof
+      - name: Use the shared kernel generators
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=FormalConjectures/Arxiv/2508.10245/Geode5Proof/RemainderTables.lean
+          sed -i '/^private def y : YPoly := Polynomial.X$/d' "$file"
+          sed -i '/^private def t : TYPoly := Polynomial.X$/d' "$file"
+          rm .github/workflows/geode5-patch-remainder-tables.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add "$file" .github/workflows/geode5-patch-remainder-tables.yml
+          git commit -m 'Use shared Geode5 generators in remainder tables [skip ci]'
+          git push origin HEAD:audit-geode5-crt-proof
