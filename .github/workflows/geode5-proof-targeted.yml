@@ -32,30 +32,18 @@ jobs:
           out=.lake/build/lib/lean/FormalConjectures/Arxiv/2508.10245/Geode5Proof
           mkdir -p "$out"
           test -z "$(grep -RInE '\b(sorry|admit)\b' "$root" || true)"
+          modules=(MomentAlgebra Integral Recurrence RemainderTables)
           set +e
-          {
+          status=0
+          : > geode5-lean.log
+          for module in "${modules[@]}"; do
+            echo "===== $module =====" | tee -a geode5-lean.log
             lake env lean -DwarningAsError=true \
-              "$root/MomentAlgebra.lean" -o "$out/MomentAlgebra.olean"
-            first=$?
-            if [ "$first" -eq 0 ]; then
-              lake env lean -DwarningAsError=true \
-                "$root/Integral.lean" -o "$out/Integral.olean"
-              second=$?
-            else
-              second=0
-            fi
-            if [ "$first" -eq 0 ] && [ "$second" -eq 0 ]; then
-              lake env lean -DwarningAsError=true \
-                "$root/Recurrence.lean" -o "$out/Recurrence.olean"
-              third=$?
-            else
-              third=0
-            fi
-            if [ "$first" -ne 0 ]; then exit "$first"; fi
-            if [ "$second" -ne 0 ]; then exit "$second"; fi
-            exit "$third"
-          } 2>&1 | tee geode5-lean.log
-          status=${PIPESTATUS[0]}
+              "$root/$module.lean" -o "$out/$module.olean" \
+              2>&1 | tee -a geode5-lean.log
+            status=${PIPESTATUS[0]}
+            if [ "$status" -ne 0 ]; then break; fi
+          done
           echo "status=$status" >> "$GITHUB_OUTPUT"
           exit 0
       - name: Upload compiler diagnostics
