@@ -5,6 +5,10 @@ Licensed under the Apache License, Version 2.0.
 
 import FormalConjecturesUtil
 
+/-!
+# WOWII Conjecture 2: local independent-set choice
+-/
+
 namespace WrittenOnTheWallII.GraphConjecture2Audit
 
 open Classical Finset SimpleGraph
@@ -43,14 +47,14 @@ lemma chosenLocalIndep_subset_neighborFinset
   intro u hu
   rw [chosenLocalIndep, Finset.mem_map] at hu
   obtain ⟨w, _hw, rfl⟩ := hu
-  change G.Adj v (w : α)
-  exact w.property
+  exact (G.mem_neighborFinset v (w : α)).2 w.property
 
 lemma chosenLocalIndep_mem_adj
     (G : SimpleGraph α) [DecidableRel G.Adj] {v u : α}
     (hu : u ∈ chosenLocalIndep G v) :
     G.Adj v u := by
-  simpa using chosenLocalIndep_subset_neighborFinset G v hu
+  exact (G.mem_neighborFinset v u).1
+    (chosenLocalIndep_subset_neighborFinset G v hu)
 
 lemma chosenLocalIndep_isIndepSet
     (G : SimpleGraph α) (v : α) :
@@ -77,7 +81,7 @@ lemma chosenLocalIndep_disjoint_neighborFinset
     Disjoint (chosenLocalIndep G v) (G.neighborFinset u) := by
   refine Finset.disjoint_left.2 ?_
   intro w hwI hwN
-  have huw : G.Adj u w := by simpa using hwN
+  have huw : G.Adj u w := (G.mem_neighborFinset u w).1 hwN
   exact (chosenLocalIndep_isIndepSet G v
     (by simpa using hu) (by simpa using hwI) huw.ne) huw
 
