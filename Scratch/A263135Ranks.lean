@@ -20,7 +20,7 @@ theorem rowCoord_le_of_rowRank_le (r : RowKind) (S : Finset Vertex) (v w : ↥S)
     (h : rowRank r S v ≤ rowRank r S w) :
     rowCoord r v ≤ rowCoord r w := by
   have hmono := ((occupiedRows r S).orderIsoOfFin rfl).monotone h
-  simpa [orderIso_rowRank] using hmono
+  simpa [orderIso_rowRank, rowLabel] using hmono
 
 /-- Equal row ranks are equivalent to equal row coordinates. -/
 theorem rowRank_eq_iff_rowCoord_eq (r : RowKind) (S : Finset Vertex) (v w : ↥S) :
@@ -29,7 +29,7 @@ theorem rowRank_eq_iff_rowCoord_eq (r : RowKind) (S : Finset Vertex) (v w : ↥S
   · intro h
     have := congrArg (fun x : ↥(occupiedRows r S) => (x : ℤ))
       (congrArg ((occupiedRows r S).orderIsoOfFin rfl) h)
-    simpa [orderIso_rowRank] using this
+    simpa [orderIso_rowRank, rowLabel] using this
   · intro h
     apply ((occupiedRows r S).orderIsoOfFin rfl).symm.injective
     apply Subtype.ext
