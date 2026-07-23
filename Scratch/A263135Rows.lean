@@ -1,4 +1,4 @@
-import FormalConjectures.OEIS.«263135»
+import FormalConjectures.OEIS.A263135Defs
 
 namespace OeisA263135
 
