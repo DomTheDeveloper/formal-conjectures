@@ -80,7 +80,10 @@ theorem balanced_corner_width (r : ℕ) (hr : 3 ≤ r) :
       have hnum : r - 1 + 2 = 3 * q + 1 := by omega
       rw [hnum]
       omega
-    rw [h0, h1, h2, hp0, hp1, hp2]
+    simp only [h0, h1, h2, hp0, hp1, hp2]
+    obtain ⟨k, rfl⟩ : ∃ k, q = k + 1 := by
+      exact ⟨q - 1, by omega⟩
+    ring_nf
     omega
   · have hre : r = 3 * q + 1 := by dsimp [q]; omega
     have hq : 1 ≤ q := by omega
@@ -90,8 +93,10 @@ theorem balanced_corner_width (r : ℕ) (hr : 3 ≤ r) :
     have hp0 : (r - 1) / 3 = q := by dsimp [q]; omega
     have hp1 : (r - 1 + 1) / 3 = q := by dsimp [q]; omega
     have hp2 : (r - 1 + 2) / 3 = q := by dsimp [q]; omega
-    rw [h0, h1, h2, hp0, hp1, hp2]
-    ring_nf
+    simp only [h0, h1, h2, hp0, hp1, hp2]
+    have hcancel : q * 2 + q ^ 2 * 3 - q ^ 2 * 3 = q * 2 := by
+      exact Nat.add_sub_cancel_right _ _
+    rw [hcancel]
   · have hre : r = 3 * q + 2 := by dsimp [q]; omega
     have h0 : r / 3 = q := rfl
     have h1 : (r + 1) / 3 = q + 1 := by dsimp [q]; omega
@@ -99,8 +104,12 @@ theorem balanced_corner_width (r : ℕ) (hr : 3 ≤ r) :
     have hp0 : (r - 1) / 3 = q := by dsimp [q]; omega
     have hp1 : (r - 1 + 1) / 3 = q := by dsimp [q]; omega
     have hp2 : (r - 1 + 2) / 3 = q + 1 := by dsimp [q]; omega
-    rw [h0, h1, h2, hp0, hp1, hp2]
-    ring_nf
+    simp only [h0, h1, h2, hp0, hp1, hp2]
+    have hdecomp :
+        1 + q * 4 + q ^ 2 * 3 =
+          (q * 2 + q ^ 2 * 3) + (1 + q * 2) := by ring
+    rw [hdecomp, Nat.add_sub_cancel_left]
+    omega
 
 /-- Positivity of the balanced side parameters once `r ≥ 3`. -/
 theorem balanced_positive (r : ℕ) (hr : 3 ≤ r) :
