@@ -7,6 +7,7 @@ on:
       - 'ProofArtifacts/OEIS/A147983/chomp_export_p_ranks.cpp'
       - 'ProofArtifacts/OEIS/A147983/chomp_p_mdd_serialize.cpp'
       - 'ProofArtifacts/OEIS/A147983/chomp_prestrategy_mdd_compact.cpp'
+      - 'ProofArtifacts/OEIS/A147983/chomp_prestrategy_mdd_compact.trigger'
       - '.github/workflows/a147983-prestrategy-mdd.yml'
   workflow_dispatch:
 
