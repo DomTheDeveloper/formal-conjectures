@@ -140,7 +140,6 @@ theorem selfOverlapDelta_eq_zero_of_constant_interior_opposite_endpoints
   have hrevLeft : left.rev = right := by
     apply Fin.ext
     dsimp [left, right, Fin.rev]
-    omega
   have hrevRight : right.rev = left := by
     apply Fin.ext
     dsimp [left, right, Fin.rev]
