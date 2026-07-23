@@ -76,10 +76,18 @@ lemma twelve_seventy_two_not_candidate {p : ℕ} (hp : p.Prime) :
               (pow_ne_zero y (by norm_num))]
       _ = (c ^ p).factorization := congrArg Nat.factorization hpow
       _ = p • c.factorization := Nat.factorization_pow c p
-  have h12two : (12 : ℕ).factorization 2 = 2 := by decide
-  have h12three : (12 : ℕ).factorization 3 = 1 := by decide
-  have h72two : (72 : ℕ).factorization 2 = 3 := by decide
-  have h72three : (72 : ℕ).factorization 3 = 2 := by decide
+  have h12two : (12 : ℕ).factorization 2 = 2 := by
+    rw [← Nat.primeFactorsList_count_eq]
+    norm_num [Nat.primeFactorsList]
+  have h12three : (12 : ℕ).factorization 3 = 1 := by
+    rw [← Nat.primeFactorsList_count_eq]
+    norm_num [Nat.primeFactorsList]
+  have h72two : (72 : ℕ).factorization 2 = 3 := by
+    rw [← Nat.primeFactorsList_count_eq]
+    norm_num [Nat.primeFactorsList]
+  have h72three : (72 : ℕ).factorization 3 = 2 := by
+    rw [← Nat.primeFactorsList_count_eq]
+    norm_num [Nat.primeFactorsList]
   have htwo := congrArg (fun f : ℕ →₀ ℕ => f 2) hfac
   have hthree := congrArg (fun f : ℕ →₀ ℕ => f 3) hfac
   simp [h12two, h12three, h72two, h72three, nsmul_eq_mul] at htwo hthree
