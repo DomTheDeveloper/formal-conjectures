@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.Arxiv.«2508.10245».Geode5
 import FormalConjectures.Arxiv.«2508.10245».Geode5Proof.CertificateData
 import Mathlib.Data.Nat.ChineseRemainder
 
@@ -22,7 +21,9 @@ import Mathlib.Data.Nat.ChineseRemainder
 # CRT certificate layer for the five-dimensional Geode computation
 
 This module checks the exact 480-prime Chinese-remainder certificate and proves
-uniqueness below the rigorous hyper-Catalan upper bound.
+uniqueness below the rigorous hyper-Catalan upper bound. It is intentionally
+independent of the benchmark statement; `FinalBridge.lean` applies it to
+`geode5Diagonal`.
 -/
 
 namespace Arxiv.«2508.10245».Geode5Proof
@@ -78,28 +79,9 @@ theorem eq_answerValue_of_residues_of_lt_upperBound (z : ℕ)
     (hzlt.trans upperBound_lt_certificateModulus)
     (answerValue_lt_upperBound.trans upperBound_lt_certificateModulus)
 
-/--
-Final arithmetic bridge: once the moment recurrence supplies nonnegativity, the
-upper bound, and all 480 residues for the Formal Conjectures definition, the
-exact 8,367-digit equality follows.
--/
-theorem geode5_1000_of_certificate
-    (hnonneg : 0 ≤ geode5Diagonal 1000)
-    (hbound : Int.toNat (geode5Diagonal 1000) < upperBound)
-    (hres : ∀ pr ∈ residuePairs,
-      Int.toNat (geode5Diagonal 1000) ≡ pr.2 [MOD pr.1]) :
-    geode5Diagonal 1000 = (answerValue : ℤ) := by
-  have hnat : Int.toNat (geode5Diagonal 1000) = answerValue :=
-    eq_answerValue_of_residues_of_lt_upperBound _ hres hbound
-  calc
-    geode5Diagonal 1000 = Int.toNat (geode5Diagonal 1000) := by
-      symm
-      exact Int.toNat_of_nonneg hnonneg
-    _ = answerValue := by exact_mod_cast hnat
-
 #print axioms residueModuli_pairwise_coprime
 #print axioms answer_modEq_residue
 #print axioms upperBound_lt_certificateModulus
-#print axioms geode5_1000_of_certificate
+#print axioms eq_answerValue_of_residues_of_lt_upperBound
 
 end Arxiv.«2508.10245».Geode5Proof
