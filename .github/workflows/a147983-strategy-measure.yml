@@ -40,6 +40,18 @@ jobs:
       - name: Build exact generators
         run: |
           set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('chomp_strategy_mdd.cpp')
+          text = path.read_text()
+          needle = '            bool ok = visit(first, std::move(initial));'
+          replacement = '''            std::cout << "checking first=" << static_cast<int>(first.row) << ','
+                      << static_cast<int>(first.target) << std::endl;
+            bool ok = visit(first, std::move(initial));'''
+          if needle not in text:
+              raise SystemExit('instrumentation insertion point not found')
+          path.write_text(text.replace(needle, replacement, 1))
+          PY
           g++ -std=c++17 -O3 -march=native -DNDEBUG -Wall -Wextra -Wpedantic \
             chomp_export_p_ranks.cpp -o chomp_export_p_ranks
           g++ -std=c++17 -O3 -march=native -DNDEBUG -Wall -Wextra -Wpedantic \
@@ -67,7 +79,7 @@ jobs:
       - name: Measure exact symbolic response closure
         run: |
           set -uo pipefail
-          /usr/bin/time -v ./chomp_strategy_mdd p10x42.mdd 500000 \
+          /usr/bin/time -v stdbuf -oL ./chomp_strategy_mdd p10x42.mdd 10000000 \
             > strategy.stdout 2> strategy.stderr
           status=$?
           echo "$status" > strategy.status
