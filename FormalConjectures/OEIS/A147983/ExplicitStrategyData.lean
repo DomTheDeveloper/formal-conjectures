@@ -72,8 +72,7 @@ def ReplyValid (D : ExplicitStrategyData) (i : Fin D.positions.size)
     response.row < q.length ∧
     response.target < q.getD response.row 0 ∧
     (response.row = 0 → 0 < response.target) ∧
-    ∀ hnext : response.next < D.positions.size,
-      D.positions[⟨response.next, hnext⟩] = bite response.row response.target q
+    D.positions.getD response.next [] = bite response.row response.target q
 
 /-- Finite validity conditions for an explicit strategy table.
 
@@ -113,7 +112,7 @@ def strategyCertificate (D : ExplicitStrategyData) (hD : D.Valid) : StrategyCert
     let next : Fin D.positions.size := ⟨response.next, hnext⟩
     refine ⟨D.positions[next], ⟨next, rfl⟩, ?_⟩
     refine ⟨response.row, response.target, hreplyRow, hreplyTarget, hreplyPoison, ?_⟩
-    simpa [response, rowFin, targetFin] using hreplyEq hnext
+    simpa [response, rowFin, targetFin, next, Array.getD, hnext] using hreplyEq
   child₁_mem := by
     rcases hD.2.2.1 with ⟨i, hi⟩
     exact ⟨i, hi⟩
