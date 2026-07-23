@@ -20,6 +20,7 @@ jobs:
           test: false
       - name: Compile theorem and audit axioms
         run: |
+          # The default-branch PR workflow is the authoritative audit.
           set -o pipefail
           lake build FormalConjectures.OEIS.«343881» 2>&1 | tee build.log
           cat > A343881Audit.lean <<'EOF'
