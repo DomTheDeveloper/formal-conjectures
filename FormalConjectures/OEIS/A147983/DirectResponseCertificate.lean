@@ -19,7 +19,7 @@ import FormalConjectures.OEIS.A147983.KernelCertificate
 /-!
 # Direct two-ply response certificates
 
-This variant records the strict decrease of the selected two-ply response directly.  Therefore the
+This variant records the strict decrease of the selected two-ply response directly. Therefore the
 certificate does not need a separate global proof that every possible game move decreases the
 measure; the kernel checks exactly the moves used by the second-player strategy.
 -/
@@ -41,6 +41,7 @@ structure DirectResponseCertificate (Move : P → P → Prop) (n : ℕ) where
 namespace DirectResponseCertificate
 
 /-- Every stored position is genuinely losing in the represented normal-play game. -/
+@[category API, AMS 5]
 theorem outcome (C : DirectResponseCertificate Move n) (i : Fin n) :
     Outcome Move (C.pos i) false := by
   have all : ∀ k : ℕ, ∀ i : Fin n, C.measure (C.pos i) = k →
@@ -58,6 +59,7 @@ theorem outcome (C : DirectResponseCertificate Move n) (i : Fin n) :
   exact all _ i rfl
 
 /-- Every stored position has a kernel-checked losing proof. -/
+@[category API, AMS 5]
 theorem isLosing (C : DirectResponseCertificate Move n) (i : Fin n) :
     IsLosing Move (C.pos i) :=
   ⟨C.outcome i⟩
