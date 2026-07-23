@@ -46,7 +46,7 @@ def modularNumerator (p n : ℕ) : ZMod p :=
   (Nat.factorial (5 * n) : ZMod p) * mScaledExtraction p n
 
 /-- Value returned by the polynomial modular recurrence. -/
-def modularGeode (p n : ℕ) : ZMod p :=
+def modularGeode (p n : ℕ) [Fact p.Prime] : ZMod p :=
   modularNumerator p n / modularDenominator p n
 
 /-- Reduction commutes with weighted extraction. -/
@@ -77,7 +77,7 @@ theorem geode5_modular_numerator_identity (p n : ℕ) :
     simp [modularDenominator, modularNumerator, reduce_zScaledExtraction])
 
 /-- Soundness of the modular Geode recurrence and extraction. -/
-theorem modularGeode_eq_cast (p n : ℕ)
+theorem modularGeode_eq_cast (p n : ℕ) [Fact p.Prime]
     (hden : modularDenominator p n ≠ 0) :
     modularGeode p n = (geode5Diagonal n : ZMod p) := by
   rw [modularGeode, div_eq_iff hden]
