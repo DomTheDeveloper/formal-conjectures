@@ -41,15 +41,15 @@ theorem reverse_self_overlap_iff {n : ℕ} (A : Word n) (k : Fin n) :
   · intro h
     funext i
     have hi := congrFun h i.rev
-    change A ⟨(n - k - 1 + i.rev.val), by omega⟩.rev =
-      A ⟨i.rev.val, by omega⟩.rev at hi
+    change A ((⟨n - k - 1 + i.rev.val, by omega⟩ : Fin n).rev) =
+      A ((⟨i.rev.val, by omega⟩ : Fin n).rev) at hi
     convert hi.symm using 1 <;> apply Fin.ext <;>
       have hir := i.rev_add_cast <;> omega
   · intro h
     funext i
     have hi := congrFun h i.rev
-    change A ⟨(n - k - 1 + i.val), by omega⟩.rev =
-      A ⟨i.val, by omega⟩.rev
+    change A ((⟨n - k - 1 + i.val, by omega⟩ : Fin n).rev) =
+      A ((⟨i.val, by omega⟩ : Fin n).rev)
     convert hi.symm using 1 <;> apply Fin.ext <;>
       have hir := i.rev_add_cast <;> omega
 
