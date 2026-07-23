@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.Arxiv.«2508.10245».Geode5Proof.Integral
+import FormalConjectures.Arxiv.«2508.10245».Geode5Proof.Recurrence
 import FormalConjectures.Arxiv.«2508.10245».Geode5Proof.ReducedSum
 
 /-!
