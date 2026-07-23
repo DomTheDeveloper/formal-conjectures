@@ -28,6 +28,11 @@ namespace Arxiv.«2508.10245».Geode5Proof
 private def smokePrime : ℕ := 576460752303404051
 private def smokeResidue : ℕ := 464097493913787811
 
+private theorem smokePrime_prime : Nat.Prime smokePrime := by
+  native_decide
+
+local instance : Fact smokePrime.Prime := ⟨smokePrime_prime⟩
+
 set_option maxHeartbeats 0 in
 theorem smoke_denominator_nonzero :
     modularDenominator smokePrime 1000 ≠ 0 := by
