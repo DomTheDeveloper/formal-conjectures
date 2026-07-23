@@ -1,7 +1,7 @@
 name: Geode5 proof targeted audit
 
 on:
-  pull_request_target:
+  pull_request:
     branches: [main]
     types: [labeled, synchronize, reopened]
 
@@ -10,7 +10,7 @@ permissions:
   issues: write
 
 jobs:
-  moment-algebra:
+  proof-layers:
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref == 'audit-geode5-crt-proof' &&
@@ -32,9 +32,19 @@ jobs:
           set -uo pipefail
           test -z "$(grep -RInE '\b(sorry|admit)\b' FormalConjectures/Arxiv/2508.10245/Geode5Proof || true)"
           set +e
-          lake env lean -DwarningAsError=true \
-            FormalConjectures/Arxiv/2508.10245/Geode5Proof/MomentAlgebra.lean \
-            2>&1 | tee /tmp/geode5-lean.log
+          {
+            lake env lean -DwarningAsError=true \
+              FormalConjectures/Arxiv/2508.10245/Geode5Proof/MomentAlgebra.lean
+            first=$?
+            if [ "$first" -eq 0 ]; then
+              lake env lean -DwarningAsError=true \
+                FormalConjectures/Arxiv/2508.10245/Geode5Proof/Integral.lean
+              second=$?
+            else
+              second=0
+            fi
+            exit $(( first != 0 ? first : second ))
+          } 2>&1 | tee /tmp/geode5-lean.log
           status=${PIPESTATUS[0]}
           echo "status=$status" >> "$GITHUB_OUTPUT"
           exit 0
