@@ -1,8 +1,16 @@
 import FormalConjecturesUtil
 
+/-!
+# Reduced finite certificate for WOWII Conjecture 59
+
+Only vertices `0,…,10` lie on cycles in the explicit counterexample. This module
+checks that every seven-vertex subset of that core contains one of the 25 fixed
+cycle witnesses.
+-/
+
 namespace WOWII59CoreTest
 
-open Classical Finset
+open Finset
 
 set_option maxHeartbeats 0
 set_option maxRecDepth 1000000
