@@ -33,19 +33,28 @@ jobs:
             FormalConjectures/Arxiv/2508.10245/Geode5.lean
       - name: Install Lean 4.27
         run: |
+          set -euo pipefail
           curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
           "$HOME/.elan/bin/elan" toolchain install leanprover/lean4:v4.27.0
       - name: Fetch cache
         run: lake exe cache get
-      - name: Compile final benchmark theorem
+      - name: Build final theorem and audit axioms
         id: compile
         continue-on-error: true
         run: |
           set -o pipefail
-          lake env lean -DwarningAsError=true \
-            FormalConjectures/Arxiv/2508.10245/Geode5.lean \
+          lake build 'FormalConjectures.Arxiv.«2508.10245».Geode5' \
             2>&1 | tee /tmp/geode5-arm.log
+          cat > Geode5FinalAudit.lean <<'EOF'
+          import FormalConjectures.Arxiv.«2508.10245».Geode5
+          #print axioms Arxiv.«2508.10245».geode5_1000
+          EOF
+          lake env lean -DwarningAsError=true Geode5FinalAudit.lean \
+            2>&1 | tee -a /tmp/geode5-arm.log
+          if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduceBool|Lean\.ofReduce' /tmp/geode5-arm.log; then
+            exit 1
+          fi
       - name: Report
         if: always()
         env:
@@ -56,6 +65,7 @@ jobs:
             echo '## Geode5 ARM final theorem audit'
             echo
             echo "Head: \`${{ github.event.pull_request.head.sha }}\`"
+            echo "Target: \`FormalConjectures.Arxiv.«2508.10245».Geode5\`"
             echo "Result: **${OUTCOME}**"
             echo
             echo '```text'
