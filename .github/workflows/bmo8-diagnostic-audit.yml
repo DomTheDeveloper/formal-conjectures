@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          "$HOME/.elan/bin/lake" env lean FormalConjectures/Other/BeaverMathOlympiad8Proof.lean > BMO8Compile.log 2>&1
+          "$HOME/.elan/bin/lake" build FormalConjectures.Other.BeaverMathOlympiad8Proof > BMO8Compile.log 2>&1
           status=$?
           cat BMO8Compile.log
           echo "$status" > BMO8Compile.status
