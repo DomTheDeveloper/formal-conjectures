@@ -17,37 +17,48 @@ limitations under the License.
 import FormalConjectures.OEIS.A147983.StrategyCertificate
 
 /-!
-# Sparse finite response tables for the 10 × 42 Chomp witness
+# Sparse packed response tables for the 10 × 42 Chomp witness
 
-A concrete certificate stores one response only for each legal opponent move.  `offsets[i]` points
-to the first response for carrier position `i`; legal moves are ordered lexicographically by bite
-row and target.  Missing or malformed data evaluates to an invalid default, so the data producer
-is not trusted.  A proof of `SparseStrategyData.Valid` is converted into the exact
-`StrategyCertificate` used by the final theorem.
+A concrete certificate stores every ten-row position in one 60-bit natural number and one packed
+30-bit response for each legal opponent move.  `offsets[i]` points to the first response for
+carrier position `i`; legal moves are ordered lexicographically by bite row and target.  Missing or
+malformed data evaluates to an invalid default, so the data producer is not trusted.  A proof of
+`SparseStrategyData.Valid` is converted into the exact `StrategyCertificate` used by the final
+theorem.
 -/
 
 namespace OeisA147983
 
-/-- One packed response-table cell. -/
+/-- One decoded response-table cell. -/
 structure SparseReply where
   next : ℕ
   row : ℕ
   target : ℕ
   deriving DecidableEq, Repr
 
-/-- Carrier positions, per-position response offsets, and one response per legal opponent move. -/
+/-- Packed carrier positions, per-position offsets, and packed sparse replies. -/
 structure SparseStrategyData where
-  positions : Array (List ℕ)
+  positions : Array ℕ
   offsets : Array ℕ
-  replies : Array SparseReply
+  replies : Array ℕ
 
 namespace SparseStrategyData
 
-/-- Deliberately invalid fallback for an absent response entry. -/
-def defaultReply : SparseReply :=
-  { next := 0, row := 0, target := 0 }
+/-- Unpack ten six-bit row lengths from a natural number. -/
+def unpackPosition (code : ℕ) : List ℕ :=
+  (List.range 10).map fun row => (code / (64 ^ row)) % 64
 
-/-- Number of legal bite targets in one row of a ten-row position. -/
+/-- Decode `next` in bits 0–19, `row` in bits 20–23, and `target` in bits 24–29. -/
+def unpackReply (code : ℕ) : SparseReply :=
+  { next := code % 1048576
+    row := (code / 1048576) % 16
+    target := (code / 16777216) % 64 }
+
+/-- Decode one carrier position. -/
+def positionAt (D : SparseStrategyData) (i : Fin D.positions.size) : List ℕ :=
+  unpackPosition D.positions[i]
+
+/-- Number of legal bite targets in one row. -/
 def rowMoveCount (p : List ℕ) (row : ℕ) : ℕ :=
   if row = 0 then p.getD row 0 - 1 else p.getD row 0
 
@@ -59,46 +70,48 @@ def movesBefore (p : List ℕ) (row : ℕ) : ℕ :=
 def localMoveIndex (p : List ℕ) (row target : ℕ) : ℕ :=
   movesBefore p row + if row = 0 then target - 1 else target
 
-/-- Read the response for one legal opponent move without trusting any array dimension. -/
+/-- Read and decode one response without trusting any array dimension. -/
 def replyAt (D : SparseStrategyData) (i : Fin D.positions.size)
     (row : Fin 10) (target : Fin 43) : SparseReply :=
-  let p := D.positions[i]
+  let p := D.positionAt i
   let base := D.offsets.getD i.1 0
-  D.replies.getD (base + localMoveIndex p row.1 target.1) defaultReply
+  unpackReply (D.replies.getD (base + localMoveIndex p row.1 target.1) 0)
 
-/-- The finite carrier represented by the position array. -/
+/-- The finite carrier represented by the packed position array. -/
 def carrier (D : SparseStrategyData) : Set (List ℕ) :=
-  Set.range fun i : Fin D.positions.size => D.positions[i]
+  Set.range D.positionAt
 
 /-- One sparse response cell is sound for the corresponding legal opponent move. -/
 def ReplyValid (D : SparseStrategyData) (i : Fin D.positions.size)
     (row : Fin 10) (target : Fin 43) : Prop :=
-  let p := D.positions[i]
+  let p := D.positionAt i
   let q := bite row.1 target.1 p
   let response := D.replyAt i row target
   response.next < D.positions.size ∧
     response.row < q.length ∧
     response.target < q.getD response.row 0 ∧
     (response.row = 0 → 0 < response.target) ∧
-    D.positions.getD response.next [] = bite response.row response.target q
+    unpackPosition (D.positions.getD response.next 0) =
+      bite response.row response.target q
 
-/-- Finite validity conditions for a sparse response table.
+/-- Finite validity conditions for a packed sparse response table.
 
-The offset array is deliberately not trusted separately: every legal move must retrieve a sound
-response through `replyAt`.  Incorrect offsets therefore make this proposition false. -/
+The offset and response arrays are deliberately not trusted separately: every legal move must
+retrieve a sound response through `replyAt`.  Incorrect dimensions or offsets therefore make this
+proposition false. -/
 def Valid (D : SparseStrategyData) : Prop :=
   (∀ i : Fin D.positions.size,
-      D.positions[i].length = 10 ∧
-        ∀ row : Fin 10, D.positions[i].getD row.1 0 ≤ 42) ∧
+      (D.positionAt i).length = 10 ∧
+        ∀ row : Fin 10, (D.positionAt i).getD row.1 0 ≤ 42) ∧
     (∀ (i : Fin D.positions.size) (row : Fin 10) (target : Fin 43),
-      target.1 < D.positions[i].getD row.1 0 →
+      target.1 < (D.positionAt i).getD row.1 0 →
       (row.1 = 0 → 0 < target.1) →
       D.ReplyValid i row target) ∧
-    (∃ i : Fin D.positions.size, D.positions[i] = child₁) ∧
-    (∃ i : Fin D.positions.size, D.positions[i] = child₂) ∧
-    (∃ i : Fin D.positions.size, D.positions[i] = child₃)
+    (∃ i : Fin D.positions.size, D.positionAt i = child₁) ∧
+    (∃ i : Fin D.positions.size, D.positionAt i = child₂) ∧
+    (∃ i : Fin D.positions.size, D.positionAt i = child₃)
 
-/-- A valid sparse finite table is a genuine closed second-player strategy. -/
+/-- A valid sparse packed table is a genuine closed second-player strategy. -/
 def strategyCertificate (D : SparseStrategyData) (hD : D.Valid) : StrategyCertificate where
   carrier := D.carrier
   reply := by
@@ -106,10 +119,10 @@ def strategyCertificate (D : SparseStrategyData) (hD : D.Valid) : StrategyCertif
     intro p hp q hpq
     rcases hp with ⟨i, rfl⟩
     rcases hpq with ⟨row, target, hrow, htarget, hpoison, rfl⟩
-    have hlength : D.positions[i].length = 10 := (hshape i).1
+    have hlength : (D.positionAt i).length = 10 := (hshape i).1
     have hrow10 : row < 10 := by omega
     let rowFin : Fin 10 := ⟨row, hrow10⟩
-    have hwidth : D.positions[i].getD row 0 ≤ 42 := by
+    have hwidth : (D.positionAt i).getD row 0 ≤ 42 := by
       simpa [rowFin] using (hshape i).2 rowFin
     have htarget43 : target < 43 := by omega
     let targetFin : Fin 43 := ⟨target, htarget43⟩
@@ -118,9 +131,9 @@ def strategyCertificate (D : SparseStrategyData) (hD : D.Valid) : StrategyCertif
     let response := D.replyAt i rowFin targetFin
     rcases hvalid with ⟨hnext, hreplyRow, hreplyTarget, hreplyPoison, hreplyEq⟩
     let next : Fin D.positions.size := ⟨response.next, hnext⟩
-    refine ⟨D.positions[next], ⟨next, rfl⟩, ?_⟩
+    refine ⟨D.positionAt next, ⟨next, rfl⟩, ?_⟩
     refine ⟨response.row, response.target, hreplyRow, hreplyTarget, hreplyPoison, ?_⟩
-    simpa [response, rowFin, targetFin, next, Array.getD, hnext] using hreplyEq
+    simpa [positionAt, next, response, Array.getD, hnext] using hreplyEq
   child₁_mem := by
     rcases hD.2.2.1 with ⟨i, hi⟩
     exact ⟨i, hi⟩
