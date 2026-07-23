@@ -89,29 +89,23 @@ theorem shift_block_eq_iff_overlap {n : ℕ} (A B : Word n)
     prefixBlock B h.1 = suffixBlock A h.1 ↔
       wordSuffix A (shiftToOverlapIndex h).1 =
         wordPrefix B (shiftToOverlapIndex h).1 := by
+  have hh := Finset.mem_Ico.mp h.2
+  have hlen := shiftToOverlapIndex_length h
+  have hstart : n - (shiftToOverlapIndex h).1.val - 1 = h.1 := by
+    omega
   constructor
   · intro hblock
     funext i
-    let j : Fin (n - h.1) := ⟨i.val, by
-      have hi := i.isLt
-      rw [shiftToOverlapIndex_length h] at hi
-      exact hi⟩
+    have hi : i.val < n - h.1 := by omega
+    let j : Fin (n - h.1) := ⟨i.val, hi⟩
     have hv := congrFun hblock j
-    change A ⟨n - (shiftToOverlapIndex h).1.val - 1 + i.val, by omega⟩ =
-      B ⟨i.val, by omega⟩
-    convert hv.symm using 1 <;> apply Fin.ext <;>
-      dsimp [j, shiftToOverlapIndex] <;>
-      have hh := Finset.mem_Ico.mp h.2 <;> omega
+    simpa [wordSuffix, wordPrefix, prefixBlock, suffixBlock, j, hstart] using hv.symm
   · intro hoverlap
     funext i
-    let j : Fin ((shiftToOverlapIndex h).1.val + 1) := ⟨i.val, by
-      rw [shiftToOverlapIndex_length h]
-      exact i.isLt⟩
+    have hi : i.val < (shiftToOverlapIndex h).1.val + 1 := by omega
+    let j : Fin ((shiftToOverlapIndex h).1.val + 1) := ⟨i.val, hi⟩
     have hv := congrFun hoverlap j
-    change B ⟨i.val, by omega⟩ = A ⟨h.1 + i.val, by omega⟩
-    convert hv.symm using 1 <;> apply Fin.ext <;>
-      dsimp [j, shiftToOverlapIndex] <;>
-      have hh := Finset.mem_Ico.mp h.2 <;> omega
+    simpa [wordSuffix, wordPrefix, prefixBlock, suffixBlock, j, hstart] using hv.symm
 
 /-- The weighted block test is the weighted proper-overlap test. -/
 theorem shift_overlap_term_eq {n : ℕ} (A B : Word n)
@@ -146,7 +140,8 @@ theorem overlapNum_eq_positive_shift_sum {n : ℕ} (A B : Word n) :
       intro k
       by_cases hp : k.val + 1 < n <;> simp [f, hp]
     _ = ∑ k ∈ properOverlapIndices n, f k := by
-      simp [properOverlapIndices]
+      unfold properOverlapIndices
+      rw [Finset.sum_filter]
     _ = ∑ k : ProperOverlapIndex n, f k.1 := by
       symm
       exact Finset.sum_coe_sort (properOverlapIndices n) f
@@ -184,6 +179,7 @@ theorem varianceNum_eq_shiftVarianceNum {n : ℕ} (A B : Word n) :
     natCast_overlapNum_eq_shiftOverlapNum B B,
     natCast_overlapNum_eq_shiftOverlapNum A B,
     natCast_overlapNum_eq_shiftOverlapNum B A]
+  norm_cast
 
 /-- Exact Walsh square identity for the repository variance numerator. -/
 theorem rawEnergy_cast_eq_two_mul_varianceNum {n : ℕ}
