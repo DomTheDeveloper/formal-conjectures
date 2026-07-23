@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
   lean:
@@ -19,4 +20,25 @@ jobs:
           build: false
           test: false
       - name: Compile A343881 with warnings as errors
+        id: compile
+        continue-on-error: true
         run: lake env lean -DwarningAsError=true FormalConjectures/OEIS/343881.lean
+      - name: Publish audit status
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          COMPILE_OUTCOME: ${{ steps.compile.outcome }}
+        with:
+          script: |
+            const passed = process.env.COMPILE_OUTCOME === 'success';
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: passed ? 'success' : 'failure',
+              context: 'A343881 focused Lean audit',
+              description: passed ? 'Lean proof compiled with warnings as errors' : 'Lean proof compilation failed'
+            });
+      - name: Enforce compiler result
+        if: steps.compile.outcome != 'success'
+        run: exit 1
