@@ -17,21 +17,12 @@ limitations under the License.
 import FormalConjectures.Other.LittMostUnfairBetWalshOrbit
 import FormalConjectures.Other.LittMostUnfairBetWalshPairSum
 
-/-!
-# Increasing translation pairs and positive shifts
-
-A pair of valid translations `t < u` of one normalized shape is equivalent to
-a positive shift `h = u - t` together with a nonempty subset of the common
-coordinate range `0, ..., n-h-1`.
--/
-
 set_option autoImplicit false
 
 namespace LittMostUnfairBetWalsh
 
 open Finset
 
-/-- Flattened finite set of `(shape,t,u)` with `t<u`. -/
 noncomputable def upperOrbitPairs (n : ℕ) : Finset ((Finset ℕ × ℕ) × ℕ) :=
   ((((shapes n).product (Finset.range n)).product (Finset.range n))).filter
     (fun p => p.1.2 ∈ translations n p.1.1 ∧
@@ -56,7 +47,6 @@ noncomputable def upperOrbitPairs (n : ℕ) : Finset ((Finset ℕ × ℕ) × ℕ
     · exact Finset.mem_range.mpr (mem_translations.mp ht).1
     · exact Finset.mem_range.mpr (mem_translations.mp hu).1
 
-/-- Finite set of positive shifts paired with nonempty common-range subsets. -/
 def positiveShiftSubsets (n : ℕ) : Finset (ℕ × Finset ℕ) :=
   (((Finset.Ico 1 n).product ((Finset.range n).powerset))).filter
     (fun p => p.2 ∈ nonemptySubsets (n - p.1))
@@ -85,14 +75,8 @@ private def upperOrbitToShiftVal {n : ℕ} (p : UpperOrbitPair n) :
     ℕ × Finset ℕ :=
   (p.1.2 - p.1.1.2, translate p.1.1.1 p.1.1.2)
 
-/-- Map an increasing translation pair to its positive shift and left subset. -/
 def upperOrbitToShift {n : ℕ} (p : UpperOrbitPair n) :
     PositiveShiftSubset n := by
-  let T := p.1.1.1
-  let t := p.1.1.2
-  let u := p.1.2
-  let h := u - t
-  let S := translate T t
   have hp' := mem_upperOrbitPairs.mp p.2
   have hshape := hp'.1
   have ht := hp'.2.1
@@ -101,7 +85,7 @@ def upperOrbitToShift {n : ℕ} (p : UpperOrbitPair n) :
   refine ⟨upperOrbitToShiftVal p, mem_positiveShiftSubsets.mpr ⟨?_, ?_⟩⟩
   · have hu_lt := (mem_translations.mp hu).1
     simp only [Finset.mem_Ico]
-    change 1 ≤ u - t ∧ u - t < n
+    change 1 ≤ p.1.2 - p.1.1.2 ∧ p.1.2 - p.1.1.2 < n
     omega
   · apply mem_nonemptySubsets.mpr
     constructor
@@ -109,17 +93,15 @@ def upperOrbitToShift {n : ℕ} (p : UpperOrbitPair n) :
       rcases Finset.mem_image.mp hx with ⟨i, hi, rfl⟩
       have hvalid := (mem_translations.mp hu).2 i hi
       simp only [Finset.mem_range]
-      change i + t < n - (u - t)
+      change i + p.1.1.2 < n - (p.1.2 - p.1.1.2)
       omega
-    · have hzero := (mem_shapes.mp hshape).2
-      refine ⟨t, ?_⟩
-      exact Finset.mem_image.mpr ⟨0, hzero, by simp⟩
+    · refine ⟨p.1.1.2, ?_⟩
+      exact Finset.mem_image.mpr ⟨0, (mem_shapes.mp hshape).2, by simp⟩
 
 private noncomputable def shiftToUpperOrbitVal {n : ℕ}
     (q : PositiveShiftSubset n) : (Finset ℕ × ℕ) × ℕ :=
   ((normalize q.1.2, offset q.1.2), offset q.1.2 + q.1.1)
 
-/-- Recover the normalized shape and the two translations from a positive shift. -/
 noncomputable def shiftToUpperOrbit {n : ℕ} (q : PositiveShiftSubset n) :
     UpperOrbitPair n := by
   let h := q.1.1
@@ -157,7 +139,6 @@ noncomputable def shiftToUpperOrbit {n : ℕ} (q : PositiveShiftSubset n) :
   change offset S < offset S + h
   omega
 
-/-- Increasing translation pairs and positive-shift subsets are equivalent. -/
 noncomputable def upperOrbitShiftEquiv (n : ℕ) :
     UpperOrbitPair n ≃ PositiveShiftSubset n where
   toFun := upperOrbitToShift
@@ -180,6 +161,7 @@ noncomputable def upperOrbitShiftEquiv (n : ℕ) :
     · rw [(normalize_translate_pair
         (mem_upperOrbitPairs.mp p.2).1
         (mem_upperOrbitPairs.mp p.2).2.1).2]
+      have htu := (mem_upperOrbitPairs.mp p.2).2.2.2
       omega
   right_inv := by
     intro q
@@ -188,10 +170,10 @@ noncomputable def upperOrbitShiftEquiv (n : ℕ) :
       (offset q.1.2 + q.1.1 - offset q.1.2,
         translate (normalize q.1.2) (offset q.1.2)) = q.1
     apply Prod.ext
-    · omega
+    · have hh := (Finset.mem_Ico.mp (mem_positiveShiftSubsets.mp q.2).1).1
+      omega
     · exact translate_normalize_pair (mem_positiveShiftSubsets.mp q.2).2
 
-/-- Reindex a sum over increasing orbit pairs by positive shifts. -/
 theorem sum_upperOrbitShiftEquiv {n : ℕ} {R : Type*} [AddCommMonoid R]
     (f : PositiveShiftSubset n → R) :
     (∑ p : UpperOrbitPair n, f (upperOrbitShiftEquiv n p)) =
