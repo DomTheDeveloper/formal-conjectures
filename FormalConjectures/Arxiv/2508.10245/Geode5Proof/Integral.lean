@@ -68,25 +68,13 @@ theorem integral01_derivative (p : TQYPoly) :
       | zero => simp
       | succ n =>
           rw [Polynomial.derivative_monomial_succ, integral01_monomial]
-          have hn : (n + 1 : ℚ) ≠ 0 := by positivity
-          have hinv : ((n : ℚ) + 1)⁻¹ * ((n : ℚ) + 1) = 1 := by
-            exact inv_mul_cancel₀ hn
-          have hconst :
-              Polynomial.C (((n : ℚ) + 1)⁻¹) *
-                  ((n : ℚ) + 1 : QYPoly) = 1 := by
-            simpa [← Polynomial.C_mul] using
-              congrArg (Polynomial.C : ℚ →+* QYPoly) hinv
-          have hboundary :
-              Polynomial.eval 1 (Polynomial.monomial (n + 1) a) -
-                  Polynomial.eval 0 (Polynomial.monomial (n + 1) a) = a := by
-            simp [Polynomial.eval_monomial]
-          rw [hboundary]
-          calc
-            Polynomial.C (((n : ℚ) + 1)⁻¹) *
-                (a * ((n : ℚ) + 1 : QYPoly)) =
-              a * (Polynomial.C (((n : ℚ) + 1)⁻¹) *
-                ((n : ℚ) + 1 : QYPoly)) := by ring
-            _ = a := by rw [hconst, mul_one]
+          have hn : (((n + 1 : ℕ) : ℚ)) ≠ 0 := by positivity
+          have hcast :
+              ((n + 1 : ℕ) : QYPoly) =
+                Polynomial.C (((n + 1 : ℕ) : ℚ)) := by
+            norm_num
+          rw [hcast]
+          simp [Polynomial.eval_monomial, ← Polynomial.C_mul, hn, mul_comm]
 
 #print axioms integral01_derivative
 
