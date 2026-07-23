@@ -47,6 +47,10 @@ theorem rectangleChain_comparable {a b : ℕ} (p q : Fin a × Fin b)
       (q.1.val ≤ p.1.val ∧ q.2.val ≤ p.2.val) := by
   rcases p with ⟨i, j⟩
   rcases q with ⟨k, l⟩
+  have hiA := i.isLt
+  have hkA := k.isLt
+  have hjB := j.isLt
+  have hlB := l.isLt
   unfold rectangleChainIndex at h
   by_cases hi : i.val ≤ b - 1 - j.val
   · rw [Nat.min_eq_left hi] at h
