@@ -104,7 +104,7 @@ theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
   have hpen : A ⟨n - 2, hn2lt⟩ = c := hconst _ hn2pos hn2int
   have h1lt : 1 < n := by omega
   have h2pred : 2 ≤ n - 1 := Nat.le_sub_of_add_le hn
-  have h1int : 1 < n - 1 := Nat.lt_of_succ_le h2pred
+  have h1int : 1 < n - 1 := h2pred
   have hone : A ⟨1, h1lt⟩ = c := hconst _ (by omega) h1int
   have hnlast : n - 1 < n :=
     Nat.sub_lt (by omega : 0 < n) (by norm_num : 0 < 1)
