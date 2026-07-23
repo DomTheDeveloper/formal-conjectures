@@ -1,1 +1,1 @@
-Run the pinned Litt theorem, axiom, and exact finite audits on the corrected current-main proof branch.
+Run the self-reporting pinned Litt theorem, axiom, and exact finite audits on the corrected current-main proof branch.
