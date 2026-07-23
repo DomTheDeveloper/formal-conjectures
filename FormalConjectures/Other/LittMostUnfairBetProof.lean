@@ -68,9 +68,17 @@ theorem isConstant_of_top_border {m : ℕ} (A : Word (m + 2))
   apply isConstant_of_adjacent_eq A
   intro i
   have h := congrFun hborder i
-  change A ⟨m + 2 - m - 1 + i.val, by omega⟩ = A ⟨i.val, by omega⟩ at h
-  have hidx : m + 2 - m - 1 + i.val = i.val + 1 := by omega
-  simpa [hidx] using h.symm
+  change A (⟨m + 2 - m - 1 + i.val, by omega⟩ : Fin (m + 2)) =
+    A (⟨i.val, by omega⟩ : Fin (m + 2)) at h
+  have hleft : (⟨m + 2 - m - 1 + i.val, by omega⟩ : Fin (m + 2)) = i.succ := by
+    apply Fin.ext
+    simp
+    omega
+  have hright : (⟨i.val, by omega⟩ : Fin (m + 2)) = i.castSucc := by
+    apply Fin.ext
+    rfl
+  rw [hleft, hright] at h
+  exact h.symm
 
 /-- A nonconstant word has no overlap of length `n-1`; hence its self-overlap
 numerator is at most `2^(n-1)-2`. -/
@@ -97,10 +105,14 @@ theorem selfOverlapNum_le_nonconstant {n : ℕ} (hn : 2 ≤ n) (A : Word n)
           apply Fin.ext
           simpa using hkm
         subst k
-        simp [htop]
+        have htop' : wordSuffix A (Fin.last m).castSucc ≠
+            wordPrefix A (Fin.last m).castSucc := by
+          simpa only [Fin.val_last, Fin.coe_castSucc] using htop
+        simp [htop']
       · have hlt : k.val + 1 < m + 1 := by omega
+        have hkle : k.val ≤ m := by omega
         by_cases heq : wordSuffix A k.castSucc = wordPrefix A k.castSucc <;>
-          simp [hlt, heq]
+          simp [hlt, hkle, heq]
     _ = 2 ^ (m + 1) - 2 := sum_proper_pow_two m
 
 /-- The self-overlap distance is bounded by the largest self-overlap numerator. -/
@@ -132,11 +144,11 @@ theorem two_mul_selfOverlap_dist_le_candidate {n : ℕ} (hn : 2 ≤ n)
   have hpow : 2 ^ n = 2 * 2 ^ (n - 1) := by
     obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
     rw [show m + 2 = (m + 1) + 1 by omega, pow_succ]
-    omega
+    ring
   rw [hpow]
   omega
 
-/-! ## Denominator-cleared arithmetic endgame -/
+/- ## Denominator-cleared arithmetic endgame -/
 
 /-- Constant-word branch. -/
 theorem constant_branch_arithmetic
@@ -179,7 +191,9 @@ theorem candidateNum_eq_natCast {n : ℕ} (hn : 1 ≤ n) :
   unfold candidateNum
   have hpow : 2 ≤ 2 ^ n := by
     obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
-    simp [pow_succ]
+    rw [pow_succ]
+    have hm : 1 ≤ 2 ^ m := by positivity
+    nlinarith
   rw [Nat.cast_sub hpow]
   norm_num
 
@@ -189,6 +203,7 @@ theorem pow_two_eq_four_mul_quarter {n : ℕ} (hn : 2 ≤ n) :
   obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
   rw [show m + 2 = m + 2 by rfl, pow_add]
   norm_num
+  ring
 
 /-- Once the Walsh lemma supplies the exact variance branch, the Formal
 Conjectures inequality follows with no additional word combinatorics. -/
@@ -205,9 +220,7 @@ theorem most_unfair_litt_bound_of_variance_cases {n : ℕ} (hn : 2 ≤ n)
   let candidate := 2 ^ n - 2
   have hnat : delta ^ 2 * 2 ^ n ≤ candidate ^ 2 * q := by
     rcases hcase with hzero | hconstant | hnonconstant
-    · have hzero' : delta = 0 := hzero
-      subst delta
-      simp
+    · simp [delta, hzero]
     · exact constant_branch_arithmetic candidate delta q (2 ^ n)
         (selfOverlap_dist_le_candidate A B) hconstant.2
     · rw [pow_two_eq_four_mul_quarter hn]
