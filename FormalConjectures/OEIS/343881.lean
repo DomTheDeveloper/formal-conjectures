@@ -64,7 +64,7 @@ lemma a064549_twelve : a064549 12 = 72 := by
 lemma twelve_seventy_two_not_candidate {p : ℕ} (hp : p.Prime) :
     ¬ IsCandidate p 12 72 := by
   letI : Fact p.Prime := ⟨hp⟩
-  rintro ⟨_, c, x, y, hc, hx, hxp, hy, hyp, hpow⟩
+  rintro ⟨_, c, x, y, _hc, _hx, _hxp, hy, hyp, hpow⟩
   have hfac :
       x • (12 : ℕ).factorization + y • (72 : ℕ).factorization =
         p • c.factorization := by
