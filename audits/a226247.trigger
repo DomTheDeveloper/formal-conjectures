@@ -1,1 +1,1 @@
-Focused audit trigger for OEIS A226247 / Kagey Problem 137.
+Focused audit trigger for OEIS A226247 / Kagey Problem 137 — exact-file build.
