@@ -5,10 +5,13 @@ Licensed under the Apache License, Version 2.0.
 
 import FormalConjecturesUtil
 
+/-!
+# WOWII Conjecture 2: spanning-tree leaf bridge
+-/
+
 namespace WrittenOnTheWallII.GraphConjecture2Audit
 
 open Classical Finset SimpleGraph
-
 variable {α : Type*} [Fintype α] [DecidableEq α] [Nontrivial α]
 
 /-- Leaves of a spanning tree represented on the original vertex type. -/
@@ -39,7 +42,7 @@ lemma treeLeaves_card_le_Ls
     exact_mod_cast
       (U.verts.toFinset.filter (fun v => U.degree v = 1)).card_le_univ
   · refine ⟨S, ⟨hSspan, hScoe⟩, ?_⟩
-    simp [treeLeaves, S, SimpleGraph.toSubgraph]
+    simp [treeLeaves, S, SimpleGraph.degree_toSubgraph]
 
 #print axioms treeLeaves_card_le_Ls
 
