@@ -1,0 +1,108 @@
+# Copyright 2026 Dominic Dabish
+# Licensed under the Apache License, Version 2.0.
+
+name: One-shot Litt overlap bridge repair
+
+on:
+  push:
+    paths:
+      - '.github/workflows/one-shot-litt-overlap-bridge.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/litt-most-unfair-proof
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply dependent-index and sum repairs
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('FormalConjectures/Other/LittMostUnfairBetWalshOverlapBridge.lean')
+          text = p.read_text()
+
+          old = '''    let j : Fin (n - h.1) := ⟨i.val, by
+      have hi := i.isLt
+      rw [shiftToOverlapIndex_length h] at hi
+      exact hi⟩
+'''
+          new = '''    have hlen := shiftToOverlapIndex_length h
+    let j : Fin (n - h.1) := ⟨i.val, hlen ▸ i.isLt⟩
+'''
+          if old not in text:
+              raise SystemExit('forward dependent-index target not found')
+          text = text.replace(old, new, 1)
+
+          old = '''    let j : Fin ((shiftToOverlapIndex h).1.val + 1) := ⟨i.val, by
+      rw [shiftToOverlapIndex_length h]
+      exact i.isLt⟩
+'''
+          new = '''    have hlen := shiftToOverlapIndex_length h
+    let j : Fin ((shiftToOverlapIndex h).1.val + 1) :=
+      ⟨i.val, hlen.symm ▸ i.isLt⟩
+'''
+          if old not in text:
+              raise SystemExit('reverse dependent-index target not found')
+          text = text.replace(old, new, 1)
+
+          old = '''    _ = ∑ k ∈ properOverlapIndices n, f k := by
+      simp [properOverlapIndices]
+'''
+          new = '''    _ = ∑ k ∈ properOverlapIndices n, f k := by
+      rw [properOverlapIndices, Finset.sum_filter]
+'''
+          if old not in text:
+              raise SystemExit('filtered-sum target not found')
+          text = text.replace(old, new, 1)
+
+          old = '''  rw [natCast_overlapNum_eq_shiftOverlapNum A A,
+    natCast_overlapNum_eq_shiftOverlapNum B B,
+    natCast_overlapNum_eq_shiftOverlapNum A B,
+    natCast_overlapNum_eq_shiftOverlapNum B A]
+'''
+          new = '''  rw [natCast_overlapNum_eq_shiftOverlapNum A A,
+    natCast_overlapNum_eq_shiftOverlapNum B B,
+    natCast_overlapNum_eq_shiftOverlapNum A B,
+    natCast_overlapNum_eq_shiftOverlapNum B A]
+  norm_num
+'''
+          if old not in text:
+              raise SystemExit('variance cast target not found')
+          p.write_text(text.replace(old, new, 1))
+          PY
+
+      - name: Install repository-pinned Lean
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore pinned Mathlib cache
+        run: |
+          set -euo pipefail
+          "$HOME/.elan/bin/lake" exe cache get
+
+      - name: Compile repaired overlap bridge
+        run: |
+          set -euo pipefail
+          "$HOME/.elan/bin/lake" build FormalConjectures.Other.LittMostUnfairBetWalshOverlapBridge
+
+      - name: Commit verified repair
+        run: |
+          set -euo pipefail
+          git config user.name 'ProofOrchestrator'
+          git config user.email 'proof-orchestrator@users.noreply.github.com'
+          git add FormalConjectures/Other/LittMostUnfairBetWalshOverlapBridge.lean
+          git diff --cached --check
+          git commit -m 'Repair Litt overlap-index bridge'
+          git push origin HEAD:agent/litt-most-unfair-proof
