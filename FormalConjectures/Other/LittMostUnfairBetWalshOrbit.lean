@@ -40,10 +40,9 @@ noncomputable def shapeTranslationPairs (n : ℕ) : Finset (Finset ℕ × ℕ) :
       p.1 ∈ shapes n ∧ p.2 ∈ translations n p.1 := by
   classical
   rcases p with ⟨S, t⟩
-  change (((S, t) ∈ (shapes n).product (Finset.range n)) ∧
-      t ∈ translations n S) ↔
-    S ∈ shapes n ∧ t ∈ translations n S
-  rw [Finset.mem_product]
+  unfold shapeTranslationPairs
+  rw [Finset.mem_filter, Finset.mem_product]
+  simp only [Prod.fst, Prod.snd]
   constructor
   · rintro ⟨⟨hshape, _hrange⟩, htrans⟩
     exact ⟨hshape, htrans⟩
