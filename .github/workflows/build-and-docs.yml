@@ -26,20 +26,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout project
-        uses: actions/checkout@v6
-
-      - name: Install elan
+      - name: Quiet targeted WorldCup7 compile
+        shell: bash
         run: |
-          set -o pipefail
-          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
-          ./elan-init -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          set -euo pipefail
+          git init repo >/dev/null
+          git -C repo remote add origin "https://github.com/${{ github.repository }}.git"
+          git -C repo fetch --depth=1 origin \
+            "pull/${{ github.event.pull_request.number }}/merge:pr-merge" >/dev/null 2>&1
+          git -C repo checkout pr-merge >/dev/null 2>&1
 
-      - name: Get olean cache
-        run: |
-          lake exe cache unpack
-          lake exe cache get
+          curl -sSfL \
+            https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none >/dev/null 2>&1
+          export PATH="$HOME/.elan/bin:$PATH"
 
-      - name: Compile WorldCup7.lean
-        run: lake env lean FormalConjectures/Other/WorldCup7.lean
+          cd repo
+          lake exe cache get >/dev/null 2>&1
+          set +e
+          lake env lean FormalConjectures/Other/WorldCup7.lean 2>&1 | tee /tmp/worldcup7-lean.log
+          status=${PIPESTATUS[0]}
+          cat /tmp/worldcup7-lean.log >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
