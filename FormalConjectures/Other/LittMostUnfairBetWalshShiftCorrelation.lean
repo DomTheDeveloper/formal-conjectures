@@ -54,9 +54,19 @@ theorem prod_range_one_add_letterSign_shift {n h : ℕ} (A C : Word n) :
     (∏ i ∈ Finset.range (n - h),
       ((1 : ℤ) + letterSign A i * letterSign C (i + h))) =
       if prefixBlock A h = suffixBlock C h then 2 ^ (n - h) else 0 := by
-  rw [Finset.prod_range]
-  simpa [prefixBlock, suffixBlock, letterSign] using
-    (prod_one_add_coinSign_mul (prefixBlock A h) (suffixBlock C h))
+  calc
+    (∏ i ∈ Finset.range (n - h),
+      ((1 : ℤ) + letterSign A i * letterSign C (i + h))) =
+        ∏ i : Fin (n - h),
+          ((1 : ℤ) + coinSign (prefixBlock A h i) * coinSign (suffixBlock C h i)) := by
+      rw [Finset.prod_range]
+      apply Finset.prod_congr rfl
+      intro i hi
+      have hA : i.val < n := lt_of_lt_of_le i.isLt (Nat.sub_le n h)
+      have hC : i.val + h < n := by omega
+      simp [prefixBlock, suffixBlock, letterSign, hA, hC, Nat.add_comm]
+    _ = if prefixBlock A h = suffixBlock C h then 2 ^ (n - h) else 0 :=
+      prod_one_add_coinSign_mul (prefixBlock A h) (suffixBlock C h)
 
 /-- One pair of shifted word monomials sums to a block-equality test. -/
 theorem sum_powerset_natMonomial_mul_shifted {n h : ℕ} (A C : Word n) :
@@ -116,7 +126,9 @@ theorem prefixBlock_zero {n : ℕ} (A : Word n) : prefixBlock A 0 = A := by
 /-- At shift zero the suffix block is also the original word. -/
 theorem suffixBlock_zero {n : ℕ} (A : Word n) : suffixBlock A 0 = A := by
   funext i
-  rfl
+  apply congrArg A
+  apply Fin.ext
+  simp [suffixBlock]
 
 /-- For distinct words the diagonal raw correlation is `2^(n+1)`. -/
 theorem diagonal_raw_correlation {n : ℕ} (A B : Word n) (hne : A ≠ B) :
@@ -125,7 +137,7 @@ theorem diagonal_raw_correlation {n : ℕ} (A B : Word n) (hne : A ≠ B) :
   have hcorr := sum_powerset_rawDifference_mul_shiftedRawDifference
     (n := n) (h := 0) A B
   simpa [shiftedRawDifference, shiftedMonomial, prefixBlock_zero,
-    suffixBlock_zero, hne, pow_succ] using hcorr
+    suffixBlock_zero, hne, hne.symm, pow_succ] using hcorr
 
 #print axioms sum_powerset_rawDifference_mul_shiftedRawDifference
 #print axioms diagonal_raw_correlation
