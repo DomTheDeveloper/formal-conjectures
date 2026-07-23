@@ -47,14 +47,26 @@ jobs:
 
       - name: Build focused proof modules with warnings fatal
         run: |
-          set -euo pipefail
-          lake --wfail build \
-            FormalConjectures.OEIS.A147983.ChompRank \
-            FormalConjectures.OEIS.A147983.KernelPSet \
-            FormalConjectures.OEIS.A147983.MDDCertificate \
-            FormalConjectures.OEIS.A147983.StrategyCertificate \
-            FormalConjectures.OEIS.A147983.MoveClosureCertificate \
+          set -o pipefail
+          : > a147983-build.log
+          modules=(
+            FormalConjectures.OEIS.A147983.ChompRank
+            FormalConjectures.OEIS.A147983.KernelPSet
+            FormalConjectures.OEIS.A147983.MDDCertificate
+            FormalConjectures.OEIS.A147983.StrategyCertificate
+            FormalConjectures.OEIS.A147983.MoveClosureCertificate
             FormalConjectures.OEIS.A147983.SymbolicCertificate
+          )
+          status=0
+          for module in "${modules[@]}"; do
+            echo "===== BUILD $module =====" | tee -a a147983-build.log
+            lake --wfail build "$module" 2>&1 | tee -a a147983-build.log || {
+              status=$?
+              echo "FAILED_MODULE=$module" | tee -a a147983-build.log
+              break
+            }
+          done
+          exit "$status"
 
       - name: Print theorem axioms
         run: |
@@ -84,6 +96,7 @@ jobs:
         with:
           name: a147983-focused-kernel-audit
           path: |
+            a147983-build.log
             a147983-axioms.log
             A147983AxiomAudit.lean
           if-no-files-found: warn
