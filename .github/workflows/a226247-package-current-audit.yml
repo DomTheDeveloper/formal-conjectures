@@ -1,0 +1,28 @@
+name: A226247 current-upstream package audit
+
+on:
+  pull_request:
+    branches:
+      - mirror/gdm-e751-package-a226247-v2
+    paths:
+      - 'FormalConjectures/OEIS/226247.lean'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: a226247-current-upstream-package
+  cancel-in-progress: true
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+      - name: Compile catalog package
+        run: lake env lean -DwarningAsError=true FormalConjectures/OEIS/226247.lean
