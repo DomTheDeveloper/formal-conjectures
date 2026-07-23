@@ -1,2 +1,2 @@
 This file exists only to trigger the isolated BMO8 pull-request audit.
-Diagnostic run 2.
+Diagnostic run 3: Lake module build.
