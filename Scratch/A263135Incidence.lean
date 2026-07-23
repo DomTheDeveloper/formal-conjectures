@@ -144,7 +144,18 @@ theorem contacts_eq_card_aInternalDarts (S : Finset Vertex) :
       have hn : neighbor v d ∈ S :=
         (Finset.mem_filter.mp (Finset.mem_filter.mp hvdD).1).2
       refine ⟨d, Finset.mem_filter.mpr ⟨Finset.mem_univ d, hn⟩, rfl⟩
-  · simp [D, hside]
+  · have hfiber : (D.filter fun vd => Prod.fst vd = v) = ∅ := by
+      ext vd
+      constructor
+      · intro hvd
+        have hvdD : vd ∈ D := (Finset.mem_filter.mp hvd).1
+        have hvside : vd.1.side = false := (Finset.mem_filter.mp hvdD).2
+        have hvfst : vd.1 = v := (Finset.mem_filter.mp hvd).2
+        rw [hvfst, hside] at hvside
+        contradiction
+      · simp
+    rw [hfiber]
+    simp
 
 /-- The number of directed internal darts is twice the contact count. -/
 theorem card_internalDarts_eq_two_mul_contacts (S : Finset Vertex) :
