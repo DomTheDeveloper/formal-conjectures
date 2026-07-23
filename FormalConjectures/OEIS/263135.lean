@@ -20,7 +20,7 @@ import FormalConjecturesUtil
 # Maximum contacts on the honeycomb lattice
 
 OEIS A263135 is the maximum number of contacts among `m` vertices of the
-infinite honeycomb graph. The conjectured even-index closed form is
+infinite honeycomb graph. The proved even-index closed form is
 
 `A263135 (2 * n) = 3 * n - ceil (sqrt (3 * n))`.
 
@@ -77,8 +77,16 @@ def IsNatCeilSqrt (x r : ℕ) : Prop :=
 **OEIS A263135, stronger even-index form.** For every positive `n`, the maximum
 number of contacts among `2 * n` vertices of the infinite honeycomb graph is
 `3 * n - ceil (sqrt (3 * n))`.
+
+Solved by Dominic Dabish.
+
+ProofOrchestrator, using OpenAI GPT-5.6 Thinking, assisted with the mathematical
+argument, Lean formalization, compatibility repair, and verification. All
+formal claims were checked by the repository-pinned Lean compiler.
 -/
-@[category research open, AMS 05]
+@[category research solved, AMS 05,
+  formal_proof using lean4 at
+    "https://github.com/DomTheDeveloper/formal-conjectures/blob/cb8de9921fc62810991a0384ee412cfed0ad8e7c/Scratch/A263135Final.lean"]
 theorem conjecture (n : ℕ) (hn : 0 < n) :
     ∃ r : ℕ, IsNatCeilSqrt (3 * n) r ∧
       IsMaximumContact (2 * n) (3 * n - r) := by
