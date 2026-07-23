@@ -1,1 +1,1 @@
-Rerun exact proof audit with compiler diagnostics enabled.
+Run exact proof audit with macOS compiler diagnostics enabled.
