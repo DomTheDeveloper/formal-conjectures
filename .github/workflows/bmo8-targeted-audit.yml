@@ -28,7 +28,7 @@ jobs:
       - name: Get olean cache
         run: lake exe cache get
 
-      - name: Build BMO8 certificate and preserve diagnostics
+      - name: Build BMO8 module and preserve diagnostics
         run: |
           set +e
           set -o pipefail
@@ -45,8 +45,11 @@ jobs:
             BMO8Build.log
             BMO8Build.status
 
-      - name: Enforce compilation success
+      - name: Enforce module compilation success
         run: test "$(cat BMO8Build.status)" = "0"
+
+      - name: Compile exact BMO8 source file
+        run: lake env lean FormalConjectures/Other/BeaverMathOlympiad8Proof.lean
 
       - name: Reject placeholders
         run: |
