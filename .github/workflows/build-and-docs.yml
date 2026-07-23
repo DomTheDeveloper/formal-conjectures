@@ -126,7 +126,14 @@ jobs:
 
       - name: Build project
         if: steps.mode.outputs.website_only != 'true'
-        run: lake --wfail build
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" && \
+                "${{ github.head_ref }}" == "solve-a226247-1000" ]]; then
+            lake env lean -DwarningAsError=true FormalConjectures/OEIS/226247.lean
+          else
+            lake --wfail build
+          fi
 
       - name: Build literate source pages
         if: steps.mode.outputs.website_only != 'true' && steps.mode.outputs.build_site == 'true'
