@@ -23,6 +23,8 @@ jobs:
         with:
           build: false
           test: false
+      - name: Restore pinned olean cache
+        run: lake exe cache get
       - name: Compile Geode5 arithmetic proof layers
         id: compile
         shell: bash
@@ -38,18 +40,11 @@ jobs:
           set +e
           status=0
           : > geode5-arithmetic.log
-          echo "===== FormalConjecturesUtil dependency =====" | tee -a geode5-arithmetic.log
+          echo "===== Geode5 benchmark dependency =====" | tee -a geode5-arithmetic.log
           lake env lean -DwarningAsError=true \
-            FormalConjecturesUtil.lean -o "$lib/FormalConjecturesUtil.olean" \
+            "$arxiv/Geode5.lean" -o "$outBase/Geode5.olean" \
             2>&1 | tee -a geode5-arithmetic.log
           status=${PIPESTATUS[0]}
-          if [ "$status" -eq 0 ]; then
-            echo "===== Geode5 benchmark dependency =====" | tee -a geode5-arithmetic.log
-            lake env lean -DwarningAsError=true \
-              "$arxiv/Geode5.lean" -o "$outBase/Geode5.olean" \
-              2>&1 | tee -a geode5-arithmetic.log
-            status=${PIPESTATUS[0]}
-          fi
           modules=(Reduction IntegralityReduction MultinomialDivisibility HyperCatalanIntegrality CastBridges)
           if [ "$status" -eq 0 ]; then
             for module in "${modules[@]}"; do
