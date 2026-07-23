@@ -114,7 +114,7 @@ theorem rawDifference_insert_of_word_eq {n j : ℕ} (A B : Word n)
     simp [letterSign, hj, heq]
   rw [rawDifference, natMonomial_insert A S hjS,
     natMonomial_insert B S hjS, hsign]
-  ring
+  ring_nf
 
 /-- A near-full base includes only the left endpoint among the two endpoints. -/
 theorem nearFullBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 3 ≤ n)
@@ -137,11 +137,16 @@ theorem nearFullBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 3 ≤ n)
     apply Finset.prod_eq_one
     intro i hi
     have hr := mem_middleCoordinates.mp (hR hi)
-    apply letterSign_mul_eq_one_of_word_eq A B (by omega)
-    exact hinterior ⟨i, by omega⟩ (by omega) (by omega)
+    have hiN : i < n := lt_of_lt_of_le hr.2 (Nat.sub_le n 2)
+    have hiLast : i < n - 1 := by omega
+    apply letterSign_mul_eq_one_of_word_eq A B hiN
+    exact hinterior ⟨i, hiN⟩ hr.1 hiLast
+  have hpenN : n - 2 < n := by omega
+  have hpenPos : 0 < n - 2 := by omega
+  have hpenLast : n - 2 < n - 1 := by omega
   have hpen := letterSign_mul_eq_one_of_word_eq A B
-    (i := n - 2) (by omega)
-    (hinterior ⟨n - 2, by omega⟩ (by omega) (by omega))
+    (i := n - 2) hpenN
+    (hinterior ⟨n - 2, hpenN⟩ hpenPos hpenLast)
   have hleftSign := letterSign_mul_eq_neg_one_of_word_ne A B
     (j := 0) (by omega) hleft
   unfold natMonomial nearFullBase
@@ -180,7 +185,7 @@ theorem translated_nearFullBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 3 ≤ n)
     have hirange : i < n := Finset.mem_range.mp (hsub hiSet)
     have hipos : 0 < i := by
       rcases Finset.mem_image.mp hiSet with ⟨j, hj, rfl⟩
-      omega
+      exact Nat.zero_lt_succ j
     apply letterSign_mul_eq_one_of_word_eq A B hirange
     exact hinterior ⟨i, hirange⟩ hipos (by omega)
   have hrightSign := letterSign_mul_eq_neg_one_of_word_ne A B
