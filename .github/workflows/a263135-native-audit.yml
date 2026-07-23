@@ -1,3 +1,4 @@
+# Triggered after the audit PR exists so GitHub schedules the new workflow.
 name: OEIS A263135 native Lean audit
 
 on:
