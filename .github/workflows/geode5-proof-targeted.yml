@@ -29,20 +29,32 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
-          test -z "$(grep -RInE '\b(sorry|admit)\b' FormalConjectures/Arxiv/2508.10245/Geode5Proof || true)"
+          root=FormalConjectures/Arxiv/2508.10245/Geode5Proof
+          out=.lake/build/lib/lean/FormalConjectures/Arxiv/2508.10245/Geode5Proof
+          mkdir -p "$out"
+          test -z "$(grep -RInE '\b(sorry|admit)\b' "$root" || true)"
           set +e
           {
             lake env lean -DwarningAsError=true \
-              FormalConjectures/Arxiv/2508.10245/Geode5Proof/MomentAlgebra.lean
+              "$root/MomentAlgebra.lean" -o "$out/MomentAlgebra.olean"
             first=$?
             if [ "$first" -eq 0 ]; then
               lake env lean -DwarningAsError=true \
-                FormalConjectures/Arxiv/2508.10245/Geode5Proof/Integral.lean
+                "$root/Integral.lean" -o "$out/Integral.olean"
               second=$?
             else
               second=0
             fi
-            exit $(( first != 0 ? first : second ))
+            if [ "$first" -eq 0 ] && [ "$second" -eq 0 ]; then
+              lake env lean -DwarningAsError=true \
+                "$root/Recurrence.lean" -o "$out/Recurrence.olean"
+              third=$?
+            else
+              third=0
+            fi
+            if [ "$first" -ne 0 ]; then exit "$first"; fi
+            if [ "$second" -ne 0 ]; then exit "$second"; fi
+            exit "$third"
           } 2>&1 | tee geode5-lean.log
           status=${PIPESTATUS[0]}
           echo "status=$status" >> "$GITHUB_OUTPUT"
