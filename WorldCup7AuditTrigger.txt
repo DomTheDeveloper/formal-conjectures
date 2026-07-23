@@ -1,1 +1,1 @@
-Run the tail-only dependency-aware WorldCup7 Lean audit.
+Run the final tail-only dependency-aware WorldCup7 Lean audit.
