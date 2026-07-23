@@ -1,0 +1,38 @@
+name: Finish Geode5 R0 table normalization
+
+on:
+  push:
+    branches: [audit-geode5-crt-proof]
+    paths:
+      - '.github/workflows/geode5-finish-r0-table.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit-geode5-crt-proof
+      - name: Normalize the nested constant five
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('FormalConjectures/Arxiv/2508.10245/Geode5Proof/RemainderTables.lean')
+          s = p.read_text()
+          s = s.replace(', Polynomial.derivative_pow, Finset.sum_range_succ]', ', Polynomial.derivative_pow]')
+          needle = '''    Polynomial.derivative_X, Polynomial.derivative_pow]\n  ring_nf\n\nset_option maxHeartbeats 1000000 in\ntheorem momentRemainder_eq_r1'''
+          replacement = '''    Polynomial.derivative_X, Polynomial.derivative_pow]\n  have hfive : (Polynomial.C (5 : YPoly) : TYPoly) = 5 := by norm_num\n  rw [hfive]\n  ring_nf\n\nset_option maxHeartbeats 1000000 in\ntheorem momentRemainder_eq_r1'''
+          assert needle in s
+          p.write_text(s.replace(needle, replacement, 1))
+          PY
+          rm .github/workflows/geode5-finish-r0-table.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add FormalConjectures/Arxiv/2508.10245/Geode5Proof/RemainderTables.lean .github/workflows/geode5-finish-r0-table.yml
+          git commit -m 'Finish Geode5 R0 table normalization [skip ci]'
+          git push origin HEAD:audit-geode5-crt-proof
