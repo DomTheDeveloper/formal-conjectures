@@ -105,7 +105,8 @@ theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
   have h1lt : 1 < n := by omega
   have h1int : 1 < n - 1 := Nat.lt_sub_of_add_lt (by omega)
   have hone : A ⟨1, h1lt⟩ = c := hconst _ (by omega) h1int
-  have hnlast : n - 1 < n := Nat.sub_lt (by omega) (by omega)
+  have hnpos : 0 < n := by omega
+  have hnlast : n - 1 < n := Nat.pred_lt hnpos
   rw [translate_nearFullBase_eq (by omega)]
   change natMonomial A (insert 0 (insert (n - 2) R)) =
     natMonomial A (insert 1 (insert (n - 1) (translate R 1)))
@@ -247,8 +248,11 @@ theorem eq_reverse_of_constant_interior_opposite_endpoints {n : ℕ}
         simpa using (bool_eq_not_of_ne hopposite).symm
       change B (⟨n - 1, by omega⟩ : Fin n) =
         A ((⟨n - 1, by omega⟩ : Fin n).rev)
+      have hcancel : n - 1 + 1 = n := Nat.sub_add_cancel (by omega)
       have hrev : ((⟨n - 1, by omega⟩ : Fin n).rev) = ⟨0, by omega⟩ := by
         apply Fin.ext
+        change n - (n - 1 + 1) = 0
+        rw [hcancel]
         simp
       rw [hrev]
       exact hBlast.trans hA0.symm
