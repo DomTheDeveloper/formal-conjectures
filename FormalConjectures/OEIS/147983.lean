@@ -24,12 +24,14 @@ is the leftmost square of the first row. Consequently, a move in the first row m
 least one square, while a move in any later row may leave zero squares.
 
 The second computational challenge of Ekhad and Zeilberger asks for a rectangular Chomp board
-with at least three winning opening moves. The proposed witness is the `10 × 42` rectangle.
+with at least three winning opening moves. The witness formalized here is the `10 × 42`
+rectangle.
 
 *References:*
 - [A147983](https://oeis.org/A147983)
 - [S. B. Ekhad and D. Zeilberger, *All the Winning Bites for a by b Chomp for a and b up to 14
   and Two Computational Challenges*](https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimhtml/chompc.html)
+- [Computational proof package](https://github.com/DomTheDeveloper/ProofPlaygrond/tree/324a9c33586db333b0a98a60e2bc2ff0198eff7d/proofs/chomp-10x42)
 -/
 
 namespace OeisA147983
@@ -82,11 +84,16 @@ def IsWinningOpening (rectangle child : List ℕ) : Prop :=
 /--
 "Find a and b such that an a by b Chomp has (at least) THREE winning moves."
 
-The proposed `10 × 42` witness has opening moves `(5, 36)`, `(7, 30)`, and `(8, 26)` in
-one-indexed row/column coordinates. Equivalently, they leave the three displayed Ferrers
+The `10 × 42` rectangle is a witness. In row/column coordinates counted from one, the moves
+are `(5, 36)`, `(7, 30)`, and `(8, 26)`. Equivalently, they leave the three displayed Ferrers
 positions.
+
+The exact retrograde computation and independent cross-check are archived in the
+[immutable computational proof package](https://github.com/DomTheDeveloper/ProofPlaygrond/tree/324a9c33586db333b0a98a60e2bc2ff0198eff7d/proofs/chomp-10x42).
+The package was prepared by Dominic Dabish with ProofOrchestrator, using OpenAI GPT-5.6
+Thinking.
 -/
-@[category research open, AMS 5]
+@[category research solved, AMS 5]
 theorem chomp_10_by_42_has_three_winning_openings :
     let rectangle := [42, 42, 42, 42, 42, 42, 42, 42, 42, 42]
     let child₁ := [42, 42, 42, 42, 35, 35, 35, 35, 35, 35]
