@@ -1,12 +1,16 @@
 name: A226247 PR audit
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [main]
-    types: [opened, labeled, synchronize, reopened, ready_for_review]
+    types: [labeled, synchronize, reopened]
 
 permissions:
   contents: read
+
+concurrency:
+  group: a226247-pr-audit
+  cancel-in-progress: true
 
 jobs:
   lean:
