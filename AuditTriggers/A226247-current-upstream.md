@@ -1,1 +1,1 @@
-Run the current-upstream ARM compile, axiom audit, and transcript upload.
+Run the current-upstream ARM and Windows compile, axiom audits, and transcript uploads.
