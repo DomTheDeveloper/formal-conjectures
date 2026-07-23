@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'FormalConjectures/Arxiv/2508.10245/Geode5Proof/**'
+      - 'FormalConjectures/Arxiv/2508.10245/Geode5Defs.lean'
       - 'FormalConjectures/Arxiv/2508.10245/Geode5.lean'
 
 permissions:
@@ -19,13 +20,16 @@ concurrency:
 jobs:
   exact:
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 180
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Reject placeholders
-        run: '! grep -RInE ''\b(sorry|admit)\b'' FormalConjectures/Arxiv/2508.10245/Geode5Proof'
+        run: |
+          set -euo pipefail
+          ! grep -RInE '\b(sorry|admit)\b' FormalConjectures/Arxiv/2508.10245/Geode5Proof
+          ! grep -InE '\b(sorry|admit)\b' FormalConjectures/Arxiv/2508.10245/Geode5.lean
       - name: Install Lean 4.27
         run: |
           curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
@@ -33,13 +37,13 @@ jobs:
           "$HOME/.elan/bin/elan" toolchain install leanprover/lean4:v4.27.0
       - name: Fetch cache
         run: lake exe cache get
-      - name: Compile current bound stack
+      - name: Compile final benchmark theorem
         id: compile
         continue-on-error: true
         run: |
           set -o pipefail
           lake env lean -DwarningAsError=true \
-            FormalConjectures/Arxiv/2508.10245/Geode5Proof/AbsoluteBound.lean \
+            FormalConjectures/Arxiv/2508.10245/Geode5.lean \
             2>&1 | tee /tmp/geode5-arm.log
       - name: Report
         if: always()
@@ -48,13 +52,13 @@ jobs:
           OUTCOME: ${{ steps.compile.outcome }}
         run: |
           {
-            echo '## Geode5 ARM exact audit'
+            echo '## Geode5 ARM final theorem audit'
             echo
             echo "Head: \`${{ github.event.pull_request.head.sha }}\`"
             echo "Result: **${OUTCOME}**"
             echo
             echo '```text'
-            tail -n 160 /tmp/geode5-arm.log 2>/dev/null || true
+            tail -n 200 /tmp/geode5-arm.log 2>/dev/null || true
             echo '```'
           } >/tmp/comment.md
           gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --body-file /tmp/comment.md
