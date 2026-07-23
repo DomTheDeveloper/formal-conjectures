@@ -5,6 +5,10 @@ Licensed under the Apache License, Version 2.0.
 
 import ProofAudit.«2_ls_bridge»
 
+/-!
+# WOWII Conjecture 2: the tree leaf identity
+-/
+
 namespace WrittenOnTheWallII.GraphConjecture2Audit
 
 open Classical Finset SimpleGraph
@@ -32,13 +36,16 @@ private lemma tree_leaf_identity
       Finset.card_univ, nsmul_eq_mul]
     linarith
   have huniv : (Finset.univ : Finset α) = L ∪ I := by
-    simpa [L, I, treeLeaves, internalVertices] using
-      (Finset.filter_union_filter_neg_eq (Finset.univ : Finset α)
-        (fun v => T.degree v = 1))
+    ext v
+    simp [L, I, treeLeaves, internalVertices]
   have hdisj : Disjoint L I := by
-    simpa [L, I, treeLeaves, internalVertices] using
-      (Finset.disjoint_filter_filter_neg
-        (s := (Finset.univ : Finset α)) (p := fun v => T.degree v = 1))
+    rw [Finset.disjoint_left]
+    intro v hvL hvI
+    have hleaf : T.degree v = 1 := by
+      simpa [L, treeLeaves] using hvL
+    have hinternal : T.degree v ≠ 1 := by
+      simpa [I, internalVertices] using hvI
+    exact hinternal hleaf
   have hsplit :
       (∑ v, ((T.degree v : ℤ) - 2)) =
         (∑ v ∈ L, ((T.degree v : ℤ) - 2)) +
@@ -63,7 +70,7 @@ private lemma internal_term_nonneg
     0 ≤ (T.degree v : ℤ) - 2 := by
   have hne : T.degree v ≠ 1 := by
     simpa [internalVertices] using hv
-  have hpos : 0 < T.degree v := hT.connected.degree_pos_of_nontrivial v
+  have hpos : 0 < T.degree v := hT.isConnected.degree_pos_of_nontrivial v
   omega
 
 /-- In a finite nontrivial tree, the number of leaves is at least the sum of
