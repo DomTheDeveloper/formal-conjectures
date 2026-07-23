@@ -12,7 +12,7 @@ theorem mem_rankPatch {a b c : ℕ} {p : RankPoint} :
     rcases Finset.mem_image.mp hp with ⟨x, hx, rfl⟩
     rcases Finset.mem_filter.mp hx with ⟨hbox, hlev⟩
     rcases x with ⟨⟨i, j⟩, side⟩
-    simpa [rankBox, tripleRankPoint] using And.intro hbox hlev
+    simpa [rankBox, tripleRankPoint, and_assoc] using And.intro hbox hlev
   · rintro ⟨hi, hj, hlo, hhi⟩
     let x : (ℕ × ℕ) × Bool := ((p.first, p.second), p.side)
     apply Finset.mem_image.mpr
