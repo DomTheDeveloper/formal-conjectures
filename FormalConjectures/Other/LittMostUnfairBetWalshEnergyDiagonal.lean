@@ -47,7 +47,7 @@ theorem diagonal_orbit_sum_eq_powerset {n : ℕ} (A B : Word n) :
       exact sum_shapeTranslationEquiv
         (fun U : NonemptyCoordinateSubset n => rawDifference A B U.1 ^ 2)
     _ = ∑ U ∈ nonemptySubsets n, rawDifference A B U ^ 2 := by
-      simp
+      rw [Finset.sum_attach]
     _ = ∑ U ∈ (Finset.range n).powerset, rawDifference A B U ^ 2 := by
       simp [nonemptySubsets, rawDifference]
 
