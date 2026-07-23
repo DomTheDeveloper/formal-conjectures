@@ -52,6 +52,17 @@ jobs:
                   1,
               )
 
+          text = text.replace(
+              '  unfold residue\n  decide\n',
+              '  unfold residue\n  bv_decide\n',
+              1,
+          )
+          text = text.replace(
+              '      counterColor u ≠ counterColor v := by\n  decide\n',
+              '      counterColor u ≠ counterColor v := by\n  bv_decide\n',
+              1,
+          )
+
           old_app = '    have hineq := hP counterG counterG_connected'
           new_app = '    have hineq := hP (Fin 18) counterG counterG_connected'
           if old_app in text:
@@ -60,7 +71,7 @@ jobs:
               raise SystemExit('could not locate the hP specialization')
 
           if text.count('bv_decide') != 2:
-              raise SystemExit('expected exactly two bv_decide certificate sites')
+              raise SystemExit(f'expected exactly two bv_decide sites, found {text.count("bv_decide")}')
           path.write_text(text)
           PY
       - name: Reject proof holes and unsupported declarations
