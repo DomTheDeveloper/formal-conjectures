@@ -217,17 +217,24 @@ $$(a_{n+1}, b_{n+1}) = \begin{cases}
 (3 a_n + 5, b_n - 2 a_n) & \text{if } a_n \le \lfloor b_n/2 \rfloor
 \end{cases}$$
 
-for all positive integers $n$.  Does there exist a positive integer $i$ such that
+for all positive integers $n$. Does there exist a positive integer $i$ such that
 $a_i = \lfloor b_i/2 \rfloor + 1$?
 
 [BMO#8](https://wiki.bbchallenge.org/wiki/Beaver_Math_Olympiad#8._1RB0LD_0RC1RB_0RD0RA_1LE0RD_1LF---_0LA1LA_(bbch)) is equivalent to asking whether the 6-state Turing machine
 [`1RB0LD_0RC1RB_0RD0RA_1LE0RD_1LF---_0LA1LA`](https://wiki.bbchallenge.org/wiki/1RB0LD_0RC1RB_0RD0RA_1LE0RD_1LF---_0LA1LA) halts or not.
 
-There is presently no consensus on whether the machine halts or not, hence the problem is formulated
-using `answer(sorry) ↔`.
+A positive answer is witnessed at Lean's zero-based index `1_210_682`, where
+`(a_i, b_i) = (1_749_056, 3_498_111)`. This is one-based index `1_210_683` in the
+informal sequence above.
+
+Solved and formalized by Dominic Dabish.
+ProofOrchestrator, using OpenAI GPT-5.6 Thinking, assisted with the mathematical argument,
+Lean formalization, and submission preparation; all formal claims were checked by the pinned
+Lean compiler.
 -/
-@[category research open, AMS 5 11 68]
-theorem beaver_math_olympiad_problem_8 : answer(sorry) ↔
+@[category research solved, AMS 5 11 68,
+  formal_proof using lean4 at "https://github.com/DomTheDeveloper/formal-conjectures/blob/7f1d12d04192c3575f27db1704e97233ec9943fa/FormalConjectures/Other/BeaverMathOlympiad8Proof.lean"]
+theorem beaver_math_olympiad_problem_8 : answer(True) ↔
     ∀ᵉ (a : ℕ → ℕ) (b : ℕ → ℕ)
     (a_ini : a 0 = 10)
     (a_rec : ∀ n, a (n + 1) =
