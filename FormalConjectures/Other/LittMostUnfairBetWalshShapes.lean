@@ -61,14 +61,16 @@ theorem natMonomial_insert {n i : ℕ} (A : Word n) (S : Finset ℕ)
 
 @[simp] theorem natMonomial_mul_self {n : ℕ} (A : Word n) (S : Finset ℕ) :
     natMonomial A S * natMonomial A S = 1 := by
-  rw [← Finset.prod_mul_distrib]
-  simp [natMonomial, letterSign_mul_self]
+  calc
+    natMonomial A S * natMonomial A S =
+        ∏ i ∈ S, (letterSign A i * letterSign A i) := by
+      simp only [natMonomial, Finset.prod_mul_distrib]
+    _ = 1 := by simp
 
 /-- Every word monomial is itself a sign. -/
 theorem natMonomial_eq_one_or_neg_one {n : ℕ} (A : Word n) (S : Finset ℕ) :
     natMonomial A S = 1 ∨ natMonomial A S = -1 := by
-  have hsquare := natMonomial_mul_self A S
-  nlinarith
+  exact (mul_self_eq_one_iff).mp (natMonomial_mul_self A S)
 
 /-- Normalized nonempty translation shapes inside a word of length `n`. -/
 def shapes (n : ℕ) : Finset (Finset ℕ) :=
@@ -83,11 +85,13 @@ def ValidTranslation (n : ℕ) (S : Finset ℕ) (t : ℕ) : Prop :=
   ∀ i ∈ S, i + t < n
 
 /-- All valid right translations of a normalized shape. -/
-def translations (n : ℕ) (S : Finset ℕ) : Finset ℕ :=
-  (Finset.range n).filter (ValidTranslation n S)
+noncomputable def translations (n : ℕ) (S : Finset ℕ) : Finset ℕ := by
+  classical
+  exact (Finset.range n).filter (ValidTranslation n S)
 
 @[simp] theorem mem_translations {n t : ℕ} {S : Finset ℕ} :
     t ∈ translations n S ↔ t < n ∧ ValidTranslation n S t := by
+  classical
   simp [translations]
 
 /-- Translate a finite set of natural coordinates to the right. -/
@@ -104,7 +108,7 @@ theorem card_translate (S : Finset ℕ) (t : ℕ) :
   unfold translate
   rw [Finset.card_image_iff.mpr]
   intro a ha b hb hab
-  omega
+  exact Nat.add_right_cancel hab
 
 /-- The raw (undivided) Walsh coefficient difference of two words. -/
 def rawDifference {n : ℕ} (A B : Word n) (S : Finset ℕ) : ℤ :=
@@ -120,17 +124,18 @@ theorem rawDifference_eq_zero_or_two_or_neg_two {n : ℕ}
     simp [rawDifference, hA, hB]
 
 /-- The coefficient obtained by adding all translates of one normalized shape. -/
-def shapeCoeff {n : ℕ} (A B : Word n) (S : Finset ℕ) : ℤ :=
+noncomputable def shapeCoeff {n : ℕ} (A B : Word n) (S : Finset ℕ) : ℤ :=
   ∑ t ∈ translations n S, rawDifference A B (translate S t)
 
 /-- Raw integer square energy of all normalized translation shapes. -/
-def rawEnergy {n : ℕ} (A B : Word n) : ℕ :=
+noncomputable def rawEnergy {n : ℕ} (A B : Word n) : ℕ :=
   ∑ S ∈ shapes n, (shapeCoeff A B S).natAbs ^ 2
 
 /-- A full-span shape has only the zero translation. -/
 theorem translations_eq_singleton_zero {n : ℕ} (hn : 1 ≤ n) (S : Finset ℕ)
     (hsub : S ⊆ Finset.range n) (hlast : n - 1 ∈ S) :
     translations n S = {0} := by
+  classical
   ext t
   simp only [mem_translations, Finset.mem_singleton]
   constructor
