@@ -1,0 +1,99 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: Litt most-unfair proof check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'FormalConjectures/Other/LittMostUnfairBet*.lean'
+      - 'scripts/verify_litt_most_unfair.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: litt-most-unfair-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: pinned Lean and exact audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout proof head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up pinned Lean environment
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: false
+      - name: Reject proof holes and trust shortcuts
+        run: |
+          set -euo pipefail
+          files=$(printf '%s\n' FormalConjectures/Other/LittMostUnfairBet*.lean)
+          if grep -nE '(^|[^[:alnum:]_])(sorry|admit|native_decide)([^[:alnum:]_]|$)' $files; then
+            exit 1
+          fi
+          if grep -nE '^[[:space:]]*(axiom|unsafe|opaque)([[:space:]]|$)' $files; then
+            exit 1
+          fi
+      - name: Compile complete Litt development
+        run: |
+          set -euo pipefail
+          files=(
+            FormalConjectures/Other/LittMostUnfairBetDefs.lean
+            FormalConjectures/Other/LittMostUnfairBetProof.lean
+            FormalConjectures/Other/LittMostUnfairBetWalsh.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshCorrelation.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshShapes.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshGap.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshInteriorGap.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshShiftCorrelation.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshNormalize.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshOrbit.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshPairSum.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshUpperOrbit.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshSumFlatten.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshEnergyTranslate.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshEnergyDiagonal.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshEnergyUpper.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshEnergyIdentity.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshVariance.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshOverlapBridge.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshConstantGap.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshOneEndpointGap.lean
+            FormalConjectures/Other/LittMostUnfairBetReversal.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointCore.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointToggle.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointComplete.lean
+            FormalConjectures/Other/LittMostUnfairBetWalshAssembly.lean
+            FormalConjectures/Other/LittMostUnfairBet.lean
+          )
+          : > /tmp/litt-lean.log
+          for file in "${files[@]}"; do
+            echo "=== $file ===" | tee -a /tmp/litt-lean.log
+            lake env lean -DwarningAsError=true "$file" 2>&1 | tee -a /tmp/litt-lean.log
+          done
+          if grep -nE 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce' /tmp/litt-lean.log; then
+            exit 1
+          fi
+      - name: Run exact finite audit
+        run: python3 scripts/verify_litt_most_unfair.py --max-length 10
+      - name: Upload audit transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: litt-most-unfair-lean-log
+          path: /tmp/litt-lean.log
+          if-no-files-found: warn
