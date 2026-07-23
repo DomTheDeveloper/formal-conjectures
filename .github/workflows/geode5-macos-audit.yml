@@ -1,0 +1,56 @@
+name: Geode5 macOS exact audit
+
+on:
+  push:
+    branches: [audit-geode5-crt-proof]
+    paths:
+      - '.github/workflows/geode5-macos-audit.yml'
+      - 'FormalConjectures/Arxiv/2508.10245/Geode5Proof/**'
+      - 'FormalConjectures/Arxiv/2508.10245/Geode5.lean'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: geode5-macos-exact
+  cancel-in-progress: true
+
+jobs:
+  exact-module:
+    runs-on: macos-14
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit-geode5-crt-proof
+      - name: Reject placeholders in proof modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE '\b(sorry|admit)\b' FormalConjectures/Arxiv/2508.10245/Geode5Proof; then
+            exit 1
+          fi
+      - name: Install pinned Lean toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/elan" toolchain install leanprover/lean4:v4.27.0
+      - name: Fetch Mathlib cache
+        run: lake exe cache get
+      - name: Compile full symbolic bound stack
+        shell: bash
+        run: |
+          set -o pipefail
+          lake env lean -DwarningAsError=true \
+            FormalConjectures/Arxiv/2508.10245/Geode5Proof/AbsoluteBound.lean \
+            2>&1 | tee geode5-macos-audit.log
+      - name: Upload transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geode5-macos-audit-${{ github.sha }}
+          path: geode5-macos-audit.log
+          if-no-files-found: warn
