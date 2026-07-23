@@ -20,7 +20,7 @@ import Mathlib.Data.Nat.Choose.Bounds
 /-!
 # Elementary absolute bound for the five-dimensional Geode
 
-The enlarged CRT certificate permits a deliberately simple bound.  Every one
+The enlarged CRT certificate permits a deliberately simple bound. Every one
 of the `(n+1)^4` reduced summands is bounded uniformly using
 
 * `choose N k ≤ 2^N`, and
@@ -85,7 +85,6 @@ theorem abs_qReducedSummand_le_simpleTermBound
     dsimp [q]
     omega
   have htop : 5 * n ≤ 20 * n + 2 - q := by omega
-  have htop_le : 20 * n + 2 - q ≤ 20 * n + 2 := Nat.sub_le _ _
   have hqa := qBinomial_le_two_pow n a ha
   have hqb := qBinomial_le_two_pow n b hb
   have hqc := qBinomial_le_two_pow n c hc
@@ -101,8 +100,6 @@ theorem abs_qReducedSummand_le_simpleTermBound
   have hratio := qFactorial_ratio_le n r
   have hpref :
       0 ≤ qFactorial (5 * n) / qFactorial n ^ 4 := by positivity
-  have hratio_nonneg :
-      0 ≤ qFactorial r / qFactorial (n + r + 1) := by positivity
   have hqa0 := qBinomial_nonneg n a
   have hqb0 := qBinomial_nonneg n b
   have hqc0 := qBinomial_nonneg n c
@@ -133,25 +130,48 @@ theorem abs_qReducedSummand_le_simpleTermBound
 theorem abs_qReducedGeode_le_simpleAbsoluteBound (n : ℕ) :
     |qReducedGeode n| ≤ simpleAbsoluteBound n := by
   unfold qReducedGeode
+  let s := Finset.range (n + 1)
   calc
-    |∑ a ∈ Finset.range (n + 1),
-        ∑ b ∈ Finset.range (n + 1),
-          ∑ c ∈ Finset.range (n + 1),
-            ∑ d ∈ Finset.range (n + 1), qReducedSummand n a b c d| ≤
-      ∑ a ∈ Finset.range (n + 1),
-        ∑ b ∈ Finset.range (n + 1),
-          ∑ c ∈ Finset.range (n + 1),
-            ∑ d ∈ Finset.range (n + 1), |qReducedSummand n a b c d| := by
-      repeatedly' apply Finset.abs_sum_le_sum_abs
-    _ ≤ ∑ _a ∈ Finset.range (n + 1),
-        ∑ _b ∈ Finset.range (n + 1),
-          ∑ _c ∈ Finset.range (n + 1),
-            ∑ _d ∈ Finset.range (n + 1), simpleTermBound n := by
-      gcongr
-      exact abs_qReducedSummand_le_simpleTermBound n _ _ _ _
-        (by omega) (by omega) (by omega) (by omega)
+    |∑ a ∈ s, ∑ b ∈ s, ∑ c ∈ s, ∑ d ∈ s,
+        qReducedSummand n a b c d| ≤
+      ∑ a ∈ s, |∑ b ∈ s, ∑ c ∈ s, ∑ d ∈ s,
+        qReducedSummand n a b c d| := Finset.abs_sum_le_sum_abs ..
+    _ ≤ ∑ a ∈ s, ∑ b ∈ s, |∑ c ∈ s, ∑ d ∈ s,
+        qReducedSummand n a b c d| := by
+      apply Finset.sum_le_sum
+      intro a ha
+      exact Finset.abs_sum_le_sum_abs ..
+    _ ≤ ∑ a ∈ s, ∑ b ∈ s, ∑ c ∈ s, |∑ d ∈ s,
+        qReducedSummand n a b c d| := by
+      apply Finset.sum_le_sum
+      intro a ha
+      apply Finset.sum_le_sum
+      intro b hb
+      exact Finset.abs_sum_le_sum_abs ..
+    _ ≤ ∑ a ∈ s, ∑ b ∈ s, ∑ c ∈ s, ∑ d ∈ s,
+        |qReducedSummand n a b c d| := by
+      apply Finset.sum_le_sum
+      intro a ha
+      apply Finset.sum_le_sum
+      intro b hb
+      apply Finset.sum_le_sum
+      intro c hc
+      exact Finset.abs_sum_le_sum_abs ..
+    _ ≤ ∑ _a ∈ s, ∑ _b ∈ s, ∑ _c ∈ s, ∑ _d ∈ s,
+        simpleTermBound n := by
+      apply Finset.sum_le_sum
+      intro a ha
+      apply Finset.sum_le_sum
+      intro b hb
+      apply Finset.sum_le_sum
+      intro c hc
+      apply Finset.sum_le_sum
+      intro d hd
+      exact abs_qReducedSummand_le_simpleTermBound n a b c d
+        (by simpa [s] using ha) (by simpa [s] using hb)
+        (by simpa [s] using hc) (by simpa [s] using hd)
     _ = simpleAbsoluteBound n := by
-      simp [simpleAbsoluteBound]
+      simp [s, simpleAbsoluteBound]
       ring
 
 /-- The elementary numerical bound at the challenge value. -/
