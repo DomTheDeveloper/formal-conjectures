@@ -53,6 +53,8 @@ open Classical SimpleGraph Finset
 
 set_option linter.style.ams_attribute false
 set_option linter.style.category_attribute false
+set_option maxHeartbeats 0
+set_option maxRecDepth 1000000
 
 /-- The 18-vertex counterexample described in the module docstring. -/
 private def counterG : SimpleGraph (Fin 18) where
@@ -99,7 +101,7 @@ private lemma counterG_reachable_from_hub (v : Fin 18) : counterG.Reachable 10 v
     exact Reachable.refl _
   · have h10v : counterG.Adj 10 v := by
       rw [counterG_adj]
-      exact ⟨hv.symm, Or.inl rfl⟩
+      exact ⟨Ne.symm hv, Or.inl rfl⟩
     exact h10v.reachable
 
 private lemma counterG_connected : counterG.Connected := by
@@ -108,11 +110,9 @@ private lemma counterG_connected : counterG.Connected := by
   exact (counterG_reachable_from_hub u).symm.trans (counterG_reachable_from_hub v)
 
 /-- The Havel--Hakimi residue is exactly 10. -/
-set_option maxHeartbeats 0 in
-set_option maxRecDepth 1000000 in
 private lemma counterG_residue : residue counterG = 10 := by
   unfold residue
-  decide +kernel
+  bv_decide
 
 private def counterColor (v : Fin 18) : Fin 2 := if v.val < 5 then 0 else 1
 
@@ -225,8 +225,6 @@ private def Contains6 (s : Finset (Fin 18)) (a b c d e f : Fin 18) : Prop :=
 
 /-- A finite covering certificate: every set of at least 14 vertices contains one
 of these 25 fixed cycles. -/
-set_option maxHeartbeats 0 in
-set_option maxRecDepth 1000000 in
 private lemma large_subset_cycle_certificate :
     ∀ s : Finset (Fin 18), 14 ≤ s.card →
       Contains3 s 4 7 10 ∨
@@ -254,7 +252,7 @@ private lemma large_subset_cycle_certificate :
       Contains4 s 1 7 3 8 ∨
       Contains6 s 0 8 1 7 4 9 ∨
       Contains4 s 0 5 4 9 := by
-  decide +kernel
+  bv_decide
 
 private lemma false_of_triangle {s : Finset (Fin 18)} {a b c : Fin 18}
     (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s)
@@ -473,7 +471,7 @@ theorem conjecture59 : answer(False) ↔
   · intro h
     exact h.elim
   · intro hP
-    have hineq := hP (Fin 18) counterG counterG_connected
+    have hineq := hP counterG counterG_connected
     have hf : (counterG.largestInducedForestSize : ℝ) ≤ 13 := by
       exact_mod_cast counterG_forest_le
     have hprod : (170 : ℝ) ≤ (residue counterG : ℝ) * b counterG := by
