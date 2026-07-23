@@ -13,7 +13,7 @@ def tripleRankPoint (x : (ℕ × ℕ) × Bool) : RankPoint :=
 theorem tripleRankPoint_injective : Function.Injective tripleRankPoint := by
   rintro ⟨⟨i, j⟩, s⟩ ⟨⟨k, l⟩, t⟩ h
   simp [tripleRankPoint] at h ⊢
-  exact h
+  exact ⟨⟨h.1, h.2.1⟩, h.2.2⟩
 
 /-- Integer level of a ranked honeycomb point in the diagonal row direction. -/
 def rankLevel (p : RankPoint) : ℕ := p.first + p.second + if p.side then 1 else 0
@@ -31,11 +31,12 @@ def rankPointVertex (p : RankPoint) : Vertex :=
 theorem rankPointVertex_injective : Function.Injective rankPointVertex := by
   intro p q h
   apply RankPoint.ext
-  · have hi := congrArg Vertex.i h
-    exact_mod_cast hi
-  · have hj := congrArg Vertex.j h
-    omega
-  · exact congrArg Vertex.side h
+  · simpa [rankPointVertex] using congrArg Vertex.i h
+  · have hj : (p.second : ℤ) - 1 = (q.second : ℤ) - 1 := by
+      simpa [rankPointVertex] using congrArg Vertex.j h
+    have hj' : (p.second : ℤ) = (q.second : ℤ) := by linarith
+    exact_mod_cast hj'
+  · simpa [rankPointVertex] using congrArg Vertex.side h
 
 /-- The concrete finite honeycomb patch. -/
 def patch (a b c : ℕ) : Finset Vertex :=
