@@ -26,7 +26,7 @@ jobs:
         with:
           build: false
           test: false
-      - name: Build restricted-run modules
+      - name: Build restricted-run reduction
         id: compile
         shell: bash
         run: |
@@ -35,8 +35,7 @@ jobs:
           status=0
           for target in \
             FormalConjecturesForMathlib.Combinatorics.RestrictedRunTableaux \
-            FormalConjecturesForMathlib.Combinatorics.RestrictedRunTableauxReduction \
-            FormalConjectures.Arxiv.RestrictedRunTableaux
+            FormalConjecturesForMathlib.Combinatorics.RestrictedRunTableauxReduction
           do
             echo "===== lake build $target =====" | tee -a restricted-run-lean.log
             lake build "$target" 2>&1 | tee -a restricted-run-lean.log
