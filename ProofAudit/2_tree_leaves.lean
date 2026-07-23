@@ -74,7 +74,7 @@ private lemma internal_term_nonneg
   obtain ⟨w, hw⟩ := exists_ne v
   have hvw : v ≠ w := Ne.symm hw
   have hpos : 0 < T.degree v :=
-    (hT.isConnected v w).degree_pos_left hvw
+    SimpleGraph.Reachable.degree_pos_left hvw (hT.connected v w)
   omega
 
 /-- In a finite nontrivial tree, the number of leaves is at least the sum of
