@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git init repo >/dev/null
+          git init repo >/dev/null 2>&1
           git -C repo remote add origin "https://github.com/${{ github.repository }}.git"
           git -C repo fetch --depth=1 origin \
             "pull/${{ github.event.pull_request.number }}/merge:pr-merge" >/dev/null 2>&1
@@ -45,7 +45,8 @@ jobs:
           cd repo
           lake exe cache get >/dev/null 2>&1
           set +e
-          lake --wfail build FormalConjectures.Other.WorldCup7 2>&1 | tee /tmp/worldcup7-lean.log
-          status=${PIPESTATUS[0]}
+          lake --wfail build FormalConjectures.Other.WorldCup7 > /tmp/worldcup7-lean.log 2>&1
+          status=$?
+          tail -n 30 /tmp/worldcup7-lean.log
           cat /tmp/worldcup7-lean.log >> "$GITHUB_STEP_SUMMARY"
           exit "$status"
