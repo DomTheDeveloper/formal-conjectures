@@ -108,4 +108,6 @@ theorem conjecture : answer(False) ↔
       exact hleast.1
     exact twelve_seventy_two_not_candidate hp hcandidate
 
+#print axioms OeisA343881.conjecture
+
 end OeisA343881
