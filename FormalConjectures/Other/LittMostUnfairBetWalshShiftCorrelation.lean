@@ -70,7 +70,7 @@ theorem prod_range_one_add_letterSign_shift {n h : ℕ} (A C : Word n) :
         1 + coinSign (prefixBlock A h i) * coinSign (suffixBlock C h i)
       have hidx : (⟨i.val + h, hC⟩ : Fin n) = ⟨h + i.val, hC'⟩ := by
         apply Fin.ext
-        omega
+        exact Nat.add_comm i.val h
       rw [hidx]
       rfl
     _ = if prefixBlock A h = suffixBlock C h then 2 ^ (n - h) else 0 :=
