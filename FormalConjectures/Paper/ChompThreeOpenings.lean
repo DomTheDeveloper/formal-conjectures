@@ -22,10 +22,11 @@ import FormalConjecturesUtil
 This file gives an exact finite-game specification of rectangular Chomp and isolates the
 three concrete losing-position obligations for the proposed `10 × 42` witness.
 
-*Reference:*
+*References:*
 - [All the Winning Bites for a by b Chomp for a and b up to 14 and Two Computational
   Challenges](https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimhtml/chompc.html)
   by S. B. Ekhad and D. Zeilberger.
+- [OEIS A147983](https://oeis.org/A147983)
 -/
 
 namespace ChompThreeOpenings
