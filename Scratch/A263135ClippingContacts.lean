@@ -45,6 +45,7 @@ private theorem rankDartNeighbor_mem_rankPatch
   have hint := (clippingRankDart_mem_aInternal_iff ha hb hc).mp hpd
   rcases Finset.mem_filter.mp hint with ⟨hint, hside⟩
   rcases Finset.mem_filter.mp hint with ⟨hprod, hn⟩
+  change neighbor (rankPointVertex pd.1) pd.2 ∈ patch a b c at hn
   rw [neighbor_clippingRankDart_eq hpd] at hn
   exact rankPointVertex_mem_patch_iff.mp hn
 
@@ -68,6 +69,7 @@ theorem clippingRankDart_mem_clipped_iff
     rcases Finset.mem_filter.mp hint with ⟨hprod, hn⟩
     have hpClip := (rankPointVertex_mem_clippedPatch_iff.mp
       (Finset.mem_product.mp hprod).1).2
+    change neighbor (rankPointVertex pd.1) pd.2 ∈ clippedPatch a b c d at hn
     rw [neighbor_clippingRankDart_eq hpd] at hn
     have hnClip := (rankPointVertex_mem_clippedPatch_iff.mp hn).2
     exact ⟨hpClip, hnClip⟩
@@ -76,7 +78,8 @@ theorem clippingRankDart_mem_clipped_iff
     refine ⟨Finset.mem_filter.mpr ⟨Finset.mem_product.mpr
       ⟨rankPointVertex_mem_clippedPatch_iff.mpr ⟨hpPatch, hpClip⟩,
         Finset.mem_univ _⟩, ?_⟩, ?_⟩
-    · rw [neighbor_clippingRankDart_eq hpd]
+    · change neighbor (rankPointVertex pd.1) pd.2 ∈ clippedPatch a b c d
+      rw [neighbor_clippingRankDart_eq hpd]
       exact rankPointVertex_mem_clippedPatch_iff.mpr ⟨hnPatch, hnClip⟩
     · have hfull := (clippingRankDart_mem_aInternal_iff ha hb hc).mp hpd
       exact (Finset.mem_filter.mp hfull).2
