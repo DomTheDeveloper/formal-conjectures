@@ -26,20 +26,20 @@ jobs:
         with:
           build: false
           test: false
-      - name: Compile restricted-run files
+      - name: Build restricted-run modules
         id: compile
         shell: bash
         run: |
           set +e
           : > restricted-run-lean.log
           status=0
-          for file in \
-            FormalConjecturesForMathlib/Combinatorics/RestrictedRunTableaux.lean \
-            FormalConjecturesForMathlib/Combinatorics/RestrictedRunTableauxReduction.lean \
-            FormalConjectures/Arxiv/RestrictedRunTableaux.lean
+          for target in \
+            FormalConjecturesForMathlib.Combinatorics.RestrictedRunTableaux \
+            FormalConjecturesForMathlib.Combinatorics.RestrictedRunTableauxReduction \
+            FormalConjectures.Arxiv.RestrictedRunTableaux
           do
-            echo "===== $file =====" | tee -a restricted-run-lean.log
-            lake env lean "$file" 2>&1 | tee -a restricted-run-lean.log
+            echo "===== lake build $target =====" | tee -a restricted-run-lean.log
+            lake build "$target" 2>&1 | tee -a restricted-run-lean.log
             code=${PIPESTATUS[0]}
             echo "exit_code=$code" | tee -a restricted-run-lean.log
             if [ "$code" -ne 0 ]; then status=1; fi
