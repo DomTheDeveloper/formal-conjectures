@@ -9,6 +9,15 @@ structure RankPoint where
   side : Bool
   deriving DecidableEq
 
+@[ext]
+theorem RankPoint.ext {p q : RankPoint}
+    (hfirst : p.first = q.first)
+    (hsecond : p.second = q.second)
+    (hside : p.side = q.side) : p = q := by
+  cases p
+  cases q
+  simp_all
+
 /-- Embedding of the vertical leg of a rectangle chain. -/
 def verticalEmbedding (t : ℕ) (side : Bool) : ℕ ↪ RankPoint where
   toFun j := ⟨t, j, side⟩
@@ -21,7 +30,8 @@ def horizontalEmbedding (t b : ℕ) (side : Bool) : ℕ ↪ RankPoint where
   toFun h := ⟨t + 1 + h, b - 1 - t, side⟩
   inj' := by
     intro x y h
-    have := congrArg RankPoint.first h
+    have hfirst : t + 1 + x = t + 1 + y := by
+      simpa [horizontalEmbedding] using congrArg RankPoint.first h
     omega
 
 /-- Vertical part of the `t`-th symmetric chain in an `a × b` rectangle. -/
@@ -76,8 +86,11 @@ private theorem lastRankPoint_mem_baseBoxChain (a b t : ℕ) (side : Bool)
     refine ⟨a - 2 - t, ?_, ?_⟩
     · simp only [Finset.mem_range]
       omega
-    · apply RankPoint.ext <;> simp [horizontalEmbedding, lastRankPoint]
-      omega
+    · apply RankPoint.ext
+      · simp [horizontalEmbedding, lastRankPoint]
+        omega
+      · simp [horizontalEmbedding, lastRankPoint]
+      · simp [horizontalEmbedding, lastRankPoint]
 
 /-- Long product chain: every `A` cell of a base chain followed by its final `B` cell. -/
 def longBoxChain (a b t : ℕ) : Finset RankPoint :=
