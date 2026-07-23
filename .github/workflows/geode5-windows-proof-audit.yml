@@ -1,0 +1,74 @@
+name: Geode5 Windows exact audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'FormalConjectures/Arxiv/2508.10245/Geode5Proof/**'
+      - 'FormalConjectures/Arxiv/2508.10245/Geode5Defs.lean'
+      - 'FormalConjectures/Arxiv/2508.10245/Geode5.lean'
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: geode5-windows-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  exact:
+    runs-on: windows-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up pinned Lean and Mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+      - name: Reject actual Lean placeholders
+        shell: pwsh
+        run: |
+          $matches = Get-ChildItem 'FormalConjectures/Arxiv/2508.10245/Geode5Proof' -Recurse -File |
+            Select-String -Pattern 'by\s+(sorry|admit)\b|^\s*(sorry|admit)\b'
+          $matches += Select-String -Path 'FormalConjectures/Arxiv/2508.10245/Geode5.lean' -Pattern 'by\s+(sorry|admit)\b|^\s*(sorry|admit)\b'
+          if ($matches) { $matches | ForEach-Object { Write-Host $_ }; exit 1 }
+      - name: Compile final benchmark theorem
+        id: compile
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          lake env lean -DwarningAsError=true 'FormalConjectures/Arxiv/2508.10245/Geode5.lean' 2>&1 |
+            Tee-Object -FilePath "$env:RUNNER_TEMP/geode5-windows.log"
+          exit $LASTEXITCODE
+      - name: Report
+        if: always()
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUTCOME: ${{ steps.compile.outcome }}
+        run: |
+          $log = Join-Path $env:RUNNER_TEMP 'geode5-windows.log'
+          $tail = if (Test-Path $log) { (Get-Content $log | Select-Object -Last 200) -join "`n" } else { '' }
+          @"
+          ## Geode5 Windows final theorem audit
+
+          Head: ``${{ github.event.pull_request.head.sha }}``
+          Result: **$env:OUTCOME**
+
+          ``````text
+          $tail
+          ``````
+          "@ | Set-Content "$env:RUNNER_TEMP/geode5-comment.md"
+          gh pr comment '${{ github.event.pull_request.number }}' --repo '${{ github.repository }}' --body-file "$env:RUNNER_TEMP/geode5-comment.md"
+      - name: Enforce
+        if: steps.compile.outcome != 'success'
+        shell: pwsh
+        run: exit 1
