@@ -94,7 +94,12 @@ theorem integral01_qSparsePolynomial (terms : List SparseTerm) (n : ℕ) :
       simp only [qSparsePolynomial, qSparseAction, List.foldr_cons]
       rw [add_mul, map_add, mul_assoc]
       rw [← Polynomial.smul_eq_C_mul, map_smul]
-      simp only [smul_eq_mul, qMoment]
+      simp only [smul_eq_mul]
+      change
+        (a.coefficient : QYPoly) * qy ^ a.shift * qMoment n a.source +
+            integral01 (qSparsePolynomial terms * qKernel ^ n) =
+          (a.coefficient : QYPoly) * qy ^ a.shift * qMoment n a.source +
+            qSparseAction terms (qMoment n)
       rw [ih]
 
 /-- Expand the quotient integral into its moment combination. -/
@@ -105,7 +110,7 @@ theorem integral01_qMomentQuotient (n k : ℕ) :
     integral01 (qMomentQuotient k * qKernel ^ n) =
       qQuotientAction k (qMoment n) := by
   simp [qMomentQuotient, qQuotientAction, Finset.sum_mul, map_sum,
-    ← Polynomial.smul_eq_C_mul, map_smul, smul_eq_mul, qMoment, mul_assoc]
+    ← Polynomial.smul_eq_C_mul, map_smul, smul_eq_mul, qMoment]
 
 /-- Solve one nonzero diagonal row over `Polynomial ℚ`. -/
 def solveDiagonal (d : ℕ) (rhs : QYPoly) : QYPoly :=
