@@ -1,5 +1,7 @@
 # Formal Conjectures
 
+[Temporary A226247 raw compiler log](https://api.github.com/repos/DomTheDeveloper/formal-conjectures/actions/jobs/89143002253/logs)
+
 [![.github/workflows/push_master.yml](https://github.com/google-deepmind/formal-conjectures/actions/workflows/build-and-docs.yml/badge.svg)](https://github.com/google-deepmind/formal-conjectures/actions/workflows/build-and-docs.yml)
 [![arXiv](https://img.shields.io/badge/arXiv-2605.13171-b31b1b.svg)](https://arxiv.org/abs/2605.13171)
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/google-deepmind/formal-conjectures)
@@ -134,7 +136,7 @@ URL within the source file. Third party content may be subject to different
 licensing requirements. In particular:
 
 -   Material from Wikipedia articles, MathOverflow and the OEIS is released under the
-    Creative Commons Attribution-Share-Alike License 4.0.
+    Creative Commons Attribution-ShareAlike License 4.0.
 -   Material from bbchallenge.org is used under the Creative Commons Attribution
     4.0 International License.
 -   Material from the Equational Theories Project is used under Apache-2.0.
