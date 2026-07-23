@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.Arxiv.«2508.10245».Geode5
+import FormalConjectures.Arxiv.«2508.10245».Geode5Defs
 
 /-!
 # Factorial reduction for the five-dimensional Geode
