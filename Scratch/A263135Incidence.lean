@@ -108,12 +108,15 @@ theorem contacts_eq_card_aInternalDarts (S : Finset Vertex) :
   let D : Finset (Vertex × Direction) :=
     ((S ×ˢ Finset.univ).filter fun vd => neighbor vd.1 vd.2 ∈ S).filter
       fun vd => vd.1.side = false
+  change (∑ v ∈ S, if v.side = true then 0 else
+      ∑ d ∈ Finset.univ, if neighbor v d ∈ S then 1 else 0) = D.card
   have hmap : (D : Set (Vertex × Direction)).MapsTo Prod.fst S := by
     intro vd hv
     have hv' : vd ∈ D := hv
     exact (Finset.mem_product.mp
       (Finset.mem_filter.mp (Finset.mem_filter.mp hv').1).1).1
-  have hcard : D.card = ∑ v ∈ S, #{vd ∈ D | Prod.fst vd = v} :=
+  have hcard : D.card =
+      ∑ v ∈ S, (D.filter fun vd => Prod.fst vd = v).card :=
     Finset.card_eq_sum_card_fiberwise hmap
   rw [hcard]
   apply Finset.sum_congr rfl
