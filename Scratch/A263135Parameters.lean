@@ -64,21 +64,40 @@ theorem balanced_pair_sum (r : ℕ) :
 theorem balanced_corner_width (r : ℕ) (hr : 3 ≤ r) :
     balancedA r + balancedB r - 1 =
       r ^ 2 / 3 - (r - 1) ^ 2 / 3 - 1 := by
-  unfold balancedA balancedB
+  rw [← balanced_pair_sum r, ← balanced_pair_sum (r - 1)]
+  unfold balancedA balancedB balancedC
+  let q := r / 3
   have hmod : r % 3 = 0 ∨ r % 3 = 1 ∨ r % 3 = 2 := by omega
   rcases hmod with h | h | h
-  · have hre : r = 3 * (r / 3) := by omega
-    rw [hre]
-    ring_nf
+  · have hre : r = 3 * q := by dsimp [q]; omega
+    have hq : 1 ≤ q := by omega
+    have h0 : r / 3 = q := rfl
+    have h1 : (r + 1) / 3 = q := by dsimp [q]; omega
+    have h2 : (r + 2) / 3 = q := by dsimp [q]; omega
+    have hp0 : (r - 1) / 3 = q - 1 := by dsimp [q]; omega
+    have hp1 : (r - 1 + 1) / 3 = q := by dsimp [q]; omega
+    have hp2 : (r - 1 + 2) / 3 = q := by dsimp [q]; omega
+    rw [h0, h1, h2, hp0, hp1, hp2]
     omega
-  · have hre : r = 3 * (r / 3) + 1 := by omega
-    rw [hre]
-    ring_nf
-    omega
-  · have hre : r = 3 * (r / 3) + 2 := by omega
-    rw [hre]
-    ring_nf
-    omega
+  · have hre : r = 3 * q + 1 := by dsimp [q]; omega
+    have hq : 1 ≤ q := by omega
+    have h0 : r / 3 = q := rfl
+    have h1 : (r + 1) / 3 = q := by dsimp [q]; omega
+    have h2 : (r + 2) / 3 = q + 1 := by dsimp [q]; omega
+    have hp0 : (r - 1) / 3 = q := by dsimp [q]; omega
+    have hp1 : (r - 1 + 1) / 3 = q := by dsimp [q]; omega
+    have hp2 : (r - 1 + 2) / 3 = q := by dsimp [q]; omega
+    rw [h0, h1, h2, hp0, hp1, hp2]
+    ring
+  · have hre : r = 3 * q + 2 := by dsimp [q]; omega
+    have h0 : r / 3 = q := rfl
+    have h1 : (r + 1) / 3 = q + 1 := by dsimp [q]; omega
+    have h2 : (r + 2) / 3 = q + 1 := by dsimp [q]; omega
+    have hp0 : (r - 1) / 3 = q := by dsimp [q]; omega
+    have hp1 : (r - 1 + 1) / 3 = q := by dsimp [q]; omega
+    have hp2 : (r - 1 + 2) / 3 = q + 1 := by dsimp [q]; omega
+    rw [h0, h1, h2, hp0, hp1, hp2]
+    ring
 
 /-- Positivity of the balanced side parameters once `r ≥ 3`. -/
 theorem balanced_positive (r : ℕ) (hr : 3 ≤ r) :
@@ -99,7 +118,8 @@ theorem exists_balanced_clipping_parameters
     by_contra h
     have hr2 : r ≤ 2 := by omega
     have hsquare : r ^ 2 ≤ 4 := by nlinarith
-    have : 6 ≤ 3 * n := by omega
+    have hn6 : 6 ≤ 3 * n := by omega
+    have hupper := hr.2
     omega
   let a := balancedA r
   let b := balancedB r
@@ -109,7 +129,8 @@ theorem exists_balanced_clipping_parameters
     simpa [a, b, c, M] using balanced_pair_sum r
   have hnM : n ≤ M := by
     dsimp [M]
-    omega
+    apply (Nat.le_div_iff_mul_le (by norm_num : 0 < 3)).2
+    simpa [mul_comm] using hr.2
   let d := M - n
   refine ⟨a, b, c, d, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · exact (balanced_positive r hr3).1
@@ -121,9 +142,15 @@ theorem exists_balanced_clipping_parameters
   · dsimp [d]
     rw [hM]
     omega
-  · have hlower : (r - 1) ^ 2 / 3 < n := by omega
-    have hwidth := balanced_corner_width r hr3
-    dsimp [d, M, a, b]
+  · have hlower : (r - 1) ^ 2 / 3 < n := by
+      apply (Nat.div_lt_iff_lt_mul (by norm_num : 0 < 3)).2
+      simpa [mul_comm] using hr.1
+    have hwidth : a + b - 1 = M - (r - 1) ^ 2 / 3 - 1 := by
+      simpa [a, b, M] using balanced_corner_width r hr3
+    change M - n ≤ a + b - 1
+    rw [hwidth]
+    have hsucc : (r - 1) ^ 2 / 3 + 1 ≤ n := by omega
+    have hsub := Nat.sub_le_sub_left hsucc M
     omega
 
 end OeisA263135
