@@ -143,7 +143,8 @@ theorem two_mul_selfOverlap_dist_le_candidate {n : ℕ} (hn : 2 ≤ n)
       omega
   have hpow : 2 ^ n = 2 * 2 ^ (n - 1) := by
     obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
-    rw [show m + 2 = (m + 1) + 1 by omega, pow_succ]
+    rw [show m + 2 - 1 = m + 1 by omega,
+      show m + 2 = (m + 1) + 1 by omega, pow_succ]
     ring
   rw [hpow]
   omega
@@ -192,8 +193,8 @@ theorem candidateNum_eq_natCast {n : ℕ} (hn : 1 ≤ n) :
   have hpow : 2 ≤ 2 ^ n := by
     obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
     rw [pow_succ]
-    have hm : 1 ≤ 2 ^ m := by positivity
-    nlinarith
+    have hm : 0 < 2 ^ m := pow_pos (by norm_num : 0 < (2 : ℕ)) m
+    omega
   rw [Nat.cast_sub hpow]
   norm_num
 
