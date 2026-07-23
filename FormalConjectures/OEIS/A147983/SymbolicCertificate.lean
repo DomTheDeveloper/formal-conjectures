@@ -30,6 +30,7 @@ namespace OeisA147983
 abbrev SymbolicCertificate := MoveClosureCertificate
 
 /-- A complete symbolic certificate proves the exact three-opening statement. -/
+@[category API, AMS 5]
 theorem three_openings_of_symbolic_certificate (C : SymbolicCertificate) :
     IsWinningOpening rectangle child₁ ∧
       IsWinningOpening rectangle child₂ ∧
