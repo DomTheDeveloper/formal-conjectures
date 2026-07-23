@@ -17,88 +17,86 @@ limitations under the License.
 import FormalConjectures.Other.BeaverMathOlympiad
 
 /-!
-# Beaver Math Olympiad Problem 8 Certificate
+# Beaver Math Olympiad Problem 8 certificate
 
-A finite Lean certificate for the positive answer to BMO #8. The recurrence reaches
-`(1_749_056, 3_498_111)` at zero-based index `1_210_682`.
+This file proves the exact proposition used by `beaver_math_olympiad_problem_8`.
+The recurrence reaches `(1_749_056, 3_498_111)` at zero-based index `1_210_682`.
 -/
 
 namespace BeaverMathOlympiad
 
-private def bmo8_step : ℕ × ℕ → ℕ × ℕ
+private def bmo8Step : ℕ × ℕ → ℕ × ℕ
   | (a, b) =>
       if b / 2 < a then
         (a - b / 2 - 3, 3 * ((b + 1) / 2) + 6)
       else
         (3 * a + 5, b - 2 * a)
 
-private def bmo8_run : ℕ → ℕ × ℕ → ℕ × ℕ
+private def bmo8Run : ℕ → ℕ × ℕ → ℕ × ℕ
   | 0, s => s
-  | n + 1, s => bmo8_run n (bmo8_step s)
+  | n + 1, s => bmo8Run n (bmo8Step s)
 
-private def bmo8_orbit (n : ℕ) : ℕ × ℕ :=
-  bmo8_run n (10, 12)
+private def bmo8Orbit (n : ℕ) : ℕ × ℕ :=
+  bmo8Run n (10, 12)
 
-/-- The tail-recursive evaluator commutes with one recurrence step. -/
 @[category API, AMS 5 11 68]
-private lemma bmo8_run_step (n : ℕ) (s : ℕ × ℕ) :
-    bmo8_run n (bmo8_step s) = bmo8_step (bmo8_run n s) := by
+private lemma bmo8Run_step (n : ℕ) (s : ℕ × ℕ) :
+    bmo8Run n (bmo8Step s) = bmo8Step (bmo8Run n s) := by
   induction n generalizing s with
   | zero => rfl
   | succ n ih =>
-      simpa only [bmo8_run] using ih (bmo8_step s)
+      simpa only [bmo8Run] using ih (bmo8Step s)
 
-/-- The explicit orbit satisfies the BMO #8 recurrence. -/
 @[category API, AMS 5 11 68]
-private lemma bmo8_orbit_succ (n : ℕ) :
-    bmo8_orbit (n + 1) = bmo8_step (bmo8_orbit n) := by
-  simpa only [bmo8_orbit, bmo8_run] using bmo8_run_step n (10, 12)
+private lemma bmo8Orbit_succ (n : ℕ) :
+    bmo8Orbit (n + 1) = bmo8Step (bmo8Orbit n) := by
+  simpa only [bmo8Orbit, bmo8Run] using bmo8Run_step n (10, 12)
 
-/-- The BMO #8 recurrence has a target-hitting term. -/
 @[category test, AMS 5 11 68]
-theorem beaver_math_olympiad_problem_8_positive :
+private theorem bmo8_positive :
     ∀ᵉ (a : ℕ → ℕ) (b : ℕ → ℕ)
-    (a_ini : a 0 = 10)
-    (a_rec : ∀ n, a (n + 1) =
+    (_a_ini : a 0 = 10)
+    (_a_rec : ∀ n, a (n + 1) =
       if b n / 2 < a n then a n - b n / 2 - 3 else 3 * a n + 5)
-    (b_ini : b 0 = 12)
-    (b_rec : ∀ n, b (n + 1) =
+    (_b_ini : b 0 = 12)
+    (_b_rec : ∀ n, b (n + 1) =
       if b n / 2 < a n then 3 * ((b n + 1) / 2) + 6 else b n - 2 * a n),
     ∃ i, a i = b i / 2 + 1 := by
   intro a b a_ini a_rec b_ini b_rec
-  have h_eq : ∀ n, (a n, b n) = bmo8_orbit n := by
+  have hOrbit : ∀ n, (a n, b n) = bmo8Orbit n := by
     intro n
     induction n with
     | zero =>
-        simp [bmo8_orbit, bmo8_run, a_ini, b_ini]
+        simp [bmo8Orbit, bmo8Run, a_ini, b_ini]
     | succ n ih =>
-        rw [bmo8_orbit_succ, ← ih]
+        rw [bmo8Orbit_succ, ← ih]
         by_cases h : b n / 2 < a n <;>
-          simp [bmo8_step, h, a_rec, b_rec]
+          simp [bmo8Step, h, a_rec, b_rec]
   refine ⟨1_210_682, ?_⟩
-  have hcalc : bmo8_orbit 1_210_682 = (1_749_056, 3_498_111) := by
+  have hcalc : bmo8Orbit 1_210_682 = (1_749_056, 3_498_111) := by
     native_decide
-  have hstate := (h_eq 1_210_682).trans hcalc
+  have hstate : (a 1_210_682, b 1_210_682) = (1_749_056, 3_498_111) :=
+    (hOrbit 1_210_682).trans hcalc
   have ha : a 1_210_682 = 1_749_056 := by
-    simpa using congrArg Prod.fst hstate
+    exact congrArg Prod.fst hstate
   have hb : b 1_210_682 = 3_498_111 := by
-    simpa using congrArg Prod.snd hstate
+    exact congrArg Prod.snd hstate
   norm_num [ha, hb]
 
-/-- BMO #8 has the positive answer. -/
-@[category research solved, AMS 5 11 68]
-theorem beaver_math_olympiad_problem_8_solved : answer(True) ↔
+/-- A proof of the exact proposition stated by BMO #8. -/
+@[category test, AMS 5 11 68]
+theorem beaver_math_olympiad_problem_8_proof : answer(True) ↔
     ∀ᵉ (a : ℕ → ℕ) (b : ℕ → ℕ)
-    (a_ini : a 0 = 10)
-    (a_rec : ∀ n, a (n + 1) =
+    (_a_ini : a 0 = 10)
+    (_a_rec : ∀ n, a (n + 1) =
       if b n / 2 < a n then a n - b n / 2 - 3 else 3 * a n + 5)
-    (b_ini : b 0 = 12)
-    (b_rec : ∀ n, b (n + 1) =
+    (_b_ini : b 0 = 12)
+    (_b_rec : ∀ n, b (n + 1) =
       if b n / 2 < a n then 3 * ((b n + 1) / 2) + 6 else b n - 2 * a n),
     ∃ i, a i = b i / 2 + 1 := by
   constructor
   · intro _
-    exact beaver_math_olympiad_problem_8_positive
+    exact bmo8_positive
   · intro _
     trivial
 
