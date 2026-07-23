@@ -1,0 +1,58 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: Repair WOWII 59 once
+
+on:
+  push:
+    branches: [agent/solve-wowii-59]
+    paths: ['.github/workflows/repair-wowii59-once.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/solve-wowii-59
+          fetch-depth: 0
+      - name: Apply exact compiler repairs
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean')
+          text = p.read_text()
+
+          def once(old, new):
+              global text
+              if text.count(old) != 1:
+                  raise SystemExit(f'expected one match, found {text.count(old)}: {old[:80]!r}')
+              text = text.replace(old, new, 1)
+
+          once(
+              'set_option linter.style.category_attribute false\n',
+              'set_option linter.style.category_attribute false\nset_option maxHeartbeats 0\nset_option maxRecDepth 1000000\n')
+          once('exact ⟨hv.symm, Or.inl rfl⟩', 'exact ⟨Ne.symm hv, Or.inl rfl⟩')
+          once('''/-- The Havel--Hakimi residue is exactly 10. -/\nset_option maxHeartbeats 0 in\nset_option maxRecDepth 1000000 in\nprivate lemma counterG_residue : residue counterG = 10 := by\n  unfold residue\n  decide +kernel''',
+               '''/-- The Havel--Hakimi residue is exactly 10. -/\nprivate lemma counterG_residue : residue counterG = 10 := by\n  unfold residue\n  bv_decide''')
+          once('''/-- A finite covering certificate: every set of at least 14 vertices contains one\nof these 25 fixed cycles. -/\nset_option maxHeartbeats 0 in\nset_option maxRecDepth 1000000 in\nprivate lemma large_subset_cycle_certificate :''',
+               '''/-- A finite covering certificate: every set of at least 14 vertices contains one\nof these 25 fixed cycles. -/\nprivate lemma large_subset_cycle_certificate :''')
+          once('''      Contains6 s 0 8 1 7 4 9 ∨\n      Contains4 s 0 5 4 9 := by\n  decide +kernel''',
+               '''      Contains6 s 0 8 1 7 4 9 ∨\n      Contains4 s 0 5 4 9 := by\n  bv_decide''')
+          once('have hineq := hP (Fin 18) counterG counterG_connected',
+               'have hineq := hP counterG counterG_connected')
+
+          p.write_text(text)
+          Path('.github/workflows/repair-wowii59-once.yml').unlink()
+          PY
+      - name: Commit repairs
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean .github/workflows/repair-wowii59-once.yml
+          git commit -m 'Repair WOWII 59 finite certificates and theorem application'
+          git push origin HEAD:agent/solve-wowii-59
