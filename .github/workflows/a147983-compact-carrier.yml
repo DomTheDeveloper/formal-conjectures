@@ -54,28 +54,12 @@ jobs:
             > mdd.stdout 2> mdd.stderr
           grep -F 'words=107342138 total_nodes=16906422 total_transitions=96754877' mdd.stdout
 
-      - name: Measure low-area greedy carrier
+      - name: Complete high-area greedy carrier
         working-directory: ProofArtifacts/OEIS/A147983
         shell: bash
         run: |
           set +e
-          /usr/bin/time -v ./chomp_compact_carrier p10x42.mdd 5000 low \
-            > carrier-low.stdout 2> carrier-low.stderr
-          status=$?
-          set -e
-          if [[ $status -ne 0 && $status -ne 3 ]]; then
-            cat carrier-low.stderr >&2
-            exit "$status"
-          fi
-          grep -E '^(COMPLETE|LIMIT) carrier=' carrier-low.stdout
-          echo "$status" > carrier-low.status
-
-      - name: Measure high-area greedy carrier
-        working-directory: ProofArtifacts/OEIS/A147983
-        shell: bash
-        run: |
-          set +e
-          /usr/bin/time -v ./chomp_compact_carrier p10x42.mdd 5000 high \
+          /usr/bin/time -v ./chomp_compact_carrier p10x42.mdd 100000 high \
             > carrier-high.stdout 2> carrier-high.stderr
           status=$?
           set -e
@@ -94,13 +78,9 @@ jobs:
           {
             echo '# OEIS A147983 compact closed-carrier measurement'
             echo
-            echo '## Low-area tie-break'
-            cat carrier-low.stdout 2>/dev/null || true
-            tail -n 40 carrier-low.stderr 2>/dev/null || true
-            echo
-            echo '## High-area tie-break'
+            echo '## High-area greedy carrier, 100000-node gate'
             cat carrier-high.stdout 2>/dev/null || true
-            tail -n 40 carrier-high.stderr 2>/dev/null || true
+            tail -n 60 carrier-high.stderr 2>/dev/null || true
           } > COMPACT_CARRIER_REPORT.md
 
       - name: Upload compact report
@@ -110,8 +90,6 @@ jobs:
           name: a147983-compact-carrier-report
           path: |
             ProofArtifacts/OEIS/A147983/COMPACT_CARRIER_REPORT.md
-            ProofArtifacts/OEIS/A147983/carrier-low.stdout
-            ProofArtifacts/OEIS/A147983/carrier-low.stderr
             ProofArtifacts/OEIS/A147983/carrier-high.stdout
             ProofArtifacts/OEIS/A147983/carrier-high.stderr
           if-no-files-found: warn
