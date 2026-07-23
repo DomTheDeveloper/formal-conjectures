@@ -112,7 +112,7 @@ private lemma counterG_connected : counterG.Connected := by
 /-- The Havel--Hakimi residue is exactly 10. -/
 private lemma counterG_residue : residue counterG = 10 := by
   unfold residue
-  bv_decide
+  decide
 
 private def counterColor (v : Fin 18) : Fin 2 := if v.val < 5 then 0 else 1
 
@@ -252,7 +252,7 @@ private lemma large_subset_cycle_certificate :
       Contains4 s 1 7 3 8 ∨
       Contains6 s 0 8 1 7 4 9 ∨
       Contains4 s 0 5 4 9 := by
-  bv_decide
+  decide
 
 private lemma false_of_triangle {s : Finset (Fin 18)} {a b c : Fin 18}
     (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s)
@@ -471,7 +471,7 @@ theorem conjecture59 : answer(False) ↔
   · intro h
     exact h.elim
   · intro hP
-    have hineq := hP counterG counterG_connected
+    have hineq := hP (Fin 18) counterG counterG_connected
     have hf : (counterG.largestInducedForestSize : ℝ) ≤ 13 := by
       exact_mod_cast counterG_forest_le
     have hprod : (170 : ℝ) ≤ (residue counterG : ℝ) * b counterG := by
