@@ -30,6 +30,7 @@ with at least three winning opening moves.
 - [OEIS A147983](https://oeis.org/A147983)
 - [S. B. Ekhad and D. Zeilberger, *All the Winning Bites for a by b Chomp for a and b up to 14
   and Two Computational Challenges*](https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimhtml/chompc.html)
+- [Corrected exact computation and independent audit](https://github.com/DomTheDeveloper/formal-conjectures/tree/a0c8858ce9b22166d0616931ea1fc996e335b03d/ProofArtifacts/OEIS/A147983)
 -/
 
 namespace OeisA147983
@@ -91,13 +92,56 @@ def child₂ : List ℕ := [42, 42, 42, 42, 42, 42, 29, 29, 29, 29]
 /-- The child left by biting row 8 at column 26. -/
 def child₃ : List ℕ := [42, 42, 42, 42, 42, 42, 42, 25, 25, 25]
 
+/-- The first displayed child is reached by the claimed legal opening move. -/
+@[category test, AMS 5]
+theorem child₁_is_legal_move : Move rectangle child₁ := by
+  refine ⟨4, 35, by decide, by decide, by simp, ?_⟩
+  rfl
+
+/-- The second displayed child is reached by the claimed legal opening move. -/
+@[category test, AMS 5]
+theorem child₂_is_legal_move : Move rectangle child₂ := by
+  refine ⟨6, 29, by decide, by decide, by simp, ?_⟩
+  rfl
+
+/-- The third displayed child is reached by the claimed legal opening move. -/
+@[category test, AMS 5]
+theorem child₃_is_legal_move : Move rectangle child₃ := by
+  refine ⟨7, 25, by decide, by decide, by simp, ?_⟩
+  rfl
+
+/-- The three candidate children are pairwise distinct. -/
+@[category test, AMS 5]
+theorem candidate_children_pairwise_distinct :
+    child₁ ≠ child₂ ∧ child₁ ≠ child₃ ∧ child₂ ≠ child₃ := by
+  decide
+
+/-- Once the three externally certified P-position facts are supplied, the challenge follows
+entirely inside Lean from the legal-move and distinctness checks above. -/
+@[category API, AMS 5]
+theorem three_openings_of_p_positions
+    (h₁ : IsPPosition child₁) (h₂ : IsPPosition child₂) (h₃ : IsPPosition child₃) :
+    IsWinningOpening rectangle child₁ ∧
+      IsWinningOpening rectangle child₂ ∧
+      IsWinningOpening rectangle child₃ ∧
+      child₁ ≠ child₂ ∧ child₁ ≠ child₃ ∧ child₂ ≠ child₃ := by
+  rcases candidate_children_pairwise_distinct with ⟨h₁₂, h₁₃, h₂₃⟩
+  exact ⟨⟨child₁_is_legal_move, h₁⟩, ⟨child₂_is_legal_move, h₂⟩,
+    ⟨child₃_is_legal_move, h₃⟩, h₁₂, h₁₃, h₂₃⟩
+
 /--
 "Find `a` and `b` such that an `a × b` Chomp rectangle has at least three winning moves."
 
-The proposed witness is the `10 × 42` rectangle, with opening moves `(5, 36)`, `(7, 30)`,
-and `(8, 26)` in one-indexed row/column coordinates.
+The `10 × 42` rectangle is a witness. The corrected deterministic retrograde computation linked
+above classifies the three displayed children as P-positions. Lean checks the game model, each
+legal opening move, pairwise distinctness, and the reduction from those three P-position facts.
+The large P-position classifications themselves remain externally computed rather than encoded
+as a Lean-kernel certificate.
+
+Solved by Dominic Dabish. ProofOrchestrator, using OpenAI GPT-5.6 Thinking, assisted with source
+auditing, Lean formalization, validation packaging, and submission preparation.
 -/
-@[category research open, AMS 5]
+@[category research solved, AMS 5]
 theorem chomp_10_by_42_has_three_winning_openings :
     IsWinningOpening rectangle child₁ ∧
       IsWinningOpening rectangle child₂ ∧
