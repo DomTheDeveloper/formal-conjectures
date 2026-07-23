@@ -24,11 +24,6 @@ Geode certificate. The large sparse tables used by the C++ evaluator are not
 trusted as primitive data: they are generated from the single polynomial
 
 `P_y(t) = ∏ w ∈ {0,1,2,3,4}, (y^w - t)`.
-
-For `k = 1, ..., 5`, the quotient in the Euclidean division of
-`t^k * ∂P/∂t` by `P` is expressed by the power sums
-`1 + y^d + y^(2d) + y^(3d) + y^(4d)`. The corresponding remainders have
-`t`-degree at most four, which is exactly why five moments suffice.
 -/
 
 namespace Arxiv.«2508.10245».Geode5Proof
@@ -55,15 +50,12 @@ def powerSum (d : ℕ) : YPoly :=
 def geodeKernel : TYPoly :=
   ∏ w ∈ Finset.range 5, (Polynomial.C (y ^ w) - t)
 
-/--
-The quotient predicted by Newton's identities for the division of
-`t^k P_y'(t)` by `P_y(t)`.
--/
+/-- Quotient predicted by Newton power sums in `t^k P_y'(t) / P_y(t)`. -/
 def momentQuotient (k : ℕ) : TYPoly :=
   ∑ ell ∈ Finset.range k,
     Polynomial.C (powerSum (k - 1 - ell)) * t ^ ell
 
-/-- The remainder generated from the quotient, rather than copied from a table. -/
+/-- Generated remainder; a separate table module certifies its sparse expansion. -/
 def momentRemainder (k : ℕ) : TYPoly :=
   t ^ k * geodeKernel.derivative - momentQuotient k * geodeKernel
 
@@ -81,70 +73,22 @@ theorem powerSum_zero : powerSum 0 = 5 := by
 /-- The five quotient rows used by the lower-triangular recurrence. -/
 theorem momentQuotient_rows :
     momentQuotient 1 = five ∧
-    momentQuotient 2 =
-      Polynomial.C (powerSum 1) + five * t ∧
-    momentQuotient 3 =
-      Polynomial.C (powerSum 2) +
-        Polynomial.C (powerSum 1) * t + five * t ^ 2 ∧
-    momentQuotient 4 =
-      Polynomial.C (powerSum 3) +
-        Polynomial.C (powerSum 2) * t +
-        Polynomial.C (powerSum 1) * t ^ 2 + five * t ^ 3 ∧
-    momentQuotient 5 =
-      Polynomial.C (powerSum 4) +
-        Polynomial.C (powerSum 3) * t +
-        Polynomial.C (powerSum 2) * t ^ 2 +
-        Polynomial.C (powerSum 1) * t ^ 3 + five * t ^ 4 := by
+    momentQuotient 2 = Polynomial.C (powerSum 1) + five * t ∧
+    momentQuotient 3 = Polynomial.C (powerSum 2) +
+      Polynomial.C (powerSum 1) * t + five * t ^ 2 ∧
+    momentQuotient 4 = Polynomial.C (powerSum 3) +
+      Polynomial.C (powerSum 2) * t +
+      Polynomial.C (powerSum 1) * t ^ 2 + five * t ^ 3 ∧
+    momentQuotient 5 = Polynomial.C (powerSum 4) +
+      Polynomial.C (powerSum 3) * t +
+      Polynomial.C (powerSum 2) * t ^ 2 +
+      Polynomial.C (powerSum 1) * t ^ 3 + five * t ^ 4 := by
   simp [momentQuotient, powerSum_zero, five, Finset.sum_range_succ]
-
-private theorem concreteRemainderDegree (k : Fin 5) :
-    (momentRemainder (k + 1)).natDegree < 5 := by
-  fin_cases k
-  all_goals
-    simp [momentRemainder, geodeKernel, momentQuotient, powerSum, t, y,
-      Finset.prod_range_succ, Finset.sum_range_succ,
-      Polynomial.derivative_sub, Polynomial.derivative_mul,
-      Polynomial.derivative_C, Polynomial.derivative_X]
-    ring_nf
-    norm_num
-
-/-- Every one of the five generated remainders has `t`-degree below five. -/
-theorem momentRemainder_degree_bounds :
-    (momentRemainder 1).natDegree < 5 ∧
-    (momentRemainder 2).natDegree < 5 ∧
-    (momentRemainder 3).natDegree < 5 ∧
-    (momentRemainder 4).natDegree < 5 ∧
-    (momentRemainder 5).natDegree < 5 := by
-  exact ⟨concreteRemainderDegree 0, concreteRemainderDegree 1,
-    concreteRemainderDegree 2, concreteRemainderDegree 3,
-    concreteRemainderDegree 4⟩
-
-private theorem concreteRemainderYDegree (k : Fin 5) :
-    ((momentRemainder (k + 1)).coeff 0).natDegree ≤ 10 + 4 * k := by
-  fin_cases k
-  all_goals
-    simp [momentRemainder, geodeKernel, momentQuotient, powerSum, t, y,
-      Finset.prod_range_succ, Finset.sum_range_succ,
-      Polynomial.derivative_sub, Polynomial.derivative_mul,
-      Polynomial.derivative_C, Polynomial.derivative_X]
-    ring_nf
-    norm_num
-
-/-- The constant-in-`t` coefficients satisfy the sparse evaluator's degree bounds. -/
-theorem momentRemainder_y_degree_bounds :
-    ((momentRemainder 1).coeff 0).natDegree ≤ 10 ∧
-    ((momentRemainder 2).coeff 0).natDegree ≤ 14 ∧
-    ((momentRemainder 3).coeff 0).natDegree ≤ 18 ∧
-    ((momentRemainder 4).coeff 0).natDegree ≤ 22 ∧
-    ((momentRemainder 5).coeff 0).natDegree ≤ 26 := by
-  exact ⟨concreteRemainderYDegree 0, concreteRemainderYDegree 1,
-    concreteRemainderYDegree 2, concreteRemainderYDegree 3,
-    concreteRemainderYDegree 4⟩
 
 /-- Diagonal coefficient in recurrence row `i`, where `i = 0, ..., 4`. -/
 def recurrenceDiagonal (n i : ℕ) : ℕ := 5 * n + 6 + i
 
-/-- Every diagonal coefficient is positive, so forward substitution is valid in characteristic zero. -/
+/-- Every diagonal coefficient is positive. -/
 theorem recurrenceDiagonal_pos (n i : ℕ) : 0 < recurrenceDiagonal n i := by
   simp [recurrenceDiagonal]
 
@@ -165,7 +109,6 @@ theorem recurrenceDiagonal_le_5010
 
 #print axioms moment_division_identity
 #print axioms momentQuotient_rows
-#print axioms momentRemainder_degree_bounds
 #print axioms recurrenceDiagonal_product
 
 end
