@@ -22,8 +22,8 @@ private def buildChoose (k n : Nat) : Array Nat := Id.run do
     c := c.set! (a * cols) 1
     let mut b := 1
     while b ≤ min a (k + 1) do
-      let left := c.get! ((a - 1) * cols + (b - 1))
-      let right := c.get! ((a - 1) * cols + b)
+      let left := c[((a - 1) * cols + (b - 1))]!
+      let right := c[((a - 1) * cols + b)]!
       let v := left + right
       c := c.set! (a * cols + b) v
       b := b + 1
@@ -61,12 +61,12 @@ private def mkEngine (k n : Nat) : Engine :=
 private def getBit (e : Engine) (shadow rank : Nat) : Bool :=
   let wi := e.offsets[shadow]! + rank / 64
   let word := e.bits[wi]!
-  let mask : UInt64 := UInt64.shiftLeft 1 (UInt64.ofNatCore (rank % 64))
+  let mask : UInt64 := UInt64.shiftLeft 1 (UInt64.ofNat (rank % 64))
   (word &&& mask) != 0
 
 private def setBit (e : Engine) (shadow rank : Nat) : Engine :=
   let wi := e.offsets[shadow]! + rank / 64
-  let mask : UInt64 := UInt64.shiftLeft 1 (UInt64.ofNatCore (rank % 64))
+  let mask : UInt64 := UInt64.shiftLeft 1 (UInt64.ofNat (rank % 64))
   { e with bits := e.bits.set! wi (e.bits[wi]! ||| mask) }
 
 private partial def clearWords (i stop : Nat) (bits : Array UInt64) : Array UInt64 :=
