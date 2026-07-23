@@ -30,7 +30,8 @@ theorem neighbor_rankPointVertex_horizontal {p : RankPoint}
   change side = false at hside
   change 0 < i at hi
   subst side
-  simp [rankPointVertex, horizontalRankNeighbor, neighbor, Nat.cast_sub hi.le]
+  simp [rankPointVertex, horizontalRankNeighbor, neighbor]
+  omega
 
 @[simp]
 theorem neighbor_rankPointVertex_diagonal {p : RankPoint}
@@ -41,7 +42,8 @@ theorem neighbor_rankPointVertex_diagonal {p : RankPoint}
   change side = false at hside
   change 0 < j at hj
   subst side
-  simp [rankPointVertex, diagonalRankNeighbor, neighbor, Nat.cast_sub hj.le]
+  simp [rankPointVertex, diagonalRankNeighbor, neighbor]
+  omega
 
 private theorem same_neighbor_mem_iff
     {a b c : ℕ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
@@ -72,10 +74,7 @@ private theorem horizontal_neighbor_mem_iff
     rcases q with ⟨k, l, side'⟩
     change side = false at hside
     change i = 0 at hzero
-    subst side
-    subst i
-    simp [rankPointVertex, neighbor] at hi
-    omega
+    simpa [rankPointVertex, neighbor, hside, hzero] using hi
   · intro hzero
     have hi : 0 < p.first := Nat.pos_of_ne_zero hzero
     rw [neighbor_rankPointVertex_horizontal hside hi, rankPointVertex_mem_patch_iff,
@@ -102,10 +101,7 @@ private theorem diagonal_neighbor_mem_iff
     rcases q with ⟨k, l, side'⟩
     change side = false at hside
     change j = 0 at hzero
-    subst side
-    subst j
-    simp [rankPointVertex, neighbor] at hj
-    omega
+    simpa [rankPointVertex, neighbor, hside, hzero] using hj
   · intro hzero
     have hj : 0 < p.second := Nat.pos_of_ne_zero hzero
     rw [neighbor_rankPointVertex_diagonal hside hj, rankPointVertex_mem_patch_iff,
