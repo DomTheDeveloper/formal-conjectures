@@ -1,0 +1,59 @@
+name: Focused A226247 Lean audit
+
+on:
+  pull_request:
+    branches: [agent/a226247-focused-audit]
+    paths:
+      - 'audits/a226247.trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: focused-a226247-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Build exact A226247 module
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout audit merge
+        uses: actions/checkout@v6
+
+      - name: Confirm exact source and toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(cat lean-toolchain)" = "leanprover/lean4:v4.27.0"
+          test -f FormalConjectures/OEIS/226247.lean
+          test -z "$(grep -nE '\b(sorry|admit)\b' FormalConjectures/OEIS/226247.lean || true)"
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch Mathlib cache
+        run: |
+          lake exe cache unpack
+          lake exe cache get
+
+      - name: Build exact catalog module
+        shell: bash
+        run: |
+          set -o pipefail
+          lake --wfail build 'FormalConjectures.OEIS.«226247»' \
+            2>&1 | tee a226247-focused-audit.log
+
+      - name: Upload transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a226247-focused-transcript
+          path: a226247-focused-audit.log
+          if-no-files-found: warn
