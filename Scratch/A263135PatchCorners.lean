@@ -12,6 +12,7 @@ theorem mem_lowerPairs {b i j : ℕ} :
   constructor
   · intro h
     rcases Finset.mem_biUnion.mp h with ⟨n, hn, hij⟩
+    have hn' := Finset.mem_range.mp hn
     have hs := Finset.mem_antidiagonal.mp hij
     omega
   · intro h
@@ -21,6 +22,7 @@ theorem mem_lowerPairs {b i j : ℕ} :
 private theorem antidiagonal_pairwise_disjoint (b : ℕ) :
     (Finset.range b).toSet.PairwiseDisjoint Finset.antidiagonal := by
   intro m hm n hn hmn
+  change Disjoint (Finset.antidiagonal m) (Finset.antidiagonal n)
   rw [Finset.disjoint_left]
   intro p hpm hpn
   have hm' := Finset.mem_antidiagonal.mp hpm
@@ -112,7 +114,6 @@ theorem card_upperCornerTriples
   · intro x hx
     have hxbox := (Finset.mem_filter.mp hx).1
     have hxupper := (Finset.mem_filter.mp hx).2
-    rw [lowerCornerTriples_eq_filter_rankBox A B b hbA hbB]
     apply Finset.mem_filter.mpr
     refine ⟨reflectTriple_mem_box hxbox, ?_⟩
     rcases x with ⟨⟨i, j⟩, side⟩
@@ -123,7 +124,6 @@ theorem card_upperCornerTriples
     rw [← reflectTriple_involutive_on_box hxbox,
       ← reflectTriple_involutive_on_box hybox, hxy]
   · intro y hy
-    rw [lowerCornerTriples_eq_filter_rankBox A B b hbA hbB] at hy
     have hybox := (Finset.mem_filter.mp hy).1
     refine ⟨reflectTriple A B y, ?_, ?_⟩
     · apply Finset.mem_filter.mpr
