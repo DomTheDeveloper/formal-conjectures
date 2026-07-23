@@ -6,6 +6,10 @@ Licensed under the Apache License, Version 2.0.
 import ProofAudit.«2_double_count»
 import ProofAudit.«2_positive»
 
+/-!
+# WOWII Conjecture 2: extracting an extremal selected edge
+-/
+
 namespace WrittenOnTheWallII.GraphConjecture2Audit
 
 open Classical Finset SimpleGraph
@@ -14,7 +18,7 @@ variable {α : Type*} [Fintype α] [DecidableEq α] [Nontrivial α]
 
 /-- The finite set of incidences selected by the maximum independent
 neighborhood sets. -/
-def selectedPairs (G : SimpleGraph α) : Finset (α × α) :=
+noncomputable def selectedPairs (G : SimpleGraph α) : Finset (α × α) :=
   Finset.univ.biUnion fun v =>
     (chosenLocalIndep G v).image fun u => (v, u)
 
