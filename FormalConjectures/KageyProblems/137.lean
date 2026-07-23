@@ -103,7 +103,9 @@ def incoming : {s : State} → Vertex s → Option Op
 def IsBlue {s : State} (v : Vertex s) : Prop := incoming v = some .g
 
 /-- A canonical vertex is blue exactly when its rational value is negative. -/
-@[category research open, AMS 5 11]
+@[category research solved, AMS 5 11,
+  formal_proof using lean4 at
+    "https://github.com/DomTheDeveloper/formal-conjectures/blob/f14200cfbd7a5b23839ce72e69eb99d2df603b20/FormalConjectures/OEIS/226247.lean"]
 theorem blue_iff_negative {s : State} (v : Vertex s) : IsBlue v ↔ value v < 0 := by
   sorry
 
@@ -139,7 +141,9 @@ inductive Reach : ℕ → AnyVertex → Prop
       Reach n v → applyG v = some w → Reach (n + 1) w
 
 /-- Canonical depth is the true shortest-path rank. -/
-@[category research open, AMS 5 11]
+@[category research solved, AMS 5 11,
+  formal_proof using lean4 at
+    "https://github.com/DomTheDeveloper/formal-conjectures/blob/f14200cfbd7a5b23839ce72e69eb99d2df603b20/FormalConjectures/OEIS/226247.lean"]
 theorem depth_is_shortest {s : State} (v : Vertex s) :
     Reach (depth v) ⟨s, v⟩ ∧ ∀ n, Reach n ⟨s, v⟩ → depth v ≤ n := by
   sorry
@@ -163,7 +167,9 @@ def a (n : ℕ) : ℕ :=
     stateCount n .C + stateCount n .D
 
 /-- For every $n \geq 4$, $a(n) = a(n - 1) + a(n - 3)$. -/
-@[category research open, AMS 5 11]
+@[category research solved, AMS 5 11,
+  formal_proof using lean4 at
+    "https://github.com/DomTheDeveloper/formal-conjectures/blob/f14200cfbd7a5b23839ce72e69eb99d2df603b20/FormalConjectures/OEIS/226247.lean"]
 theorem rank_recurrence (n : ℕ) (hn : 4 ≤ n) :
     a n = a (n - 1) + a (n - 3) := by
   sorry
