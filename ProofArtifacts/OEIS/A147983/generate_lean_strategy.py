@@ -159,6 +159,8 @@ def write_chunk(
     path.write_text(
         f"{import_line}\n\n"
         f"/-! Generated explicit Chomp losing proofs {first_index} through {last_index}. -/\n\n"
+        "set_option maxHeartbeats 0\n"
+        "set_option maxRecDepth 100000\n\n"
         "namespace OeisA147983.Generated\n\n"
         + "\n".join(theorems)
         + "\nend OeisA147983.Generated\n"
@@ -231,6 +233,8 @@ def main() -> int:
     (args.output.parent / "ConcreteProof.lean").write_text(
         f"{final_import}\n\n"
         "/-! Sorry-free kernel proof of the OEIS A147983 three-opening Chomp result. -/\n\n"
+        "set_option maxHeartbeats 0\n"
+        "set_option maxRecDepth 100000\n\n"
         "namespace OeisA147983\n\n"
         "/-- The first displayed child has an explicit finite losing strategy. -/\n"
         "@[category test, AMS 5]\n"
