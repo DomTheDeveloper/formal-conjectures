@@ -2,6 +2,14 @@ import FormalConjectures.OEIS.«263135»
 
 namespace OeisA263135
 
+/-- Explicit extensionality for the honeycomb coordinate model. -/
+@[ext]
+theorem Vertex.ext {v w : Vertex}
+    (hi : v.i = w.i) (hj : v.j = w.j) (hside : v.side = w.side) : v = w := by
+  rcases v with ⟨i, j, side⟩
+  rcases w with ⟨i', j', side'⟩
+  simp_all
+
 inductive RowKind
   | first
   | second
