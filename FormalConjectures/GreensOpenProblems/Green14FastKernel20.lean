@@ -14,14 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.GreensOpenProblems.Green14ArrayCertificateBridge
+import FormalConjectures.GreensOpenProblems.Green14FunctionCertificateBridge
 
 /-!
 # Fast kernel proof for the Green14 t=20 certificate
 
-The coloring is stored as a Boolean array and the admissible-difference checker
-is reduced by the Lean kernel. The generic array reflection bridge then proves
-the actual catalog inequality `W(3,20) ≥ 389`, without `native_decide`.
+The 388-point coloring is represented by a single natural-number bit mask:
+a set bit marks color `0`, and an unset bit marks color `1`. This avoids
+repeated kernel normalization of a 388-entry array literal while retaining a
+fully proof-producing `decide` check.
 -/
 
 set_option maxHeartbeats 0
@@ -29,40 +30,16 @@ set_option maxRecDepth 10000000
 
 namespace Green14.FastKernel
 
-private def colors20 : Array Bool :=
-  #[
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, false, true, true, true, true, true, true, true, true, true, true, true, false,
-    true, true, true, true, false, true, true, true, true, true, true, true, false, true, false, true,
-    true, true, true, false, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, false, true, true, true, true, true, true, true, true, true, false, true, true, true, true,
-    false, true, false, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, false, false, true, true, true, false, false, true, false, true, true, true, true, true, true,
-    true, true, true, false, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true,
-    false, true, true, true, true, false, true, false, true, true, true, true, true, false, true, true,
-    true, false, true, true, true, true, true, true, true, true, true, true, false, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, false, true, true,
-    true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true,
-    true, true, false, true, true, true, false, true, true, true, true, true, false, true, false, true,
-    true, true, true, false, true, true, true, true, true, true, true, true, true, false, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    false, true, true, true, true, true, true, true, true, true, false, true, false, false, true, true,
-    true, false, false, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, false, true, false, true, true, true, true, false, true, true, true, true, true, true, true,
-    true, true, false, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    false, true, true, true, true, false, true, false, true, true, true, true, true, true, true, false,
-    true, true, true, true, false, true, true, true, true, true, true, true, true, true, true, true,
-    false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true
-  ]
+private def zeroMask20 : Nat :=
+  0x1001080a10004010a00063401000020085044008000402000100220a10040000802c6000508020008501080080000
 
-open Green14.ArrayCertificateBridge
+private def color20 (i : Nat) : Bool := !(zeroMask20.testBit i)
+
+open Green14.FunctionCertificateBridge
 
 theorem valid_20 :
-    hasAP 388 3 colors20 false = false ∧
-      hasAP 388 20 colors20 true = false := by
+    hasAP 388 3 color20 false = false ∧
+      hasAP 388 20 color20 true = false := by
   decide
 
 /-- Kernel-clean proof of the recorded lower bound `W(3,20) ≥ 389`. -/
