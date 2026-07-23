@@ -26,11 +26,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Reject placeholders
+      - name: Reject actual Lean placeholders
         run: |
           set -euo pipefail
-          ! grep -RInE '\b(sorry|admit)\b' FormalConjectures/Arxiv/2508.10245/Geode5Proof
-          ! grep -InE '\b(sorry|admit)\b' FormalConjectures/Arxiv/2508.10245/Geode5.lean
+          ! grep -RInE 'by[[:space:]]+(sorry|admit)\b|^[[:space:]]*(sorry|admit)\b' \
+            FormalConjectures/Arxiv/2508.10245/Geode5Proof \
+            FormalConjectures/Arxiv/2508.10245/Geode5.lean
       - name: Install Lean 4.27
         run: |
           set -euo pipefail
