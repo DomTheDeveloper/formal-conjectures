@@ -153,48 +153,21 @@ theorem strip_selectedInteriorShape {n : ℕ} (A B : Word n) (j : Fin n)
   have hRj : j.val ∉ R := by
     intro h
     exact (mem_interiorExcept.mp (hR h)).1 rfl
-  have hj0 : j.val ≠ 0 := Nat.ne_of_gt hjpos
-  have hjend : j.val ≠ n - 1 := Nat.ne_of_lt hjlast
   ext i
-  unfold stripInteriorShape selectedInteriorShape chooseDifferingShape
-  by_cases hzero : rawDifference A B (fullSpanBase n R) = 0
-  · simp only [hzero, if_pos, fullSpanBase, Finset.mem_erase, Finset.mem_insert]
-    constructor
-    · rintro ⟨hij, hilast, hi0, hi⟩
-      rcases hi with hij' | hi0' | hilast' | hiR
-      · exact (hij hij').elim
-      · exact (hi0 hi0').elim
-      · exact (hilast hilast').elim
-      · exact hiR
-    · intro hiR
-      refine ⟨?_, ?_, ?_, Or.inr (Or.inr (Or.inr hiR))⟩
-      · intro hij
-        apply hRj
-        simpa [hij] using hiR
-      · intro hilast
-        apply hRlast
-        simpa [hilast] using hiR
-      · intro hi0
-        apply hR0
-        simpa [hi0] using hiR
-  · simp only [hzero, if_false, fullSpanBase, Finset.mem_erase, Finset.mem_insert]
-    constructor
-    · rintro ⟨hij, hilast, hi0, hi⟩
-      rcases hi with hi0' | hilast' | hiR
-      · exact (hi0 hi0').elim
-      · exact (hilast hilast').elim
-      · exact hiR
-    · intro hiR
-      refine ⟨?_, ?_, ?_, Or.inr (Or.inr hiR)⟩
-      · intro hij
-        apply hRj
-        simpa [hij] using hiR
-      · intro hilast
-        apply hRlast
-        simpa [hilast] using hiR
-      · intro hi0
-        apply hR0
-        simpa [hi0] using hiR
+  by_cases hi0 : i = 0
+  · subst i
+    simp [stripInteriorShape, selectedInteriorShape, chooseDifferingShape,
+      fullSpanBase, hR0]
+  by_cases hilast : i = n - 1
+  · subst i
+    simp [stripInteriorShape, selectedInteriorShape, chooseDifferingShape,
+      fullSpanBase, hRlast]
+  by_cases hij : i = j.val
+  · subst i
+    simp [stripInteriorShape, selectedInteriorShape, chooseDifferingShape,
+      fullSpanBase, hRj]
+  · simp [stripInteriorShape, selectedInteriorShape, chooseDifferingShape,
+      fullSpanBase, hi0, hilast, hij]
 
 /-- The selected-shape map is injective on the interior powerset. -/
 theorem selectedInteriorShape_injective {n : ℕ} (A B : Word n)
