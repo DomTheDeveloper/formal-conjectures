@@ -22,8 +22,8 @@ private def buildChoose (k n : Nat) : Array Nat := Id.run do
     c := c.set! (a * cols) 1
     let mut b := 1
     while b ≤ min a (k + 1) do
-      let left := c[((a - 1) * cols + (b - 1))]!
-      let right := c[((a - 1) * cols + b)]!
+      let left := getElem! c ((a - 1) * cols + (b - 1))
+      let right := getElem! c ((a - 1) * cols + b)
       let v := left + right
       c := c.set! (a * cols + b) v
       b := b + 1
