@@ -27,14 +27,18 @@ lemma doubleStarSeed_adj_second_sdiff
     (G : SimpleGraph α) [DecidableRel G.Adj] (x y : α) {z : α}
     (hz : z ∈ G.neighborFinset y \ G.neighborFinset x) :
     (doubleStarSeed G x y).Adj y z := by
+  have hzparts := Finset.mem_sdiff.mp hz
+  have hzy : z ∈ G.neighborFinset y := hzparts.1
+  have hznotx : z ∉ G.neighborFinset x := hzparts.2
   by_cases hzx : z = x
   · subst z
-    have hyx : G.Adj y x := by simpa using hz.1
-    have hyNx : y ∈ G.neighborFinset x := by simpa using hyx.symm
+    have hyx : G.Adj y x := (G.mem_neighborFinset y x).1 hzy
+    have hyNx : y ∈ G.neighborFinset x :=
+      (G.mem_neighborFinset x y).2 hyx.symm
     exact (doubleStarSeed_adj_first G x y hyNx).symm
   · have hzLy : z ∈ secondLeaves G x y := by
-      simp [secondLeaves, hz.1, hz.2, hzx]
-    have hyz : G.Adj y z := (G.mem_neighborFinset y z).1 hz.1
+      simp [secondLeaves, hzy, hznotx, hzx]
+    have hyz : G.Adj y z := (G.mem_neighborFinset y z).1 hzy
     exact attachLeaves_adj_of_mem
       (attachLeaves (⊥ : SimpleGraph α) x (firstLeaves G x))
       y (secondLeaves G x y) (G.ne_of_adj hyz) hzLy
@@ -66,10 +70,25 @@ lemma neighbor_union_card_le_degree_sum_of_doubleStarSeed_le
       T.degree x + T.degree y := by
   have hx := degree_le_degree_of_doubleStarSeed_le G T x y hseed
   have hy := card_sdiff_le_degree_of_doubleStarSeed_le G T x y hseed
-  have hcard := Finset.card_sdiff_add_card
-    (G.neighborFinset y) (G.neighborFinset x)
-  rw [Finset.union_comm] at hcard
-  omega
+  have hdecomp :
+      G.neighborFinset x ∪ G.neighborFinset y =
+        G.neighborFinset x ∪ (G.neighborFinset y \ G.neighborFinset x) := by
+    ext z
+    simp only [Finset.mem_union, Finset.mem_sdiff]
+    tauto
+  have hdisj : Disjoint (G.neighborFinset x)
+      (G.neighborFinset y \ G.neighborFinset x) := by
+    rw [Finset.disjoint_left]
+    intro z hzx hz
+    exact (Finset.mem_sdiff.mp hz).2 hzx
+  calc
+    (G.neighborFinset x ∪ G.neighborFinset y).card =
+        (G.neighborFinset x ∪ (G.neighborFinset y \ G.neighborFinset x)).card := by
+          rw [hdecomp]
+    _ = (G.neighborFinset x).card +
+        (G.neighborFinset y \ G.neighborFinset x).card :=
+      Finset.card_union_of_disjoint hdisj
+    _ ≤ T.degree x + T.degree y := Nat.add_le_add hx hy
 
 #print axioms doubleStarSeed_adj_first
 #print axioms doubleStarSeed_adj_second_sdiff
