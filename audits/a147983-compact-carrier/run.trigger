@@ -1,1 +1,1 @@
-run 2: high-area carrier with 100000-node gate
+run 3: rerun low-area and high-area compact carrier synthesis on the correct experiment branch after workflow installation
