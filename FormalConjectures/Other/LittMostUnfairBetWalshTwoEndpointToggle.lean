@@ -18,11 +18,6 @@ import FormalConjectures.Other.LittMostUnfairBetWalshTwoEndpointCore
 
 /-!
 # Sign toggling in the two-endpoint Litt gap
-
-If two adjacent common interior letters differ, toggling the first coordinate
-in a near-full shape reverses the product of its two raw coefficients. Since
-both coefficients are `±2`, exactly one member of every toggle pair has square
-contribution `16`.
 -/
 
 set_option autoImplicit false
@@ -32,21 +27,17 @@ namespace LittMostUnfairBetWalsh
 open Finset
 open LittMostUnfairBet
 
-/-- A pair of `±2` integers has product `4` or `-4`. -/
 theorem product_eq_four_or_neg_four_of_raw_squares {a b : ℤ}
     (ha : a = 2 ∨ a = -2) (hb : b = 2 ∨ b = -2) :
     a * b = 4 ∨ a * b = -4 := by
   rcases ha with rfl | rfl <;> rcases hb with rfl | rfl <;> norm_num
 
-/-- Equal-sign raw coefficients sum to a square contribution `16`. -/
 theorem natAbs_add_sq_eq_sixteen_of_raw_product {a b : ℤ}
     (ha : a = 2 ∨ a = -2) (hb : b = 2 ∨ b = -2)
     (hprod : a * b = 4) :
     (a + b).natAbs ^ 2 = 16 := by
-  rcases ha with rfl | rfl <;> rcases hb with rfl | rfl <;>
-    norm_num at hprod ⊢
+  rcases ha with rfl | rfl <;> rcases hb with rfl | rfl <;> omega
 
-/-- A nonzero raw coefficient is `2` or `-2`. -/
 theorem rawDifference_eq_two_or_neg_two_of_square {n : ℕ}
     (A B : Word n) (S : Finset ℕ)
     (hsq : (rawDifference A B S).natAbs ^ 2 = 4) :
@@ -56,21 +47,18 @@ theorem rawDifference_eq_two_or_neg_two_of_square {n : ℕ}
   · exact Or.inl htwo
   · exact Or.inr hneg
 
-/-- Middle coordinates with one distinguished adjacency coordinate removed. -/
 def middleExcept (n j : ℕ) : Finset ℕ := (middleCoordinates n).erase j
 
 @[simp] theorem mem_middleExcept {n j i : ℕ} :
     i ∈ middleExcept n j ↔ i ≠ j ∧ 1 ≤ i ∧ i < n - 2 := by
   simp [middleExcept, and_assoc]
 
-/-- Inserting a middle coordinate commutes with building a near-full base. -/
 theorem nearFullBase_insert {n j : ℕ} {R : Finset ℕ}
     (hj0 : j ≠ 0) (hjpen : j ≠ n - 2) :
     nearFullBase n (insert j R) = insert j (nearFullBase n R) := by
   ext i
   simp [nearFullBase, hj0, hjpen, or_left_comm, or_assoc]
 
-/-- Translating the inserted near-full base inserts the next coordinate. -/
 theorem translate_nearFullBase_insert {n j : ℕ} {R : Finset ℕ}
     (hj0 : j ≠ 0) (hjpen : j ≠ n - 2) :
     translate (nearFullBase n (insert j R)) 1 =
@@ -79,8 +67,6 @@ theorem translate_nearFullBase_insert {n j : ℕ} {R : Finset ℕ}
   ext i
   simp [translate]
 
-/-- The distinguished middle coordinate is absent from the base indexed by an
-`middleExcept` subset. -/
 theorem distinguished_not_mem_nearFullBase {n : ℕ} (j : Fin n)
     (hjpos : 0 < j.val) (hjpen : j.val < n - 2) {R : Finset ℕ}
     (hR : R ⊆ middleExcept n j.val) :
@@ -92,7 +78,6 @@ theorem distinguished_not_mem_nearFullBase {n : ℕ} (j : Fin n)
     exact (mem_middleExcept.mp (hR h)).1 rfl
   simp [nearFullBase, hj0, hjend, hjR]
 
-/-- The translated distinguished coordinate is absent from the translated base. -/
 theorem succ_distinguished_not_mem_translated_nearFullBase {n : ℕ} (j : Fin n)
     (hjpos : 0 < j.val) (hjpen : j.val < n - 2) {R : Finset ℕ}
     (hR : R ⊆ middleExcept n j.val) :
@@ -103,7 +88,6 @@ theorem succ_distinguished_not_mem_translated_nearFullBase {n : ℕ} (j : Fin n)
   subst i
   exact distinguished_not_mem_nearFullBase j hjpos hjpen hR hi
 
-/-- Toggling an interior adjacency reverses the product of the two raw coefficients. -/
 theorem nearFull_product_toggle_neg {n : ℕ} (hn : 4 ≤ n)
     (A B : Word n)
     (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
@@ -114,23 +98,28 @@ theorem nearFull_product_toggle_neg {n : ℕ} (hn : 4 ≤ n)
         rawDifference A B (translate (nearFullBase n (insert j.val R)) 1) =
       -(rawDifference A B (nearFullBase n R) *
         rawDifference A B (translate (nearFullBase n R) 1)) := by
+  have hnsub : n - 2 + 2 = n := Nat.sub_add_cancel (by omega)
   have hj0 : j.val ≠ 0 := Nat.ne_of_gt hjpos
   have hjend : j.val ≠ n - 2 := Nat.ne_of_lt hjpen
-  have hAjBj : A j = B j := hinterior j hjpos (by omega)
-  let js : Fin n := ⟨j.val + 1, by omega⟩
-  have hAjsBjs : A js = B js := hinterior js (by omega) (by omega)
+  have hjlast : j.val < n - 1 := by omega
+  have hAjBj : A j = B j := hinterior j hjpos hjlast
+  have hjsN : j.val + 1 < n := by omega
+  let js : Fin n := ⟨j.val + 1, hjsN⟩
+  have hjspos : 0 < js.val := by dsimp [js]; omega
+  have hjslast : js.val < n - 1 := by dsimp [js]; omega
+  have hAjsBjs : A js = B js := hinterior js hjspos hjslast
   have hsign : letterSign A j.val * letterSign A (j.val + 1) = -1 := by
     simp only [letterSign_of_lt A j.isLt,
-      letterSign_of_lt A (show j.val + 1 < n by omega)]
+      letterSign_of_lt A hjsN]
     exact coinSign_mul_eq_neg_one_of_ne hadj
-  rw [nearFullBase_insert hj0 hjend,
-    translate_nearFullBase_insert hj0 hjend]
+  rw [translate_nearFullBase_insert hj0 hjend,
+    nearFullBase_insert hj0 hjend]
   rw [rawDifference_insert_of_word_eq A B (nearFullBase n R)
     (distinguished_not_mem_nearFullBase j hjpos hjpen hR) j.isLt hAjBj]
   rw [rawDifference_insert_of_word_eq A B
     (translate (nearFullBase n R) 1)
     (succ_distinguished_not_mem_translated_nearFullBase j hjpos hjpen hR)
-    (by omega) hAjsBjs]
+    hjsN hAjsBjs]
   rw [← mul_assoc, mul_assoc (letterSign A j.val)]
   calc
     letterSign A j.val *
@@ -142,7 +131,6 @@ theorem nearFull_product_toggle_neg {n : ℕ} (hn : 4 ≤ n)
           rawDifference A B (translate (nearFullBase n R) 1)) := by ring
     _ = _ := by rw [hsign]; ring
 
-/-- Select the member of a toggle pair whose raw coefficients have equal sign. -/
 def selectedTwoEndpointShape {n : ℕ} (A B : Word n) (j : ℕ)
     (R : Finset ℕ) : Finset ℕ :=
   if rawDifference A B (nearFullBase n R) *
@@ -150,7 +138,6 @@ def selectedTwoEndpointShape {n : ℕ} (A B : Word n) (j : ℕ)
     nearFullBase n R
   else nearFullBase n (insert j R)
 
-/-- Every selected toggle-pair shape contributes square `16`. -/
 theorem selectedTwoEndpointShape_square {n : ℕ} (hn : 4 ≤ n)
     (A B : Word n)
     (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
@@ -197,11 +184,9 @@ theorem selectedTwoEndpointShape_square {n : ℕ} (hn : 4 ≤ n)
     have hd1' := rawDifference_eq_two_or_neg_two_of_square A B _ hsquares'.2
     exact natAbs_add_sq_eq_sixteen_of_raw_product hd0' hd1' hprod'
 
-/-- Removing endpoints and the toggle coordinate recovers the indexing subset. -/
 def stripTwoEndpointShape (n j : ℕ) (S : Finset ℕ) : Finset ℕ :=
   ((S.erase 0).erase (n - 2)).erase j
 
-/-- The selected-shape map is injective on the toggle-pair index set. -/
 theorem selectedTwoEndpointShape_injective {n : ℕ} (A B : Word n)
     (j : Fin n) (hjpos : 0 < j.val) (hjpen : j.val < n - 2)
     {R₁ R₂ : Finset ℕ}
@@ -227,13 +212,29 @@ theorem selectedTwoEndpointShape_injective {n : ℕ} (A B : Word n)
     have hj0 : j.val ≠ 0 := Nat.ne_of_gt hjpos
     have hjend : j.val ≠ n - 2 := Nat.ne_of_lt hjpen
     unfold stripTwoEndpointShape selectedTwoEndpointShape
-    split <;> ext i <;>
-      simp [nearFullBase, hR0, hRpen, hRj, hj0, hjend]
+    split
+    · ext i
+      simp only [nearFullBase, Finset.mem_erase, Finset.mem_insert]
+      constructor
+      · rintro ⟨hipen, hi0, hi | hi⟩
+        · exact (hipen hi).elim
+        · exact hi
+      · intro hi
+        exact ⟨fun e => hRpen (e ▸ hi), fun e => hR0 (e ▸ hi), Or.inr hi⟩
+    · ext i
+      simp only [nearFullBase, Finset.mem_erase, Finset.mem_insert]
+      constructor
+      · rintro ⟨hij, hipen, hi0, hi | hi | hi⟩
+        · exact (hipen hi).elim
+        · exact (hij hi).elim
+        · exact hi
+      · intro hi
+        exact ⟨fun e => hRj (e ▸ hi), fun e => hRpen (e ▸ hi),
+          fun e => hR0 (e ▸ hi), Or.inr (Or.inr hi)⟩
   have hrec₁ := recover (Finset.mem_powerset.mp hR₁)
   have hrec₂ := recover (Finset.mem_powerset.mp hR₂)
   rw [← hrec₁, ← hrec₂, heq]
 
-/-- The toggle index set has `n-4` coordinates. -/
 theorem card_middleExcept {n : ℕ} (hn : 4 ≤ n) (j : Fin n)
     (hjpos : 0 < j.val) (hjpen : j.val < n - 2) :
     #(middleExcept n j.val) = n - 4 := by
@@ -243,7 +244,6 @@ theorem card_middleExcept {n : ℕ} (hn : 4 ≤ n) (j : Fin n)
   simp [middleCoordinates]
   omega
 
-/-- An unequal interior adjacency forces raw energy at least `16*2^(n-4)`. -/
 theorem rawEnergy_ge_of_two_endpoint_adjacency_disagreement {n : ℕ} (hn : 4 ≤ n)
     (A B : Word n)
     (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
