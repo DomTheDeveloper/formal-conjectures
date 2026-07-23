@@ -1,0 +1,73 @@
+name: Restricted-run tableaux clean audit
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [labeled, synchronize, reopened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  lean:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'agent/restricted-run-tableaux-clean-reduction' &&
+      contains(github.event.pull_request.labels.*.name, 'ci:full')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+      - name: Build restricted-run targets
+        id: compile
+        shell: bash
+        run: |
+          set +e
+          : > restricted-run-clean.log
+          status=0
+          for target in \
+            FormalConjecturesForMathlib.Combinatorics.RestrictedRunTableaux \
+            FormalConjecturesForMathlib.Combinatorics.RestrictedRunTableauxReduction \
+            FormalConjectures.Arxiv.RestrictedRunTableaux
+          do
+            echo "===== lake build $target =====" | tee -a restricted-run-clean.log
+            lake build "$target" 2>&1 | tee -a restricted-run-clean.log
+            code=${PIPESTATUS[0]}
+            echo "exit_code=$code" | tee -a restricted-run-clean.log
+            if [ "$code" -ne 0 ]; then status=1; fi
+          done
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
+      - name: Post audit result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- restricted-run-clean-audit -->';
+            const raw = fs.existsSync('restricted-run-clean.log')
+              ? fs.readFileSync('restricted-run-clean.log', 'utf8')
+              : 'No Lean log was produced.';
+            const tail = raw.split('\n').slice(-220).join('\n');
+            const status = '${{ steps.compile.outputs.status }}' === '0' ? 'PASS' : 'FAIL';
+            const sha = context.payload.pull_request.head.sha;
+            const body = `${marker}\n### Restricted-run clean audit: ${status}\n\nHead: \`${sha}\`\n\n\`\`\`text\n${tail}\n\`\`\``;
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100
+            });
+            const previous = comments.find(c => c.body && c.body.includes(marker));
+            if (previous) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: previous.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
