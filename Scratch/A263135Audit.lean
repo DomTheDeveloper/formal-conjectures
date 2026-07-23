@@ -1,5 +1,5 @@
-import Scratch.A263135Final
+import FormalConjectures.OEIS.«263135»
 
--- The branch tip includes the ordered-side clipping hypotheses required by the extremal construction.
-#check OeisA263135.conjecture_solved
-#print axioms OeisA263135.conjecture_solved
+-- Audit the exact canonical catalog theorem after proof promotion.
+#check OeisA263135.conjecture
+#print axioms OeisA263135.conjecture
