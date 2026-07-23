@@ -22,7 +22,9 @@ import FormalConjecturesUtil
 Starting at `0 : ℚ`, apply the operations `f x = x + 1` and `g x = -1 / x`,
 with `g` unavailable at zero. The linked Lean proof constructs a canonical
 shortest-path tree, proves that its vertices represent distinct rationals,
-proves that canonical depth is the true shortest-path rank, derives
+proves that normalized canonical steps implement the original rational
+operations, proves that canonical depth is the true shortest-path rank,
+derives
 
 `a n = a (n - 1) + a (n - 3)` for `n ≥ 4`,
 
@@ -84,6 +86,12 @@ def anyValue (v : AnyVertex) : ℚ := value v.2
 
 /-- Canonical depth of a state-hidden vertex. -/
 def anyDepth (v : AnyVertex) : ℕ := depth v.2
+
+/-- Translation on rationals. -/
+def f (x : ℚ) : ℚ := x + 1
+
+/-- Negative reciprocal on nonzero rationals. -/
+def g (x : ℚ) : ℚ := -1 / x
 
 /-- The two generating operations. -/
 inductive Op
@@ -148,15 +156,17 @@ def a (n : ℕ) : ℕ :=
     stateCount n .C + stateCount n .D
 
 /--
-The canonical model is faithful, canonical depth is shortest-path depth, the
-rank counts satisfy the conjectured recurrence, and blue vertices are exactly
-the negative rationals.
+The canonical model is faithful to the rational operations, canonical depth is
+shortest-path depth, the rank counts satisfy the conjectured recurrence, and
+blue vertices are exactly the negative rationals.
 -/
 @[category research solved, AMS 5 11,
   formal_proof using lean4 at
     "https://github.com/DomTheDeveloper/formal-conjectures/blob/a3c908d4ca232e3d4add5373d3a803aed1f3c9a8/FormalConjectures/OEIS/226247.lean"]
 theorem conjecture :
     Function.Injective anyValue ∧
+      (∀ v : AnyVertex, anyValue (applyF v) = f (anyValue v)) ∧
+      (∀ (v w : AnyVertex), applyG v = some w → anyValue w = g (anyValue v)) ∧
       (∀ (s : State) (v : Vertex s),
         Reach (depth v) ⟨s, v⟩ ∧ ∀ n, Reach n ⟨s, v⟩ → depth v ≤ n) ∧
       (∀ n : ℕ, 4 ≤ n → a n = a (n - 1) + a (n - 3)) ∧
