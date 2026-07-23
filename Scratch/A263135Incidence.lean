@@ -113,9 +113,9 @@ theorem contacts_eq_card_aInternalDarts (S : Finset Vertex) :
     have hv' : vd ∈ D := hv
     exact (Finset.mem_product.mp
       (Finset.mem_filter.mp (Finset.mem_filter.mp hv').1).1).1
-  change (∑ v ∈ S, if v.side then 0 else
-      ((Finset.univ.filter fun d => neighbor v d ∈ S).card)) = D.card
-  rw [Finset.card_eq_sum_card_fiberwise hmap]
+  have hcard : D.card = ∑ v ∈ S, #{vd ∈ D | Prod.fst vd = v} :=
+    Finset.card_eq_sum_card_fiberwise hmap
+  rw [hcard]
   apply Finset.sum_congr rfl
   intro v hv
   cases hside : v.side
