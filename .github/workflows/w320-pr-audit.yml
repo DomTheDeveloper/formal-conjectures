@@ -15,11 +15,6 @@
 name: W320 PR kernel audit
 
 on:
-  push:
-    branches: [agent/w320-kernel-proof]
-  pull_request:
-    branches: [main]
-    types: [synchronize]
   pull_request_target:
     branches: [main]
     types: [opened, labeled, synchronize, reopened]
@@ -31,17 +26,15 @@ permissions:
 jobs:
   verify:
     if: >-
-      github.event_name == 'push' ||
-      github.event_name == 'pull_request' ||
-      (github.event.pull_request.head.repo.full_name == github.repository &&
-       github.event.pull_request.head.ref == 'agent/w320-kernel-proof' &&
-       contains(github.event.pull_request.labels.*.name, 'ci:full'))
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'agent/w320-kernel-proof' &&
+      contains(github.event.pull_request.labels.*.name, 'ci:full')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: leanprover/lean-action@v1
         with:
           build: false
@@ -66,11 +59,10 @@ jobs:
         with:
           script: |
             const ok = '${{ job.status }}' === 'success';
-            const sha = context.payload.pull_request?.head?.sha || context.sha;
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              sha,
+              sha: context.payload.pull_request.head.sha,
               state: ok ? 'success' : 'failure',
               context: 'w320/kernel-audit',
               description: ok ? 'Lean build and axiom audit passed' : 'Lean build or axiom audit failed',
