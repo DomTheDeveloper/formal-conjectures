@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.Util.ProblemImports
+import FormalConjecturesUtil
 
 /-!
 # RNA hairpins, basepairs, and quasi-powers certificates
@@ -43,9 +43,6 @@ linked below was checked with the repository's pinned Lean 4.27 toolchain.
 namespace Arxiv.«2602.19255»
 
 noncomputable section
-
-private abbrev proofURL :=
-  "https://github.com/DomTheDeveloper/formal-conjectures/blob/a4fc5e6c9f846c424ba20bd3b6587546841cd811/FormalConjectures/Arxiv/2602.19255/RNAQuasiPowers.lean"
 
 /-- The radicand in the marked algebraic generating function. -/
 def radicand (t x z : ℝ) : ℝ :=
@@ -123,36 +120,51 @@ def normalizedCorrelation : ℝ :=
 /-- Closed form of the correlation. -/
 def targetCorrelation : ℝ := Real.sqrt (5 * sqrtFive - 11) / 2
 
-/-- Values of the relevant marked derivatives at the unmarked point. -/
+/-- The second `t` derivative of the marked radicand at the unmarked point. -/
 def qTTAtOne (t : ℝ) : ℝ :=
   30 * t ^ 4 - 80 * t ^ 3 + 48 * t ^ 2 - 12 * t + 8
 
+/-- The first hairpin-mark derivative at the unmarked point. -/
 def qSAtOne (t : ℝ) : ℝ :=
   2 * t ^ 6 - 4 * t ^ 5 + 4 * t ^ 4 - 2 * t ^ 3
 
+/-- The first basepair-mark derivative at the unmarked point. -/
 def qRAtOne (t : ℝ) : ℝ :=
   2 * t ^ 6 - 6 * t ^ 5 + 4 * t ^ 4 + 2 * t ^ 3 - 2 * t ^ 2
 
+/-- The second hairpin-mark derivative at the unmarked point. -/
 def qSSAtOne (t : ℝ) : ℝ :=
   4 * t ^ 6 - 4 * t ^ 5 + 4 * t ^ 4 - 2 * t ^ 3
 
+/-- The second basepair-mark derivative at the unmarked point. -/
 def qRRAtOne (t : ℝ) : ℝ :=
   4 * t ^ 6 - 10 * t ^ 5 + 6 * t ^ 4 + 2 * t ^ 3 - 2 * t ^ 2
 
+/-- The mixed mark derivative at the unmarked point. -/
 def qSRAtOne (t : ℝ) : ℝ :=
   4 * t ^ 6 - 6 * t ^ 5 + 4 * t ^ 4 - 2 * t ^ 3
 
+/-- The mixed `t`/hairpin derivative at the unmarked point. -/
 def qTSAtOne (t : ℝ) : ℝ :=
   12 * t ^ 5 - 20 * t ^ 4 + 16 * t ^ 3 - 6 * t ^ 2
 
+/-- The mixed `t`/basepair derivative at the unmarked point. -/
 def qTRAtOne (t : ℝ) : ℝ :=
   12 * t ^ 5 - 30 * t ^ 4 + 16 * t ^ 3 + 6 * t ^ 2 - 4 * t
 
-/-- Candidate derivatives of the analytic dominant-root branch. -/
+/-- Candidate first derivative of the dominant root in the hairpin mark. -/
 def rhoHairpin : ℝ := -5 / 2 + 11 * sqrtFive / 10
+
+/-- Candidate first derivative of the dominant root in the basepair mark. -/
 def rhoBasepair : ℝ := -1 + 2 * sqrtFive / 5
+
+/-- Candidate second derivative of the dominant root in the hairpin mark. -/
 def rhoHairpinHairpin : ℝ := -1 / 2 + 11 * sqrtFive / 50
+
+/-- Candidate second derivative of the dominant root in the basepair mark. -/
 def rhoBasepairBasepair : ℝ := 3 / 4 - 33 * sqrtFive / 100
+
+/-- Candidate mixed derivative of the dominant root. -/
 def rhoHairpinBasepair : ℝ := 1 / 2 - 11 * sqrtFive / 50
 
 /-- The ten exact implicit-differentiation and Hessian identities. -/
@@ -185,7 +197,7 @@ identities, a positive-definite covariance matrix, and the closed-form correlati
 @[category research solved, AMS 5 60,
   formal_proof using lean4 at
     "https://github.com/DomTheDeveloper/formal-conjectures/blob/a4fc5e6c9f846c424ba20bd3b6587546841cd811/FormalConjectures/Arxiv/2602.19255/RNAQuasiPowers.lean"]
-theorem quasiPowers_algebraic_certificate :
+theorem quasi_powers_algebraic_certificate :
     radicand rho 1 1 = 0 ∧
     dRadicandAtOne rho ≠ 0 ∧
     0 < rho ∧ rho < 1 ∧
