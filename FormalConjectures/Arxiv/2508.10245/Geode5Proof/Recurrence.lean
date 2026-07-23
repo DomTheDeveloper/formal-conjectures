@@ -123,7 +123,13 @@ theorem qMoment_recurrence_raw (n k : ℕ) (hk : 0 < k) :
             (qMomentQuotient k * qKernel ^ (n + 1) +
               qMomentRemainder k * qKernel ^ n) := by ring
   rw [hderiv] at hboundary
-  simp only [map_add, map_smul, smul_eq_mul, RingHom.id_apply, qMoment] at hboundary
+  simp only [map_add, map_smul, smul_eq_mul] at hboundary
+  change
+    (k : QYPoly) * integral01 (qt ^ (k - 1) * qKernel ^ (n + 1)) +
+        (n + 1 : QYPoly) *
+          integral01 (qMomentQuotient k * qKernel ^ (n + 1)) =
+      -(n + 1 : QYPoly) *
+        integral01 (qMomentRemainder k * qKernel ^ n)
   linear_combination hboundary
 
 #print axioms qMoment_recurrence_raw
