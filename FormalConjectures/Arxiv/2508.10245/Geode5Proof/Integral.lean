@@ -69,7 +69,7 @@ theorem integral01_derivative (p : TQYPoly) :
       | succ n =>
           rw [Polynomial.derivative_monomial_succ, integral01_monomial]
           have hn : (n + 1 : ℚ) ≠ 0 := by positivity
-          simp [Polynomial.eval_monomial, hn, Polynomial.natCast_eq_C, mul_comm]
+          simp [Polynomial.eval_monomial, hn, Polynomial.C_eq_natCast, mul_comm]
 
 #print axioms integral01_derivative
 
