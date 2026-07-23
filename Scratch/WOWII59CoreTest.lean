@@ -34,34 +34,38 @@ private def BContains4 (x : Fin 11 → Bool) (a b c d : Fin 11) : Prop :=
 private def BContains6 (x : Fin 11 → Bool) (a b c d e f : Fin 11) : Prop :=
   x a = true ∧ x b = true ∧ x c = true ∧ x d = true ∧ x e = true ∧ x f = true
 
-private theorem core_bool_cover :
-    ∀ x : Fin 11 → Bool,
-      7 ≤ (Finset.univ.filter fun v => x v = true).card →
-      BContains3 x 4 7 10 ∨
-      BContains4 x 1 5 3 8 ∨
-      BContains3 x 0 9 10 ∨
-      BContains4 x 2 6 4 9 ∨
-      BContains3 x 2 6 10 ∨
-      BContains4 x 1 6 3 7 ∨
-      BContains4 x 0 5 2 9 ∨
-      BContains4 x 1 5 4 6 ∨
-      BContains4 x 3 7 4 9 ∨
-      BContains4 x 0 5 3 8 ∨
-      BContains3 x 1 8 10 ∨
-      BContains3 x 3 5 10 ∨
-      BContains4 x 0 8 3 9 ∨
-      BContains4 x 0 5 1 8 ∨
-      BContains4 x 3 6 4 7 ∨
-      BContains4 x 1 6 4 7 ∨
-      BContains4 x 1 5 4 7 ∨
-      BContains4 x 1 6 3 8 ∨
-      BContains4 x 1 5 2 6 ∨
-      BContains6 x 0 8 1 6 2 9 ∨
-      BContains4 x 2 6 3 9 ∨
-      BContains4 x 2 5 4 6 ∨
-      BContains4 x 1 7 3 8 ∨
-      BContains6 x 0 8 1 7 4 9 ∨
-      BContains4 x 0 5 4 9 := by
+private def CoreProp (x : Fin 11 → Bool) : Prop :=
+  7 ≤ (Finset.univ.filter fun v => x v = true).card →
+    BContains3 x 4 7 10 ∨
+    BContains4 x 1 5 3 8 ∨
+    BContains3 x 0 9 10 ∨
+    BContains4 x 2 6 4 9 ∨
+    BContains3 x 2 6 10 ∨
+    BContains4 x 1 6 3 7 ∨
+    BContains4 x 0 5 2 9 ∨
+    BContains4 x 1 5 4 6 ∨
+    BContains4 x 3 7 4 9 ∨
+    BContains4 x 0 5 3 8 ∨
+    BContains3 x 1 8 10 ∨
+    BContains3 x 3 5 10 ∨
+    BContains4 x 0 8 3 9 ∨
+    BContains4 x 0 5 1 8 ∨
+    BContains4 x 3 6 4 7 ∨
+    BContains4 x 1 6 4 7 ∨
+    BContains4 x 1 5 4 7 ∨
+    BContains4 x 1 6 3 8 ∨
+    BContains4 x 1 5 2 6 ∨
+    BContains6 x 0 8 1 6 2 9 ∨
+    BContains4 x 2 6 3 9 ∨
+    BContains4 x 2 5 4 6 ∨
+    BContains4 x 1 7 3 8 ∨
+    BContains6 x 0 8 1 7 4 9 ∨
+    BContains4 x 0 5 4 9
+
+private theorem core_bool_cover : ∀ x : Fin 11 → Bool, CoreProp x := by
+  letI : DecidablePred CoreProp := fun _ => inferInstance
+  letI : Decidable (∀ x : Fin 11 → Bool, CoreProp x) :=
+    Fintype.decidableForallFintype
   decide
 
 private theorem core_cycle_cover :
@@ -98,8 +102,8 @@ private theorem core_cycle_cover :
     simp [x]
   have hx : 7 ≤ (Finset.univ.filter fun v => x v = true).card := by
     simpa [hfilter] using hs
-  simpa [x, Contains3, Contains4, Contains6, BContains3, BContains4, BContains6] using
-    core_bool_cover x hx
+  simpa [CoreProp, x, Contains3, Contains4, Contains6,
+    BContains3, BContains4, BContains6] using core_bool_cover x hx
 
 #print axioms core_bool_cover
 #print axioms core_cycle_cover
