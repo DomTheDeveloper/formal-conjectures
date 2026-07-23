@@ -5,8 +5,8 @@ import FormalConjecturesUtil
 
 Only vertices `0,…,10` lie on cycles in the explicit counterexample. This module
 checks that every seven-vertex subset of that core contains one of the 25 fixed
-cycle witnesses. The finite decision procedure ranges over the `2^11` Boolean
-indicator functions, avoiding any classical enumeration of all finsets.
+cycle witnesses. The finite decision procedure branches explicitly over the
+`2^11` Boolean indicator assignments, avoiding classical finset enumeration.
 -/
 
 namespace WOWII59CoreTest
@@ -62,13 +62,20 @@ private def CoreProp (x : Fin 11 → Bool) : Prop :=
     BContains6 x 0 8 1 7 4 9 ∨
     BContains4 x 0 5 4 9
 
-private theorem core_bool_cover : ∀ x : Fin 11 → Bool, CoreProp x := by
-  letI : DecidablePred CoreProp := fun x => by
-    unfold CoreProp BContains3 BContains4 BContains6
-    infer_instance
-  letI : Decidable (∀ x : Fin 11 → Bool, CoreProp x) :=
-    Fintype.decidableForallFintype
-  decide
+private theorem core_bool_cover_explicit
+    (x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 : Bool) :
+    CoreProp ![x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10] := by
+  cases x0 <;> cases x1 <;> cases x2 <;> cases x3 <;> cases x4 <;>
+    cases x5 <;> cases x6 <;> cases x7 <;> cases x8 <;> cases x9 <;>
+    cases x10 <;> decide
+
+private theorem core_bool_cover (x : Fin 11 → Bool) : CoreProp x := by
+  have hx : x = ![x 0, x 1, x 2, x 3, x 4, x 5, x 6, x 7, x 8, x 9, x 10] := by
+    funext i
+    fin_cases i <;> rfl
+  rw [hx]
+  exact core_bool_cover_explicit (x 0) (x 1) (x 2) (x 3) (x 4) (x 5)
+    (x 6) (x 7) (x 8) (x 9) (x 10)
 
 private theorem core_cycle_cover :
     ∀ s : Finset (Fin 11), 7 ≤ s.card →
@@ -107,6 +114,7 @@ private theorem core_cycle_cover :
   simpa [CoreProp, x, Contains3, Contains4, Contains6,
     BContains3, BContains4, BContains6] using core_bool_cover x hx
 
+#print axioms core_bool_cover_explicit
 #print axioms core_bool_cover
 #print axioms core_cycle_cover
 
