@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
   statuses: write
 
 jobs:
@@ -22,15 +23,23 @@ jobs:
       - name: Compile A343881 with warnings as errors
         id: compile
         continue-on-error: true
-        run: lake env lean -DwarningAsError=true FormalConjectures/OEIS/343881.lean
-      - name: Publish audit status
+        shell: bash
+        run: |
+          set -o pipefail
+          lake env lean -DwarningAsError=true FormalConjectures/OEIS/343881.lean \
+            2>&1 | tee a343881-audit.log
+      - name: Publish audit result and diagnostics
         if: always()
         uses: actions/github-script@v7
         env:
           COMPILE_OUTCOME: ${{ steps.compile.outcome }}
         with:
           script: |
+            const fs = require('fs');
             const passed = process.env.COMPILE_OUTCOME === 'success';
+            let log = '';
+            try { log = fs.readFileSync('a343881-audit.log', 'utf8'); } catch (_) {}
+            const excerpt = log.split(/\r?\n/).slice(-220).join('\n').slice(-55000);
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -39,6 +48,20 @@ jobs:
               context: 'A343881 focused Lean audit',
               description: passed ? 'Lean proof compiled with warnings as errors' : 'Lean proof compilation failed'
             });
+            const marker = '<!-- a343881-focused-audit -->';
+            const body = [marker, `## A343881 focused Lean audit: **${passed ? 'PASS' : 'FAIL'}**`, '',
+              `Commit: \`${context.sha}\``, '', '```text', excerpt || '(no compiler output)', '```'].join('\n');
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner, repo: context.repo.repo, issue_number: 166, per_page: 100
+            });
+            const prior = comments.find(c => c.body && c.body.includes(marker));
+            if (prior) {
+              await github.rest.issues.updateComment({owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: prior.id, body});
+            } else {
+              await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: 166, body});
+            }
       - name: Enforce compiler result
         if: steps.compile.outcome != 'success'
         run: exit 1
