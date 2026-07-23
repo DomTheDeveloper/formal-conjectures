@@ -30,8 +30,8 @@ open scoped BigOperators
 
 noncomputable section
 
-private def qy : QYPoly := Polynomial.X
-private def qt : TQYPoly := Polynomial.X
+def qy : QYPoly := Polynomial.X
+def qt : TQYPoly := Polynomial.X
 
 /-- Rational version of `1 + y^d + ... + y^(4d)`. -/
 def qPowerSum (d : ℕ) : QYPoly :=
