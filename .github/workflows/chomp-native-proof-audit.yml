@@ -14,7 +14,7 @@ concurrency:
 jobs:
   lean:
     if: startsWith(github.head_ref, 'ci/chomp-native-final-audit')
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     timeout-minutes: 120
     steps:
       - name: Checkout immutable Chomp proof commit
