@@ -64,7 +64,12 @@ private theorem sum_chain_lengths (a b : ℕ) (hab : a ≤ b) :
           (a + 1 + b - 2 * a) + (a + 1 + b - 2 - 2 * a) = 2 * (b - a) := by
         omega
       rw [hlast]
-      nlinarith
+      have hba : a + (b - a) = b := Nat.add_sub_of_le hab'
+      calc
+        2 * a * b + 2 * a + 2 * (b - a) =
+            2 * a * b + 2 * (a + (b - a)) := by omega
+        _ = 2 * a * b + 2 * b := by rw [hba]
+        _ = 2 * (a + 1) * b := by ring
 
 /-- The total unused capacity of the product chains is the staircase deficiency. -/
 theorem chainCapSum_add_deficiency (a b c : ℕ)
