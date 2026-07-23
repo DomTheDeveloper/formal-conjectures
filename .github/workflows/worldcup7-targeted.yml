@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   worldcup7:
-    if: github.head_ref == 'ci/chomp-native-final-audit'
+    if: startsWith(github.head_ref, 'ci/chomp-native-final-audit')
     name: Compile immutable Chomp checker
     runs-on: ubuntu-latest
     timeout-minutes: 120
