@@ -21,12 +21,16 @@ on:
     paths:
       - 'FormalConjectures/GreensOpenProblems/Green14*.lean'
       - '.github/workflows/w320-kernel-audit.yml'
+  pull_request:
+    paths:
+      - 'FormalConjectures/GreensOpenProblems/Green14*.lean'
+      - '.github/workflows/w320-kernel-audit.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: w320-kernel-audit
+  group: w320-kernel-audit-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
