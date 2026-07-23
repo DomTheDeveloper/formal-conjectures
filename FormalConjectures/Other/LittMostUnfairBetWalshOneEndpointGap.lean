@@ -51,7 +51,13 @@ theorem erase_endpoints_fullSpanBase {n : ℕ} {R : Finset ℕ}
     have hr := mem_interiorCoordinates.mp (hR h)
     omega
   ext i
-  simp [fullSpanBase, hR0, hRlast]
+  by_cases hi0 : i = 0
+  · subst i
+    simp [fullSpanBase, hR0]
+  by_cases hilast : i = n - 1
+  · subst i
+    simp [fullSpanBase, hRlast]
+  · simp [fullSpanBase, hi0, hilast]
 
 /-- Adding both endpoints is injective on interior subsets. -/
 theorem fullSpanBase_injective {n : ℕ} {R₁ R₂ : Finset ℕ}
@@ -72,7 +78,7 @@ theorem card_fullSpanBases {n : ℕ} (hn : 2 ≤ n) :
     #((interiorCoordinates n).powerset.image (fullSpanBase n)) = 2 ^ (n - 2) := by
   have hinj : Set.InjOn (fullSpanBase n) (interiorCoordinates n).powerset := by
     intro R₁ hR₁ R₂ hR₂ heq
-    exact fullSpanBase_injective
+    exact fullSpanBase_injective (n := n)
       (Finset.mem_powerset.mp hR₁) (Finset.mem_powerset.mp hR₂) heq
   rw [Finset.card_image_of_injOn hinj]
   simp [card_interiorCoordinates hn]
@@ -107,8 +113,9 @@ theorem fullSpanBase_monomial_mul_eq_neg_one {n : ℕ} (hn : 2 ≤ n)
     apply Finset.prod_eq_one
     intro i hi
     have hr := mem_interiorCoordinates.mp (hR hi)
-    apply letterSign_mul_eq_one_of_word_eq A B (by omega)
-    exact hinterior ⟨i, by omega⟩ (by omega) (by omega)
+    have hiN : i < n := lt_of_lt_of_le hr.2 (Nat.sub_le n 1)
+    apply letterSign_mul_eq_one_of_word_eq A B hiN
+    exact hinterior ⟨i, hiN⟩ hr.1 hr.2
   unfold natMonomial fullSpanBase
   rw [← Finset.prod_mul_distrib]
   rw [Finset.prod_insert (by simp [hR0, h0last])]
@@ -144,8 +151,9 @@ theorem fullSpanBase_monomial_mul_eq_neg_one_right {n : ℕ} (hn : 2 ≤ n)
     apply Finset.prod_eq_one
     intro i hi
     have hr := mem_interiorCoordinates.mp (hR hi)
-    apply letterSign_mul_eq_one_of_word_eq A B (by omega)
-    exact hinterior ⟨i, by omega⟩ (by omega) (by omega)
+    have hiN : i < n := lt_of_lt_of_le hr.2 (Nat.sub_le n 1)
+    apply letterSign_mul_eq_one_of_word_eq A B hiN
+    exact hinterior ⟨i, hiN⟩ hr.1 hr.2
   unfold natMonomial fullSpanBase
   rw [← Finset.prod_mul_distrib]
   rw [Finset.prod_insert (by simp [hR0, h0last])]
