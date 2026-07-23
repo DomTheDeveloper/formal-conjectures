@@ -42,18 +42,18 @@ jobs:
         run: |
           lake exe cache get
 
-      - name: Compile BMO8 certificate
+      - name: Build BMO8 certificate and dependencies
         run: |
-          lake env lean FormalConjectures/Other/BeaverMathOlympiad8Proof.lean
+          lake --wfail build FormalConjectures.Other.BeaverMathOlympiad8Proof
 
       - name: Audit theorem axioms
         run: |
-          cat > /tmp/BMO8Audit.lean <<'EOF'
+          cat > BMO8Audit.lean <<'EOF'
           import FormalConjectures.Other.BeaverMathOlympiad8Proof
           #print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_8_proof
           EOF
-          lake env lean /tmp/BMO8Audit.lean | tee /tmp/BMO8Audit.log
-          if grep -q 'sorryAx' /tmp/BMO8Audit.log; then
+          lake env lean BMO8Audit.lean | tee BMO8Audit.log
+          if grep -q 'sorryAx' BMO8Audit.log; then
             echo 'Unexpected sorryAx dependency'
             exit 1
           fi
