@@ -13,7 +13,7 @@ def tripleRankPoint (x : (ℕ × ℕ) × Bool) : RankPoint :=
 theorem tripleRankPoint_injective : Function.Injective tripleRankPoint := by
   rintro ⟨⟨i, j⟩, s⟩ ⟨⟨k, l⟩, t⟩ h
   simp [tripleRankPoint] at h ⊢
-  exact h
+  exact ⟨⟨h.1, h.2.1⟩, h.2.2⟩
 
 /-- Integer level of a ranked honeycomb point in the diagonal row direction. -/
 def rankLevel (p : RankPoint) : ℕ := p.first + p.second + if p.side then 1 else 0
