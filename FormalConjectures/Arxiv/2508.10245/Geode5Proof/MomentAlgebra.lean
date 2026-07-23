@@ -75,7 +75,7 @@ theorem moment_division_identity (k : ℕ) :
 
 /-- The zero-th power sum is the constant five. -/
 theorem powerSum_zero : powerSum 0 = 5 := by
-  norm_num [powerSum, y, Finset.sum_range_succ]
+  norm_num [powerSum, y, Finset.sum_range_succ, Polynomial.natCast_eq_C]
 
 /-- The five quotient rows used by the lower-triangular recurrence. -/
 theorem momentQuotient_rows :
@@ -94,14 +94,18 @@ theorem momentQuotient_rows :
         Polynomial.C (powerSum 3) * t +
         Polynomial.C (powerSum 2) * t ^ 2 +
         Polynomial.C (powerSum 1) * t ^ 3 + 5 * t ^ 4 := by
-  norm_num [momentQuotient, powerSum_zero, Finset.sum_range_succ]
-  constructor
-  · ring
-  constructor
-  · ring
-  constructor
-  · ring
-  · ring
+  norm_num [momentQuotient, powerSum_zero, Finset.sum_range_succ,
+    Polynomial.natCast_eq_C] <;> ring
+
+private theorem concreteRemainderDegree (k : Fin 5) :
+    (momentRemainder (k + 1)).natDegree < 5 := by
+  fin_cases k <;>
+    simp [momentRemainder, geodeKernel, momentQuotient, powerSum, t, y,
+      Finset.prod_range_succ, Finset.sum_range_succ,
+      Polynomial.derivative_add, Polynomial.derivative_sub,
+      Polynomial.derivative_mul, Polynomial.derivative_C,
+      Polynomial.derivative_X, Polynomial.natCast_eq_C] <;>
+    native_decide
 
 /-- Every one of the five generated remainders has `t`-degree below five. -/
 theorem momentRemainder_degree_bounds :
@@ -110,8 +114,19 @@ theorem momentRemainder_degree_bounds :
     (momentRemainder 3).natDegree < 5 ∧
     (momentRemainder 4).natDegree < 5 ∧
     (momentRemainder 5).natDegree < 5 := by
-  norm_num [momentRemainder, geodeKernel, momentQuotient, powerSum, t, y,
-    Finset.prod_range_succ, Finset.sum_range_succ]
+  exact ⟨concreteRemainderDegree 0, concreteRemainderDegree 1,
+    concreteRemainderDegree 2, concreteRemainderDegree 3,
+    concreteRemainderDegree 4⟩
+
+private theorem concreteRemainderYDegree (k : Fin 5) :
+    ((momentRemainder (k + 1)).coeff 0).natDegree ≤ 10 + 4 * k := by
+  fin_cases k <;>
+    simp [momentRemainder, geodeKernel, momentQuotient, powerSum, t, y,
+      Finset.prod_range_succ, Finset.sum_range_succ,
+      Polynomial.derivative_add, Polynomial.derivative_sub,
+      Polynomial.derivative_mul, Polynomial.derivative_C,
+      Polynomial.derivative_X, Polynomial.natCast_eq_C] <;>
+    native_decide
 
 /-- The constant-in-`t` coefficients satisfy the sparse evaluator's degree bounds. -/
 theorem momentRemainder_y_degree_bounds :
@@ -120,15 +135,15 @@ theorem momentRemainder_y_degree_bounds :
     ((momentRemainder 3).coeff 0).natDegree ≤ 18 ∧
     ((momentRemainder 4).coeff 0).natDegree ≤ 22 ∧
     ((momentRemainder 5).coeff 0).natDegree ≤ 26 := by
-  norm_num [momentRemainder, geodeKernel, momentQuotient, powerSum, t, y,
-    Finset.prod_range_succ, Finset.sum_range_succ]
+  exact ⟨concreteRemainderYDegree 0, concreteRemainderYDegree 1,
+    concreteRemainderYDegree 2, concreteRemainderYDegree 3,
+    concreteRemainderYDegree 4⟩
 
 /-- Diagonal coefficient in recurrence row `i`, where `i = 0, ..., 4`. -/
 def recurrenceDiagonal (n i : ℕ) : ℕ := 5 * n + 6 + i
 
 /-- Every diagonal coefficient is positive, so forward substitution is valid in characteristic zero. -/
 theorem recurrenceDiagonal_pos (n i : ℕ) : 0 < recurrenceDiagonal n i := by
-  simp [recurrenceDiagonal]
   omega
 
 /-- Product of the five diagonal entries, matching the symbolic determinant. -/
@@ -136,14 +151,12 @@ theorem recurrenceDiagonal_product (n : ℕ) :
     ∏ i ∈ Finset.range 5, recurrenceDiagonal n i =
       5 * (n + 2) * (5 * n + 6) * (5 * n + 7) *
         (5 * n + 8) * (5 * n + 9) := by
-  norm_num [recurrenceDiagonal, Finset.prod_range_succ]
-  ring
+  norm_num [recurrenceDiagonal, Finset.prod_range_succ] <;> ring
 
 /-- Through level 1000, every diagonal is at most 5010. -/
 theorem recurrenceDiagonal_le_5010
     (n i : ℕ) (hn : n < 1000) (hi : i < 5) :
     recurrenceDiagonal n i ≤ 5010 := by
-  simp [recurrenceDiagonal]
   omega
 
 #print axioms moment_division_identity
