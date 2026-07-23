@@ -7,6 +7,8 @@ open Classical Finset
 set_option maxHeartbeats 0
 set_option maxRecDepth 1000000
 
+/-- Cycle-bearing vertices are exactly the core `0,…,10`; checking its 2,048
+subsets is sufficient for the large-subset certificate. -/
 private def Contains3 (s : Finset (Fin 11)) (a b c : Fin 11) : Prop :=
   a ∈ s ∧ b ∈ s ∧ c ∈ s
 
