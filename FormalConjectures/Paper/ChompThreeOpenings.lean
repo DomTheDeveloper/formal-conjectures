@@ -96,7 +96,7 @@ The exact remaining proof boundary: once the three displayed residual positions 
 as P-positions, the `10 × 42` rectangle has at least three winning first moves.
 -/
 @[category API, AMS 5 91]
-theorem hasThreeWinningOpenings_of_roots
+theorem has_three_winning_openings_of_roots
     (h₁ : PPosition root₁) (h₂ : PPosition root₂) (h₃ : PPosition root₃) :
     HasThreeWinningOpenings (rectangle 10 42) := by
   rcases roots_are_distinct_legal_options with ⟨hm₁, hm₂, hm₃, hne₁₂, hne₁₃, hne₂₃⟩
