@@ -11,6 +11,8 @@ on:
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: geode5-macos-exact
@@ -41,6 +43,8 @@ jobs:
       - name: Fetch Mathlib cache
         run: lake exe cache get
       - name: Compile full symbolic bound stack
+        id: compile
+        continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
@@ -54,3 +58,26 @@ jobs:
           name: geode5-macos-audit-${{ github.sha }}
           path: geode5-macos-audit.log
           if-no-files-found: warn
+      - name: Report exact result on PR 184
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMPILE_OUTCOME: ${{ steps.compile.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## Geode5 macOS exact audit"
+            echo
+            echo "Commit: \`${GITHUB_SHA}\`"
+            echo "Module: \`Geode5Proof/AbsoluteBound.lean\`"
+            echo "Result: **${COMPILE_OUTCOME}**"
+            echo
+            echo '```text'
+            tail -n 120 geode5-macos-audit.log 2>/dev/null || true
+            echo '```'
+          } > /tmp/geode5-comment.md
+          gh pr comment 184 --repo DomTheDeveloper/formal-conjectures --body-file /tmp/geode5-comment.md
+      - name: Enforce compiler result
+        if: steps.compile.outcome != 'success'
+        run: exit 1
