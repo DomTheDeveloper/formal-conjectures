@@ -3,7 +3,7 @@ name: OEIS A343881 PR audit
 on:
   pull_request:
     branches: [main]
-    types: [reopened]
+    types: [opened]
 
 permissions:
   contents: read
@@ -12,7 +12,7 @@ jobs:
   lean:
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'ci/oeis-a343881-clean'
+      github.event.pull_request.head.ref == 'ci/oeis-a343881-final-audit'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -29,6 +29,7 @@ jobs:
         run: |
           cat > A343881Audit.lean <<'EOF'
           import FormalConjectures.OEIS.«343881»
+          /-! Axiom audit for the OEIS A343881 theorem. -/
           #print axioms OeisA343881.conjecture
           EOF
           set -o pipefail
