@@ -41,17 +41,45 @@ theorem reverse_self_overlap_iff {n : ℕ} (A : Word n) (k : Fin n) :
   · intro h
     funext i
     have hi := congrFun h i.rev
+    have hleft :
+        ((⟨n - k - 1 + i.rev.val, by omega⟩ : Fin n).rev) =
+          (⟨i.val, by omega⟩ : Fin n) := by
+      apply Fin.ext
+      simp
+      omega
+    have hright :
+        ((⟨i.rev.val, by omega⟩ : Fin n).rev) =
+          (⟨n - k - 1 + i.val, by omega⟩ : Fin n) := by
+      apply Fin.ext
+      simp
+      omega
     change A ((⟨n - k - 1 + i.rev.val, by omega⟩ : Fin n).rev) =
       A ((⟨i.rev.val, by omega⟩ : Fin n).rev) at hi
-    convert hi.symm using 1 <;> apply Fin.ext <;>
-      have hir := i.rev_add_cast <;> omega
+    change A (⟨n - k - 1 + i.val, by omega⟩ : Fin n) =
+      A (⟨i.val, by omega⟩ : Fin n)
+    rw [hleft, hright] at hi
+    exact hi.symm
   · intro h
     funext i
     have hi := congrFun h i.rev
+    have hleft :
+        ((⟨n - k - 1 + i.val, by omega⟩ : Fin n).rev) =
+          (⟨i.rev.val, by omega⟩ : Fin n) := by
+      apply Fin.ext
+      simp
+      omega
+    have hright :
+        ((⟨i.val, by omega⟩ : Fin n).rev) =
+          (⟨n - k - 1 + i.rev.val, by omega⟩ : Fin n) := by
+      apply Fin.ext
+      simp
+      omega
     change A ((⟨n - k - 1 + i.val, by omega⟩ : Fin n).rev) =
       A ((⟨i.val, by omega⟩ : Fin n).rev)
-    convert hi.symm using 1 <;> apply Fin.ext <;>
-      have hir := i.rev_add_cast <;> omega
+    change A (⟨n - k - 1 + i.rev.val, by omega⟩ : Fin n) =
+      A (⟨i.rev.val, by omega⟩ : Fin n) at hi
+    rw [hleft, hright]
+    exact hi.symm
 
 /-- Proper self-overlap numerators are invariant under reversal. -/
 theorem overlapNum_reverse_self {n : ℕ} (A : Word n) :
