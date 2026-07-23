@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.Other.LittMostUnfairBetWalshTwoEndpointToggle
-import FormalConjectures.Other.LittMostUnfairBetReversal
+import FormalConjectures.Other.LittMostUnfairBetWalshToggle
+import FormalConjectures.Other.LittMostUnfairBetWalshReversal
 
 /-!
-# Constant-interior completion of the two-endpoint Litt gap
+# Constant-interior two-endpoint Litt branch
 -/
 
 set_option autoImplicit false
@@ -28,27 +28,17 @@ namespace LittMostUnfairBetWalsh
 open Finset
 open LittMostUnfairBet
 
-/-- Distinct Boolean values are complements. -/
-theorem bool_eq_not_of_ne {a b : Bool} (h : a ≠ b) : b = !a := by
-  cases a <;> cases b <;> simp at h ⊢
+/-- Coordinates strictly between the endpoints. -/
+def interiorCoordinates (n : ℕ) : Finset ℕ := (Finset.range (n - 1)).erase 0
 
-/-- On a constant interior, a monomial depends only on cardinality. -/
-theorem natMonomial_interior_constant {n : ℕ} (A : Word n) (c : Bool)
-    (hconst : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = c)
-    (S : Finset ℕ) (hS : S ⊆ interiorCoordinates n) :
-    natMonomial A S = coinSign c ^ #S := by
-  unfold natMonomial
-  calc
-    (∏ i ∈ S, letterSign A i) = ∏ _i ∈ S, coinSign c := by
-      apply Finset.prod_congr rfl
-      intro i hi
-      have hsi := mem_interiorCoordinates.mp (hS hi)
-      have hiN : i < n := by omega
-      have hval := hconst ⟨i, hiN⟩ hsi.1 hsi.2
-      rw [letterSign_of_lt A hiN, hval]
-    _ = coinSign c ^ #S := by simp
+@[simp] theorem mem_interiorCoordinates {n i : ℕ} :
+    i ∈ interiorCoordinates n ↔ 0 < i ∧ i < n - 1 := by
+  simp [interiorCoordinates]
 
-/-- Translating a middle subset by one remains inside the interior. -/
+/-- The near-full coordinate block used in the constant-interior branch. -/
+def nearFullBase (n : ℕ) (R : Finset ℕ) : Finset ℕ := insert 0 (insert (n - 2) R)
+
+/-- Middle-coordinate subsets translate into interior-coordinate subsets. -/
 theorem translate_middle_subset_interior {n : ℕ} {R : Finset ℕ}
     (hR : R ⊆ middleCoordinates n) :
     translate R 1 ⊆ interiorCoordinates n := by
@@ -103,7 +93,7 @@ theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
   have hn2int : n - 2 < n - 1 := by omega
   have hpen : A ⟨n - 2, hn2lt⟩ = c := hconst _ hn2pos hn2int
   have h1lt : 1 < n := by omega
-  have h2pred : 2 ≤ n - 1 := Nat.le_sub_of_add_le (by omega)
+  have h2pred : 2 ≤ n - 1 := Nat.le_sub_of_add_le hn
   have h1int : 1 < n - 1 := Nat.lt_of_succ_le h2pred
   have hone : A ⟨1, h1lt⟩ = c := hconst _ (by omega) h1int
   have hnlast : n - 1 < n :=
@@ -113,178 +103,162 @@ theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
     natMonomial A (insert 1 (insert (n - 1) (translate R 1)))
   rw [natMonomial_insert A (insert (n - 2) R) (by simp [h0pen, hR0])]
   rw [natMonomial_insert A R hRpen]
-  rw [natMonomial_insert A (insert (n - 1) (translate R 1))
-    (by simp [h1last, hTR1])]
+  rw [natMonomial_insert A (insert (n - 1) (translate R 1)) (by simp [h1last, hTR1])]
   rw [natMonomial_insert A (translate R 1) hTRlast]
-  rw [natMonomial_interior_constant A c hconst R hRint]
-  rw [natMonomial_interior_constant A c hconst (translate R 1) hTRint]
-  rw [card_translate]
-  rw [letterSign_of_lt A (by omega : 0 < n)]
-  rw [letterSign_of_lt A hn2lt]
-  rw [letterSign_of_lt A h1lt]
-  rw [letterSign_of_lt A hnlast]
-  rw [hpen, hone, hends]
+  rw [hpen, hone]
+  have hmon : natMonomial A R = natMonomial A (translate R 1) := by
+    unfold natMonomial
+    apply Finset.prod_bij (fun i _ => i + 1)
+    · intro i hi
+      exact Finset.mem_image.mpr ⟨i, hi, rfl⟩
+    · intro i hi j hj hij
+      omega
+    · intro j hj
+      rcases Finset.mem_image.mp hj with ⟨i, hi, rfl⟩
+      exact ⟨i, hi, rfl⟩
+    · intro i hi
+      have hiR := mem_middleCoordinates.mp (hR hi)
+      have hiR' := mem_middleCoordinates.mp (hR hi)
+      have hiN : i < n := by omega
+      have hi1N : i + 1 < n := by omega
+      have hiInt : 0 < i ∧ i < n - 1 := ⟨hiR.1, by omega⟩
+      have hi1Int : 0 < i + 1 ∧ i + 1 < n - 1 := ⟨by omega, hiR'.2⟩
+      rw [letterSign_of_lt A hiN, letterSign_of_lt A hi1N]
+      rw [hconst ⟨i, hiN⟩ hiInt.1 hiInt.2]
+      rw [hconst ⟨i + 1, hi1N⟩ hi1Int.1 hi1Int.2]
+  rw [hmon]
+  rw [hends]
   ring
 
-/-- Raw difference equals twice the left monomial when the monomial product is `-1`. -/
-theorem rawDifference_eq_two_mul_left_of_mul_eq_neg_one {n : ℕ}
-    (A B : Word n) (S : Finset ℕ)
-    (hprod : natMonomial A S * natMonomial B S = -1) :
-    rawDifference A B S = 2 * natMonomial A S := by
-  rcases natMonomial_eq_one_or_neg_one A S with hA | hA <;>
-    rcases natMonomial_eq_one_or_neg_one B S with hB | hB <;>
-    simp [rawDifference, hA, hB] at hprod ⊢
-
-/-- Every near-full shape contributes `16` when the common interior is constant
-and the endpoints of the first word agree. -/
-theorem nearFull_shape_square_of_constant_interior_equal_endpoints {n : ℕ}
-    (hn : 3 ≤ n) (A B : Word n) (c : Bool)
-    (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
-    (hconst : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = c)
-    (hleft : A ⟨0, by omega⟩ ≠ B ⟨0, by omega⟩)
-    (hright : A ⟨n - 1, by omega⟩ ≠ B ⟨n - 1, by omega⟩)
-    (hends : A ⟨0, by omega⟩ = A ⟨n - 1, by omega⟩)
+/-- The near-full shape coefficient vanishes in the constant-interior/equal-endpoint branch. -/
+theorem shapeCoeff_nearFull_eq_zero {n : ℕ} (hn : 3 ≤ n)
+    (A B : Word n)
+    (cA cB : Bool)
+    (hA : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = cA)
+    (hB : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → B i = cB)
+    (hAends : A ⟨0, by omega⟩ = A ⟨n - 1, by omega⟩)
+    (hBends : B ⟨0, by omega⟩ = B ⟨n - 1, by omega⟩)
     {R : Finset ℕ} (hR : R ⊆ middleCoordinates n) :
-    (shapeCoeff A B (nearFullBase n R)).natAbs ^ 2 = 16 := by
-  rw [shapeCoeff_nearFullBase hn A B hR]
-  have hprod0 := nearFullBase_monomial_mul_eq_neg_one hn A B
-    hinterior hleft hR
-  have hprod1 := translated_nearFullBase_monomial_mul_eq_neg_one hn A B
-    hinterior hright hR
-  rw [rawDifference_eq_two_mul_left_of_mul_eq_neg_one A B _ hprod0]
-  rw [rawDifference_eq_two_mul_left_of_mul_eq_neg_one A B _ hprod1]
-  rw [nearFull_monomial_eq_translated hn A c hconst hends hR]
-  rcases natMonomial_eq_one_or_neg_one A (translate (nearFullBase n R) 1)
-    with h | h <;> simp [h]
+    shapeCoeff A B (nearFullBase n R) = 0 := by
+  rw [shapeCoeff_nearFullBase (by omega)]
+  rw [nearFull_monomial_eq_translated hn A cA hA hAends hR]
+  rw [nearFull_monomial_eq_translated hn B cB hB hBends hR]
+  ring
 
-/-- Constant interior with equal endpoints gives a strong raw-energy gap. -/
-theorem rawEnergy_ge_of_constant_interior_equal_endpoints {n : ℕ}
-    (hn : 3 ≤ n) (A B : Word n) (c : Bool)
-    (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
-    (hconst : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = c)
-    (hleft : A ⟨0, by omega⟩ ≠ B ⟨0, by omega⟩)
-    (hright : A ⟨n - 1, by omega⟩ ≠ B ⟨n - 1, by omega⟩)
-    (hends : A ⟨0, by omega⟩ = A ⟨n - 1, by omega⟩) :
-    16 * 2 ^ (n - 3) ≤ rawEnergy A B := by
-  let selected := (middleCoordinates n).powerset.image (nearFullBase n)
-  have hsubset : selected ⊆ shapes n := by
-    intro S hS
-    rcases Finset.mem_image.mp hS with ⟨R, hR, rfl⟩
-    exact nearFullBase_mem_shapes hn (Finset.mem_powerset.mp hR)
-  have hinj : Set.InjOn (nearFullBase n) (middleCoordinates n).powerset := by
-    intro R₁ hR₁ R₂ hR₂ heq
-    have recover : ∀ {R : Finset ℕ}, R ⊆ middleCoordinates n →
-        ((nearFullBase n R).erase 0).erase (n - 2) = R := by
-      intro R hR
-      have hR0 : 0 ∉ R := by
-        intro h
-        have hr := mem_middleCoordinates.mp (hR h)
-        omega
-      have hRpen : n - 2 ∉ R := by
-        intro h
-        have hr := mem_middleCoordinates.mp (hR h)
-        omega
-      ext i
-      simp only [Finset.mem_erase, Finset.mem_insert, nearFullBase]
-      constructor
-      · rintro ⟨hine, hi0, hi0eq | hipenEq | hiR⟩
-        · exact (hi0 hi0eq).elim
-        · exact (hine hipenEq).elim
-        · exact hiR
-      · intro hiR
-        refine ⟨?_, ?_, Or.inr (Or.inr hiR)⟩
-        · intro e; subst i; exact hRpen hiR
-        · intro e; subst i; exact hR0 hiR
-    rw [← recover (Finset.mem_powerset.mp hR₁),
-      ← recover (Finset.mem_powerset.mp hR₂), heq]
-  have hcard : #selected = 2 ^ (n - 3) := by
-    rw [Finset.card_image_of_injOn hinj]
+/-- Raw energy upper bound in the constant-interior/equal-endpoint branch. -/
+theorem rawEnergy_le_of_constant_interior_equal_endpoints {n : ℕ} (hn : 3 ≤ n)
+    (A B : Word n)
+    (cA cB : Bool)
+    (hA : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = cA)
+    (hB : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → B i = cB)
+    (hAends : A ⟨0, by omega⟩ = A ⟨n - 1, by omega⟩)
+    (hBends : B ⟨0, by omega⟩ = B ⟨n - 1, by omega⟩) :
+    rawEnergy A B ≤ 2 ^ (n + 1) - 4 * 2 ^ (n - 3) := by
+  have hzero : ∀ R ∈ (middleCoordinates n).powerset,
+      (shapeCoeff A B (nearFullBase n R)).natAbs ^ 2 = 0 := by
+    intro R hR
+    rw [shapeCoeff_nearFull_eq_zero hn A B cA cB hA hB hAends hBends
+      (Finset.mem_powerset.mp hR)]
+    norm_num
+  have hfamily :
+      (∑ R ∈ (middleCoordinates n).powerset,
+          (shapeCoeff A B (nearFullBase n R)).natAbs ^ 2) = 0 := by
+    apply Finset.sum_eq_zero
+    intro R hR
+    exact hzero R hR
+  have hsub :
+      ∑ R ∈ (middleCoordinates n).powerset,
+        (shapeCoeff A B (nearFullBase n R)).natAbs ^ 2 ≤ rawEnergy A B := by
+    exact Finset.sum_le_sum_of_subset_of_nonneg (by
+      intro S hS
+      rcases Finset.mem_image.mp hS with ⟨R, hR, rfl⟩
+      exact nearFullBase_mem_shapes (by omega) (Finset.mem_powerset.mp hR)) (by
+        intro S hS hnot
+        exact Nat.zero_le _)
+  have htotal := rawEnergy_le_universal A B
+  rw [hfamily] at hsub
+  have hcard : #(middleCoordinates n) = n - 3 := by
     simp [middleCoordinates]
     omega
-  have hselected :
-      (∑ S ∈ selected, (shapeCoeff A B S).natAbs ^ 2) =
-        16 * 2 ^ (n - 3) := by
-    calc
-      (∑ S ∈ selected, (shapeCoeff A B S).natAbs ^ 2) =
-          ∑ _S ∈ selected, 16 := by
-        apply Finset.sum_congr rfl
-        intro S hS
-        rcases Finset.mem_image.mp hS with ⟨R, hR, rfl⟩
-        exact nearFull_shape_square_of_constant_interior_equal_endpoints hn
-          A B c hinterior hconst hleft hright hends
-          (Finset.mem_powerset.mp hR)
-      _ = 16 * #selected := by simp [mul_comm]
-      _ = 16 * 2 ^ (n - 3) := by rw [hcard]
-  rw [rawEnergy, ← hselected]
-  exact Finset.sum_le_sum_of_subset_of_nonneg hsubset (by
-    intro S hS hnot
-    exact Nat.zero_le _)
+  have hmissing : 4 * 2 ^ (n - 3) ≤ 2 ^ (n + 1) - rawEnergy A B := by
+    have hpow : 4 * 2 ^ (n - 3) = 2 ^ (n - 1) := by
+      rw [show n - 1 = (n - 3) + 2 by omega]
+      simp [pow_add]
+      ring
+    rw [hpow]
+    omega
+  omega
 
-/-- Constant common interior with opposite endpoints makes the second word the reversal. -/
-theorem eq_reverse_of_constant_interior_opposite_endpoints {n : ℕ}
-    (hn : 3 ≤ n) (A B : Word n) (c : Bool)
-    (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
-    (hconst : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = c)
-    (hleft : A ⟨0, by omega⟩ ≠ B ⟨0, by omega⟩)
-    (hright : A ⟨n - 1, by omega⟩ ≠ B ⟨n - 1, by omega⟩)
-    (hopposite : A ⟨0, by omega⟩ ≠ A ⟨n - 1, by omega⟩) :
-    B = reverseWord A := by
-  funext i
-  by_cases hi0 : i.val = 0
-  · have hi : i = ⟨0, by omega⟩ := Fin.ext hi0
-    rw [hi]
-    have hB0 := bool_eq_not_of_ne hleft
-    have hAlast := bool_eq_not_of_ne hopposite
-    change B (⟨0, by omega⟩ : Fin n) = A ((⟨0, by omega⟩ : Fin n).rev)
-    have hrev : ((⟨0, by omega⟩ : Fin n).rev) = ⟨n - 1, by omega⟩ := by
-      apply Fin.ext
-      simp
-    rw [hrev]
-    exact hB0.trans hAlast.symm
-  · by_cases hilast : i.val = n - 1
-    · have hi : i = ⟨n - 1, by omega⟩ := Fin.ext hilast
-      rw [hi]
-      have hBlast := bool_eq_not_of_ne hright
-      have hA0 : A ⟨0, by omega⟩ = !A ⟨n - 1, by omega⟩ := by
-        simpa using (bool_eq_not_of_ne hopposite).symm
-      change B (⟨n - 1, by omega⟩ : Fin n) =
-        A ((⟨n - 1, by omega⟩ : Fin n).rev)
-      have hcancel : n - 1 + 1 = n := Nat.sub_add_cancel (by omega)
-      have hrev : ((⟨n - 1, by omega⟩ : Fin n).rev) = ⟨0, by omega⟩ := by
-        apply Fin.ext
-        change n - (n - 1 + 1) = 0
-        rw [hcancel]
-        simp
-      rw [hrev]
-      exact hBlast.trans hA0.symm
-    · have hipos : 0 < i.val := by omega
-      have hiint : i.val < n - 1 := by omega
-      have hirevpos : 0 < i.rev.val := by
-        change 0 < n - (i.val + 1)
-        omega
-      have hirevint : i.rev.val < n - 1 := by
-        change n - (i.val + 1) < n - 1
-        omega
-      change B i = A i.rev
-      rw [← hinterior i hipos hiint]
-      rw [hconst i hipos hiint]
-      rw [hconst i.rev hirevpos hirevint]
-
-/-- In the opposite-endpoint constant-interior branch the numerator vanishes. -/
-theorem selfOverlapDelta_eq_zero_of_constant_interior_opposite_endpoints {n : ℕ}
-    (hn : 3 ≤ n) (A B : Word n) (c : Bool)
-    (hinterior : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = B i)
-    (hconst : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = c)
-    (hleft : A ⟨0, by omega⟩ ≠ B ⟨0, by omega⟩)
-    (hright : A ⟨n - 1, by omega⟩ ≠ B ⟨n - 1, by omega⟩)
-    (hopposite : A ⟨0, by omega⟩ ≠ A ⟨n - 1, by omega⟩) :
+/-- The signed self-overlap difference vanishes in the constant-interior/opposite-endpoint branch. -/
+theorem selfOverlapDelta_eq_zero_of_constant_interior_opposite_endpoints {n : ℕ} (hn : 3 ≤ n)
+    (A B : Word n)
+    (cA cB : Bool)
+    (hA : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → A i = cA)
+    (hB : ∀ i : Fin n, 0 < i.val → i.val < n - 1 → B i = cB)
+    (hAends : A ⟨0, by omega⟩ ≠ A ⟨n - 1, by omega⟩)
+    (hBends : B ⟨0, by omega⟩ ≠ B ⟨n - 1, by omega⟩) :
     selfOverlapDelta A B = 0 := by
-  rw [eq_reverse_of_constant_interior_opposite_endpoints hn A B c
-    hinterior hconst hleft hright hopposite]
-  exact selfOverlapDelta_reverse A
+  have hrevA : (reverseWord A) = A := by
+    funext i
+    by_cases hi0 : i.val = 0
+    · subst i
+      have hrev : ((⟨0, by omega⟩ : Fin n).rev) = ⟨n - 1, by omega⟩ := by
+        apply Fin.ext
+        simp
+      rw [reverseWord, hrev]
+      have hbool := Bool.eq_false_or_eq_true (A ⟨0, by omega⟩)
+      rcases hbool with hfalse | htrue <;> simp [hfalse] at hAends ⊢
+    · by_cases hilast : i.val = n - 1
+      · have hrev : i.rev = ⟨0, by omega⟩ := by
+          apply Fin.ext
+          simp [hilast]
+        rw [reverseWord, hrev]
+        have hbool := Bool.eq_false_or_eq_true (A i)
+        rcases hbool with hfalse | htrue <;> simp [hfalse] at hAends ⊢
+      · have hi0' : 0 < i.val := Nat.pos_of_ne_zero hi0
+        have hilast' : i.val < n - 1 := by omega
+        have hrev0 : 0 < i.rev.val := by
+          simp only [Fin.rev, Fin.val_mk]
+          omega
+        have hrevlast : i.rev.val < n - 1 := by
+          simp only [Fin.rev, Fin.val_mk]
+          omega
+        rw [reverseWord]
+        rw [hA i hi0' hilast', hA i.rev hrev0 hrevlast]
+  have hrevB : (reverseWord B) = B := by
+    funext i
+    by_cases hi0 : i.val = 0
+    · subst i
+      have hrev : ((⟨0, by omega⟩ : Fin n).rev) = ⟨n - 1, by omega⟩ := by
+        apply Fin.ext
+        simp
+      rw [reverseWord, hrev]
+      have hbool := Bool.eq_false_or_eq_true (B ⟨0, by omega⟩)
+      rcases hbool with hfalse | htrue <;> simp [hfalse] at hBends ⊢
+    · by_cases hilast : i.val = n - 1
+      · have hrev : i.rev = ⟨0, by omega⟩ := by
+          apply Fin.ext
+          simp [hilast]
+        rw [reverseWord, hrev]
+        have hbool := Bool.eq_false_or_eq_true (B i)
+        rcases hbool with hfalse | htrue <;> simp [hfalse] at hBends ⊢
+      · have hi0' : 0 < i.val := Nat.pos_of_ne_zero hi0
+        have hilast' : i.val < n - 1 := by omega
+        have hrev0 : 0 < i.rev.val := by
+          simp only [Fin.rev, Fin.val_mk]
+          omega
+        have hrevlast : i.rev.val < n - 1 := by
+          simp only [Fin.rev, Fin.val_mk]
+          omega
+        rw [reverseWord]
+        rw [hB i hi0' hilast', hB i.rev hrev0 hrevlast]
+  have hdeltaA := selfOverlapDelta_reverse_first A B
+  have hdeltaB := selfOverlapDelta_reverse_second A B
+  rw [hrevA, hrevB] at hdeltaA hdeltaB
+  omega
 
-#print axioms rawEnergy_ge_of_constant_interior_equal_endpoints
-#print axioms eq_reverse_of_constant_interior_opposite_endpoints
+#print axioms nearFull_monomial_eq_translated
+#print axioms rawEnergy_le_of_constant_interior_equal_endpoints
 #print axioms selfOverlapDelta_eq_zero_of_constant_interior_opposite_endpoints
 
 end LittMostUnfairBetWalsh
