@@ -108,16 +108,16 @@ mutual
       e
 end
 
-private partial def equalBlockEnd (i m t : Nat) (e : Engine) : Nat :=
-  if m + 1 < e.k && e.x[m + 1]! = t then
-    equalBlockEnd i (m + 1) t e
+private partial def equalBlockEnd (m t : Nat) (e : Engine) : Nat :=
+  if m + 1 < e.k then
+    if e.x[m + 1]! = t then equalBlockEnd (m + 1) t e else m
   else
     m
 
 private partial def addShadowRows (i : Nat) (e : Engine) : Engine :=
   if i < e.k - 1 then
     let t := e.x[i]!
-    let m := equalBlockEnd i i t e
+    let m := equalBlockEnd i t e
     let upper := if i = 0 then e.n else e.x[i - 1]!
     let e := if t < upper then enumerateShadow i (i + 1) m upper t e else e
     addShadowRows (i + 1) e
@@ -129,20 +129,20 @@ private def addShadowOfCurrentP (e : Engine) : Engine :=
 
 private partial def allEqBefore (i r width : Nat) (e : Engine) : Bool :=
   if i < r then
-    e.x[i]! = width && allEqBefore (i + 1) r width e
+    decide (e.x[i]! = width) && allEqBefore (i + 1) r width e
   else
     true
 
 private partial def allEqAfter (i value : Nat) (e : Engine) : Bool :=
   if i < e.k then
-    e.x[i]! = value && allEqAfter (i + 1) value e
+    decide (e.x[i]! = value) && allEqAfter (i + 1) value e
   else
     true
 
 private partial def hasTwoLevelAt (r width : Nat) (e : Engine) : Bool :=
   if r < e.k then
     let lower := e.x[r]!
-    if lower < width && allEqBefore 0 r width e && allEqAfter r lower e then
+    if decide (lower < width) && allEqBefore 0 r width e && allEqAfter r lower e then
       true
     else
       hasTwoLevelAt (r + 1) width e
