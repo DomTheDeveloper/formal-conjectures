@@ -277,13 +277,14 @@ theorem mem_clippedLostDarts_iff
           by_cases hkb : k < b
           · have hpPatch := (Finset.mem_filter.mp hpA).1
             rw [mem_rankPatch] at hpPatch
-            have hfirst := hcoords.1
-            have hsecond := hcoords.2
-            simp [clipBPoint, hkb] at hfirst hsecond
+            have hfirst : p.first = k := hcoords.1.trans (by simp [clipBPoint, hkb])
+            have hsecond : p.second = b - 1 - k :=
+              hcoords.2.trans (by simp [clipBPoint, hkb])
+            have hlo : b ≤ rankLevel p := hpPatch.2.2.1
             rcases p with ⟨i, j, side⟩
             change side = false at hpSide
             subst side
-            simp [rankLevel] at hpPatch
+            simp [rankLevel] at hlo
             omega
           · let h := k - b
             have hkmax : k < a + b - 1 := lt_of_lt_of_le hk hd
