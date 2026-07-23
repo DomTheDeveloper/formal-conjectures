@@ -30,8 +30,15 @@ private theorem lower_union_middle (a b c : ℕ) :
       (rankBox (a + b) (b + c)).filter fun x =>
         rankLevel (tripleRankPoint x) < b + (a + c) := by
   ext x
-  simp [patchTriples]
-  omega
+  simp only [Finset.mem_union, Finset.mem_filter, patchTriples]
+  constructor
+  · rintro (hl | hm)
+    · exact ⟨hl.1, by omega⟩
+    · exact ⟨hm.1, hm.2.2⟩
+  · rintro ⟨hbox, hupper⟩
+    by_cases hlower : rankLevel (tripleRankPoint x) < b
+    · exact Or.inl ⟨hbox, hlower⟩
+    · exact Or.inr ⟨hbox, Nat.le_of_not_gt hlower, hupper⟩
 
 private theorem below_upper_disjoint (a b c : ℕ) :
     Disjoint
@@ -48,8 +55,15 @@ private theorem below_union_upper (a b c : ℕ) :
       upperCornerTriples (a + b) (b + c) b (a + c) =
         rankBox (a + b) (b + c) := by
   ext x
-  simp [upperCornerTriples]
-  omega
+  simp only [Finset.mem_union, Finset.mem_filter, upperCornerTriples]
+  constructor
+  · rintro (hlo | hup)
+    · exact hlo.1
+    · exact hup.1
+  · intro hbox
+    by_cases hlo : rankLevel (tripleRankPoint x) < b + (a + c)
+    · exact Or.inl ⟨hbox, hlo⟩
+    · exact Or.inr ⟨hbox, Nat.le_of_not_gt hlo⟩
 
 /-- Cardinality of the convex ranked patch. -/
 theorem card_rankPatch (a b c : ℕ) :
