@@ -1,1 +1,1 @@
-Run exact proof audit with Linux compiler diagnostics enabled.
+Run the current-upstream ARM compile, axiom audit, and transcript upload.
