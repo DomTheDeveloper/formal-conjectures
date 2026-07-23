@@ -4,7 +4,7 @@ namespace OeisA263135
 
 /-- Natural-coordinate pairs strictly below diagonal level `b`. -/
 def lowerPairs (b : ℕ) : Finset (ℕ × ℕ) :=
-  (Finset.range b).biUnion Finset.Nat.antidiagonal
+  (Finset.range b).biUnion Finset.antidiagonal
 
 @[simp]
 theorem mem_lowerPairs {b i j : ℕ} :
@@ -19,7 +19,7 @@ theorem mem_lowerPairs {b i j : ℕ} :
     exact ⟨i + j, Finset.mem_range.mpr h, Finset.mem_antidiagonal.mpr rfl⟩
 
 private theorem antidiagonal_pairwise_disjoint (b : ℕ) :
-    (Finset.range b).toSet.PairwiseDisjoint Finset.Nat.antidiagonal := by
+    (Finset.range b).toSet.PairwiseDisjoint Finset.antidiagonal := by
   intro m hm n hn hmn
   rw [Finset.disjoint_left]
   intro p hpm hpn
@@ -42,9 +42,11 @@ private theorem lower_corner_sides_disjoint (b : ℕ) :
     Disjoint (lowerPairs b ×ˢ {false}) (lowerPairs (b - 1) ×ˢ {true}) := by
   rw [Finset.disjoint_left]
   intro x hx hy
-  have hf := (Finset.mem_product.mp hx).2
-  have ht := (Finset.mem_product.mp hy).2
-  simp at hf ht
+  have hf : x.2 = false := by
+    simpa using (Finset.mem_product.mp hx).2
+  have ht : x.2 = true := by
+    simpa using (Finset.mem_product.mp hy).2
+  exact Bool.noConfusion (hf.symm.trans ht)
 
 /-- The lower excluded corner contains exactly `b²` ranked points. -/
 theorem card_lowerCornerTriples (b : ℕ) :
@@ -56,12 +58,16 @@ theorem card_lowerCornerTriples (b : ℕ) :
   by_cases hb : b = 0
   · subst b
     simp
-  · have hb1 : 1 ≤ b := Nat.one_le_iff_ne_zero.mpr hb
-    have hgauss1 := Finset.sum_range_id_mul_two b
-    have hgauss2 := Finset.sum_range_id_mul_two (b - 1)
-    simp only [Finset.sum_add_distrib, Finset.sum_const, Finset.card_range,
-      Nat.nsmul_eq_mul, mul_one] at *
-    nlinarith
+  · obtain ⟨k, rfl⟩ : ∃ k, b = k + 1 := by
+      exact ⟨b - 1, by omega⟩
+    cases k with
+    | zero => norm_num
+    | succ k =>
+        have hgauss1 := Finset.sum_range_id_mul_two (k + 2)
+        have hgauss2 := Finset.sum_range_id_mul_two (k + 1)
+        simp only [Finset.sum_add_distrib, Finset.sum_const, Finset.card_range,
+          Nat.nsmul_eq_mul, mul_one] at *
+        nlinarith
 
 /-- The lower-corner description agrees with filtering any sufficiently large box by level. -/
 theorem lowerCornerTriples_eq_filter_rankBox
@@ -92,8 +98,9 @@ private theorem reflectTriple_mem_box
     {A B : ℕ} {x : (ℕ × ℕ) × Bool} (hx : x ∈ rankBox A B) :
     reflectTriple A B x ∈ rankBox A B := by
   rcases x with ⟨⟨i, j⟩, side⟩
-  simp [rankBox] at hx ⊢
-  omega
+  simp [rankBox, reflectTriple] at hx ⊢
+  rcases hx with ⟨hi, hj⟩
+  constructor <;> omega
 
 /-- Upper excluded corner of the patch interval. -/
 def upperCornerTriples (A B b C : ℕ) : Finset ((ℕ × ℕ) × Bool) :=
@@ -103,8 +110,7 @@ def upperCornerTriples (A B b C : ℕ) : Finset ((ℕ × ℕ) × Bool) :=
 theorem card_upperCornerTriples
     (A B b C : ℕ) (hsum : A + B = C + 2 * b) (hbA : b ≤ A) (hbB : b ≤ B) :
     (upperCornerTriples A B b C).card = b ^ 2 := by
-  have htarget := lowerCornerTriples_eq_filter_rankBox A B b hbA hbB
-  rw [← htarget, ← card_lowerCornerTriples b]
+  rw [← card_lowerCornerTriples b]
   apply Finset.card_bij (fun x hx => reflectTriple A B x)
   · intro x hx
     have hxbox := (Finset.mem_filter.mp hx).1
