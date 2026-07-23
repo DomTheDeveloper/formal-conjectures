@@ -36,8 +36,7 @@ def nonemptySubsets (n : ℕ) : Finset (Finset ℕ) :=
 
 @[simp] theorem mem_nonemptySubsets {n : ℕ} {S : Finset ℕ} :
     S ∈ nonemptySubsets n ↔ S ⊆ Finset.range n ∧ S.Nonempty := by
-  simp [nonemptySubsets, Finset.nonempty_iff_ne_empty, and_left_comm,
-    and_assoc]
+  simp [nonemptySubsets, Finset.nonempty_iff_ne_empty, and_comm]
 
 /-- The minimum coordinate, with value zero on the empty set. -/
 def offset (S : Finset ℕ) : ℕ :=
@@ -129,9 +128,10 @@ theorem offset_mem_translations {n : ℕ} {S : Finset ℕ}
   constructor
   · exact Finset.mem_range.mp (hsub (offset_mem hS))
   · intro i hi
+    have himg : i + offset S ∈ translate (normalize S) (offset S) :=
+      Finset.mem_image.mpr ⟨i, hi, rfl⟩
     have hback : i + offset S ∈ S := by
-      rw [← translate_normalize hS]
-      exact Finset.mem_image.mpr ⟨i, hi, rfl⟩
+      exact (translate_normalize hS) ▸ himg
     exact Finset.mem_range.mp (hsub hback)
 
 /-- A valid translate of a shape is a nonempty subset of the coordinate range. -/
