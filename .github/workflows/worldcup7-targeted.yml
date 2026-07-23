@@ -17,10 +17,10 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: DomTheDeveloper/formal-conjectures
-          ref: 4a84dec796d9bcef8ae42a8006e8c6766b002468
+          ref: dc00fb21fbcbb57a4e86930f09e8c677b56f59ea
 
       - name: Confirm immutable source
-        run: test "$(git rev-parse HEAD)" = "4a84dec796d9bcef8ae42a8006e8c6766b002468"
+        run: test "$(git rev-parse HEAD)" = "dc00fb21fbcbb57a4e86930f09e8c677b56f59ea"
 
       - name: Install elan
         run: |
@@ -42,6 +42,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: chomp-native-proof-4a84dec-log
+          name: chomp-native-proof-dc00fb2-log
           path: chomp-native-proof.log
           if-no-files-found: warn
