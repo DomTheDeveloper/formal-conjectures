@@ -31,14 +31,23 @@ namespace LittMostUnfairBetWalsh
 open Finset
 
 /-- Finite set of valid `(shape, translation)` pairs. -/
-def shapeTranslationPairs (n : ℕ) : Finset (Finset ℕ × ℕ) :=
+noncomputable def shapeTranslationPairs (n : ℕ) : Finset (Finset ℕ × ℕ) :=
   ((shapes n).product (Finset.range n)).filter
     (fun p => p.2 ∈ translations n p.1)
 
 @[simp] theorem mem_shapeTranslationPairs {n : ℕ} {p : Finset ℕ × ℕ} :
     p ∈ shapeTranslationPairs n ↔
       p.1 ∈ shapes n ∧ p.2 ∈ translations n p.1 := by
-  simp [shapeTranslationPairs, mem_translations]
+  classical
+  unfold shapeTranslationPairs
+  rw [Finset.mem_filter, Finset.mem_product]
+  constructor
+  · rintro ⟨⟨hshape, _hrange⟩, htrans⟩
+    exact ⟨hshape, htrans⟩
+  · rintro ⟨hshape, htrans⟩
+    have hrange : p.2 ∈ Finset.range n :=
+      Finset.mem_range.mpr (mem_translations.mp htrans).1
+    exact ⟨⟨hshape, hrange⟩, htrans⟩
 
 /-- The finite type of valid shape-translation pairs. -/
 abbrev ShapeTranslation (n : ℕ) := ↥(shapeTranslationPairs n)
