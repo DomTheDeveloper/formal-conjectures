@@ -62,4 +62,18 @@ def IsAdmissible (n : ℕ) (w : Word n) : Prop :=
 def G (n : ℕ) : ℕ :=
   (Finset.univ.filter (IsAdmissible n)).card
 
+/-- The conjectured normalized sequence. -/
+noncomputable def normalizedCount (n : ℕ) : ℝ :=
+  ((G n : ℝ) * (n : ℝ) ^ 4) / (8 : ℝ) ^ n
+
+/-- A reusable exact reduction: any proof that the normalized counting sequence
+converges to a positive real constant proves Conjecture 2a. -/
+theorem conjecture_2a_iff :
+    (∃ C₁ : ℝ, 0 < C₁ ∧ Tendsto normalizedCount atTop (𝓝 C₁)) ↔
+      ∃ C₁ : ℝ, 0 < C₁ ∧
+        Tendsto
+          (fun n : ℕ => ((G n : ℝ) * (n : ℝ) ^ 4) / (8 : ℝ) ^ n)
+          atTop (𝓝 C₁) := by
+  rfl
+
 end RestrictedRunTableaux
