@@ -20,7 +20,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 concurrency:
   group: a226247-focused-${{ github.event.pull_request.number }}
@@ -51,16 +50,11 @@ jobs:
           lake exe cache get
 
       - name: Build exact A226247 module
-        id: lean
         shell: bash
         run: |
-          set +e
           set -o pipefail
           lake --wfail build 'FormalConjectures.OEIS.«226247»' \
             2>&1 | tee a226247-focused.log
-          code=${PIPESTATUS[0]}
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          exit 0
 
       - name: Upload exact transcript
         if: always()
@@ -69,46 +63,3 @@ jobs:
           name: a226247-focused-transcript
           path: a226247-focused.log
           if-no-files-found: warn
-
-      - name: Post compiler excerpt
-        if: always()
-        uses: actions/github-script@v7
-        env:
-          EXIT_CODE: ${{ steps.lean.outputs.exit_code }}
-        with:
-          script: |
-            const fs = require('fs');
-            let log = '';
-            try { log = fs.readFileSync('a226247-focused.log', 'utf8'); } catch (_) {}
-            const lines = log.split(/\r?\n/);
-            const selected = new Set();
-            for (let i = 0; i < lines.length; i++) {
-              if (/error:|unsolved goals|failed to build|unknown identifier|type mismatch|invalid field|application type mismatch/i.test(lines[i])) {
-                for (let j = Math.max(0, i - 6); j <= Math.min(lines.length - 1, i + 10); j++) selected.add(j);
-              }
-            }
-            let excerpt = selected.size
-              ? [...selected].sort((a, b) => a - b).map(i => lines[i]).join('\n')
-              : lines.slice(-180).join('\n');
-            excerpt = excerpt.slice(-55000);
-            const ok = process.env.EXIT_CODE === '0';
-            const body = [
-              `## Focused A226247 Lean audit: ${ok ? 'PASS' : 'FAIL'}`,
-              '',
-              `Pinned toolchain: \`${fs.readFileSync('lean-toolchain', 'utf8').trim()}\``,
-              `Command: \`lake --wfail build 'FormalConjectures.OEIS.«226247»'\``,
-              '',
-              '```text',
-              excerpt || '(no output)',
-              '```'
-            ].join('\n');
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body
-            });
-
-      - name: Enforce compiler result
-        if: steps.lean.outputs.exit_code != '0'
-        run: exit 1
