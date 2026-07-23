@@ -43,8 +43,9 @@ theorem natMonomial_interior_constant {n : ℕ} (A : Word n) (c : Bool)
       apply Finset.prod_congr rfl
       intro i hi
       have hsi := mem_interiorCoordinates.mp (hS hi)
-      have hval := hconst ⟨i, by omega⟩ (by omega) (by omega)
-      simp [letterSign, hval]
+      have hiN : i < n := by omega
+      have hval := hconst ⟨i, hiN⟩ hsi.1 hsi.2
+      rw [letterSign_of_lt A hiN, hval]
     _ = coinSign c ^ #S := by simp
 
 /-- Translating a middle subset by one remains inside the interior. -/
@@ -57,11 +58,12 @@ theorem translate_middle_subset_interior {n : ℕ} {R : Finset ℕ}
   exact mem_interiorCoordinates.mpr ⟨by omega, by omega⟩
 
 /-- Explicit form of the translated near-full base. -/
-theorem translate_nearFullBase_eq {n : ℕ} {R : Finset ℕ} :
+theorem translate_nearFullBase_eq {n : ℕ} (hn : 2 ≤ n) {R : Finset ℕ} :
     translate (nearFullBase n R) 1 =
       insert 1 (insert (n - 1) (translate R 1)) := by
+  have hsub : n - 2 + 1 = n - 1 := by omega
   ext i
-  simp [translate, nearFullBase, or_left_comm, or_assoc]
+  simp [translate, nearFullBase, hsub, or_left_comm, or_assoc]
 
 /-- With constant interior and equal endpoints, the two near-full monomials agree. -/
 theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
@@ -96,9 +98,14 @@ theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
     have hr := mem_middleCoordinates.mp (hR hi)
     exact mem_interiorCoordinates.mpr ⟨hr.1, by omega⟩
   have hTRint := translate_middle_subset_interior hR
-  have hpen : A ⟨n - 2, by omega⟩ = c := hconst _ (by omega) (by omega)
-  have hone : A ⟨1, by omega⟩ = c := hconst _ (by omega) (by omega)
-  rw [translate_nearFullBase_eq]
+  have hn2lt : n - 2 < n := by omega
+  have hn2pos : 0 < n - 2 := by omega
+  have hn2int : n - 2 < n - 1 := by omega
+  have hpen : A ⟨n - 2, hn2lt⟩ = c := hconst _ hn2pos hn2int
+  have h1lt : 1 < n := by omega
+  have h1int : 1 < n - 1 := by omega
+  have hone : A ⟨1, h1lt⟩ = c := hconst _ (by omega) h1int
+  rw [translate_nearFullBase_eq (by omega)]
   change natMonomial A (insert 0 (insert (n - 2) R)) =
     natMonomial A (insert 1 (insert (n - 1) (translate R 1)))
   rw [natMonomial_insert A (insert (n - 2) R) (by simp [h0pen, hR0])]
@@ -175,7 +182,15 @@ theorem rawEnergy_ge_of_constant_interior_equal_endpoints {n : ℕ}
         have hr := mem_middleCoordinates.mp (hR h)
         omega
       ext i
-      simp [nearFullBase, hR0, hRpen]
+      simp only [Finset.mem_erase, Finset.mem_insert, nearFullBase]
+      constructor
+      · rintro ⟨hine, hi0, hieq | hiR⟩
+        · exact (hine hieq).elim
+        · exact hiR
+      · intro hiR
+        refine ⟨?_, ?_, Or.inr hiR⟩
+        · intro e; subst i; exact hRpen hiR
+        · intro e; subst i; exact hR0 hiR
     rw [← recover (Finset.mem_powerset.mp hR₁),
       ← recover (Finset.mem_powerset.mp hR₂), heq]
   have hcard : #selected = 2 ^ (n - 3) := by
@@ -213,13 +228,13 @@ theorem eq_reverse_of_constant_interior_opposite_endpoints {n : ℕ}
   funext i
   by_cases hi0 : i.val = 0
   · have hi : i = ⟨0, by omega⟩ := Fin.ext hi0
-    subst i
+    rw [hi]
     have hB0 := bool_eq_not_of_ne hleft
     have hAlast := bool_eq_not_of_ne hopposite
     simp [reverseWord, hB0, hAlast]
   · by_cases hilast : i.val = n - 1
     · have hi : i = ⟨n - 1, by omega⟩ := Fin.ext hilast
-      subst i
+      rw [hi]
       have hBlast := bool_eq_not_of_ne hright
       have hA0 : A ⟨0, by omega⟩ = !A ⟨n - 1, by omega⟩ := by
         simpa using (bool_eq_not_of_ne hopposite).symm
@@ -227,10 +242,10 @@ theorem eq_reverse_of_constant_interior_opposite_endpoints {n : ℕ}
     · have hipos : 0 < i.val := by omega
       have hiint : i.val < n - 1 := by omega
       have hirevpos : 0 < i.rev.val := by
-        have h := i.rev_add_cast
+        change 0 < n - (i.val + 1)
         omega
       have hirevint : i.rev.val < n - 1 := by
-        have h := i.rev_add_cast
+        change n - (i.val + 1) < n - 1
         omega
       change B i = A i.rev
       rw [← hinterior i hipos hiint]
