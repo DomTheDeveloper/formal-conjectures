@@ -1,0 +1,59 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: Repair WOWII 59 current-main source
+
+on:
+  push:
+    branches: [audit/wowii59-clean-current]
+    paths:
+      - '.github/wowii59-source-repair.trigger'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wowii59-source-repair
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit/wowii59-clean-current
+          fetch-depth: 0
+      - name: Apply exact compatibility repairs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean')
+          text = path.read_text()
+
+          old_bv = '  bv_decide'
+          count = text.count(old_bv)
+          if count != 2:
+              raise SystemExit(f'expected exactly two bv_decide sites, found {count}')
+          text = text.replace(old_bv, '  decide')
+
+          old_app = '    have hineq := hP counterG counterG_connected'
+          new_app = '    have hineq := hP (Fin 18) counterG counterG_connected'
+          if text.count(old_app) != 1:
+              raise SystemExit('expected the original hP application exactly once')
+          text = text.replace(old_app, new_app)
+
+          path.write_text(text)
+          PY
+      - name: Commit repaired source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ProofOrchestrator'
+          git config user.email 'actions@users.noreply.github.com'
+          git add FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean
+          git commit -m 'Repair WOWII 59 finite certificates and specialization'
+          git push origin HEAD:audit/wowii59-clean-current
