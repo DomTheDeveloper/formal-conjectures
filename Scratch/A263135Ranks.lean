@@ -27,11 +27,12 @@ theorem rowRank_eq_iff_rowCoord_eq (r : RowKind) (S : Finset Vertex) (v w : ↥S
     rowRank r S v = rowRank r S w ↔ rowCoord r v = rowCoord r w := by
   constructor
   · intro h
-    have := congrArg (fun x : ↥(occupiedRows r S) => (x : ℤ))
-      (congrArg ((occupiedRows r S).orderIsoOfFin rfl) h)
-    simpa [orderIso_rowRank] using this
+    have hlabels : rowLabel r S v = rowLabel r S w := by
+      rw [← orderIso_rowRank r S v, ← orderIso_rowRank r S w, h]
+    exact congrArg Subtype.val hlabels
   · intro h
-    apply ((occupiedRows r S).orderIsoOfFin rfl).symm.injective
+    apply ((occupiedRows r S).orderIsoOfFin rfl).injective
+    rw [orderIso_rowRank, orderIso_rowRank]
     apply Subtype.ext
     exact h
 
@@ -46,6 +47,10 @@ theorem rectangleChain_comparable {a b : ℕ} (p q : Fin a × Fin b)
       (q.1.val ≤ p.1.val ∧ q.2.val ≤ p.2.val) := by
   rcases p with ⟨i, j⟩
   rcases q with ⟨k, l⟩
+  have hjlt : j.val < b := j.isLt
+  have hllt : l.val < b := l.isLt
+  have hjdecomp : b - 1 - j.val + j.val + 1 = b := by omega
+  have hldecomp : b - 1 - l.val + l.val + 1 = b := by omega
   unfold rectangleChainIndex at h
   by_cases hi : i.val ≤ b - 1 - j.val
   · rw [Nat.min_eq_left hi] at h
@@ -74,8 +79,9 @@ def isRectangleChainLast {a b : ℕ} (p : Fin a × Fin b) : Prop :=
   p.1.val = a - 1 ∧
     p.2.val = b - 1 - rectangleChainIndex p
 
-instance {a b : ℕ} (p : Fin a × Fin b) : Decidable (isRectangleChainLast p) :=
-  inferInstance
+instance {a b : ℕ} (p : Fin a × Fin b) : Decidable (isRectangleChainLast p) := by
+  unfold isRectangleChainLast
+  infer_instance
 
 /-- The two chains obtained after multiplying a rectangle chain by the two honeycomb sides.
 `false` denotes the long chain (all `A` points plus the last `B` point); `true` denotes the short
