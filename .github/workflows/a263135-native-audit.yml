@@ -1,0 +1,103 @@
+name: OEIS A263135 native Lean audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/a263135-native-audit.yml'
+      - 'FormalConjectures/OEIS/263135.lean'
+      - 'Scratch/A263135*.lean'
+      - 'lakefile.toml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: a263135-native-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout proof branch
+        uses: actions/checkout@v6
+
+      - name: Install pinned Lean
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Lean build cache
+        id: lean-build-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .lake/build
+          key: a263135-dtd-lean427-v1-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
+
+      - name: Fetch pinned Mathlib cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake exe cache get
+
+      - name: Reject proof shortcuts
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=$(find Scratch -maxdepth 1 -type f -name 'A263135*.lean' -print)
+          if grep -nE '\b(sorry|admit|native_decide|unsafe|axiom)\b|Lean\.(trustCompiler|ofReduce|ofReduceBool)' $files; then
+            echo 'Forbidden proof shortcut found.' >&2
+            exit 1
+          fi
+
+      - name: Register complete A263135 module graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          lakefile = Path('lakefile.toml')
+          text = lakefile.read_text()
+          modules = sorted(
+              'Scratch.' + path.stem
+              for path in Path('Scratch').glob('A263135*.lean')
+          )
+          old = 'globs = ["Scratch.A263135Audit"]'
+          if old not in text:
+              raise SystemExit('focused A263135 library declaration not found')
+          lakefile.write_text(text.replace(old, 'globs = ' + json.dumps(modules), 1))
+          print(f'Registered {len(modules)} A263135 modules')
+          PY
+
+      - name: Build theorem and audit axioms
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake build A263135ScratchAudit 2>&1 | tee "$RUNNER_TEMP/a263135-native.log"
+          if grep -E 'sorryAx|Lean\.(trustCompiler|ofReduce|ofReduceBool)' "$RUNNER_TEMP/a263135-native.log"; then
+            echo 'Unacceptable axiom dependency found.' >&2
+            exit 1
+          fi
+
+      - name: Save Lean build cache
+        if: always() && steps.lean-build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .lake/build
+          key: a263135-dtd-lean427-v1-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
+
+      - name: Upload audit transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a263135-dtd-native-audit
+          path: ${{ runner.temp }}/a263135-native.log
+          if-no-files-found: warn
