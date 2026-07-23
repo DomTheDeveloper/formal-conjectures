@@ -22,8 +22,35 @@ jobs:
           build: false
           test: false
       - name: Compile definitions
-        run: lake env lean FormalConjecturesForMathlib/Combinatorics/RestrictedRunTableaux.lean
+        id: definitions
+        continue-on-error: true
+        run: |
+          lake env lean FormalConjecturesForMathlib/Combinatorics/RestrictedRunTableaux.lean > definitions.log 2>&1
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
       - name: Compile conjecture
-        run: lake env lean FormalConjectures/Arxiv/RestrictedRunTableaux.lean
+        id: conjecture
+        continue-on-error: true
+        run: |
+          lake env lean FormalConjectures/Arxiv/RestrictedRunTableaux.lean > conjecture.log 2>&1
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
       - name: Build indexed helper library
-        run: lake build FormalConjecturesForMathlib
+        id: indexed
+        continue-on-error: true
+        run: |
+          lake build FormalConjecturesForMathlib > indexed.log 2>&1
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+      - name: Upload audit logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: restricted-run-tableaux-audit-logs
+          path: |
+            definitions.log
+            conjecture.log
+            indexed.log
+      - name: Enforce audit result
+        if: always()
+        run: |
+          test "${{ steps.definitions.outputs.exit_code }}" = "0"
+          test "${{ steps.conjecture.outputs.exit_code }}" = "0"
+          test "${{ steps.indexed.outputs.exit_code }}" = "0"
