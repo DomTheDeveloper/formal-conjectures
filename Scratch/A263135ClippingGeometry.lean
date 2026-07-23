@@ -57,7 +57,9 @@ theorem mem_clippedRankPoints_iff {a b d : ℕ} {p : RankPoint} :
     rcases Finset.mem_biUnion.mp hp with ⟨k, hk, hpk⟩
     have hk' : k < d := Finset.mem_range.mp hk
     rw [clipPair_eq] at hpk
-    simpa only [Finset.mem_insert, Finset.mem_singleton] using ⟨k, hk', hpk⟩
+    have hpk' : p = clipBPoint a b k ∨ p = clipAPoint a b k := by
+      simpa only [Finset.mem_insert, Finset.mem_singleton] using hpk
+    exact ⟨k, hk', hpk'⟩
   · rintro ⟨k, hk, hpk⟩
     apply Finset.mem_biUnion.mpr
     refine ⟨k, Finset.mem_range.mpr hk, ?_⟩
@@ -178,6 +180,7 @@ private theorem horizontal_base_of_clipB
 
 private theorem diagonal_base_of_clipB
     {a b k : ℕ} {p : RankPoint} (hpSide : p.side = false) (hp : p.second ≠ 0)
+    (hwidth : k - b < b)
     (h : rankDartNeighbor (p, .diagonal) = clipBPoint a b k) :
     p = clipAPoint a b k := by
   by_cases hkb : k < b
@@ -243,6 +246,7 @@ theorem mem_clippedLostDarts_iff
         rw [hbaseSide] at hs
         simp at hs
       · rcases pd with ⟨p, direction⟩
+        change p = clipAPoint a b k at hpk
         subst p
         apply Finset.mem_biUnion.mpr
         cases direction
@@ -277,7 +281,9 @@ theorem mem_clippedLostDarts_iff
             have hsecond := hcoords.2
             simp [clipBPoint, hkb] at hfirst hsecond
             rcases p with ⟨i, j, side⟩
-            simp [rankLevel] at hpSide hpPatch
+            change side = false at hpSide
+            subst side
+            simp [rankLevel] at hpPatch
             omega
           · let h := k - b
             have hkmax : k < a + b - 1 := lt_of_lt_of_le hk hd
@@ -307,7 +313,9 @@ theorem mem_clippedLostDarts_iff
           have hpA := (Finset.mem_filter.mp hpDiagonal).1
           have hpSide := (Finset.mem_filter.mp hpA).2
           have hsecond := (Finset.mem_filter.mp hpDiagonal).2
-          have hpEq := diagonal_base_of_clipB hpSide hsecond hpk
+          have hkmax : k < a + b - 1 := lt_of_lt_of_le hk hd
+          have hwidth : k - b < b := by omega
+          have hpEq := diagonal_base_of_clipB hpSide hsecond hwidth hpk
           subst p
           exact Finset.mem_biUnion.mpr
             ⟨k, Finset.mem_range.mpr hk, by simp [clipLostDarts]⟩
