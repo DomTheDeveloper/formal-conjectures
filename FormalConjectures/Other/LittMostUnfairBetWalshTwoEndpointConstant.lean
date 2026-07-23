@@ -106,8 +106,8 @@ theorem nearFull_monomial_eq_translated {n : ℕ} (hn : 3 ≤ n)
   have h2pred : 2 ≤ n - 1 := Nat.le_sub_of_add_le (by omega)
   have h1int : 1 < n - 1 := Nat.lt_of_succ_le h2pred
   have hone : A ⟨1, h1lt⟩ = c := hconst _ (by omega) h1int
-  have hnpos : 0 < n := by omega
-  have hnlast : n - 1 < n := Nat.pred_lt hnpos
+  have hnlast : n - 1 < n :=
+    Nat.sub_lt (by omega : 0 < n) (by norm_num : 0 < 1)
   rw [translate_nearFullBase_eq (by omega)]
   change natMonomial A (insert 0 (insert (n - 2) R)) =
     natMonomial A (insert 1 (insert (n - 1) (translate R 1)))
