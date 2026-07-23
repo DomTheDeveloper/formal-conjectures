@@ -1,0 +1,43 @@
+name: BMO8 correction audit
+
+on:
+  pull_request:
+    paths:
+      - 'FormalConjectures/Other/BeaverMathOlympiad8Correction.lean'
+      - 'FormalConjectures/Other/BeaverMathOlympiad8Proof.lean'
+      - '.github/workflows/bmo8-correction-audit.yml'
+  workflow_dispatch:
+
+jobs:
+  bmo8-correction:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Lake cache
+        uses: actions/cache@v4
+        with:
+          path: .lake
+          key: ${{ runner.os }}-lake-${{ hashFiles('lake-manifest.json', 'lean-toolchain') }}
+          restore-keys: |
+            ${{ runner.os }}-lake-
+
+      - name: Build corrected BMO8 modules
+        run: |
+          lake --wfail build FormalConjectures.Other.BeaverMathOlympiad8Correction
+          lake --wfail build FormalConjectures.Other.BeaverMathOlympiad8Proof
+
+      - name: Check audit theorem axioms
+        run: |
+          cat > /tmp/BMO8Axioms.lean <<'EOF'
+          import FormalConjectures.Other.BeaverMathOlympiad8Correction
+          import FormalConjectures.Other.BeaverMathOlympiad8Proof
+          #print axioms BeaverMathOlympiad.bmo8_first_boundary_transition
+          #print axioms BeaverMathOlympiad.beaver_math_olympiad_problem_8_truncated_nat_variant_positive
+          EOF
+          lake env lean /tmp/BMO8Axioms.lean
