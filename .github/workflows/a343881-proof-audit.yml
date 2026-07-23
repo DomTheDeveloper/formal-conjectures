@@ -1,0 +1,22 @@
+name: A343881 focused proof audit
+
+on:
+  pull_request:
+    branches:
+      - mirror/gdm-main-current-e751-a343881
+
+permissions:
+  contents: read
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+      - name: Compile A343881 and audit axioms
+        run: lake env lean -DwarningAsError=true FormalConjectures/OEIS/343881.lean
