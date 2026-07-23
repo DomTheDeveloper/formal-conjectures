@@ -9,6 +9,7 @@ on:
     paths:
       - 'FormalConjectures/Other/LittMostUnfairBet*.lean'
       - 'scripts/verify_litt_most_unfair.py'
+      - '.github/workflows/litt-most-unfair-check.yml'
   workflow_dispatch:
 
 permissions:
