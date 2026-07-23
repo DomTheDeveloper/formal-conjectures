@@ -1,0 +1,31 @@
+name: Restricted-run tableaux Lean audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - FormalConjectures/Arxiv/RestrictedRunTableaux.lean
+      - FormalConjecturesForMathlib/Combinatorics/RestrictedRunTableaux.lean
+      - FormalConjecturesForMathlib/Combinatorics/RestrictedRunTableauxReduction.lean
+      - .github/workflows/restricted-run-tableaux-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+      - name: Build finite model
+        run: lake build FormalConjecturesForMathlib.Combinatorics.RestrictedRunTableaux
+      - name: Build proof reduction
+        run: lake build FormalConjecturesForMathlib.Combinatorics.RestrictedRunTableauxReduction
+      - name: Build conjecture statement
+        run: lake build FormalConjectures.Arxiv.RestrictedRunTableaux
