@@ -1,0 +1,30 @@
+name: WorldCup7 targeted Lean audit
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  worldcup7:
+    if: github.head_ref == 'formalize-worldcup7-polynomial'
+    name: Compile WorldCup7.lean
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@v6
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Get Mathlib cache
+        run: lake exe cache get
+
+      - name: Compile exact file
+        run: lake env lean FormalConjectures/Other/WorldCup7.lean
