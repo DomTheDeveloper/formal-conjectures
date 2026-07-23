@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   lean:
@@ -25,4 +26,29 @@ jobs:
           build: false
           test: false
       - name: Compile Geode5 statement with warnings as errors
+        id: compile
+        continue-on-error: true
         run: lake env lean -DwarningAsError=true FormalConjectures/Arxiv/2508.10245/Geode5.lean
+      - name: Report Geode5 audit result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const passed = '${{ steps.compile.outcome }}' === 'success'
+            const sha = context.payload.pull_request.head.sha
+            const body = [
+              '<!-- geode5-lean-audit -->',
+              `Geode5 targeted Lean audit: **${passed ? 'PASS' : 'FAIL'}**`,
+              '',
+              `Audited commit: \`${sha}\``,
+              'Command: `lake env lean -DwarningAsError=true FormalConjectures/Arxiv/2508.10245/Geode5.lean`'
+            ].join('\n')
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body
+            })
+      - name: Enforce audit result
+        if: steps.compile.outcome != 'success'
+        run: exit 1
