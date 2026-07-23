@@ -68,10 +68,9 @@ theorem integral01_derivative (p : TQYPoly) :
       | zero => simp
       | succ n =>
           rw [Polynomial.derivative_monomial_succ, integral01_monomial]
-          have hn : (((n + 1 : ℕ) : ℚ)) ≠ 0 := by positivity
+          have hn : ((n : ℚ) + 1) ≠ 0 := by positivity
           have hcast :
-              ((n + 1 : ℕ) : QYPoly) =
-                Polynomial.C (((n + 1 : ℕ) : ℚ)) := by
+              (n : QYPoly) + 1 = Polynomial.C ((n : ℚ) + 1) := by
             norm_num
           rw [hcast]
           simp [Polynomial.eval_monomial, ← Polynomial.C_mul, hn, mul_comm]
