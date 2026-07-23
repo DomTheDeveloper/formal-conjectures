@@ -1,0 +1,112 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: Final Litt current-main proof audit
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: litt-final-current-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'audit/litt-final-current-main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout exact Litt proof head
+        uses: actions/checkout@v4
+        with:
+          repository: DomTheDeveloper/formal-conjectures
+          ref: audit/litt-final-current-main
+      - name: Set up pinned Lean environment
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: false
+      - name: Reject proof holes and trust shortcuts
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=$(printf '%s\n' FormalConjectures/Other/LittMostUnfairBet*.lean)
+          if grep -nE '(^|[^[:alnum:]_])(sorry|admit|native_decide)([^[:alnum:]_]|$)' $files; then
+            exit 1
+          fi
+          if grep -nE '^[[:space:]]*(axiom|unsafe|opaque)([[:space:]]|$)' $files; then
+            exit 1
+          fi
+      - name: Build complete Litt development
+        shell: bash
+        run: |
+          set -o pipefail
+          lake build FormalConjectures.Other.LittMostUnfairBet \
+            2>&1 | tee /tmp/litt-final.log
+      - name: Audit terminal theorem axioms
+        shell: bash
+        run: |
+          set -o pipefail
+          cat > LittFinalAxiomAudit.lean <<'EOF'
+          import FormalConjectures.Other.LittMostUnfairBet
+
+          /-! Final axiom audit for the Litt most-unfair theorem. -/
+
+          #print axioms LittMostUnfairBet.most_unfair_litt_coin_word_bet
+          #print axioms LittMostUnfairBet.endpoint_flip_pair_attains
+          EOF
+          lake env lean -DwarningAsError=true LittFinalAxiomAudit.lean \
+            2>&1 | tee -a /tmp/litt-final.log
+          if grep -nE 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' /tmp/litt-final.log; then
+            exit 1
+          fi
+      - name: Run exact finite replay
+        shell: bash
+        run: python3 scripts/verify_litt_most_unfair.py --max-length 10
+      - name: Report result on PR 239
+        if: always() && github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '## Trusted final Litt audit'
+            echo
+            echo "Head: \`${{ github.event.pull_request.head.sha }}\`"
+            echo "Result: **${JOB_STATUS}**"
+            echo
+            echo 'Checked the complete Lean theorem, terminal axioms, and exact finite replay through length 10.'
+            if [[ -f /tmp/litt-final.log ]]; then
+              echo
+              echo '<details><summary>Lean transcript tail</summary>'
+              echo
+              echo '```text'
+              tail -n 120 /tmp/litt-final.log || true
+              echo '```'
+              echo '</details>'
+            fi
+          } >/tmp/litt-final-comment.md
+          gh pr comment 239 --repo DomTheDeveloper/formal-conjectures --body-file /tmp/litt-final-comment.md
+      - name: Upload final audit transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: litt-final-current-audit
+          path: |
+            /tmp/litt-final.log
+            LittFinalAxiomAudit.lean
+          if-no-files-found: warn
