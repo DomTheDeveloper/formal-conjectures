@@ -1,0 +1,28 @@
+name: A226247 PR audit
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, labeled, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  lean:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'solve-a226247-1000' &&
+      contains(github.event.pull_request.labels.*.name, 'ci:full')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+      - name: Compile A226247 with warnings as errors
+        run: lake env lean -DwarningAsError=true FormalConjectures/OEIS/226247.lean
