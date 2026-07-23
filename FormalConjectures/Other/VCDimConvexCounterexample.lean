@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.VCDimConvex
+import FormalConjectures.Other.VCDimConvex
 
 /-!
 # Explicit counterexample to the convex additive-VC₂ bound in `ℝ³`
