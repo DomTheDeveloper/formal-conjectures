@@ -1,1 +1,1 @@
-Compile and axiom-audit the current proof/oeis-a147983-chomp-kernel branch with per-module diagnostic logs.
+Rerun the focused build after fixing Boolean outcome construction and required theorem metadata.
