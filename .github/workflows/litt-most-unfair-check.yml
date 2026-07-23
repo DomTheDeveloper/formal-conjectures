@@ -16,6 +16,8 @@ on:
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: litt-most-unfair-${{ github.ref }}
@@ -73,6 +75,31 @@ jobs:
           fi
       - name: Run exact finite audit
         run: python3 scripts/verify_litt_most_unfair.py --max-length 10
+      - name: Report result on PR 239
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -euo pipefail
+          {
+            echo '## Final Litt current-main audit'
+            echo
+            echo "Commit: \`${GITHUB_SHA}\`"
+            echo "Result: **${JOB_STATUS}**"
+            echo
+            echo 'Checks: placeholder/trust scan, pinned Lean module build, terminal axiom audit, exact replay through length 10.'
+            if [[ -f /tmp/litt-lean.log ]]; then
+              echo
+              echo '<details><summary>Lean transcript tail</summary>'
+              echo
+              echo '```text'
+              tail -n 120 /tmp/litt-lean.log || true
+              echo '```'
+              echo '</details>'
+            fi
+          } >/tmp/litt-pr-comment.md
+          gh pr comment 239 --repo DomTheDeveloper/formal-conjectures --body-file /tmp/litt-pr-comment.md
       - name: Upload audit transcript
         if: always()
         uses: actions/upload-artifact@v4
