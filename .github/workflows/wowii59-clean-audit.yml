@@ -1,0 +1,74 @@
+# Copyright 2026 The Formal Conjectures Authors.
+# Licensed under the Apache License, Version 2.0.
+
+name: WOWII 59 clean proof audit
+
+on:
+  push:
+    branches: [audit/wowii59-clean-final]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: wowii59-clean-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit/wowii59-clean-final
+      - uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: false
+      - name: Reject proof holes and unsupported declarations
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean
+          if grep -nE '(^|[^[:alnum:]_])(sorry|admit|native_decide)([^[:alnum:]_]|$)' "$file"; then
+            exit 1
+          fi
+          if grep -nE '^[[:space:]]*(axiom|unsafe|opaque)([[:space:]]|$)' "$file"; then
+            exit 1
+          fi
+      - name: Build exact module
+        shell: bash
+        run: |
+          set -o pipefail
+          lake build FormalConjectures.WrittenOnTheWallII.GraphConjecture59 \
+            2>&1 | tee wowii59-build.log
+      - name: Audit final theorem axioms
+        shell: bash
+        run: |
+          set -o pipefail
+          cat > WOWII59AxiomAudit.lean <<'EOF'
+          import FormalConjectures.WrittenOnTheWallII.GraphConjecture59
+          #print axioms WrittenOnTheWallII.GraphConjecture59.conjecture59
+          EOF
+          lake env lean -DwarningAsError=true WOWII59AxiomAudit.lean \
+            2>&1 | tee wowii59-axioms.log
+          if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduceBool|Lean\.ofReduce' wowii59-axioms.log; then
+            exit 1
+          fi
+      - name: Upload transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wowii59-clean-audit-${{ github.sha }}
+          path: |
+            wowii59-build.log
+            wowii59-axioms.log
+            WOWII59AxiomAudit.lean
+          if-no-files-found: warn
