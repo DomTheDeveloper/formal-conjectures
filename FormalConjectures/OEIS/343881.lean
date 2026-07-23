@@ -55,17 +55,20 @@ def IsTValue (n k m : ℕ) : Prop :=
 def a064549 (k : ℕ) : ℕ :=
   k * ∏ q ∈ k.primeFactors, q
 
+@[category API, AMS 11]
 lemma a064549_twelve : a064549 12 = 72 := by
   norm_num [a064549, Nat.primeFactors, Nat.primeFactorsList]
 
 /-- The proposed value `72` is never admissible for `k = 12` at a prime exponent. -/
+@[category research solved, AMS 11]
 lemma twelve_seventy_two_not_candidate {p : ℕ} (hp : p.Prime) :
     ¬ IsCandidate p 12 72 := by
   rintro ⟨_, c, x, y, hc, hx, hxp, hy, hyp, hpow⟩
   have hfac :
-      x • (12.factorization) + y • (72.factorization) = p • c.factorization := by
+      x • (12 : ℕ).factorization + y • (72 : ℕ).factorization =
+        p • c.factorization := by
     calc
-      x • (12.factorization) + y • (72.factorization) =
+      x • (12 : ℕ).factorization + y • (72 : ℕ).factorization =
           (12 ^ x).factorization + (72 ^ y).factorization := by
             rw [Nat.factorization_pow, Nat.factorization_pow]
       _ = (12 ^ x * 72 ^ y).factorization := by
@@ -73,10 +76,10 @@ lemma twelve_seventy_two_not_candidate {p : ℕ} (hp : p.Prime) :
               (pow_ne_zero y (by norm_num))]
       _ = (c ^ p).factorization := congrArg Nat.factorization hpow
       _ = p • c.factorization := Nat.factorization_pow c p
-  have h12two : 12.factorization 2 = 2 := by decide
-  have h12three : 12.factorization 3 = 1 := by decide
-  have h72two : 72.factorization 2 = 3 := by decide
-  have h72three : 72.factorization 3 = 2 := by decide
+  have h12two : (12 : ℕ).factorization 2 = 2 := by decide
+  have h12three : (12 : ℕ).factorization 3 = 1 := by decide
+  have h72two : (72 : ℕ).factorization 2 = 3 := by decide
+  have h72three : (72 : ℕ).factorization 3 = 2 := by decide
   have htwo := congrArg (fun f : ℕ →₀ ℕ => f 2) hfac
   have hthree := congrArg (fun f : ℕ →₀ ℕ => f 3) hfac
   simp [h12two, h12three, h72two, h72three, nsmul_eq_mul] at htwo hthree
@@ -107,7 +110,5 @@ theorem conjecture : answer(False) ↔
       rw [← a064549_twelve]
       exact hleast.1
     exact twelve_seventy_two_not_candidate hp hcandidate
-
-#print axioms OeisA343881.conjecture
 
 end OeisA343881
