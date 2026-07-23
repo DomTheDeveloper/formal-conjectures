@@ -233,7 +233,7 @@ Lean formalization, and submission preparation; all formal claims were checked b
 Lean compiler.
 -/
 @[category research solved, AMS 5 11 68,
-  formal_proof using lean4 at "https://github.com/DomTheDeveloper/formal-conjectures/blob/c2cd586ccaf52e855cbc0d22e3355e81d53f069b/FormalConjectures/Other/BeaverMathOlympiad8Proof.lean"]
+  formal_proof using lean4 at "https://github.com/DomTheDeveloper/formal-conjectures/blob/8fef3401b2c5c9fc2c1aa5255f9e44030c675e2d/FormalConjectures/Other/BeaverMathOlympiad8Proof.lean"]
 theorem beaver_math_olympiad_problem_8 : answer(True) ↔
     ∀ᵉ (a : ℕ → ℕ) (b : ℕ → ℕ)
     (a_ini : a 0 = 10)
