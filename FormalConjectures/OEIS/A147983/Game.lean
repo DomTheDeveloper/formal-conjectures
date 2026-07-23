@@ -19,8 +19,8 @@ import FormalConjectures.OEIS.A147983.KernelCertificate
 /-!
 # The 10 × 42 Chomp three-opening statement
 
-A position is a nonincreasing list of row lengths.  The poisoned square is the first square of the
-first row, so a first-row move must leave a positive row length.  P-positions are represented by
+A position is a nonincreasing list of row lengths. The poisoned square is the first square of the
+first row, so a first-row move must leave a positive row length. P-positions are represented by
 actual finite normal-play losing proofs rather than by an external classification predicate.
 -/
 
@@ -66,26 +66,31 @@ def child₂ : List ℕ := [42, 42, 42, 42, 42, 42, 29, 29, 29, 29]
 def child₃ : List ℕ := [42, 42, 42, 42, 42, 42, 42, 25, 25, 25]
 
 /-- The first displayed child is reached by the claimed legal opening move. -/
+@[category test, AMS 5]
 theorem child₁_is_legal_move : Move rectangle child₁ := by
   refine ⟨4, 35, by decide, by decide, by simp, ?_⟩
   rfl
 
 /-- The second displayed child is reached by the claimed legal opening move. -/
+@[category test, AMS 5]
 theorem child₂_is_legal_move : Move rectangle child₂ := by
   refine ⟨6, 29, by decide, by decide, by simp, ?_⟩
   rfl
 
 /-- The third displayed child is reached by the claimed legal opening move. -/
+@[category test, AMS 5]
 theorem child₃_is_legal_move : Move rectangle child₃ := by
   refine ⟨7, 25, by decide, by decide, by simp, ?_⟩
   rfl
 
 /-- The three candidate children are pairwise distinct. -/
+@[category test, AMS 5]
 theorem candidate_children_pairwise_distinct :
     child₁ ≠ child₂ ∧ child₁ ≠ child₃ ∧ child₂ ≠ child₃ := by
   decide
 
 /-- Three kernel-checked losing proofs imply the exact three-opening challenge statement. -/
+@[category API, AMS 5]
 theorem three_openings_of_losing
     (h₁ : IsPPosition child₁) (h₂ : IsPPosition child₂) (h₃ : IsPPosition child₃) :
     IsWinningOpening rectangle child₁ ∧
