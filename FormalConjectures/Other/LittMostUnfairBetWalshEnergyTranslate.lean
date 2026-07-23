@@ -29,7 +29,7 @@ open Finset
 open LittMostUnfairBet
 
 /-- Integer-valued version of the raw square energy. -/
-def signedRawEnergy {n : ℕ} (A B : Word n) : ℤ :=
+noncomputable def signedRawEnergy {n : ℕ} (A B : Word n) : ℤ :=
   ∑ S ∈ shapes n, shapeCoeff A B S ^ 2
 
 /-- Translating twice adds the translation amounts. -/
@@ -44,7 +44,7 @@ theorem natMonomial_translate {n : ℕ} (A : Word n) (S : Finset ℕ) (h : ℕ) 
   unfold natMonomial shiftedMonomial translate
   rw [Finset.prod_image]
   intro a ha b hb hab
-  omega
+  exact Nat.add_right_cancel hab
 
 /-- A shifted raw difference is a raw difference on the translated set. -/
 theorem rawDifference_translate {n : ℕ} (A B : Word n)
@@ -86,7 +86,13 @@ theorem shapeCoeff_sq_decomposition {n : ℕ} (A B : Word n)
             rawDifference A B (translate S u) := by
   rw [shapeCoeff]
   rw [sum_sq_eq_diagonal_add_two_upper]
-  rw [sum_upperPairs_nested]
+  have hp := sum_upperPairs_nested (translations n S)
+    (fun t u => rawDifference A B (translate S t) *
+      rawDifference A B (translate S u))
+  exact congrArg
+    (fun z : ℤ =>
+      (∑ t ∈ translations n S,
+        rawDifference A B (translate S t) ^ 2) + 2 * z) hp
 
 #print axioms rawDifference_upper_translation
 #print axioms shapeCoeff_sq_decomposition
