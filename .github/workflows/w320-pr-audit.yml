@@ -17,6 +17,9 @@ name: W320 PR kernel audit
 on:
   push:
     branches: [agent/w320-kernel-proof]
+  pull_request:
+    branches: [main]
+    types: [synchronize]
   pull_request_target:
     branches: [main]
     types: [opened, labeled, synchronize, reopened]
@@ -29,6 +32,7 @@ jobs:
   verify:
     if: >-
       github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
       (github.event.pull_request.head.repo.full_name == github.repository &&
        github.event.pull_request.head.ref == 'agent/w320-kernel-proof' &&
        contains(github.event.pull_request.labels.*.name, 'ci:full'))
