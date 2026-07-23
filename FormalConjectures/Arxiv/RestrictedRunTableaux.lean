@@ -26,7 +26,8 @@ maximal string of consecutive entries lying in one row has length at least two.
 
 The standard ballot-word encoding records the row containing each successive
 entry. Consequently, `RestrictedRunTableaux.G n` counts three-letter ballot
-words with content `(n, n, n)` and no singleton constant run.
+words with content `(n, n, n)` and no singleton constant run. Its first values
+for positive `n` are `0, 1, 1, 5, 15, 69, 304, 1518, 7807, 42314`.
 
 *Reference:*
 
