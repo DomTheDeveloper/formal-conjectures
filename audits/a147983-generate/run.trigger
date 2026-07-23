@@ -1,1 +1,1 @@
-Regenerate the exact compact carrier, emit explicit Lean proof terms, build the final theorem, audit its axioms, and push only after all gates pass.
+Run the exact compact-carrier export and explicit Lean proof generation on the Linux ARM64 runner pool; push only after build and final axiom success.
