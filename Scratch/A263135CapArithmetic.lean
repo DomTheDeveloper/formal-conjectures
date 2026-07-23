@@ -64,7 +64,7 @@ private theorem sum_chain_lengths (a b : ℕ) (hab : a ≤ b) :
           (a + 1 + b - 2 * a) + (a + 1 + b - 2 - 2 * a) = 2 * (b - a) := by
         omega
       rw [hlast]
-      omega
+      nlinarith
 
 /-- The total unused capacity of the product chains is the staircase deficiency. -/
 theorem chainCapSum_add_deficiency (a b c : ℕ)
