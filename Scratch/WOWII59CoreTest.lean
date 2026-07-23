@@ -63,7 +63,9 @@ private def CoreProp (x : Fin 11 → Bool) : Prop :=
     BContains4 x 0 5 4 9
 
 private theorem core_bool_cover : ∀ x : Fin 11 → Bool, CoreProp x := by
-  letI : DecidablePred CoreProp := fun _ => inferInstance
+  letI : DecidablePred CoreProp := fun x => by
+    unfold CoreProp BContains3 BContains4 BContains6
+    infer_instance
   letI : Decidable (∀ x : Fin 11 → Bool, CoreProp x) :=
     Fintype.decidableForallFintype
   decide
