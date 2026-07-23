@@ -13,6 +13,7 @@ private theorem clipPair_pairwise_disjoint
   intro k hk l hl hkl
   have hkd : k < d := Finset.mem_range.mp hk
   have hld : l < d := Finset.mem_range.mp hl
+  change Disjoint (clipPair a b k) (clipPair a b l)
   rw [Finset.disjoint_left]
   intro p hpk hpl
   by_cases hkb : k < b <;> by_cases hlb : l < b <;>
