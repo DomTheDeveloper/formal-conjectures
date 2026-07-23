@@ -1,0 +1,44 @@
+name: Geode5 table maintenance
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'audit-geode5-crt-proof' &&
+      github.event.label.name == 'ci:full'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit-geode5-crt-proof
+      - name: Finalize sparse table normalization
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('FormalConjectures/Arxiv/2508.10245/Geode5Proof/RemainderTables.lean')
+          s = p.read_text()
+          s = s.replace('have hfive : (Polynomial.C (5 : YPoly) : TYPoly) = 5 := by norm_num',
+                        'have hfive : (Polynomial.C (5 : YPoly) : TYPoly) = 5 := by rfl')
+          blocks = s.split('set_option maxHeartbeats 1000000 in')
+          assert len(blocks) == 6, len(blocks)
+          for i in range(2, 6):
+              blocks[i] = blocks[i].replace(
+                  'Polynomial.derivative_X, Polynomial.derivative_pow]',
+                  'Polynomial.derivative_X, Polynomial.derivative_pow, Finset.sum_range_succ]')
+          p.write_text('set_option maxHeartbeats 1000000 in'.join(blocks))
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add FormalConjectures/Arxiv/2508.10245/Geode5Proof/RemainderTables.lean
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Finalize Geode5 sparse table normalization [skip ci]'
+          git push origin HEAD:audit-geode5-crt-proof
