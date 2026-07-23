@@ -3,29 +3,34 @@ name: Chomp native proof audit
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'FormalConjectures/Paper/ChompThreeOpeningsNative.lean'
-      - '.github/workflows/chomp-native-proof-audit.yml'
+    types: [reopened]
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: chomp-native-proof-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   lean:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.event.pull_request.head.ref == 'ci/chomp-native-final-audit')
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout immutable Chomp proof commit
+        uses: actions/checkout@v4
+        with:
+          repository: DomTheDeveloper/formal-conjectures
+          ref: 36fca20b64b95fd3daffcac33293251cda296be8
+      - name: Confirm immutable source
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "36fca20b64b95fd3daffcac33293251cda296be8"
       - uses: leanprover/lean-action@v1
         with:
           build: false
           test: false
-      - name: Compile native Chomp checker
+      - name: Compile exact Lean-native Chomp checker
         shell: bash
         run: |
           set -euo pipefail
@@ -35,6 +40,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: chomp-native-proof-log
+          name: chomp-native-proof-36fca20-log
           path: chomp-native-proof.log
           if-no-files-found: warn
