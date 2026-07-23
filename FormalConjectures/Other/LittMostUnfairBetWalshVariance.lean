@@ -61,6 +61,8 @@ theorem signedRawEnergy_eq_two_mul_shiftVarianceNum {n : ℕ}
   rw [diagonal_raw_correlation A B hne]
   unfold shiftVarianceNum shiftOverlapNum
   simp_rw [shift_correlation_eq_overlap_terms]
+  simp only [Finset.sum_add_distrib, Finset.sum_sub_distrib,
+    Finset.sum_neg_distrib]
   ring
 
 /-- Natural raw energy is twice a nonnegative integer variance numerator. -/
