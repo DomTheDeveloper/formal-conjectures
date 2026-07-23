@@ -4,7 +4,7 @@ namespace OeisA263135
 
 /-- Natural-coordinate pairs strictly below diagonal level `b`. -/
 def lowerPairs (b : ℕ) : Finset (ℕ × ℕ) :=
-  (Finset.range b).biUnion Finset.Nat.antidiagonal
+  (Finset.range b).biUnion Finset.antidiagonal
 
 @[simp]
 theorem mem_lowerPairs {b i j : ℕ} :
@@ -19,7 +19,7 @@ theorem mem_lowerPairs {b i j : ℕ} :
     exact ⟨i + j, Finset.mem_range.mpr h, Finset.mem_antidiagonal.mpr rfl⟩
 
 private theorem antidiagonal_pairwise_disjoint (b : ℕ) :
-    (Finset.range b).toSet.PairwiseDisjoint Finset.Nat.antidiagonal := by
+    (Finset.range b).toSet.PairwiseDisjoint Finset.antidiagonal := by
   intro m hm n hn hmn
   rw [Finset.disjoint_left]
   intro p hpm hpn
@@ -29,7 +29,7 @@ private theorem antidiagonal_pairwise_disjoint (b : ℕ) :
 
 /-- Cardinality of the strict lower triangle as a sum of antidiagonal sizes. -/
 theorem card_lowerPairs (b : ℕ) :
-    (lowerPairs b).card = ∑ n ∈ Finset.range b, (n + 1) := by
+    (lowerPairs b).card = Finset.sum (Finset.range b) (fun n => n + 1) := by
   rw [lowerPairs, Finset.card_biUnion]
   · simp
   · exact antidiagonal_pairwise_disjoint b
