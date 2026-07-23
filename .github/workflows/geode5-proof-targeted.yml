@@ -3,7 +3,7 @@ name: Geode5 proof targeted audit
 on:
   pull_request:
     branches: [main]
-    types: [labeled, synchronize, reopened]
+    types: [opened, reopened, synchronize]
 
 permissions:
   contents: read
@@ -12,8 +12,7 @@ jobs:
   proof-layers:
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'audit-geode5-crt-proof' &&
-      contains(github.event.pull_request.labels.*.name, 'ci:full')
+      github.event.pull_request.head.ref == 'audit-geode5-crt-proof'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
