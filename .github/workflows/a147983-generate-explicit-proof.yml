@@ -1,0 +1,167 @@
+name: OEIS A147983 explicit proof generation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'audits/a147983-generate/**'
+      - '.github/workflows/a147983-generate-explicit-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: a147983-explicit-proof
+  cancel-in-progress: true
+
+jobs:
+  generate-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout exact certificate generators
+        uses: actions/checkout@v4
+        with:
+          ref: proof-artifacts/oeis-a147983-chomp
+          path: artifacts
+
+      - name: Checkout sorry-free proof branch
+        uses: actions/checkout@v4
+        with:
+          ref: proof/oeis-a147983-chomp-kernel
+          path: proof
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build certificate generators
+        working-directory: artifacts/ProofArtifacts/OEIS/A147983
+        run: |
+          set -euo pipefail
+          g++ -std=c++17 -O3 -march=native -DNDEBUG -Wall -Wextra -Wpedantic \
+            chomp_export_p_ranks.cpp -o chomp_export_p_ranks
+          g++ -std=c++17 -O3 -march=native -DNDEBUG -Wall -Wextra -Wpedantic \
+            chomp_p_mdd_serialize.cpp -o chomp_p_mdd_serialize
+          g++ -std=c++17 -O3 -march=native -DNDEBUG -Wall -Wextra -Wpedantic \
+            chomp_compact_carrier_export.cpp -o chomp_compact_carrier_export
+
+      - name: Regenerate exact P-position stream
+        working-directory: artifacts/ProofArtifacts/OEIS/A147983
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v ./chomp_export_p_ranks 10 42 p10x42.bin \
+            > export.stdout 2> export.stderr
+          grep -F 'P=107342138 prefixes=3042311754 last_rank=15820013305' export.stderr
+
+      - name: Regenerate exact reduced P MDD
+        working-directory: artifacts/ProofArtifacts/OEIS/A147983
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v ./chomp_p_mdd_serialize p10x42.bin p10x42.mdd \
+            > mdd.stdout 2> mdd.stderr
+          grep -F 'words=107342138 total_nodes=16906422 total_transitions=96754877' mdd.stdout
+
+      - name: Export compact closed response carrier
+        working-directory: artifacts/ProofArtifacts/OEIS/A147983
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v ./chomp_compact_carrier_export \
+            p10x42.mdd 100000 compact-carrier.bin compact-responses.bin \
+            > carrier.stdout 2> carrier.stderr
+          grep -E '^COMPLETE carrier=[0-9]+ processed=[0-9]+ responses=[0-9]+' carrier.stdout
+
+      - name: Generate explicit Lean proof terms
+        run: |
+          set -euo pipefail
+          python3 artifacts/ProofArtifacts/OEIS/A147983/generate_lean_strategy.py \
+            artifacts/ProofArtifacts/OEIS/A147983/compact-carrier.bin \
+            artifacts/ProofArtifacts/OEIS/A147983/compact-responses.bin \
+            proof/FormalConjectures/OEIS/A147983/Generated \
+            --chunk-size 100 | tee generation.stdout
+          grep -E '^GENERATED carrier=[0-9]+ responses=[0-9]+ move_cases=[0-9]+ chunks=[0-9]+' \
+            generation.stdout
+
+      - name: Reject placeholders and prohibited trust escapes
+        run: |
+          set -euo pipefail
+          files=(
+            proof/FormalConjectures/OEIS/A147983/Generated/*.lean
+            proof/FormalConjectures/OEIS/A147983/ConcreteProof.lean
+          )
+          if grep -nE '(^|[[:space:]])(sorry|admit)([[:space:]]|$)|native_decide|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool|^[[:space:]]*axiom[[:space:]]' \
+              "${files[@]}"; then
+            echo 'Generated proof contains a forbidden placeholder or trust escape.' >&2
+            exit 1
+          fi
+
+      - name: Install pinned Lean toolchain
+        working-directory: proof
+        run: |
+          set -euo pipefail
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch Mathlib cache
+        working-directory: proof
+        run: |
+          set -euo pipefail
+          lake exe cache get
+
+      - name: Build explicit proof with warnings fatal
+        working-directory: proof
+        run: |
+          set -euo pipefail
+          lake --wfail build FormalConjectures.OEIS.A147983.ConcreteProof \
+            2>&1 | tee concrete-proof-build.log
+
+      - name: Audit final theorem axioms
+        working-directory: proof
+        run: |
+          set -euo pipefail
+          cat > A147983FinalAxiomAudit.lean <<'EOF'
+          /-! Final axiom audit for the explicit OEIS A147983 Chomp proof. -/
+          import FormalConjectures.OEIS.A147983.ConcreteProof
+
+          #print axioms OeisA147983.child₁_is_losing
+          #print axioms OeisA147983.child₂_is_losing
+          #print axioms OeisA147983.child₃_is_losing
+          #print axioms OeisA147983.chomp_10_by_42_has_three_winning_openings
+          EOF
+          lake env lean A147983FinalAxiomAudit.lean 2>&1 | tee concrete-proof-axioms.log
+          if grep -E 'sorryAx|Lean\.trustCompiler|Lean\.ofReduce|Lean\.ofReduceBool' \
+              concrete-proof-axioms.log; then
+            echo 'Generated final theorem has a forbidden axiom dependency.' >&2
+            exit 1
+          fi
+
+      - name: Commit verified explicit proof to proof branch
+        working-directory: proof
+        env:
+          TARGET_BRANCH: proof/oeis-a147983-chomp-kernel
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add FormalConjectures/OEIS/A147983/Generated \
+            FormalConjectures/OEIS/A147983/ConcreteProof.lean
+          if git diff --cached --quiet; then
+            echo 'Verified explicit proof is already committed.'
+            exit 0
+          fi
+          git commit -m 'Add explicit sorry-free Chomp 10x42 strategy proof'
+          git push origin "HEAD:${TARGET_BRANCH}"
+
+      - name: Upload generation and verification transcripts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a147983-explicit-proof-generation
+          path: |
+            artifacts/ProofArtifacts/OEIS/A147983/export.stderr
+            artifacts/ProofArtifacts/OEIS/A147983/mdd.stdout
+            artifacts/ProofArtifacts/OEIS/A147983/carrier.stdout
+            artifacts/ProofArtifacts/OEIS/A147983/carrier.stderr
+            generation.stdout
+            proof/concrete-proof-build.log
+            proof/concrete-proof-axioms.log
+            proof/A147983FinalAxiomAudit.lean
+          if-no-files-found: warn
