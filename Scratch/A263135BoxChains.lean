@@ -9,6 +9,15 @@ structure RankPoint where
   side : Bool
   deriving DecidableEq
 
+/-- Explicit extensionality for ranked honeycomb points. -/
+@[ext]
+theorem RankPoint.ext {p q : RankPoint}
+    (hfirst : p.first = q.first) (hsecond : p.second = q.second)
+    (hside : p.side = q.side) : p = q := by
+  rcases p with ⟨i, j, side⟩
+  rcases q with ⟨i', j', side'⟩
+  simp_all
+
 /-- Embedding of the vertical leg of a rectangle chain. -/
 def verticalEmbedding (t : ℕ) (side : Bool) : ℕ ↪ RankPoint where
   toFun j := ⟨t, j, side⟩
