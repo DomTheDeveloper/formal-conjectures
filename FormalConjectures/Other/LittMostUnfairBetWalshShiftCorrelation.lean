@@ -65,7 +65,14 @@ theorem prod_range_one_add_letterSign_shift {n h : ℕ} (A C : Word n) :
       have hA : i.val < n := lt_of_lt_of_le i.isLt (Nat.sub_le n h)
       have hC : i.val + h < n := by omega
       have hC' : h + i.val < n := by omega
-      simp [prefixBlock, suffixBlock, letterSign, hA, hC, hC']
+      rw [letterSign_of_lt A hA, letterSign_of_lt C hC]
+      change (1 + coinSign (A ⟨i.val, hA⟩) * coinSign (C ⟨i.val + h, hC⟩)) =
+        1 + coinSign (prefixBlock A h i) * coinSign (suffixBlock C h i)
+      have hidx : (⟨i.val + h, hC⟩ : Fin n) = ⟨h + i.val, hC'⟩ := by
+        apply Fin.ext
+        omega
+      rw [hidx]
+      rfl
     _ = if prefixBlock A h = suffixBlock C h then 2 ^ (n - h) else 0 :=
       prod_one_add_coinSign_mul (prefixBlock A h) (suffixBlock C h)
 
