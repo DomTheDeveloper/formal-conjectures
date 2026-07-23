@@ -21,7 +21,7 @@ import FormalConjectures.Other.LittMostUnfairBetReversal
 # Constant-interior two-endpoint Litt branch
 
 The equal-endpoint case contains a constant word, so the already verified
-constant-word Walsh bound gives the required energy gap.  In the opposite-
+constant-word Walsh bound gives the required energy gap. In the opposite-
 endpoint case the second word is the reversal of the first, so their proper
 self-overlap numerators agree.
 -/
@@ -33,7 +33,7 @@ namespace LittMostUnfairBetWalsh
 open LittMostUnfairBet
 
 /-- If the common interior is constant and the first word has equal endpoints,
-then one of the two words is constant.  Hence the full constant-word energy
+then one of the two words is constant. Hence the full constant-word energy
 bound applies. -/
 theorem rawEnergy_ge_of_constant_interior_equal_endpoints {n : ℕ} (hn : 3 ≤ n)
     (A B : Word n) (c : Bool)
@@ -98,19 +98,21 @@ theorem rawEnergy_ge_of_constant_interior_equal_endpoints {n : ℕ} (hn : 3 ≤ 
       · have hi : i = right := Fin.ext hilast
         subst i
         simpa [constantWord] using hBright
-      · have hAi := hconst i (by omega) (by omega)
-        have hBi := hinterior i (by omega) (by omega)
-        simpa [constantWord, hBi, hAi]
+      · calc
+          B i = A i := (hinterior i (by omega) (by omega)).symm
+          _ = c := hconst i (by omega) (by omega)
+          _ = constantWord n c i := by simp [constantWord]
   have hraw := rawEnergy_ge_of_constant A B hne hconstant
   have hpow : 16 * 2 ^ (n - 3) = 2 ^ (n + 1) := by
     obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
-    simp [pow_add, mul_assoc, mul_comm, mul_left_comm]
+    simp [pow_add]
+    ring
   rw [hpow]
   exact hraw
 
 /-- If the common interior is constant and the first word has opposite
 endpoints, differing at both endpoints makes the second word exactly the
-reversal of the first.  Reversal preserves every proper self-overlap. -/
+reversal of the first. Reversal preserves every proper self-overlap. -/
 theorem selfOverlapDelta_eq_zero_of_constant_interior_opposite_endpoints
     {n : ℕ} (hn : 3 ≤ n)
     (A B : Word n) (c : Bool)
@@ -135,16 +137,26 @@ theorem selfOverlapDelta_eq_zero_of_constant_interior_opposite_endpoints
       cases har : A right <;>
       cases hbr : B right <;>
       simp [hal, har, hbr] at hends' hright' ⊢
+  have hrevLeft : left.rev = right := by
+    apply Fin.ext
+    simp [left, right]
+  have hrevRight : right.rev = left := by
+    apply Fin.ext
+    simp [left, right]
   have hrev : B = reverseWord A := by
     funext i
     by_cases hi0 : i.val = 0
     · have hi : i = left := Fin.ext hi0
       subst i
-      simpa [reverseWord, left, right] using hBleft
+      change B left = A left.rev
+      rw [hrevLeft]
+      exact hBleft
     by_cases hilast : i.val = n - 1
     · have hi : i = right := Fin.ext hilast
       subst i
-      simpa [reverseWord, left, right] using hBright
+      change B right = A right.rev
+      rw [hrevRight]
+      exact hBright
     · have hiPos : 0 < i.val := by omega
       have hiLast : i.val < n - 1 := by omega
       have hrevPos : 0 < i.rev.val := by
