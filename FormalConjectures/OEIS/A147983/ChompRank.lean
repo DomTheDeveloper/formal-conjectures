@@ -26,6 +26,7 @@ natural-number rank used by the kernel certificate theorem.
 namespace OeisA147983
 
 /-- Cutting a suffix never increases its total row length. -/
+@[category API, AMS 5]
 theorem cutSuffix_sum_le (t : ℕ) : ∀ p : List ℕ, (cutSuffix t p).sum ≤ p.sum
   | [] => by simp [cutSuffix]
   | x :: xs => by
@@ -33,6 +34,7 @@ theorem cutSuffix_sum_le (t : ℕ) : ∀ p : List ℕ, (cutSuffix t p).sum ≤ p
         Nat.add_le_add (min_le_left x t) (cutSuffix_sum_le t xs)
 
 /-- A legal bite strictly decreases the total number of remaining squares. -/
+@[category API, AMS 5]
 theorem bite_sum_lt {p : List ℕ} {i t : ℕ}
     (hi : i < p.length) (ht : t < p.getD i 0) :
     (bite i t p).sum < p.sum := by
@@ -56,6 +58,7 @@ theorem bite_sum_lt {p : List ℕ} {i t : ℕ}
           simpa only [bite, List.sum_cons] using Nat.add_lt_add_left hrec x
 
 /-- Every move in the Chomp relation strictly decreases area. -/
+@[category API, AMS 5]
 theorem move_sum_lt {p q : List ℕ} (h : Move p q) : q.sum < p.sum := by
   rcases h with ⟨i, t, hi, ht, _, rfl⟩
   exact bite_sum_lt hi ht
