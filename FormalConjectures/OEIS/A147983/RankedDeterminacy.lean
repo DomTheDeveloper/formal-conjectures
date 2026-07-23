@@ -26,6 +26,7 @@ namespace RankedGame
 variable {P : Type} (G : RankedGame P)
 
 /-- Every position in a progressively bounded normal-play game is losing or winning. -/
+@[category API, AMS 5]
 theorem outcome_exists (p : P) :
     Nonempty (Outcome G.Move p false) ∨ Nonempty (Outcome G.Move p true) := by
   classical
@@ -47,6 +48,7 @@ theorem outcome_exists (p : P) :
   exact all _ p rfl
 
 /-- A position cannot be both losing and winning. -/
+@[category API, AMS 5]
 theorem outcome_exclusive {p : P} (hlose : Outcome G.Move p false)
     (hwin : Outcome G.Move p true) : False := by
   have all : ∀ k : ℕ, ∀ p : P, G.rank p = k →
@@ -65,6 +67,7 @@ theorem outcome_exclusive {p : P} (hlose : Outcome G.Move p false)
   exact all _ p rfl hlose hwin
 
 /-- The losing and winning classifications are disjoint. -/
+@[category API, AMS 5]
 theorem not_isLosing_and_isWinning {p : P} :
     ¬(IsLosing G.Move p ∧ IsWinning G.Move p) := by
   rintro ⟨⟨hlose⟩, ⟨hwin⟩⟩
