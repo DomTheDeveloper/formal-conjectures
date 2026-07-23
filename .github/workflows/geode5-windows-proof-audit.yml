@@ -40,14 +40,24 @@ jobs:
             Select-String -Pattern 'by\s+(sorry|admit)\b|^\s*(sorry|admit)\b'
           $matches += Select-String -Path 'FormalConjectures/Arxiv/2508.10245/Geode5.lean' -Pattern 'by\s+(sorry|admit)\b|^\s*(sorry|admit)\b'
           if ($matches) { $matches | ForEach-Object { Write-Host $_ }; exit 1 }
-      - name: Compile final benchmark theorem
+      - name: Build final theorem and audit axioms
         id: compile
         continue-on-error: true
         shell: pwsh
         run: |
-          lake env lean -DwarningAsError=true 'FormalConjectures/Arxiv/2508.10245/Geode5.lean' 2>&1 |
-            Tee-Object -FilePath "$env:RUNNER_TEMP/geode5-windows.log"
-          exit $LASTEXITCODE
+          $log = "$env:RUNNER_TEMP/geode5-windows.log"
+          lake build 'FormalConjectures.Arxiv.«2508.10245».Geode5' 2>&1 |
+            Tee-Object -FilePath $log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          @'
+          import FormalConjectures.Arxiv.«2508.10245».Geode5
+          #print axioms Arxiv.«2508.10245».geode5_1000
+          '@ | Set-Content Geode5FinalAudit.lean
+          lake env lean -DwarningAsError=true Geode5FinalAudit.lean 2>&1 |
+            Tee-Object -FilePath $log -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $bad = Select-String -Path $log -Pattern 'sorryAx|Lean\.trustCompiler|Lean\.ofReduceBool|Lean\.ofReduce'
+          if ($bad) { $bad | ForEach-Object { Write-Host $_ }; exit 1 }
       - name: Report
         if: always()
         shell: pwsh
@@ -61,6 +71,7 @@ jobs:
           ## Geode5 Windows final theorem audit
 
           Head: ``${{ github.event.pull_request.head.sha }}``
+          Target: ``FormalConjectures.Arxiv.«2508.10245».Geode5``
           Result: **$env:OUTCOME**
 
           ``````text
