@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   proof-layers:
@@ -44,24 +43,17 @@ jobs:
               second=0
             fi
             exit $(( first != 0 ? first : second ))
-          } 2>&1 | tee /tmp/geode5-lean.log
+          } 2>&1 | tee geode5-lean.log
           status=${PIPESTATUS[0]}
           echo "status=$status" >> "$GITHUB_OUTPUT"
           exit 0
-      - name: Report compiler diagnostics
-        if: always() && steps.compile.outputs.status != '0'
-        uses: actions/github-script@v7
+      - name: Upload compiler diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          script: |
-            const fs = require('fs');
-            const raw = fs.readFileSync('/tmp/geode5-lean.log', 'utf8');
-            const excerpt = raw.length > 50000 ? raw.slice(-50000) : raw;
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `### Geode5 Lean diagnostics\n\nAudited commit: \`${context.payload.pull_request.head.sha}\`\n\n\`\`\`text\n${excerpt}\n\`\`\``
-            });
+          name: geode5-lean-diagnostics-${{ github.run_id }}
+          path: geode5-lean.log
+          if-no-files-found: error
       - name: Enforce compiler result
         if: always()
         shell: bash
