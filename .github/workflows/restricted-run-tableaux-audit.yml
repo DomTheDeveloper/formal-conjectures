@@ -29,3 +29,5 @@ jobs:
         run: lake build FormalConjecturesForMathlib.Combinatorics.RestrictedRunTableauxReduction
       - name: Build conjecture statement
         run: lake build FormalConjectures.Arxiv.RestrictedRunTableaux
+      - name: Record audited head
+        run: echo "Audited $GITHUB_SHA"
