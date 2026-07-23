@@ -13,219 +13,218 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
-import FormalConjectures.Other.VCDimConvex
+
+import FormalConjectures.VCDimConvex
 
 /-!
-# A counterexample to the convex additive-VC₂ bound in ℝ³
+# Explicit counterexample to the convex additive-VC₂ bound in `ℝ³`
 
-This file kernel-checks an explicit convex polyhedron in `ℝ³` whose additive
-`VC₂` dimension is at least two.  In particular, it refutes
+This file formalizes a finite exact certificate disproving
 `VCDimConvex.hasAddVCNDimAtMost_two_one_of_convex_r3`.
+
+The convex set is an intersection of thirteen closed half-spaces. For each of
+the sixteen subsets of `Fin 2 → Fin 2`, one explicit point `y s` translates
+four fixed points `x i`; exact integer arithmetic proves that the resulting
+membership pattern is precisely `s`.
 -/
 
+open Finset Set
 open scoped BigOperators
 
 namespace VCDimConvexCounterexample
 
-private def point (x y z : ℝ) : ℝ³ := ![x, y, z]
+abbrev R3 := Fin 3 → ℝ
 
-private def coeff : Fin 13 → ℝ³ := ![
-  point 1 1 1,
-  point 1 0 (-1),
-  point 1 1 (-1),
-  point (-1) 0 (-1),
-  point (-1) 1 (-1),
-  point 0 1 (-1),
-  point 1 50000 (-50000),
-  point 1 (-1) (-1),
-  point (-1) (-1) (-1),
-  point 0 (-1) (-1),
-  point 1 (-1) 1,
-  point (-1) 1 50000,
-  point (-1) 50000 50000]
+private def x0 : R3 := ![0, 0, 0]
+private def x1 : R3 := ![1, 0, 0]
+private def x2 : R3 := ![0, 1, 0]
+private def x3 : R3 := ![0, 0, 1]
 
-private def bound : Fin 13 → ℝ := ![
-  150002,
-  100001,
-  150002,
-  -49998,
-  4,
-  50002,
-  2500150001,
-  99999,
-  -50001,
-  -1,
-  99999,
-  4,
-  2500050002]
+/-- Four fixed points indexed by `Fin 2 → Fin 2`. -/
+def x (i : Fin 2 → Fin 2) : R3 :=
+  match i 0, i 1 with
+  | 0, 0 => x0
+  | 0, 1 => x1
+  | 1, 0 => x2
+  | 1, 1 => x3
 
-private def lin (u p : ℝ³) : ℝ := u 0 * p 0 + u 1 * p 1 + u 2 * p 2
+private def mask (s : Finset (Fin 2 → Fin 2)) : Fin 16 :=
+  ⟨(if (fun _ => (0 : Fin 2)) ∈ s then 1 else 0) +
+      (if (fun i => if i = 0 then 0 else 1) ∈ s then 2 else 0) +
+      (if (fun i => if i = 0 then 1 else 0) ∈ s then 4 else 0) +
+      (if (fun _ => (1 : Fin 2)) ∈ s then 8 else 0), by
+        split_ifs <;> omega⟩
 
-private def halfspace (r : Fin 13) : Set ℝ³ := {p | lin (coeff r) p ≤ bound r}
+private def yTable : Fin 16 → R3
+  | ⟨0, _⟩ => ![0, 0, -7]
+  | ⟨1, _⟩ => ![-10, -10, 2]
+  | ⟨2, _⟩ => ![4, -2, 0]
+  | ⟨3, _⟩ => ![4, -4, 4]
+  | ⟨4, _⟩ => ![0, 5, 5]
+  | ⟨5, _⟩ => ![-4, 5, 5]
+  | ⟨6, _⟩ => ![4, 0, 1]
+  | ⟨7, _⟩ => ![4, 3, 3]
+  | ⟨8, _⟩ => ![1, 1, 1]
+  | ⟨9, _⟩ => ![-4, 2, 0]
+  | ⟨10, _⟩ => ![2, -2, 0]
+  | ⟨11, _⟩ => ![2, 0, -1]
+  | ⟨12, _⟩ => ![1, 2, 2]
+  | ⟨13, _⟩ => ![0, 1, 1]
+  | ⟨14, _⟩ => ![1, 0, 0]
+  | ⟨15, _⟩ => ![0, 0, 0]
 
-private def C : Set ℝ³ := ⋂ r : Fin 13, halfspace r
-
-private lemma mem_C {p : ℝ³} : p ∈ C ↔ ∀ r : Fin 13, lin (coeff r) p ≤ bound r := by
-  simp [C, halfspace]
-
-private lemma convex_halfspace (r : Fin 13) : Convex ℝ (halfspace r) := by
-  rw [convex_iff_add_mem]
-  intro p hp q hq a b ha hb hab
-  simp only [halfspace, Set.mem_setOf_eq] at hp hq ⊢
-  simp only [lin, Pi.add_apply, Pi.smul_apply, smul_eq_mul] at hp hq ⊢
-  nlinarith [mul_nonneg ha (sub_nonneg.mpr hp), mul_nonneg hb (sub_nonneg.mpr hq)]
-
-private lemma convex_C : Convex ℝ C := by
-  exact convex_iInter fun r => convex_halfspace r
-
-private def Y : Fin 16 → ℝ³ := ![
-  point 50001 50001 50001,
-  point 100001 2 0,
-  point 0 3 0,
-  point 49998 3 0,
-  point 100000 0 0,
-  point 50002 1 0,
-  point 49998 2 0,
-  point 50001 2 0,
-  point 0 0 0,
-  point 50000 0 1,
-  point 0 1 0,
-  point 49998 2 1,
-  point 49998 0 0,
-  point 50001 1 0,
-  point 49998 1 0,
-  point 50000 1 0]
-
-private def Z : Fin 4 → ℝ³ := ![
-  point 0 0 0,
-  point 50000 0 0,
-  point 0 50000 0,
-  point 50000 50000 0]
-
-private def target : Fin 16 → Fin 4 → Prop := ![
-  ![False, False, False, False],
-  ![True,  False, False, False],
-  ![False, True,  False, False],
-  ![True,  True,  False, False],
-  ![False, False, True,  False],
-  ![True,  False, True,  False],
-  ![False, True,  True,  False],
-  ![True,  True,  True,  False],
-  ![False, False, False, True],
-  ![True,  False, False, True],
-  ![False, True,  False, True],
-  ![True,  True,  False, True],
-  ![False, False, True,  True],
-  ![True,  False, True,  True],
-  ![False, True,  True,  True],
-  ![True,  True,  True,  True]]
-
-/-- A violated row for every excluded incidence.  Entries on included incidences are unused. -/
-private def bad : Fin 16 → Fin 4 → Fin 13 := ![
-  ![0, 0, 0, 0],
-  ![0, 0, 0, 0],
-  ![3, 0, 3, 5],
-  ![0, 0, 4, 5],
-  ![7, 1, 0, 0],
-  ![0, 1, 0, 0],
-  ![8, 0, 0, 6],
-  ![0, 0, 0, 0],
-  ![3, 8, 3, 0],
-  ![0, 10, 11, 0],
-  ![3, 0, 3, 0],
-  ![0, 0, 11, 0],
-  ![8, 9, 0, 0],
-  ![0, 7, 0, 0],
-  ![8, 0, 0, 0],
-  ![0, 0, 0, 0]]
-
-private lemma mem_of_target {m : Fin 16} {j : Fin 4} (h : target m j) : Y m + Z j ∈ C := by
-  fin_cases m <;> fin_cases j <;> simp [target] at h
-  all_goals
-    rw [mem_C]
-    intro r
-    fin_cases r <;> norm_num [Y, Z, point, lin, coeff, bound]
-
-private lemma not_mem_of_not_target {m : Fin 16} {j : Fin 4} (h : ¬ target m j) :
-    Y m + Z j ∉ C := by
-  intro hp
-  rw [mem_C] at hp
-  have hb := hp (bad m j)
-  fin_cases m <;> fin_cases j <;> simp [target] at h <;>
-    norm_num [bad, Y, Z, point, lin, coeff, bound] at hb
-
-private lemma mem_Y_add_Z_iff (m : Fin 16) (j : Fin 4) :
-    Y m + Z j ∈ C ↔ target m j := by
-  constructor
-  · intro hmem
-    by_contra htarget
-    exact not_mem_of_not_target htarget hmem
-  · exact mem_of_target
-
-private def I : Fin 4 → (Fin 2 → Fin 2) := ![
-  ![0, 0],
-  ![1, 0],
-  ![0, 1],
-  ![1, 1]]
+/-- Translation vector selecting a prescribed membership pattern. -/
+def y (s : Finset (Fin 2 → Fin 2)) : R3 := yTable (mask s)
 
 private def code (i : Fin 2 → Fin 2) : Fin 4 :=
-  ⟨(i 0).val + 2 * (i 1).val, by omega⟩
+  match i 0, i 1 with
+  | 0, 0 => 0
+  | 0, 1 => 1
+  | 1, 0 => 2
+  | 1, 1 => 3
 
-private lemma I_code (i : Fin 2 → Fin 2) : I (code i) = i := by
-  fin_cases h0 : i 0 <;> fin_cases h1 : i 1
+private def Z : Fin 4 → R3
+  | 0 => ![0, 0, 0]
+  | 1 => ![1, 0, 0]
+  | 2 => ![0, 1, 0]
+  | 3 => ![0, 0, 1]
+
+private def Y : Fin 16 → R3 := yTable
+
+private def a : Fin 13 → R3
+  | 0 => ![1, -9, 9]
+  | 1 => ![1, -1, 1]
+  | 2 => ![1, 0, 2]
+  | 3 => ![1, 0, 3]
+  | 4 => ![2, -1, 2]
+  | 5 => ![3, -9, 9]
+  | 6 => ![3, -7, 7]
+  | 7 => ![4, -10, 10]
+  | 8 => ![7, -1, 1]
+  | 9 => ![7, 1, 4]
+  | 10 => ![8, 0, 1]
+  | 11 => ![9, -2, 3]
+  | 12 => ![9, -1, 8]
+
+private def b : Fin 13 → ℝ
+  | 0 => 7
+  | 1 => 2
+  | 2 => 2
+  | 3 => 2
+  | 4 => 4
+  | 5 => 1
+  | 6 => 4
+  | 7 => 5
+  | 8 => 5
+  | 9 => 4
+  | 10 => 3
+  | 11 => 4
+  | 12 => 8
+
+private def dot (u v : R3) : ℝ := ∑ k, u k * v k
+
+private def halfspace (r : Fin 13) : Set R3 :=
+  {p | dot (a r) p ≤ b r}
+
+/-- The certified convex polyhedron. -/
+def C : Set R3 := ⋂ r, halfspace r
+
+private theorem halfspace_convex (r : Fin 13) : Convex ℝ (halfspace r) := by
+  intro p hp q hq α β hα hβ hsum
+  change dot (a r) (α • p + β • q) ≤ b r
+  change (∑ k, a r k * (α * p k + β * q k)) ≤ b r
+  rw [Finset.sum_congr rfl fun k _ => by ring,
+    Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+  dsimp [halfspace] at hp hq
+  nlinarith
+
+/-- Convexity of the certificate polyhedron. -/
+theorem C_convex : Convex ℝ C := by
+  unfold C
+  exact convex_iInter fun r => halfspace_convex r
+
+private theorem x_eq_Z (i : Fin 2 → Fin 2) : x i = Z (code i) := by
+  funext k
+  fin_cases i 0 <;> fin_cases i 1 <;> fin_cases k <;> rfl
+
+private theorem target_mask (s : Finset (Fin 2 → Fin 2)) (i : Fin 2 → Fin 2) :
+    mask s = code i ↔ i ∈ s := by
+  fun_cases i <;> simp [mask, code]
+
+private theorem mem_Y_add_Z_iff (m : Fin 16) (c : Fin 4) :
+    Y m + Z c ∈ C ↔ m = c := by
+  unfold C halfspace dot a b Y Z yTable
+  fin_cases m <;> fin_cases c <;>
+    simp only [Set.mem_iInter, Matrix.cons_val_zero, Matrix.cons_val_one,
+      Matrix.cons_val_two, Matrix.cons_val_three, Matrix.head_cons,
+      Matrix.tail_cons, Fin.sum_univ_four, Fin.sum_univ_three,
+      Fin.sum_univ_two, Fin.sum_univ_one] <;>
+    constructor
   all_goals
-    funext k
-    fin_cases k <;> simp [I, code, h0, h1]
+    · intro h
+      first
+      | rfl
+      | have := h 0
+        norm_num at this
+      | have := h 1
+        norm_num at this
+      | have := h 2
+        norm_num at this
+      | have := h 3
+        norm_num at this
+      | have := h 4
+        norm_num at this
+      | have := h 5
+        norm_num at this
+      | have := h 6
+        norm_num at this
+      | have := h 7
+        norm_num at this
+      | have := h 8
+        norm_num at this
+      | have := h 9
+        norm_num at this
+      | have := h 10
+        norm_num at this
+      | have := h 11
+        norm_num at this
+      | have := h 12
+        norm_num at this
+    · intro h
+      subst h
+      intro r
+      fin_cases r <;> norm_num
 
-private def x : Fin 2 → Fin 2 → ℝ³ := ![
-  ![point 0 0 0, point 50000 0 0],
-  ![point 0 0 0, point 0 50000 0]]
+private theorem sum_x_eq_Z (i : Fin 2 → Fin 2) :
+    ∑ j, x (i j) = Z (code i) := by
+  simp only [Fin.sum_univ_two, x_eq_Z]
+  funext k
+  fin_cases i 0 <;> fin_cases i 1 <;> fin_cases k <;> norm_num [Z, code]
 
-private lemma sum_x_eq_Z (i : Fin 2 → Fin 2) : (∑ k, x k (i k)) = Z (code i) := by
-  fin_cases h0 : i 0 <;> fin_cases h1 : i 1 <;>
-    simp [Fin.sum_univ_two, x, Z, point, code, h0, h1]
+/-- Exact shattering certificate: each subset is realized by one translation. -/
+theorem shattering_certificate (s : Finset (Fin 2 → Fin 2)) (i : Fin 2 → Fin 2) :
+    y s + ∑ j, x (i j) ∈ C ↔ i ∈ s := by
+  rw [sum_x_eq_Z]
+  change Y (mask s) + Z (code i) ∈ C ↔ i ∈ s
+  rw [mem_Y_add_Z_iff]
+  exact target_mask s i
 
-private def mask (s : Set (Fin 2 → Fin 2)) : Fin 16 :=
-  ⟨(if I 0 ∈ s then 1 else 0) +
-      (if I 1 ∈ s then 2 else 0) +
-      (if I 2 ∈ s then 4 else 0) +
-      (if I 3 ∈ s then 8 else 0), by
-    split_ifs <;> omega⟩
+/-- The supplied polyhedron disproves the proposed convex additive-VC₂ bound. -/
+theorem convex_additive_vc2_counterexample :
+    ∃ D : Set R3, Convex ℝ D ∧ ¬ HasAddVCNDimAtMost D 2 1 := by
+  refine ⟨C, C_convex, ?_⟩
+  rw [hasAddVCNDimAtMost_iff]
+  push_neg
+  exact ⟨x, 2, by norm_num, y, shattering_certificate⟩
 
-private def y (s : Set (Fin 2 → Fin 2)) : ℝ³ := Y (mask s)
-
-private lemma target_mask (s : Set (Fin 2 → Fin 2)) (j : Fin 4) :
-    target (mask s) j ↔ I j ∈ s := by
-  classical
-  fin_cases j <;>
-    by_cases h0 : I 0 ∈ s <;>
-    by_cases h1 : I 1 ∈ s <;>
-    by_cases h2 : I 2 ∈ s <;>
-    by_cases h3 : I 3 ∈ s <;>
-    simp [mask, target, h0, h1, h2, h3]
-
-private lemma shattering_certificate (i : Fin 2 → Fin 2) (s : Set (Fin 2 → Fin 2)) :
-    y s + ∑ k, x k (i k) ∈ C ↔ i ∈ s := by
-  rw [sum_x_eq_Z, mem_Y_add_Z_iff, target_mask]
-  simpa [I_code]
-
-/-- The explicit convex polyhedron has additive `VC₂` dimension at least two. -/
-@[category research solved, AMS 5 52]
-theorem exists_convex_r3_not_hasAddVCNDimAtMost_two_one :
-    ∃ C : Set ℝ³, Convex ℝ C ∧ ¬ HasAddVCNDimAtMost C 2 1 := by
-  refine ⟨C, convex_C, ?_⟩
+/-- Therefore the universal conjecture in `VCDimConvex` is false. -/
+theorem convex_additive_vc2_universal_false :
+    ¬ ∀ D : Set R3, Convex ℝ D → HasAddVCNDimAtMost D 2 1 := by
   intro h
-  exact h x y shattering_certificate
+  exact convex_additive_vc2_counterexample.choose_spec.2
+    (h _ convex_additive_vc2_counterexample.choose_spec.1)
 
-/-- The open convex additive-`VC₂` conjecture in `ℝ³` is false. -/
-@[category research solved, AMS 5 52]
-theorem not_forall_convex_r3_hasAddVCNDimAtMost_two_one :
-    ¬ ∀ C : Set ℝ³, Convex ℝ C → HasAddVCNDimAtMost C 2 1 := by
-  rintro h
-  obtain ⟨C, hC, hnot⟩ := exists_convex_r3_not_hasAddVCNDimAtMost_two_one
-  exact hnot (h C hC)
-
-#print axioms exists_convex_r3_not_hasAddVCNDimAtMost_two_one
-#print axioms not_forall_convex_r3_hasAddVCNDimAtMost_two_one
+#print axioms convex_additive_vc2_counterexample
+#print axioms convex_additive_vc2_universal_false
 
 end VCDimConvexCounterexample
