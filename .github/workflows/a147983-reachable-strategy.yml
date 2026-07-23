@@ -1,0 +1,89 @@
+name: OEIS A147983 reachable strategy audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ProofArtifacts/OEIS/A147983/chomp_export_p_ranks.cpp'
+      - 'ProofArtifacts/OEIS/A147983/chomp_reachable_strategy.cpp'
+      - 'audits/a147983-reachable/**'
+      - '.github/workflows/a147983-reachable-strategy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: a147983-reachable-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: ProofArtifacts/OEIS/A147983
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build exact generators
+        run: |
+          set -euo pipefail
+          g++ -std=c++17 -O3 -march=native -DNDEBUG -Wall -Wextra -Wpedantic \
+            chomp_export_p_ranks.cpp -o chomp_export_p_ranks
+          g++ -std=c++17 -O3 -march=native -DNDEBUG -Wall -Wextra -Wpedantic \
+            chomp_reachable_strategy.cpp -o chomp_reachable_strategy
+
+      - name: Export exact P-position stream
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v ./chomp_export_p_ranks 10 42 p10x42.bin \
+            > export.stdout 2> export.stderr
+          grep -F 'P=107342138' export.stderr
+          grep -F 'last_rank=15820013305' export.stderr
+
+      - name: Extract reachable closed response strategy
+        run: |
+          set +e
+          /usr/bin/time -v ./chomp_reachable_strategy \
+            p10x42.bin 2000000 reachable-carrier.bin reachable-responses.bin \
+            > reachable.stdout 2> reachable.stderr
+          status=$?
+          echo "$status" > reachable.status
+          cat reachable.stdout
+          cat reachable.stderr >&2
+          if [[ $status -eq 1 || $status -eq 2 ]]; then
+            exit "$status"
+          fi
+          exit 0
+
+      - name: Write report
+        if: always()
+        run: |
+          {
+            echo '# OEIS A147983 reachable strategy measurement'
+            echo
+            echo '## P-rank export'
+            tail -n 30 export.stderr || true
+            echo
+            echo '## Reachable strategy'
+            cat reachable.stdout || true
+            cat reachable.stderr || true
+            echo
+            echo -n 'extractor_status='
+            cat reachable.status 2>/dev/null || true
+          } > REACHABLE_STRATEGY_REPORT.md
+
+      - name: Upload compact report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a147983-reachable-strategy-report
+          path: |
+            ProofArtifacts/OEIS/A147983/REACHABLE_STRATEGY_REPORT.md
+            ProofArtifacts/OEIS/A147983/export.stderr
+            ProofArtifacts/OEIS/A147983/reachable.stdout
+            ProofArtifacts/OEIS/A147983/reachable.stderr
+            ProofArtifacts/OEIS/A147983/reachable.status
+          if-no-files-found: warn
