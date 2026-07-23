@@ -71,9 +71,10 @@ private lemma internal_term_nonneg
     0 ≤ (T.degree v : ℤ) - 2 := by
   have hne : T.degree v ≠ 1 := by
     simpa [internalVertices] using hv
-  obtain ⟨w, hw⟩ : ∃ w : α, v ≠ w := exists_ne v
+  obtain ⟨w, hw⟩ := exists_ne v
+  have hvw : v ≠ w := Ne.symm hw
   have hpos : 0 < T.degree v :=
-    (hT.isConnected v w).degree_pos_left hw
+    (hT.isConnected v w).degree_pos_left hvw
   omega
 
 /-- In a finite nontrivial tree, the number of leaves is at least the sum of
@@ -94,27 +95,37 @@ lemma two_degrees_sub_two_le_treeLeaves
     exact Finset.sum_nonneg fun v hv => hnonneg v hv
   by_cases hx : T.degree x = 1
   · by_cases hy : T.degree y = 1
-    · rw [hx, hy]
-      linarith
+    · calc
+        (T.degree x : ℤ) + T.degree y - 2 = 0 := by simp [hx, hy]
+        _ ≤ 2 + S := by linarith
+        _ = ((treeLeaves T).card : ℤ) := hleafid.symm
     · have hyI : y ∈ I := by simp [I, internalVertices, hy]
       have hle : (T.degree y : ℤ) - 2 ≤ S := by
         dsimp [S]
         exact I.single_le_sum hnonneg hyI
-      rw [hx]
-      linarith
+      calc
+        (T.degree x : ℤ) + T.degree y - 2 = (T.degree y : ℤ) - 1 := by simp [hx]
+        _ ≤ 2 + S := by linarith
+        _ = ((treeLeaves T).card : ℤ) := hleafid.symm
   · by_cases hy : T.degree y = 1
     · have hxI : x ∈ I := by simp [I, internalVertices, hx]
       have hle : (T.degree x : ℤ) - 2 ≤ S := by
         dsimp [S]
         exact I.single_le_sum hnonneg hxI
-      rw [hy]
-      linarith
+      calc
+        (T.degree x : ℤ) + T.degree y - 2 = (T.degree x : ℤ) - 1 := by simp [hy]
+        _ ≤ 2 + S := by linarith
+        _ = ((treeLeaves T).card : ℤ) := hleafid.symm
     · have hxI : x ∈ I := by simp [I, internalVertices, hx]
       have hyI : y ∈ I := by simp [I, internalVertices, hy]
       have hle : (T.degree x : ℤ) - 2 + ((T.degree y : ℤ) - 2) ≤ S := by
         dsimp [S]
         exact I.add_le_sum hnonneg hxI hyI hxy
-      linarith
+      calc
+        (T.degree x : ℤ) + T.degree y - 2 =
+            2 + ((T.degree x : ℤ) - 2 + ((T.degree y : ℤ) - 2)) := by ring
+        _ ≤ 2 + S := by linarith
+        _ = ((treeLeaves T).card : ℤ) := hleafid.symm
 
 #print axioms two_degrees_sub_two_le_treeLeaves
 
