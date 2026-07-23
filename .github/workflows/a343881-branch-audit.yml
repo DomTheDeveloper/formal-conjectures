@@ -1,0 +1,22 @@
+name: A343881 branch proof audit
+
+on:
+  push:
+    branches:
+      - ci/oeis-a343881-warning-free
+
+permissions:
+  contents: read
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+      - name: Compile A343881 with warnings as errors
+        run: lake env lean -DwarningAsError=true FormalConjectures/OEIS/343881.lean
