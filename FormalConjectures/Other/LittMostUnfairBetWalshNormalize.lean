@@ -128,11 +128,14 @@ theorem offset_mem_translations {n : ℕ} {S : Finset ℕ}
   constructor
   · exact Finset.mem_range.mp (hsub (offset_mem hS))
   · intro i hi
-    have himg : i + offset S ∈ translate (normalize S) (offset S) :=
-      Finset.mem_image.mpr ⟨i, hi, rfl⟩
-    have hback : i + offset S ∈ S := by
-      exact (translate_normalize hS) ▸ himg
-    exact Finset.mem_range.mp (hsub hback)
+    let q := i + offset S
+    have himg : q ∈ translate (normalize S) (offset S) := by
+      dsimp [q]
+      exact Finset.mem_image.mpr ⟨i, hi, rfl⟩
+    have hback : q ∈ S := by
+      rw [← translate_normalize hS]
+      exact himg
+    exact Finset.mem_range.mp (hsub (by simpa [q] using hback))
 
 /-- A valid translate of a shape is a nonempty subset of the coordinate range. -/
 theorem translate_mem_nonemptySubsets {n : ℕ} {S : Finset ℕ} {t : ℕ}
