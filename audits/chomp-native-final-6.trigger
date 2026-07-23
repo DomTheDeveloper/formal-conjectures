@@ -1,3 +1,3 @@
-Immutable proof commit: dc00fb21fbcbb57a4e86930f09e8c677b56f59ea
-Explicit-access corrected audit trigger.
-Dedicated-workflow nonce: 2026-07-23T08:51Z
+Immutable proof commit: 1136ebda2f789e38496432818b7f6505ef1ceb12
+Lean 4.27 API corrected audit trigger.
+Nonce: 2026-07-23T08:55Z
