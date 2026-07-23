@@ -30,18 +30,26 @@ jobs:
           set -uo pipefail
           arxiv=FormalConjectures/Arxiv/2508.10245
           root=$arxiv/Geode5Proof
-          outBase=.lake/build/lib/lean/FormalConjectures/Arxiv/2508.10245
+          lib=.lake/build/lib/lean
+          outBase=$lib/FormalConjectures/Arxiv/2508.10245
           out=$outBase/Geode5Proof
           mkdir -p "$out"
           test -z "$(grep -RInE '\b(sorry|admit)\b' "$root" || true)"
           set +e
           status=0
           : > geode5-arithmetic.log
-          echo "===== Geode5 benchmark dependency =====" | tee -a geode5-arithmetic.log
+          echo "===== FormalConjecturesUtil dependency =====" | tee -a geode5-arithmetic.log
           lake env lean -DwarningAsError=true \
-            "$arxiv/Geode5.lean" -o "$outBase/Geode5.olean" \
+            FormalConjecturesUtil.lean -o "$lib/FormalConjecturesUtil.olean" \
             2>&1 | tee -a geode5-arithmetic.log
           status=${PIPESTATUS[0]}
+          if [ "$status" -eq 0 ]; then
+            echo "===== Geode5 benchmark dependency =====" | tee -a geode5-arithmetic.log
+            lake env lean -DwarningAsError=true \
+              "$arxiv/Geode5.lean" -o "$outBase/Geode5.olean" \
+              2>&1 | tee -a geode5-arithmetic.log
+            status=${PIPESTATUS[0]}
+          fi
           modules=(Reduction IntegralityReduction MultinomialDivisibility HyperCatalanIntegrality CastBridges)
           if [ "$status" -eq 0 ]; then
             for module in "${modules[@]}"; do
