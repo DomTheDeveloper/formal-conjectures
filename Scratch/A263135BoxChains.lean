@@ -30,8 +30,8 @@ def horizontalEmbedding (t b : ℕ) (side : Bool) : ℕ ↪ RankPoint where
   toFun h := ⟨t + 1 + h, b - 1 - t, side⟩
   inj' := by
     intro x y h
-    have hfirst : t + 1 + x = t + 1 + y := by
-      simpa [horizontalEmbedding] using congrArg RankPoint.first h
+    have hfirst := congrArg RankPoint.first h
+    change t + 1 + x = t + 1 + y at hfirst
     omega
 
 /-- Vertical part of the `t`-th symmetric chain in an `a × b` rectangle. -/
