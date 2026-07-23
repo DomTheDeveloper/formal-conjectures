@@ -42,12 +42,12 @@ def IsBallot (w : List (Fin 3)) : Prop :=
     (w.take k.1).count (0 : Fin 3) ≥ (w.take k.1).count (1 : Fin 3) ∧
       (w.take k.1).count (1 : Fin 3) ≥ (w.take k.1).count (2 : Fin 3)
 
-/-- Every position has an equal adjacent letter. Equivalently, every maximal
+/-- Every position has an equal adjacent position. Equivalently, every maximal
 constant run has length at least two. -/
-def HasNoSingletonRuns (w : List (Fin 3)) : Prop :=
-  ∀ i : Fin w.length,
-    (0 < i.1 ∧ w.get? (i.1 - 1) = w.get? i.1) ∨
-      w.get? (i.1 + 1) = w.get? i.1
+def HasNoSingletonRuns {n : ℕ} (w : Word n) : Prop :=
+  ∀ i : Fin (3 * n),
+    ∃ j : Fin (3 * n),
+      (j.1 + 1 = i.1 ∨ i.1 + 1 = j.1) ∧ w j = w i
 
 /-- A ballot word of content `(n, n, n)` with no singleton constant run. -/
 def IsAdmissible (n : ℕ) (w : Word n) : Prop :=
@@ -56,10 +56,11 @@ def IsAdmissible (n : ℕ) (w : Word n) : Prop :=
     letters.count (1 : Fin 3) = n ∧
     letters.count (2 : Fin 3) = n ∧
     IsBallot letters ∧
-    HasNoSingletonRuns letters
+    HasNoSingletonRuns w
 
 /-- Number of restricted-run tableaux, represented by their ballot words. -/
-def G (n : ℕ) : ℕ :=
-  (Finset.univ.filter (IsAdmissible n)).card
+noncomputable def G (n : ℕ) : ℕ := by
+  classical
+  exact (Finset.univ.filter (IsAdmissible n)).card
 
 end RestrictedRunTableaux
