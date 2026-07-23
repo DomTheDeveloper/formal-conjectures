@@ -103,7 +103,8 @@ lemma two_degrees_sub_two_le_treeLeaves
         exact I.single_le_sum hnonneg hyI
       calc
         (T.degree x : ℤ) + T.degree y - 2 = (T.degree y : ℤ) - 1 := by
-          norm_num [hx]
+          rw [hx]
+          ring
         _ ≤ 2 + S := by linarith
         _ = ((treeLeaves T).card : ℤ) := hleafid.symm
   · by_cases hy : T.degree y = 1
@@ -113,7 +114,8 @@ lemma two_degrees_sub_two_le_treeLeaves
         exact I.single_le_sum hnonneg hxI
       calc
         (T.degree x : ℤ) + T.degree y - 2 = (T.degree x : ℤ) - 1 := by
-          norm_num [hy]
+          rw [hy]
+          ring
         _ ≤ 2 + S := by linarith
         _ = ((treeLeaves T).card : ℤ) := hleafid.symm
     · have hxI : x ∈ I := by simp [I, internalVertices, hx]
