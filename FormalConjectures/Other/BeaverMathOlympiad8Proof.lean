@@ -54,8 +54,8 @@ private lemma bmo8_orbit_succ (n : ℕ) :
     bmo8_orbit (n + 1) = bmo8_step (bmo8_orbit n) := by
   simpa only [bmo8_orbit, bmo8_run] using bmo8_run_step n (10, 12)
 
-/-- The BMO #8 recurrence has a target-hitting term. -/
 set_option linter.unusedVariables false in
+/-- The BMO #8 recurrence has a target-hitting term. -/
 @[category test, AMS 5 11 68]
 theorem beaver_math_olympiad_problem_8_positive :
     ∀ᵉ (a : ℕ → ℕ) (b : ℕ → ℕ)
@@ -86,8 +86,8 @@ theorem beaver_math_olympiad_problem_8_positive :
     simpa using congrArg Prod.snd hstate
   norm_num [ha, hb]
 
-/-- BMO #8 has the positive answer. -/
 set_option linter.unusedVariables false in
+/-- BMO #8 has the positive answer. -/
 @[category research solved, AMS 5 11 68]
 theorem beaver_math_olympiad_problem_8_solved : answer(True) ↔
     ∀ᵉ (a : ℕ → ℕ) (b : ℕ → ℕ)
