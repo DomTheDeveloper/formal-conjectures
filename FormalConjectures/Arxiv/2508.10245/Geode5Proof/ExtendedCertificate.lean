@@ -15,20 +15,21 @@ limitations under the License.
 -/
 
 import FormalConjectures.Arxiv.«2508.10245».Geode5Proof.CRT
+import FormalConjectures.Arxiv.«2508.10245».Geode5Proof.MoreCertificateData
 
 /-!
 # Extended Geode CRT certificate
 
-The ZIP supplied five independent held-out 59-bit residues. Thirteen further
+The ZIP supplied five independent held-out 59-bit residues. Another 123
 59-bit residues were evaluated by the same independently compiled C++
-recurrence. The resulting 498-prime modulus is large enough for a direct
-absolute-value triangle bound, so the final proof need not assume or separately
+recurrence. The resulting 608-prime modulus is large enough for a simple
+uniform absolute-value bound, so the final proof need not assume or separately
 formalize nonnegativity of the Geode coefficient.
 -/
 
 namespace Arxiv.«2508.10245».Geode5Proof
 
-/-- Five held-out ZIP residues and thirteen independently reproduced residues. -/
+/-- Five held-out ZIP residues and thirteen initially reproduced residues. -/
 def extraResiduePairs : List (ℕ × ℕ) := [
   (576460752303299797, 327718321886832208),
   (576460752303299863, 423641906617630847),
@@ -50,38 +51,27 @@ def extraResiduePairs : List (ℕ × ℕ) := [
   (576460752303298591, 281682552906510882)
 ]
 
-/-- The complete 498-prime certificate. -/
+/-- The complete 608-prime certificate. -/
 def extendedResiduePairs : List (ℕ × ℕ) :=
-  residuePairs ++ extraResiduePairs
+  residuePairs ++ extraResiduePairs ++ moreResiduePairs
 
-/-- Product of all 498 moduli. -/
+/-- Product of all 608 moduli. -/
 def extendedCertificateModulus : ℕ :=
   (extendedResiduePairs.map Prod.fst).prod
 
-/-- The eighteen additional moduli are prime. -/
-theorem extraResiduePrimes :
-    ∀ pr ∈ extraResiduePairs, Nat.Prime pr.1 := by
+/-- Every additional modulus is prime. -/
+theorem extendedExtraResiduePrimes :
+    ∀ pr ∈ extraResiduePairs ++ moreResiduePairs, Nat.Prime pr.1 := by
   native_decide
 
-/-- The eighteen additional residues are canonical. -/
-theorem extraResidues_canonical :
-    ∀ pr ∈ extraResiduePairs, pr.2 < pr.1 := by
+/-- Every additional residue is canonical. -/
+theorem extendedExtraResidues_canonical :
+    ∀ pr ∈ extraResiduePairs ++ moreResiduePairs, pr.2 < pr.1 := by
   native_decide
 
-/-- The additional primes are disjoint from the original 480-prime set. -/
-theorem extraResidues_disjoint :
-    List.Disjoint (residuePairs.map Prod.fst)
-      (extraResiduePairs.map Prod.fst) := by
-  native_decide
-
-/-- All 498 moduli are pairwise coprime. -/
+/-- All 608 moduli are pairwise coprime. -/
 theorem extendedModuli_pairwise_coprime :
     extendedResiduePairs.Pairwise (Nat.Coprime on Prod.fst) := by
-  native_decide
-
-/-- The candidate agrees with all eighteen additional residues. -/
-theorem answer_modEq_extraResidue :
-    ∀ pr ∈ extraResiduePairs, answerValue ≡ pr.2 [MOD pr.1] := by
   native_decide
 
 /-- The candidate agrees with every residue in the extended certificate. -/
@@ -89,12 +79,12 @@ theorem answer_modEq_extendedResidue :
     ∀ pr ∈ extendedResiduePairs, answerValue ≡ pr.2 [MOD pr.1] := by
   native_decide
 
-/-- The extended modulus exceeds the centered-CRT threshold. -/
-theorem two_pow_29192_lt_extendedCertificateModulus :
-    2 ^ 29192 < extendedCertificateModulus := by
+/-- The extended modulus exceeds the simple centered-CRT threshold. -/
+theorem two_pow_35620_lt_extendedCertificateModulus :
+    2 ^ 35620 < extendedCertificateModulus := by
   native_decide
 
-/-- Combine all 498 residues into one congruence. -/
+/-- Combine all 608 residues into one congruence. -/
 theorem modEq_answerValue_of_extendedResidues (z : ℕ)
     (hz : ∀ pr ∈ extendedResiduePairs, z ≡ pr.2 [MOD pr.1]) :
     z ≡ answerValue [MOD extendedCertificateModulus] := by
@@ -104,6 +94,6 @@ theorem modEq_answerValue_of_extendedResidues (z : ℕ)
 
 #print axioms extendedModuli_pairwise_coprime
 #print axioms answer_modEq_extendedResidue
-#print axioms two_pow_29192_lt_extendedCertificateModulus
+#print axioms two_pow_35620_lt_extendedCertificateModulus
 
 end Arxiv.«2508.10245».Geode5Proof
