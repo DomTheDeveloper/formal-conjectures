@@ -44,7 +44,13 @@ jobs:
 
           path = Path('FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean')
           text = path.read_text()
-          text = text.replace('  bv_decide', '  decide')
+
+          if 'import Mathlib.Tactic' not in text:
+              text = text.replace(
+                  'import FormalConjecturesUtil\n',
+                  'import FormalConjecturesUtil\nimport Mathlib.Tactic\n',
+                  1,
+              )
 
           old_app = '    have hineq := hP counterG counterG_connected'
           new_app = '    have hineq := hP (Fin 18) counterG counterG_connected'
@@ -53,8 +59,8 @@ jobs:
           elif new_app not in text:
               raise SystemExit('could not locate the hP specialization')
 
-          if 'bv_decide' in text:
-              raise SystemExit('an unpatched bv_decide remains')
+          if text.count('bv_decide') != 2:
+              raise SystemExit('expected exactly two bv_decide certificate sites')
           path.write_text(text)
           PY
       - name: Reject proof holes and unsupported declarations
@@ -103,7 +109,7 @@ jobs:
           git config user.name 'ProofOrchestrator'
           git config user.email 'actions@users.noreply.github.com'
           git add FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean
-          git commit -m 'Repair WOWII 59 finite certificates and specialization'
+          git commit -m 'Repair WOWII 59 tactic imports and theorem specialization'
           git push origin "HEAD:${HEAD_REF}"
       - name: Upload transcript
         if: always()
