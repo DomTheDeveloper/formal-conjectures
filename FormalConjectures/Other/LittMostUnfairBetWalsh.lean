@@ -70,7 +70,7 @@ theorem coinSign_mul_eq_neg_one_of_ne {a b : Bool} (h : a ≠ b) :
 
 /-- The Boolean-cube character product is `2^n` on the diagonal and zero off it. -/
 theorem prod_one_add_coinSign_mul {n : ℕ} (A B : Fin n → Bool) :
-    (∏ i : Fin n, (1 : ℤ) + coinSign (A i) * coinSign (B i)) =
+    (∏ i ∈ Finset.univ, (1 : ℤ) + coinSign (A i) * coinSign (B i)) =
       if A = B then 2 ^ n else 0 := by
   classical
   by_cases hAB : A = B
