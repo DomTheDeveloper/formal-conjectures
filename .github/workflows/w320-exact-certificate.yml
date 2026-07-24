@@ -3,6 +3,8 @@ name: W320 exact certificate
 on:
   push:
     branches: [agent/w320-exact-certificate]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -43,7 +45,6 @@ jobs:
             2>&1 | tee .w320/cadical.log
           status=${PIPESTATUS[0]}
           echo "solver_status=$status" | tee .w320/status.txt
-          # CaDiCaL returns 20 for UNSAT. timeout returns 124.
           if [ "$status" -ne 20 ]; then exit "$status"; fi
 
       - name: Convert DRAT to LRAT and verify
