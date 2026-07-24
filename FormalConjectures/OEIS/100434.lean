@@ -115,6 +115,7 @@ def h (n : ℕ) : ℤ :=
   if n % 2 = 0 then -c (n + 1) else d n
 
 /-- The two positive Pell companion sequences differ by a first difference. -/
+@[category API, AMS 11]
 theorem two_mul_dHalfAbs (n : ℕ) :
     2 * dHalfAbs n = cAbs (n + 1) - cAbs n := by
   induction n using Nat.twoStepInduction with
@@ -125,6 +126,7 @@ theorem two_mul_dHalfAbs (n : ℕ) :
       rw [hn, hn1]
       ring
 
+@[category API, AMS 11]
 private theorem parity_split (n : ℕ) :
     (∃ k, n = 2 * k) ∨ ∃ k, n = 2 * k + 1 := by
   omega
