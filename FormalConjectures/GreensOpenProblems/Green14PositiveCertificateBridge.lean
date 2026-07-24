@@ -20,7 +20,7 @@ import FormalConjectures.GreensOpenProblems.Green14FunctionCertificateBridge
 # Positive finite-checker bridge for Green14
 
 The lower-bound certificate bridge turns a negative direct checker result into
-absence of a catalog arithmetic progression.  The upper bound needs the converse
+absence of a catalog arithmetic progression. The upper bound needs the converse
 kind of reflection: a positive direct checker result must construct the exact
 `Finset (Icc 1 N)` witness used by `mixedMonoAPGuaranteeSet`.
 -/
@@ -31,6 +31,11 @@ open scoped Classical
 namespace Green14.PositiveCertificateBridge
 
 open Green14.FunctionCertificateBridge
+
+/-- Testing whether a `Fin 2` color is one and then converting the Boolean result
+back to `Fin 2` recovers the original color. -/
+lemma boolColor_beq_one (c : Fin 2) : boolColor (c == (1 : Fin 2)) = c := by
+  fin_cases c <;> rfl
 
 /-- A positive direct checker result constructs a monochromatic arithmetic
 progression in the catalog's exact `Set.IsAPOfLength` representation. -/
@@ -104,21 +109,30 @@ theorem mem_mixed_of_direct_checks
     N ∈ Green14.mixedMonoAPGuaranteeSet k r := by
   intro coloring
   let direct : Nat → Bool := fun i =>
-    if hi : i < N then coloring ⟨i + 1, by omega⟩ = 1 else false
+    if hi : i < N then coloring ⟨i + 1, by omega⟩ == (1 : Fin 2) else false
+  have direct_roundtrip (x : Icc 1 N) :
+      certificateColoring N direct x = coloring x := by
+    unfold certificateColoring
+    dsimp [direct]
+    rw [dif_pos (by omega)]
+    rw [boolColor_beq_one]
+    congr 1
+    apply Subtype.ext
+    omega
   rcases hcomplete direct with hzero | hone
   · left
     obtain ⟨s, hAP, hmono⟩ :=
       exists_monoAP_of_hasAP_eq_true hk hzero
     refine ⟨s, hAP, ?_⟩
     intro x hx
-    have h := hmono x hx
-    simpa [certificateColoring, direct, boolColor] using h
+    rw [← direct_roundtrip x]
+    exact hmono x hx
   · right
     obtain ⟨s, hAP, hmono⟩ :=
       exists_monoAP_of_hasAP_eq_true hr hone
     refine ⟨s, hAP, ?_⟩
     intro x hx
-    have h := hmono x hx
-    simpa [certificateColoring, direct, boolColor] using h
+    rw [← direct_roundtrip x]
+    exact hmono x hx
 
 end Green14.PositiveCertificateBridge
