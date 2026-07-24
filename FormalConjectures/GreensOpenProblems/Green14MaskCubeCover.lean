@@ -29,10 +29,15 @@ namespace Green14.MaskCubeCover
 
 open Green14.CNFEncoding
 
+/-- Explicit Boolean-to-natural conversion used by certificate masks. -/
+def boolNat : Bool → Nat
+  | false => 0
+  | true => 1
+
 /-- Encode six Boolean values as a little-endian integer mask. -/
 def mask6 (b0 b1 b2 b3 b4 b5 : Bool) : Nat :=
-  b0.toNat + 2 * b1.toNat + 4 * b2.toNat + 8 * b3.toNat +
-    16 * b4.toNat + 32 * b5.toNat
+  boolNat b0 + 2 * boolNat b1 + 4 * boolNat b2 + 8 * boolNat b3 +
+    16 * boolNat b4 + 32 * boolNat b5
 
 theorem mask6_lt_64 (b0 b1 b2 b3 b4 b5 : Bool) :
     mask6 b0 b1 b2 b3 b4 b5 < 64 := by
