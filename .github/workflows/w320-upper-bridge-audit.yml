@@ -1,3 +1,4 @@
+# Post-PR trigger: compile the modular Lean 4.27 checker as soon as a runner is free.
 name: W320 upper bridge and LRAT kernel V2 audit
 
 on:
