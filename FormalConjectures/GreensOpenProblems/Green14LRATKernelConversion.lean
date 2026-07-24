@@ -16,14 +16,6 @@ limitations under the License.
 
 import Std.Tactic.BVDecide.LRAT
 
-/-!
-# Kernel-reducible LRAT conversion for Lean 4.27
-
-Lean 4.27 uses list-based SAT clauses.  This module replaces the parts of the
-standard LRAT conversion that do not reduce conveniently in the kernel while
-proving that the converted formula remains semantically sound.
--/
-
 open Std.Sat Std.Tactic.BVDecide.LRAT
 open Std.Tactic.BVDecide.LRAT.Internal
 
@@ -92,9 +84,12 @@ theorem unsat_of_liftK_unsat (cnf : CNF Nat) :
 /-- Convert source clauses while preserving their original order and indices. -/
 def convertClausesK {n : Nat} (clauses : CNF (PosFin n)) :
     List (Option (DefaultClause n)) :=
-  clauses.filterMap fun clause => (mkClauseK clause).map some
+  clauses.filterMap fun clause =>
+    match mkClauseK clause with
+    | some converted => some (some converted)
+    | none => none
 
-/-- Initial checker formula.  The leading `none` aligns one-based LRAT IDs. -/
+/-- Initial checker formula. The leading `none` aligns one-based LRAT IDs. -/
 def convertK (cnf : CNF Nat) : DefaultFormula (cnf.numLiterals + 2) :=
   DefaultFormula.ofArray (none :: convertClausesK (liftK cnf)).toArray
 
@@ -126,29 +121,25 @@ theorem unsat_of_convertK_unsat (cnf : CNF Nat) :
   intro hConverted
   apply unsat_of_liftK_unsat
   intro assignment
+  unfold convertK at hConverted
   replace hConverted := (unsat_of_cons_none_unsat _ hConverted) assignment
   apply eq_false_of_ne_true
   intro hLifted
   apply hConverted
   simp only [Formula.formulaEntails_def, List.all_eq_true, decide_eq_true_eq]
   intro targetClause hTargetMem
-  change targetClause ∈ (convertClausesK (liftK cnf)).filterMap id at hTargetMem
-  rcases List.mem_filterMap.mp hTargetMem with
-    ⟨optionalClause, hOptionalMem, hOptionalEq⟩
-  have hOptional : optionalClause = some targetClause := by
-    simpa using hOptionalEq
-  subst optionalClause
-  rcases List.mem_filterMap.mp hOptionalMem with
-    ⟨sourceClause, hSourceMem, hMapEq⟩
-  have hConvert : mkClauseK sourceClause = some targetClause := by
-    cases hmk : mkClauseK sourceClause with
-    | none => simp [hmk] at hMapEq
-    | some converted =>
-        simp [hmk] at hMapEq
-        subst converted
-        exact hmk
+  simp only [Formula.toList, DefaultFormula.toList, DefaultFormula.ofArray,
+    convertClausesK, List.size_toArray, List.toList_toArray,
+    List.map_nil, List.append_nil, List.mem_filterMap, id_eq, exists_eq_right]
+    at hTargetMem
+  rcases hTargetMem with ⟨sourceClause, hSourceMem, hConvert⟩
   simp only [CNF.eval, List.all_eq_true] at hLifted
-  exact clause_sat_of_mkClauseK sourceClause hConvert
-    (hLifted sourceClause hSourceMem)
+  split at hConvert
+  next heq =>
+    rw [← heq] at hConvert
+    simp only [Option.some.injEq] at hConvert
+    exact clause_sat_of_mkClauseK sourceClause hConvert
+      (hLifted sourceClause hSourceMem)
+  · contradiction
 
 end Green14.LRATKernelV2
