@@ -1,0 +1,117 @@
+name: A100434 stable exact audit
+
+on:
+  push:
+    branches: [audit/a100434-stable-39dd]
+    paths:
+      - '.github/workflows/a100434-stable-audit.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout stable audit branch
+        uses: actions/checkout@v6
+        with:
+          ref: audit/a100434-stable-39dd
+          fetch-depth: 0
+
+      - name: Checkout exact proof commit
+        uses: actions/checkout@v6
+        with:
+          repository: DomTheDeveloper/formal-conjectures
+          ref: 39dd7e1a393510e89469a4365aceec13f704e839
+          path: proof
+          fetch-depth: 1
+
+      - name: Install Lean
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            proof/.lake/packages
+            proof/.lake/build
+          key: a100434-stable-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('proof/lean-toolchain', 'proof/lake-manifest.json', 'proof/lakefile.toml') }}
+          restore-keys: a100434-stable-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Get Mathlib cache
+        id: cache
+        continue-on-error: true
+        working-directory: proof
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            lake exe cache get && exit 0
+            sleep 10
+          done
+          exit 1
+
+      - name: Build utility and compile exact proof
+        id: compile
+        if: steps.cache.outcome == 'success'
+        continue-on-error: true
+        working-directory: proof
+        run: |
+          set -o pipefail
+          lake build FormalConjecturesUtil 2>&1 | tee ../a100434-dependency.log
+          test ${PIPESTATUS[0]} -eq 0
+          lake env lean FormalConjectures/OEIS/100434.lean 2>&1 | tee ../a100434-compile.log
+          test ${PIPESTATUS[0]} -eq 0
+
+      - name: Audit theorem axioms
+        id: axioms
+        if: steps.compile.outcome == 'success'
+        continue-on-error: true
+        working-directory: proof
+        run: |
+          cat > /tmp/A100434Axioms.lean <<'EOF'
+          import FormalConjectures.OEIS.«100434»
+          #print axioms OeisA100434.a100434_auxiliary_identities
+          EOF
+          set -o pipefail
+          lake env lean /tmp/A100434Axioms.lean 2>&1 | tee ../a100434-axioms.log
+          test ${PIPESTATUS[0]} -eq 0
+          ! grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' ../a100434-axioms.log
+
+      - name: Commit exact diagnostic
+        if: always()
+        run: |
+          {
+            echo "proof_commit=39dd7e1a393510e89469a4365aceec13f704e839"
+            echo "cache=${{ steps.cache.outcome }}"
+            echo "compile=${{ steps.compile.outcome }}"
+            echo "axioms=${{ steps.axioms.outcome }}"
+            if [[ "${{ steps.compile.outcome }}" == "success" && "${{ steps.axioms.outcome }}" == "success" ]]; then
+              echo "result=GREEN"
+            else
+              echo "result=RED"
+            fi
+            echo
+            echo "===== dependency ====="
+            cat a100434-dependency.log 2>/dev/null || true
+            echo
+            echo "===== compile ====="
+            cat a100434-compile.log 2>/dev/null || true
+            echo
+            echo "===== axioms ====="
+            cat a100434-axioms.log 2>/dev/null || true
+          } > .github/a100434-stable-result.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .github/a100434-stable-result.txt
+          git commit -m "Record stable A100434 audit result" || exit 0
+          git push origin HEAD:audit/a100434-stable-39dd
+
+      - name: Enforce green result
+        if: always()
+        run: |
+          test "${{ steps.cache.outcome }}" = success
+          test "${{ steps.compile.outcome }}" = success
+          test "${{ steps.axioms.outcome }}" = success
