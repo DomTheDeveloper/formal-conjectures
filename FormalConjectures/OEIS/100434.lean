@@ -121,9 +121,8 @@ theorem two_mul_dHalfAbs (n : ℕ) :
   | zero => norm_num [dHalfAbs, cAbs]
   | one => norm_num [dHalfAbs, cAbs]
   | more n hn hn1 =>
-      simp only [dHalfAbs, cAbs]
-      rw [hn, hn1]
-      ring
+      simp only [dHalfAbs, cAbs] at hn hn1 ⊢
+      nlinarith
 
 private theorem parity_split (n : ℕ) :
     (∃ k, n = 2 * k) ∨ ∃ k, n = 2 * k + 1 := by
