@@ -1,0 +1,53 @@
+name: A100434 exact proof audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['.github/workflows/a100434-exact-ci.yml']
+
+concurrency:
+  group: a100434-fork-proof
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: DomTheDeveloper/formal-conjectures
+          ref: 5465cbc4a079b786a883ef3181c0538a62fdeded
+          fetch-depth: 1
+      - name: Install Lean
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: a100434-fork-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: a100434-fork-${{ runner.os }}-
+      - name: Get Mathlib cache
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            lake exe cache get && exit 0
+            sleep 10
+          done
+          exit 1
+      - name: Compile exact proof
+        run: lake env lean FormalConjectures/OEIS/100434.lean
+      - name: Audit theorem axioms
+        run: |
+          cat > /tmp/A100434Axioms.lean <<'EOF'
+          import FormalConjectures.OEIS.«100434»
+          #print axioms OeisA100434.a100434_auxiliary_identities
+          EOF
+          lake env lean /tmp/A100434Axioms.lean | tee /tmp/a100434-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/a100434-axioms.log
