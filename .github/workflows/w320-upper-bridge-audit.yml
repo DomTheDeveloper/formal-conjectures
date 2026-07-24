@@ -7,6 +7,7 @@ on:
       - 'FormalConjectures/GreensOpenProblems/Green14UpperOrderBridge.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14PositiveCertificateBridge.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14CNFEncoding.lean'
+      - 'FormalConjectures/GreensOpenProblems/Green14CubeCover.lean'
       - '.github/workflows/w320-upper-bridge-audit.yml'
   workflow_dispatch:
 
@@ -38,12 +39,13 @@ jobs:
             FormalConjectures.GreensOpenProblems.Green14UpperOrderBridge \
             FormalConjectures.GreensOpenProblems.Green14PositiveCertificateBridge \
             FormalConjectures.GreensOpenProblems.Green14CNFEncoding \
+            FormalConjectures.GreensOpenProblems.Green14CubeCover \
             2>&1 | tee "$RUNNER_TEMP/w320-upper-build.log"
 
       - name: Audit axioms
         run: |
           cat > "$RUNNER_TEMP/W320UpperAxioms.lean" <<'EOF'
-          import FormalConjectures.GreensOpenProblems.Green14CNFEncoding
+          import FormalConjectures.GreensOpenProblems.Green14CubeCover
           #print axioms Green14.W_le_of_mem
           #print axioms Green14.W_3_20_eq_389_of_mem
           #print axioms Green14.PositiveCertificateBridge.exists_monoAP_of_hasAP_eq_true
@@ -51,6 +53,8 @@ jobs:
           #print axioms Green14.CNFEncoding.eval_apAvoidanceCNF_eq_true
           #print axioms Green14.CNFEncoding.direct_checks_complete_of_w320CNF_unsat
           #print axioms Green14.CNFEncoding.W_3_20_eq_389_of_w320CNF_unsat
+          #print axioms Green14.CubeCover.w320CNF_unsat_of_all_cubes
+          #print axioms Green14.CubeCover.W_3_20_eq_389_of_all_cubes
           EOF
           set -o pipefail
           "$HOME/.elan/bin/lake" env lean "$RUNNER_TEMP/W320UpperAxioms.lean" \
