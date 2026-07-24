@@ -1,0 +1,12 @@
+{
+  "base_variables_dimacs": [193, 194, 195, 196, 197, 198],
+  "second_variables_dimacs": [190, 191, 192],
+  "third_variables_dimacs": [199, 200, 201],
+  "hard_grandchildren": [
+    [11, 4], [11, 5], [11, 6], [11, 7],
+    [14, 2], [14, 3], [14, 4], [14, 5], [14, 6], [14, 7],
+    [25, 5], [25, 7]
+  ],
+  "third_masks": [0, 1, 2, 3, 4, 5, 6, 7],
+  "coverage": "For every listed parent-child pair, all eight third masks are enumerated."
+}
