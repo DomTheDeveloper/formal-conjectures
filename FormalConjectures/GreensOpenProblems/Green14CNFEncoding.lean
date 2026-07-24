@@ -22,8 +22,7 @@ import Std.Tactic.BVDecide.LRAT
 # Exact CNF encoding for `W(3,20) ≤ 389`
 
 Variables are zero-based in Lean. Variable `i` is the color of the catalog
-point `i + 1`. Lean's LRAT converter increments variable numbers when it emits
-DIMACS, so this definition corresponds exactly to DIMACS variables `1, ..., N`.
+point `i + 1`. The LRAT conversion shifts these to one-based DIMACS variables.
 
 For every `k`-term progression and target color `color`, the generated clause
 contains literals with polarity `!color`. It is satisfied exactly when at least
@@ -35,25 +34,20 @@ namespace Green14.CNFEncoding
 open Green14.FunctionCertificateBridge
 open Green14.PositiveCertificateBridge
 
-/-- Clauses forbidding monochromatic `k`-term progressions of `color` in the
+/-- The CNF forbidding monochromatic `k`-term progressions of `color` in the
 zero-based interval `{0, ..., N - 1}`. -/
-def apAvoidanceClauses (N k : Nat) (color : Bool) :
-    List (Std.Sat.CNF.Clause Nat) :=
+def apAvoidanceCNF (N k : Nat) (color : Bool) : Std.Sat.CNF Nat :=
   (List.range N).flatMap fun a =>
     (List.range ((N - 1 - a) / (k - 1))).map fun d0 =>
       let d := d0 + 1
       (List.range k).map fun i => (a + i * d, !color)
-
-/-- The CNF forbidding a monochromatic `k`-AP of the specified color. -/
-def apAvoidanceCNF (N k : Nat) (color : Bool) : Std.Sat.CNF Nat :=
-  { clauses := (apAvoidanceClauses N k color).toArray }
 
 /-- The unrestricted exact SAT instance for the upper bound `W(3,20) ≤ 389`. -/
 def w320CNF : Std.Sat.CNF Nat :=
   apAvoidanceCNF 389 3 false ++ apAvoidanceCNF 389 20 true
 
 /-- The generated instance has the canonical 41,426 clauses. -/
-theorem w320CNF_clause_count : w320CNF.clauses.size = 41426 := by
+theorem w320CNF_clause_count : w320CNF.length = 41426 := by
   decide
 
 private theorem opposite_of_ne {x color : Bool} (h : x ≠ color) : x = !color := by
@@ -65,11 +59,9 @@ theorem eval_apAvoidanceCNF_eq_true
     {N k : Nat} {coloring : Nat → Bool} {color : Bool}
     (hk : 2 ≤ k) (hcheck : hasAP N k coloring color = false) :
     Std.Sat.CNF.eval coloring (apAvoidanceCNF N k color) = true := by
-  rw [Std.Sat.CNF.eval, Array.all_eq_true_iff_forall_mem]
+  rw [Std.Sat.CNF.eval, List.all_eq_true]
   intro clause hclause
-  have hclause' : clause ∈ apAvoidanceClauses N k color := by
-    simpa [apAvoidanceCNF] using hclause
-  rcases List.mem_flatMap.mp hclause' with ⟨a, ha, hinner⟩
+  rcases List.mem_flatMap.mp hclause with ⟨a, ha, hinner⟩
   rcases List.mem_map.mp hinner with ⟨d0, hd0, rfl⟩
   have haN : a < N := by simpa using ha
   let d := d0 + 1
@@ -97,7 +89,8 @@ theorem eval_w320CNF_eq_true
     (h3 : hasAP 389 3 coloring false = false)
     (h20 : hasAP 389 20 coloring true = false) :
     Std.Sat.CNF.eval coloring w320CNF = true := by
-  simp [w320CNF, eval_apAvoidanceCNF_eq_true (k := 3) (by omega) h3,
+  rw [w320CNF, Std.Sat.CNF.eval_append]
+  simp [eval_apAvoidanceCNF_eq_true (k := 3) (by omega) h3,
     eval_apAvoidanceCNF_eq_true (k := 20) (by omega) h20]
 
 /-- Unsatisfiability of the exact CNF means every coloring triggers one of the
