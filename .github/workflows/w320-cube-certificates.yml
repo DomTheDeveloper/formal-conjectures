@@ -1,0 +1,126 @@
+name: W320 cube certificates
+
+on:
+  push:
+    branches: [agent/w320-exact-certificate]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify-cube:
+    name: cube-${{ matrix.cube }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        cube: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate unrestricted CNF and cube
+        run: |
+          mkdir -p .w320
+          python3 scripts/w320/generate_cnf.py --output .w320/base.cnf \
+            | tee .w320/base-metadata.txt
+          python3 scripts/w320/add_cube.py \
+            --input .w320/base.cnf \
+            --output .w320/cube-${{ matrix.cube }}.cnf \
+            --mask ${{ matrix.cube }} \
+            --vars 193 194 195 196 197 198 \
+            | tee .w320/cube-metadata.txt
+          grep -q '^p cnf 389 41432$' .w320/cube-${{ matrix.cube }}.cnf
+          sha256sum .w320/base.cnf .w320/cube-${{ matrix.cube }}.cnf \
+            | tee .w320/input-sha256.txt
+
+      - name: Build proof-producing tools
+        run: |
+          git clone --depth 1 https://github.com/arminbiere/cadical.git .w320/cadical
+          (cd .w320/cadical && ./configure && make -j2)
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git .w320/drat-trim
+          make -C .w320/drat-trim -j2
+          .w320/cadical/build/cadical --version | tee .w320/cadical-version.txt
+
+      - name: Proof-output smoke test
+        run: |
+          cat > .w320/tiny.cnf <<'EOF'
+          p cnf 1 2
+          1 0
+          -1 0
+          EOF
+          set +e
+          .w320/cadical/build/cadical .w320/tiny.cnf .w320/tiny.drat \
+            > .w320/tiny.log 2>&1
+          status=$?
+          set -e
+          test "$status" -eq 20
+          .w320/drat-trim/drat-trim .w320/tiny.cnf .w320/tiny.drat \
+            -L .w320/tiny.lrat
+          test -s .w320/tiny.lrat
+
+      - name: Solve cube and emit DRAT
+        id: solve
+        run: |
+          set +e
+          /usr/bin/time -v timeout 15000 .w320/cadical/build/cadical \
+            .w320/cube-${{ matrix.cube }}.cnf \
+            .w320/cube-${{ matrix.cube }}.drat \
+            > .w320/cadical.log 2>&1
+          status=$?
+          set -e
+          echo "$status" | tee .w320/solver-status.txt
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          tail -n 100 .w320/cadical.log
+
+      - name: Convert and independently verify LRAT
+        if: steps.solve.outputs.status == '20'
+        run: |
+          .w320/drat-trim/drat-trim \
+            .w320/cube-${{ matrix.cube }}.cnf \
+            .w320/cube-${{ matrix.cube }}.drat \
+            -L .w320/cube-${{ matrix.cube }}.lrat \
+            | tee .w320/drat-trim.log
+          test -s .w320/cube-${{ matrix.cube }}.lrat
+          sha256sum \
+            .w320/cube-${{ matrix.cube }}.cnf \
+            .w320/cube-${{ matrix.cube }}.drat \
+            .w320/cube-${{ matrix.cube }}.lrat \
+            | tee .w320/certificate-sha256.txt
+
+      - name: Compress valid certificates
+        if: steps.solve.outputs.status == '20'
+        run: |
+          zstd -T0 -10 --rm .w320/cube-${{ matrix.cube }}.drat
+          zstd -T0 -10 --rm .w320/cube-${{ matrix.cube }}.lrat
+
+      - name: Record artifact sizes
+        if: always()
+        run: |
+          find .w320 -maxdepth 1 -type f -printf '%f %s bytes\n' \
+            | sort | tee .w320/sizes.txt
+
+      - name: Upload cube result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: w320-cube-${{ matrix.cube }}
+          path: |
+            .w320/*metadata.txt
+            .w320/*sha256.txt
+            .w320/*status.txt
+            .w320/*version.txt
+            .w320/*.log
+            .w320/*.zst
+            .w320/sizes.txt
+          compression-level: 0
+          retention-days: 30
+
+      - name: Require a verified UNSAT certificate
+        if: always()
+        run: |
+          test "$(cat .w320/solver-status.txt)" -eq 20
+          test -f .w320/cube-${{ matrix.cube }}.lrat.zst
