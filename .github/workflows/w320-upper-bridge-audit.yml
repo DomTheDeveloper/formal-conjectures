@@ -1,4 +1,4 @@
-# Post-PR trigger: compile the modular Lean 4.27 checker as soon as a runner is free.
+# Dedicated ARM audit lane to avoid congestion from x64 SAT matrices.
 name: W320 upper bridge and LRAT kernel V2 audit
 
 on:
@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   lean:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
