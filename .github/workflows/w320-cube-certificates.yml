@@ -3,6 +3,8 @@ name: W320 cube certificates
 on:
   push:
     branches: [agent/w320-exact-certificate]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
