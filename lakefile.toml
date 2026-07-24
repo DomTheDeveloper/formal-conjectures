@@ -33,6 +33,10 @@ rev = "v4.27.0"
 [[lean_lib]]
 name = "FormalConjecturesForMathlib"
 
+# Audit-only compatibility root for historical external proof modules.
+[[lean_lib]]
+name = "FormalConjecturesUtil"
+
 [[lean_lib]]
 name = "FormalConjecturesTest"
 [lean_lib.leanOptions]
