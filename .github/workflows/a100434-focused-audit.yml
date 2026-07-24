@@ -16,13 +16,13 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
         with:
           repository: DomTheDeveloper/formal-conjectures
-          ref: 193b08e6bccf96afc1e876cd1a0c99d49eb087d2
+          ref: 39dd7e1a393510e89469a4365aceec13f704e839
           fetch-depth: 1
       - name: Install Lean
         run: |
@@ -44,7 +44,9 @@ jobs:
           done
           exit 1
       - name: Build local utility dependency
-        run: lake build FormalConjecturesUtil
+        run: |
+          set -o pipefail
+          lake build FormalConjecturesUtil 2>&1 | tee /tmp/a100434-dependency.log
       - name: Compile exact proof
         run: |
           set -o pipefail
@@ -64,6 +66,7 @@ jobs:
         with:
           name: a100434-focused-${{ github.run_id }}
           path: |
+            /tmp/a100434-dependency.log
             /tmp/a100434-compile.log
             /tmp/a100434-axioms.log
           if-no-files-found: warn
