@@ -8,6 +8,9 @@ on:
       - 'FormalConjectures/GreensOpenProblems/Green14PositiveCertificateBridge.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14CNFEncoding.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14CubeCover.lean'
+      - 'FormalConjectures/GreensOpenProblems/Green14NestedCubeCover.lean'
+      - 'scripts/w320/export_lean_cnf.lean'
+      - 'scripts/w320/generate_cnf.py'
       - '.github/workflows/w320-upper-bridge-audit.yml'
   workflow_dispatch:
 
@@ -40,12 +43,26 @@ jobs:
             FormalConjectures.GreensOpenProblems.Green14PositiveCertificateBridge \
             FormalConjectures.GreensOpenProblems.Green14CNFEncoding \
             FormalConjectures.GreensOpenProblems.Green14CubeCover \
+            FormalConjectures.GreensOpenProblems.Green14NestedCubeCover \
             2>&1 | tee "$RUNNER_TEMP/w320-upper-build.log"
+
+      - name: Verify Lean and Python CNFs are byte-identical
+        run: |
+          set -euo pipefail
+          "$HOME/.elan/bin/lake" env lean --run scripts/w320/export_lean_cnf.lean \
+            > "$RUNNER_TEMP/w320-lean.cnf"
+          python3 scripts/w320/generate_cnf.py \
+            --output "$RUNNER_TEMP/w320-python.cnf" \
+            | tee "$RUNNER_TEMP/w320-python-metadata.log"
+          cmp "$RUNNER_TEMP/w320-lean.cnf" "$RUNNER_TEMP/w320-python.cnf"
+          sha256sum "$RUNNER_TEMP/w320-lean.cnf" "$RUNNER_TEMP/w320-python.cnf" \
+            | tee "$RUNNER_TEMP/w320-cnf-sha256.log"
+          grep -q '^p cnf 389 41426$' "$RUNNER_TEMP/w320-lean.cnf"
 
       - name: Audit axioms
         run: |
           cat > "$RUNNER_TEMP/W320UpperAxioms.lean" <<'EOF'
-          import FormalConjectures.GreensOpenProblems.Green14CubeCover
+          import FormalConjectures.GreensOpenProblems.Green14NestedCubeCover
           #print axioms Green14.W_le_of_mem
           #print axioms Green14.W_3_20_eq_389_of_mem
           #print axioms Green14.PositiveCertificateBridge.exists_monoAP_of_hasAP_eq_true
@@ -55,6 +72,7 @@ jobs:
           #print axioms Green14.CNFEncoding.W_3_20_eq_389_of_w320CNF_unsat
           #print axioms Green14.CubeCover.w320CNF_unsat_of_all_cubes
           #print axioms Green14.CubeCover.W_3_20_eq_389_of_all_cubes
+          #print axioms Green14.NestedCubeCover.cubeCNF_unsat_of_all_children
           EOF
           set -o pipefail
           "$HOME/.elan/bin/lake" env lean "$RUNNER_TEMP/W320UpperAxioms.lean" \
@@ -70,3 +88,6 @@ jobs:
           path: |
             ${{ runner.temp }}/w320-upper-build.log
             ${{ runner.temp }}/w320-upper-axioms.log
+            ${{ runner.temp }}/w320-python-metadata.log
+            ${{ runner.temp }}/w320-cnf-sha256.log
+            ${{ runner.temp }}/w320-lean.cnf
