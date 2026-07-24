@@ -32,6 +32,10 @@ namespace Green14.PositiveCertificateBridge
 
 open Green14.FunctionCertificateBridge
 
+private lemma mem_value_set_iff {N : Nat} {s : Finset (Icc 1 N)} {z : Nat} :
+    z ∈ ({(x : Nat) | x ∈ s} : Set Nat) ↔ ∃ x ∈ s, (x : Nat) = z := by
+  simp
+
 /-- Testing whether a `Fin 2` color is one and then converting the Boolean result
 back to `Fin 2` recovers the original color. -/
 lemma boolColor_beq_one (c : Fin 2) : boolColor (c == (1 : Fin 2)) = c := by
@@ -47,18 +51,21 @@ theorem exists_monoAP_of_hasAP_eq_true
         ∀ x ∈ s, certificateColoring N coloring x = boolColor color := by
   simp only [hasAP, List.any_eq_true, List.mem_range, List.all_eq_true] at hcheck
   rcases hcheck with ⟨a, ha, d0, hd0, hall⟩
+  have haN : a < N := by simpa using ha
+  have hd0lt : d0 < (N - 1 - a) / (k - 1) := by simpa using hd0
   let d := d0 + 1
   have hdpos : 0 < d := by simp [d]
   have hkden : 0 < k - 1 := by omega
   have hdle : d ≤ (N - 1 - a) / (k - 1) := by
-    simpa [d] using hd0
+    dsimp [d]
+    omega
   have hmul : d * (k - 1) ≤ N - 1 - a :=
     (Nat.le_div_iff_mul_le hkden).mp hdle
   have hend : a + (k - 1) * d < N := by
     rw [Nat.mul_comm] at hmul
     omega
   let term : Fin k ↪ Icc 1 N :=
-    ⟨fun i => ⟨a + i.1 * d + 1, by
+    ⟨fun i => ⟨a + 1 + i.1 * d, by
         constructor
         · omega
         · have hi : i.1 ≤ k - 1 := by omega
@@ -68,37 +75,51 @@ theorem exists_monoAP_of_hasAP_eq_true
       by
         intro i j hij
         apply Fin.ext
-        dsimp at hij
+        have hval := congrArg Subtype.val hij
+        dsimp at hval
         omega⟩
   let s : Finset (Icc 1 N) := Finset.univ.map term
-  refine ⟨s, ?_, ?_⟩
-  · refine ⟨a + 1, d, ?_⟩
+  let valEmb : Icc 1 N ↪ Nat := ⟨Subtype.val, Subtype.val_injective⟩
+  let sVal : Finset Nat := s.map valEmb
+  let T : Set Nat := {(x : Nat) | x ∈ s}
+  have hT_sVal : T = (sVal : Set Nat) := by
+    ext z
+    simp [T, sVal, valEmb]
+  have hT_AP : T = {a + 1 + n • d | (n : Nat) (_ : n < k)} := by
+    ext z
     constructor
-    · simp [s]
-    · ext z
-      simp only [Set.mem_setOf_eq, Set.mem_setOf]
-      constructor
-      · intro hz
-        rcases Finset.mem_map.mp hz with ⟨i, -, hi⟩
-        refine ⟨i.1, ?_, ?_⟩
-        · exact_mod_cast i.2
-        · simpa [term, nsmul_eq_mul, Nat.add_assoc, Nat.add_comm,
-            Nat.add_left_comm, Nat.mul_comm] using congrArg Subtype.val hi
-      · rintro ⟨i, hi, rfl⟩
-        let fi : Fin k := ⟨i, by exact_mod_cast hi⟩
-        apply Finset.mem_map.mpr
-        refine ⟨fi, Finset.mem_univ _, ?_⟩
-        apply Subtype.ext
-        simp [fi, term, nsmul_eq_mul, Nat.add_assoc, Nat.add_comm,
-          Nat.add_left_comm, Nat.mul_comm]
+    · intro hz
+      rcases mem_value_set_iff.mp hz with ⟨x, hxs, hx⟩
+      rcases Finset.mem_map.mp hxs with ⟨i, -, hi⟩
+      refine ⟨i.1, ?_, ?_⟩
+      · exact_mod_cast i.2
+      · have hval := congrArg Subtype.val hi
+        simpa [term, nsmul_eq_mul] using hval.trans hx
+    · rintro ⟨n, hn, rfl⟩
+      let i : Fin k := ⟨n, by exact_mod_cast hn⟩
+      apply mem_value_set_iff.mpr
+      refine ⟨term i, ?_, ?_⟩
+      · apply Finset.mem_map.mpr
+        exact ⟨i, Finset.mem_univ _, rfl⟩
+      · simp [term, i, nsmul_eq_mul]
+  refine ⟨s, ⟨a + 1, d, ?_⟩, ?_⟩
+  · constructor
+    · change T.encard = (k : ℕ∞)
+      rw [hT_sVal]
+      simp [sVal, s]
+    · exact hT_AP
   · intro x hx
-    rcases Finset.mem_map.mp hx with ⟨i, -, rfl⟩
+    rcases Finset.mem_map.mp hx with ⟨i, -, hi⟩
     have hbool : coloring (a + i.1 * d) = color := by
-      have hi : i.1 ∈ List.range k := by simpa using i.2
-      have := hall i.1 hi
+      have hirange : i.1 ∈ List.range k := by simpa using i.2
+      have := hall i.1 hirange
       simpa [d] using this
+    have hindex : x.1 - 1 = a + i.1 * d := by
+      have hval := congrArg Subtype.val hi
+      dsimp [term] at hval
+      omega
     apply boolColor_injective
-    simpa [certificateColoring, term, hbool]
+    simpa [certificateColoring, hindex] using hbool
 
 /-- If every Boolean coloring is detected by one of the two direct checkers,
 then `N` belongs to the repository's mixed progression guarantee set. -/
