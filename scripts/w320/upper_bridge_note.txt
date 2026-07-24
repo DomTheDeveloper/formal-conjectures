@@ -1,1 +1,0 @@
-The exact equality theorem is intentionally conditional on the semantic upper-bound certificate. No computational result is claimed by this file.
