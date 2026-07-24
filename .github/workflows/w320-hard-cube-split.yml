@@ -1,0 +1,126 @@
+name: W320 hard cube split
+
+on:
+  push:
+    branches: [agent/w320-hard-cube-split]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify-grandchild:
+    name: cube-${{ matrix.parent }}-${{ matrix.child }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        parent: [11, 14, 25]
+        child: [0, 1, 2, 3, 4, 5, 6, 7]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate exact parent and child cubes
+        run: |
+          set -euo pipefail
+          mkdir -p .w320
+          python3 scripts/w320/generate_cnf.py --output .w320/base.cnf \
+            | tee .w320/base-metadata.txt
+          python3 scripts/w320/add_cube.py \
+            --input .w320/base.cnf \
+            --output .w320/parent.cnf \
+            --mask ${{ matrix.parent }} \
+            --vars 193 194 195 196 197 198 \
+            | tee .w320/parent-metadata.txt
+          python3 scripts/w320/add_cube.py \
+            --input .w320/parent.cnf \
+            --output .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.cnf \
+            --mask ${{ matrix.child }} \
+            --vars 190 191 192 \
+            | tee .w320/child-metadata.txt
+          grep -q '^p cnf 389 41435$' \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.cnf
+          sha256sum .w320/base.cnf .w320/parent.cnf \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.cnf \
+            | tee .w320/input-sha256.txt
+
+      - name: Build proof-producing tools
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/arminbiere/cadical.git .w320/cadical
+          (cd .w320/cadical && ./configure && make -j2)
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git .w320/drat-trim
+          make -C .w320/drat-trim -j2
+          .w320/cadical/build/cadical --version | tee .w320/cadical-version.txt
+
+      - name: Solve grandchild and emit DRAT
+        id: solve
+        run: |
+          set +e
+          /usr/bin/time -v timeout 18000 .w320/cadical/build/cadical \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.cnf \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.drat \
+            > .w320/cadical.log 2>&1
+          status=$?
+          set -e
+          echo "$status" | tee .w320/solver-status.txt
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          tail -n 120 .w320/cadical.log
+
+      - name: Convert and independently verify LRAT
+        if: steps.solve.outputs.status == '20'
+        run: |
+          set -euo pipefail
+          .w320/drat-trim/drat-trim \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.cnf \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.drat \
+            -L .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.lrat \
+            | tee .w320/drat-trim.log
+          test -s .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.lrat
+          sha256sum \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.cnf \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.drat \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.lrat \
+            | tee .w320/certificate-sha256.txt
+
+      - name: Compress verified certificates
+        if: steps.solve.outputs.status == '20'
+        run: |
+          zstd -T0 -10 --rm \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.drat
+          zstd -T0 -10 --rm \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.lrat
+
+      - name: Record result
+        if: always()
+        run: |
+          find .w320 -maxdepth 1 -type f -printf '%f %s bytes\n' \
+            | sort | tee .w320/sizes.txt
+
+      - name: Upload grandchild certificate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: w320-cube-${{ matrix.parent }}-${{ matrix.child }}
+          path: |
+            .w320/*metadata.txt
+            .w320/*sha256.txt
+            .w320/*status.txt
+            .w320/*version.txt
+            .w320/*.log
+            .w320/*.zst
+            .w320/sizes.txt
+          compression-level: 0
+          retention-days: 30
+
+      - name: Require verified UNSAT
+        if: always()
+        run: |
+          test "$(cat .w320/solver-status.txt)" -eq 20
+          test -f \
+            .w320/cube-${{ matrix.parent }}-${{ matrix.child }}.lrat.zst
