@@ -154,14 +154,14 @@ theorem a100434_auxiliary_identities (n : ℕ) :
     simp only [cAbs] at h1
     simp_all [c, d, e, f, g, h, b, pow_succ]
     constructor
-    · ring
-    constructor <;> ring
+    · nlinarith [h0, h1]
+    constructor <;> nlinarith [h0, h1]
   · have h0 := two_mul_dHalfAbs (2 * k)
     have h1 := two_mul_dHalfAbs (2 * k + 1)
     simp only [cAbs] at h1
     simp_all [c, d, e, f, g, h, b, pow_succ]
     constructor
-    · ring
-    constructor <;> ring
+    · nlinarith [h0, h1]
+    constructor <;> nlinarith [h0, h1]
 
 end OeisA100434
