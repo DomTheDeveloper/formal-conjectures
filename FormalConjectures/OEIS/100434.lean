@@ -152,32 +152,69 @@ theorem a100434_auxiliary_identities (n : ℕ) :
   · have h0 := two_mul_dHalfAbs (2 * k)
     have h1 := two_mul_dHalfAbs (2 * k + 1)
     simp only [cAbs] at h1
-    have hsum : dHalfAbs (2 * k) + dHalfAbs (2 * k + 1) = cAbs (2 * k + 1) := by
+    have hsum :
+        dHalfAbs (2 * k) + dHalfAbs (2 * k + 1) = cAbs (2 * k + 1) := by
       linarith
-    have hdiff : dHalfAbs (2 * k + 1) - dHalfAbs (2 * k) = cAbs (2 * k) := by
+    have hdiff :
+        dHalfAbs (2 * k + 1) - dHalfAbs (2 * k) = cAbs (2 * k) := by
       linarith
+    have hcd :
+        (-1 : ℤ) ^ k * cAbs (2 * k) +
+            2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k)) =
+          (-1 : ℤ) ^ k * dHalfAbs (2 * k) +
+            (-1 : ℤ) ^ k * dHalfAbs (2 * k + 1) := by
+      rw [← hdiff]
+      ring
+    have hef :
+        (-1 : ℤ) ^ k * dHalfAbs (2 * k) +
+            (-1 : ℤ) ^ k * dHalfAbs (2 * k + 1) =
+          (-1 : ℤ) ^ k * cAbs (2 * k + 1) := by
+      rw [← hsum]
+      ring
+    have hcb :
+        (-1 : ℤ) ^ k * cAbs (2 * k) +
+            2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k)) =
+          (-1 : ℤ) ^ k * cAbs (2 * k + 1) := by
+      rw [← hdiff, ← hsum]
+      ring
     constructor
-    · simp [c, d, e, f, g, h, b, pow_succ]
-      linear_combination -((-1 : ℤ) ^ k) * hdiff
+    · simpa [c, d, e, f, g, h, b, pow_succ] using hcd
     constructor
-    · simp [c, d, e, f, g, h, b, pow_succ]
-      linear_combination ((-1 : ℤ) ^ k) * hsum
-    · simp [c, d, e, f, g, h, b, pow_succ]
-      linear_combination ((-1 : ℤ) ^ k) * hsum - ((-1 : ℤ) ^ k) * hdiff
+    · simpa [c, d, e, f, g, h, b, pow_succ] using hef
+    · simpa [c, d, e, f, g, h, b, pow_succ] using hcb
   · have h0 := two_mul_dHalfAbs (2 * k)
     have h1 := two_mul_dHalfAbs (2 * k + 1)
     simp only [cAbs] at h1
-    have hsum : dHalfAbs (2 * k) + dHalfAbs (2 * k + 1) = cAbs (2 * k + 1) := by
+    have hsum :
+        dHalfAbs (2 * k) + dHalfAbs (2 * k + 1) = cAbs (2 * k + 1) := by
       linarith
-    have hdiff : dHalfAbs (2 * k + 1) - dHalfAbs (2 * k) = cAbs (2 * k) := by
+    have hdiff :
+        dHalfAbs (2 * k + 1) - dHalfAbs (2 * k) = cAbs (2 * k) := by
       linarith
+    have hcd :
+        -((-1 : ℤ) ^ k * cAbs (2 * k + 1)) +
+            2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k + 1)) =
+          -((-1 : ℤ) ^ k * dHalfAbs (2 * k)) +
+            (-1 : ℤ) ^ k * dHalfAbs (2 * k + 1) := by
+      rw [← hsum]
+      ring
+    have hef :
+        -((-1 : ℤ) ^ k * dHalfAbs (2 * k)) +
+            (-1 : ℤ) ^ k * dHalfAbs (2 * k + 1) =
+          -((-1 : ℤ) ^ k * cAbs (2 * k + 1)) +
+            2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k + 1)) := by
+      rw [← hsum]
+      ring
+    have hcb :
+        -((-1 : ℤ) ^ k * cAbs (2 * k + 1)) +
+            2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k + 1)) =
+          (-1 : ℤ) ^ k * cAbs (2 * k) := by
+      rw [← hsum, ← hdiff]
+      ring
     constructor
-    · simp [c, d, e, f, g, h, b, pow_succ]
-      linear_combination ((-1 : ℤ) ^ k) * hsum
+    · simpa [c, d, e, f, g, h, b, pow_succ] using hcd
     constructor
-    · simp [c, d, e, f, g, h, b, pow_succ]
-      linear_combination -((-1 : ℤ) ^ k) * hsum
-    · simp [c, d, e, f, g, h, b, pow_succ]
-      linear_combination ((-1 : ℤ) ^ k) * hsum + ((-1 : ℤ) ^ k) * hdiff
+    · simpa [c, d, e, f, g, h, b, pow_succ] using hef
+    · simpa [c, d, e, f, g, h, b, pow_succ] using hcb
 
 end OeisA100434
