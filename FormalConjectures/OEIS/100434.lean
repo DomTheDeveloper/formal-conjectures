@@ -156,7 +156,17 @@ theorem a100434_auxiliary_identities (n : ℕ) :
       linarith
     have hdiff : dHalfAbs (2 * k + 1) - dHalfAbs (2 * k) = cAbs (2 * k) := by
       linarith
-    simp_all [c, d, e, f, g, h, b, pow_succ]
+    constructor
+    · simp [c, d, e, f, g, h, b, pow_succ]
+      rw [← hdiff]
+      ring
+    constructor
+    · simp [c, d, e, f, g, h, b, pow_succ]
+      rw [← hsum]
+      ring
+    · simp [c, d, e, f, g, h, b, pow_succ]
+      rw [← hsum, ← hdiff]
+      ring
   · have h0 := two_mul_dHalfAbs (2 * k)
     have h1 := two_mul_dHalfAbs (2 * k + 1)
     simp only [cAbs] at h1
@@ -164,6 +174,16 @@ theorem a100434_auxiliary_identities (n : ℕ) :
       linarith
     have hdiff : dHalfAbs (2 * k + 1) - dHalfAbs (2 * k) = cAbs (2 * k) := by
       linarith
-    simp_all [c, d, e, f, g, h, b, pow_succ]
+    constructor
+    · simp [c, d, e, f, g, h, b, pow_succ]
+      rw [← hsum]
+      ring
+    constructor
+    · simp [c, d, e, f, g, h, b, pow_succ]
+      rw [← hsum]
+      ring
+    · simp [c, d, e, f, g, h, b, pow_succ]
+      rw [← hsum, ← hdiff]
+      ring
 
 end OeisA100434
