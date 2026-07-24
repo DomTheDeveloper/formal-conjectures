@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'FormalConjectures/GreensOpenProblems/Green14UpperOrderBridge.lean'
+      - 'FormalConjectures/GreensOpenProblems/Green14PositiveCertificateBridge.lean'
       - '.github/workflows/w320-upper-bridge-audit.yml'
   workflow_dispatch:
 
@@ -29,19 +30,23 @@ jobs:
           "$HOME/.elan/bin/lake" exe cache unpack || true
           "$HOME/.elan/bin/lake" exe cache get
 
-      - name: Build upper-order bridge
+      - name: Build upper-bound bridges
         run: |
           set -o pipefail
           "$HOME/.elan/bin/lake" build \
             FormalConjectures.GreensOpenProblems.Green14UpperOrderBridge \
+            FormalConjectures.GreensOpenProblems.Green14PositiveCertificateBridge \
             2>&1 | tee "$RUNNER_TEMP/w320-upper-build.log"
 
       - name: Audit axioms
         run: |
           cat > "$RUNNER_TEMP/W320UpperAxioms.lean" <<'EOF'
           import FormalConjectures.GreensOpenProblems.Green14UpperOrderBridge
+          import FormalConjectures.GreensOpenProblems.Green14PositiveCertificateBridge
           #print axioms Green14.W_le_of_mem
           #print axioms Green14.W_3_20_eq_389_of_mem
+          #print axioms Green14.PositiveCertificateBridge.exists_monoAP_of_hasAP_eq_true
+          #print axioms Green14.PositiveCertificateBridge.mem_mixed_of_direct_checks
           EOF
           set -o pipefail
           "$HOME/.elan/bin/lake" env lean "$RUNNER_TEMP/W320UpperAxioms.lean" \
