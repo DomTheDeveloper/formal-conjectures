@@ -21,6 +21,11 @@ import FormalConjectures.Other.BeaverMathOlympiad
 
 A finite Lean certificate for the positive answer to BMO #8. The recurrence reaches
 `(1_749_056, 3_498_111)` at zero-based index `1_210_682`.
+
+Solved and formalized by Dominic Dabish.
+ProofOrchestrator, using OpenAI GPT-5.6 Thinking, assisted with the mathematical argument,
+Lean formalization, and submission preparation; all formal claims were checked by the pinned
+Lean compiler.
 -/
 
 namespace BeaverMathOlympiad
