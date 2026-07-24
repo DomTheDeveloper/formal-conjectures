@@ -12,6 +12,9 @@ on:
       - 'FormalConjectures/GreensOpenProblems/Green14NestedCubeCover.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14LRATKernelConversion.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14LRATKernelChecker.lean'
+      - 'FormalConjectures/GreensOpenProblems/Green14LRATImport.lean'
+      - 'FormalConjectures/GreensOpenProblems/Green14LRATImportSmoke.lean'
+      - 'certificates/w320/tiny.lrat'
       - 'scripts/w320/export_lean_cnf.lean'
       - 'scripts/w320/generate_cnf.py'
       - '.github/workflows/w320-upper-bridge-audit.yml'
@@ -38,7 +41,7 @@ jobs:
           "$HOME/.elan/bin/lake" exe cache unpack || true
           "$HOME/.elan/bin/lake" exe cache get
 
-      - name: Build semantic and kernel LRAT modules
+      - name: Build semantic, checker, and importer modules
         run: |
           set -o pipefail
           "$HOME/.elan/bin/lake" build \
@@ -49,6 +52,8 @@ jobs:
             FormalConjectures.GreensOpenProblems.Green14NestedCubeCover \
             FormalConjectures.GreensOpenProblems.Green14LRATKernelConversion \
             FormalConjectures.GreensOpenProblems.Green14LRATKernelChecker \
+            FormalConjectures.GreensOpenProblems.Green14LRATImport \
+            FormalConjectures.GreensOpenProblems.Green14LRATImportSmoke \
             2>&1 | tee "$RUNNER_TEMP/w320-upper-build.log"
 
       - name: Verify Lean and Python CNFs are byte-identical
@@ -68,7 +73,7 @@ jobs:
         run: |
           cat > "$RUNNER_TEMP/W320UpperAxioms.lean" <<'EOF'
           import FormalConjectures.GreensOpenProblems.Green14NestedCubeCover
-          import FormalConjectures.GreensOpenProblems.Green14LRATKernelChecker
+          import FormalConjectures.GreensOpenProblems.Green14LRATImportSmoke
           #print axioms Green14.W_le_of_mem
           #print axioms Green14.W_3_20_eq_389_of_mem
           #print axioms Green14.PositiveCertificateBridge.exists_monoAP_of_hasAP_eq_true
@@ -79,6 +84,7 @@ jobs:
           #print axioms Green14.NestedCubeCover.cubeCNF_unsat_of_all_children
           #print axioms Green14.LRATKernelV2.unsat_of_convertK_unsat
           #print axioms Green14.LRATKernelV2.checkKernel_sound
+          #print axioms Green14.LRATImportSmoke.tinyCNF_unsat
           EOF
           set -o pipefail
           "$HOME/.elan/bin/lake" env lean "$RUNNER_TEMP/W320UpperAxioms.lean" \
