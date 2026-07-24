@@ -19,10 +19,10 @@ import FormalConjectures.GreensOpenProblems.Green14CNFEncoding
 /-!
 # Certified cube coverage for the `W(3,20)` upper bound
 
-The external proof search fixes DIMACS variables `193, ..., 198`.  The Lean CNF
-is zero-based, so these are variables `192, ..., 197`.  This file proves that
+The external proof search fixes DIMACS variables `193, ..., 198`. The Lean CNF
+is zero-based, so these are variables `192, ..., 197`. This file proves that
 refuting every Boolean assignment to those six variables refutes the unrestricted
-formula.  No symmetry or heuristic assumption is involved: the cubes are the
+formula. No symmetry or heuristic assumption is involved: the cubes are the
 complete assignment space `Fin 6 → Bool`.
 -/
 
@@ -32,7 +32,8 @@ open Green14.CNFEncoding
 
 /-- Unit clauses fixing the six central variables according to a cube. -/
 def cubeUnits (bits : Fin 6 → Bool) : Std.Sat.CNF Nat :=
-  { clauses := Array.ofFn fun j : Fin 6 => [[(192 + j.1, bits j)]] }
+  [[(192, bits 0)], [(193, bits 1)], [(194, bits 2)],
+   [(195, bits 3)], [(196, bits 4)], [(197, bits 5)]]
 
 /-- The exact base instance with one complete six-variable cube appended. -/
 def cubeCNF (bits : Fin 6 → Bool) : Std.Sat.CNF Nat :=
@@ -55,12 +56,12 @@ theorem w320CNF_unsat_of_all_cubes
   | false => exact hbase
   | true =>
       let bits : Fin 6 → Bool := fun j => assignment (192 + j.1)
-      have hcube := hcubes bits assignment
-      rw [cubeCNF, Std.Sat.CNF.eval_append, hbase] at hcube
       have hunits : Std.Sat.CNF.eval assignment (cubeUnits bits) = true := by
         simpa [bits] using eval_cubeUnits_self assignment
-      rw [hunits] at hcube
-      contradiction
+      have hcube := hcubes bits assignment
+      have hfalse : False := by
+        simpa [cubeCNF, Std.Sat.CNF.eval_append, hbase, hunits] using hcube
+      exact hfalse.elim
 
 /-- Refuting every six-variable cube proves the exact catalog value. -/
 theorem W_3_20_eq_389_of_all_cubes
