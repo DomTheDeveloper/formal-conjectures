@@ -1,0 +1,65 @@
+name: A100434 push audit
+
+on:
+  push:
+    branches: [audit/a100434-exact-ci]
+    paths:
+      - '.github/workflows/a100434-push-audit.yml'
+      - '.github/a100434-audit-trigger'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: DomTheDeveloper/formal-conjectures
+          ref: 39dd7e1a393510e89469a4365aceec13f704e839
+          fetch-depth: 1
+      - name: Install Lean
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: a100434-push-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: a100434-push-${{ runner.os }}-${{ runner.arch }}-
+      - name: Get Mathlib cache
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            lake exe cache get && exit 0
+            sleep 10
+          done
+          exit 1
+      - name: Build utility and compile proof
+        run: |
+          set -o pipefail
+          lake build FormalConjecturesUtil 2>&1 | tee /tmp/a100434-dependency.log
+          lake env lean FormalConjectures/OEIS/100434.lean 2>&1 | tee /tmp/a100434-compile.log
+      - name: Audit theorem axioms
+        if: success()
+        run: |
+          cat > /tmp/A100434Axioms.lean <<'EOF'
+          import FormalConjectures.OEIS.«100434»
+          #print axioms OeisA100434.a100434_auxiliary_identities
+          EOF
+          lake env lean /tmp/A100434Axioms.lean 2>&1 | tee /tmp/a100434-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/a100434-axioms.log
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a100434-push-${{ github.run_id }}
+          path: |
+            /tmp/a100434-dependency.log
+            /tmp/a100434-compile.log
+            /tmp/a100434-axioms.log
+          if-no-files-found: warn
