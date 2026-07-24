@@ -43,6 +43,8 @@ jobs:
             sleep 10
           done
           exit 1
+      - name: Build local utility dependency
+        run: lake build FormalConjecturesUtil
       - name: Compile exact proof
         run: |
           set -o pipefail
