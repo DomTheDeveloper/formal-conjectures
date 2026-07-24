@@ -1,4 +1,4 @@
-name: W320 upper bridge audit
+name: W320 upper bridge and LRAT kernel audit
 
 on:
   pull_request:
@@ -9,6 +9,7 @@ on:
       - 'FormalConjectures/GreensOpenProblems/Green14CNFEncoding.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14CubeCover.lean'
       - 'FormalConjectures/GreensOpenProblems/Green14NestedCubeCover.lean'
+      - 'FormalConjectures/GreensOpenProblems/Green14LRATKernel.lean'
       - 'scripts/w320/export_lean_cnf.lean'
       - 'scripts/w320/generate_cnf.py'
       - '.github/workflows/w320-upper-bridge-audit.yml'
@@ -35,7 +36,7 @@ jobs:
           "$HOME/.elan/bin/lake" exe cache unpack || true
           "$HOME/.elan/bin/lake" exe cache get
 
-      - name: Build exact upper-bound modules
+      - name: Build exact upper-bound and LRAT modules
         run: |
           set -o pipefail
           "$HOME/.elan/bin/lake" build \
@@ -44,6 +45,7 @@ jobs:
             FormalConjectures.GreensOpenProblems.Green14CNFEncoding \
             FormalConjectures.GreensOpenProblems.Green14CubeCover \
             FormalConjectures.GreensOpenProblems.Green14NestedCubeCover \
+            FormalConjectures.GreensOpenProblems.Green14LRATKernel \
             2>&1 | tee "$RUNNER_TEMP/w320-upper-build.log"
 
       - name: Verify Lean and Python CNFs are byte-identical
@@ -63,16 +65,16 @@ jobs:
         run: |
           cat > "$RUNNER_TEMP/W320UpperAxioms.lean" <<'EOF'
           import FormalConjectures.GreensOpenProblems.Green14NestedCubeCover
+          import FormalConjectures.GreensOpenProblems.Green14LRATKernel
           #print axioms Green14.W_le_of_mem
           #print axioms Green14.W_3_20_eq_389_of_mem
           #print axioms Green14.PositiveCertificateBridge.exists_monoAP_of_hasAP_eq_true
           #print axioms Green14.PositiveCertificateBridge.mem_mixed_of_direct_checks
           #print axioms Green14.CNFEncoding.eval_apAvoidanceCNF_eq_true
-          #print axioms Green14.CNFEncoding.direct_checks_complete_of_w320CNF_unsat
           #print axioms Green14.CNFEncoding.W_3_20_eq_389_of_w320CNF_unsat
           #print axioms Green14.CubeCover.w320CNF_unsat_of_all_cubes
-          #print axioms Green14.CubeCover.W_3_20_eq_389_of_all_cubes
           #print axioms Green14.NestedCubeCover.cubeCNF_unsat_of_all_children
+          #print axioms Green14.LRATKernel.checkKernel_sound
           EOF
           set -o pipefail
           "$HOME/.elan/bin/lake" env lean "$RUNNER_TEMP/W320UpperAxioms.lean" \
@@ -84,7 +86,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: w320-upper-bridge-${{ github.run_id }}
+          name: w320-upper-lrat-${{ github.run_id }}
           path: |
             ${{ runner.temp }}/w320-upper-build.log
             ${{ runner.temp }}/w320-upper-axioms.log
