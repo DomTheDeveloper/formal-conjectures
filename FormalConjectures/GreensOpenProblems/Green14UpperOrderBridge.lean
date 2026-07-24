@@ -20,7 +20,7 @@ import FormalConjectures.GreensOpenProblems.Green14FastKernel20
 # Upper-order bridge for Green14
 
 The computational upper-bound certificate only has to establish that `389`
-belongs to the mixed monochromatic arithmetic-progression guarantee set.  This
+belongs to the mixed monochromatic arithmetic-progression guarantee set. This
 file converts that semantic fact into the numerical upper bound and combines it
 with the existing kernel-checked lower-bound certificate.
 -/
@@ -32,7 +32,7 @@ for the least guaranteed interval length. -/
 theorem W_le_of_mem {k r N : ℕ}
     (hN : N ∈ mixedMonoAPGuaranteeSet k r) : W k r ≤ N := by
   rw [W]
-  exact csInf_le hN
+  exact Nat.sInf_le hN
 
 /-- The final exact value follows as soon as the upper-bound certificate proves
 that every coloring of `{1, ..., 389}` has the required progression. -/
