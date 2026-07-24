@@ -3,6 +3,10 @@ name: W320 release obsolete runners
 on:
   push:
     branches: [agent/w320-great-grandchildren]
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/w320-release-runners.yml'
   workflow_dispatch:
 
 permissions:
@@ -20,10 +24,8 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          # 30106990655: first-level matrix; all non-hard leaves are complete,
-          # and masks 11, 14, 25 have been exhaustively split on newer runs.
-          # 30110101155: redundant inherited first-level matrix on the deep PR.
-          # 30106774260: superseded monolithic solve.
+          # The remaining masks 11, 14, and 25 have been exhaustively split.
+          # Completed leaf artifacts from the first-level run are retained.
           for run_id in 30106990655 30110101155 30106774260; do
             code=$(curl -sS -o "response-${run_id}.txt" -w '%{http_code}' \
               -X POST \
@@ -33,6 +35,5 @@ jobs:
               "https://api.github.com/repos/${REPOSITORY}/actions/runs/${run_id}/cancel")
             echo "run=${run_id} http=${code}"
             cat "response-${run_id}.txt" || true
-            # 202 = cancellation accepted; 409 = already completed/cancelled.
             test "$code" = 202 -o "$code" = 409
           done
