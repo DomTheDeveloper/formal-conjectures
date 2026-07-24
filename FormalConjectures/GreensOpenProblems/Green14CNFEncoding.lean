@@ -21,12 +21,12 @@ import Std.Tactic.BVDecide.LRAT
 /-!
 # Exact CNF encoding for `W(3,20) ≤ 389`
 
-Variables are zero-based in Lean.  Variable `i` is the color of the catalog
-point `i + 1`.  Lean's LRAT converter increments variable numbers when it emits
+Variables are zero-based in Lean. Variable `i` is the color of the catalog
+point `i + 1`. Lean's LRAT converter increments variable numbers when it emits
 DIMACS, so this definition corresponds exactly to DIMACS variables `1, ..., N`.
 
 For every `k`-term progression and target color `color`, the generated clause
-contains literals with polarity `!color`.  It is satisfied exactly when at least
+contains literals with polarity `!color`. It is satisfied exactly when at least
 one term of the progression has the opposite color.
 -/
 
@@ -86,10 +86,9 @@ theorem eval_apAvoidanceCNF_eq_true
   obtain ⟨i, hi, hmismatch⟩ :=
     exists_mismatch_of_hasAP_eq_false hk hcheck haN hdpos hend
   rw [Std.Sat.CNF.Clause.eval]
-  apply List.any_of_mem
-  · simpa using hi
-  · have hopposite : coloring (a + i * d) = !color := opposite_of_ne hmismatch
-    simp [d, hopposite]
+  apply List.any_of_mem (by simpa using hi)
+  have hopposite : coloring (a + i * d) = !color := opposite_of_ne hmismatch
+  simp [d, hopposite]
 
 /-- If both direct AP checkers are negative, the complete `W(3,20)` CNF is
 satisfied by the coloring. -/
