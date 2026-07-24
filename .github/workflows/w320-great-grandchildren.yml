@@ -1,0 +1,163 @@
+name: W320 great-grandchild certificates
+
+on:
+  push:
+    branches: [agent/w320-great-grandchildren]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: w320-great-grandchildren-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  release-obsolete-runners:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - name: Cancel superseded searches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          for run_id in 30106990655 30110101155 30106774260; do
+            code=$(curl -sS -o "response-${run_id}.txt" -w '%{http_code}' \
+              -X POST \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${REPOSITORY}/actions/runs/${run_id}/cancel")
+            echo "run=${run_id} http=${code}"
+            cat "response-${run_id}.txt" || true
+            test "$code" = 202 -o "$code" = 409
+          done
+
+  certify-great-grandchild:
+    needs: release-obsolete-runners
+    name: cube-${{ matrix.pair }}-${{ matrix.third }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        pair: ['11-4', '11-5', '11-6', '11-7', '14-2', '14-3', '14-4', '14-5', '14-6', '14-7', '25-5', '25-7']
+        third: [0, 1, 2, 3, 4, 5, 6, 7]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate exact three-level cube
+        id: cube
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .w320
+          IFS=- read -r parent child <<< '${{ matrix.pair }}'
+          echo "parent=$parent" >> "$GITHUB_OUTPUT"
+          echo "child=$child" >> "$GITHUB_OUTPUT"
+          python3 scripts/w320/generate_cnf.py --output .w320/base.cnf \
+            | tee .w320/base-metadata.txt
+          python3 scripts/w320/add_cube.py \
+            --input .w320/base.cnf \
+            --output .w320/parent.cnf \
+            --mask "$parent" \
+            --vars 193 194 195 196 197 198 \
+            | tee .w320/parent-metadata.txt
+          python3 scripts/w320/add_cube.py \
+            --input .w320/parent.cnf \
+            --output .w320/grandchild.cnf \
+            --mask "$child" \
+            --vars 190 191 192 \
+            | tee .w320/child-metadata.txt
+          python3 scripts/w320/add_cube.py \
+            --input .w320/grandchild.cnf \
+            --output .w320/cube-${parent}-${child}-${{ matrix.third }}.cnf \
+            --mask ${{ matrix.third }} \
+            --vars 199 200 201 \
+            | tee .w320/third-metadata.txt
+          grep -q '^p cnf 389 41438$' \
+            .w320/cube-${parent}-${child}-${{ matrix.third }}.cnf
+          sha256sum .w320/base.cnf .w320/parent.cnf .w320/grandchild.cnf \
+            .w320/cube-${parent}-${child}-${{ matrix.third }}.cnf \
+            | tee .w320/input-sha256.txt
+
+      - name: Build proof-producing tools
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/arminbiere/cadical.git .w320/cadical
+          (cd .w320/cadical && ./configure && make -j2)
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git .w320/drat-trim
+          make -C .w320/drat-trim -j2
+          .w320/cadical/build/cadical --version | tee .w320/cadical-version.txt
+
+      - name: Solve and emit DRAT
+        id: solve
+        shell: bash
+        run: |
+          set +e
+          parent='${{ steps.cube.outputs.parent }}'
+          child='${{ steps.cube.outputs.child }}'
+          stem="cube-${parent}-${child}-${{ matrix.third }}"
+          /usr/bin/time -v timeout 18000 .w320/cadical/build/cadical \
+            ".w320/${stem}.cnf" ".w320/${stem}.drat" \
+            > .w320/cadical.log 2>&1
+          status=$?
+          set -e
+          echo "$status" | tee .w320/solver-status.txt
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          tail -n 120 .w320/cadical.log
+
+      - name: Convert and independently verify LRAT
+        if: steps.solve.outputs.status == '20'
+        shell: bash
+        run: |
+          set -euo pipefail
+          parent='${{ steps.cube.outputs.parent }}'
+          child='${{ steps.cube.outputs.child }}'
+          stem="cube-${parent}-${child}-${{ matrix.third }}"
+          .w320/drat-trim/drat-trim ".w320/${stem}.cnf" ".w320/${stem}.drat" \
+            -L ".w320/${stem}.lrat" | tee .w320/drat-trim.log
+          test -s ".w320/${stem}.lrat"
+          sha256sum ".w320/${stem}.cnf" ".w320/${stem}.drat" \
+            ".w320/${stem}.lrat" | tee .w320/certificate-sha256.txt
+          zstd -T0 -10 --rm ".w320/${stem}.drat"
+          zstd -T0 -10 --rm ".w320/${stem}.lrat"
+
+      - name: Record result
+        if: always()
+        run: |
+          find .w320 -maxdepth 1 -type f -printf '%f %s bytes\n' \
+            | sort | tee .w320/sizes.txt
+
+      - name: Upload certificate artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: w320-cube-${{ matrix.pair }}-${{ matrix.third }}
+          path: |
+            .w320/*metadata.txt
+            .w320/*sha256.txt
+            .w320/*status.txt
+            .w320/*version.txt
+            .w320/*.log
+            .w320/*.zst
+            .w320/sizes.txt
+          compression-level: 0
+          retention-days: 30
+
+      - name: Require verified UNSAT
+        if: always()
+        shell: bash
+        run: |
+          parent='${{ steps.cube.outputs.parent }}'
+          child='${{ steps.cube.outputs.child }}'
+          stem="cube-${parent}-${child}-${{ matrix.third }}"
+          test "$(cat .w320/solver-status.txt)" -eq 20
+          test -f ".w320/${stem}.lrat.zst"

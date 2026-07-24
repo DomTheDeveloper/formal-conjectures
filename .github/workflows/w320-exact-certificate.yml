@@ -1,0 +1,91 @@
+name: W320 exact certificate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-and-solve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate exact CNF
+        run: |
+          mkdir -p .w320
+          python3 scripts/w320/generate_cnf.py --output .w320/w320_389.cnf | tee .w320/cnf-metadata.txt
+          head -n 1 .w320/w320_389.cnf
+          grep -q '^p cnf 389 41426$' .w320/w320_389.cnf
+
+      - name: Build CaDiCaL
+        run: |
+          git clone --depth 1 https://github.com/arminbiere/cadical.git .w320/cadical
+          cd .w320/cadical
+          ./configure
+          make -j2
+          build/cadical --version
+
+      - name: Build drat-trim
+        run: |
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git .w320/drat-trim
+          make -C .w320/drat-trim -j2
+
+      - name: Verify proof-output syntax on a tiny UNSAT instance
+        run: |
+          cat > .w320/tiny.cnf <<'EOF'
+          p cnf 1 2
+          1 0
+          -1 0
+          EOF
+          set +e
+          .w320/cadical/build/cadical .w320/tiny.cnf .w320/tiny.drat > .w320/tiny.log 2>&1
+          status=$?
+          set -e
+          test "$status" -eq 20
+          test -s .w320/tiny.drat
+          .w320/drat-trim/drat-trim .w320/tiny.cnf .w320/tiny.drat -L .w320/tiny.lrat
+          test -s .w320/tiny.lrat
+
+      - name: Solve unrestricted instance and emit DRAT
+        run: |
+          set +e
+          /usr/bin/time -v timeout 20500 .w320/cadical/build/cadical \
+            .w320/w320_389.cnf .w320/w320_389.drat \
+            2>&1 | tee .w320/cadical.log
+          status=${PIPESTATUS[0]}
+          set -e
+          echo "solver_status=$status" | tee .w320/status.txt
+          test "$status" -eq 20
+          test -s .w320/w320_389.drat
+
+      - name: Convert DRAT to LRAT and verify
+        run: |
+          .w320/drat-trim/drat-trim .w320/w320_389.cnf .w320/w320_389.drat \
+            -L .w320/w320_389.lrat | tee .w320/drat-trim.log
+          test -s .w320/w320_389.lrat
+          sha256sum .w320/w320_389.cnf .w320/w320_389.drat .w320/w320_389.lrat \
+            | tee .w320/sha256sums.txt
+
+      - name: Compress certificates
+        if: always()
+        run: |
+          find .w320 -maxdepth 1 -type f -printf '%f %s bytes\n' | sort | tee .w320/sizes.txt
+          test ! -f .w320/w320_389.drat || zstd -T0 -19 --rm .w320/w320_389.drat
+          test ! -f .w320/w320_389.lrat || zstd -T0 -19 --rm .w320/w320_389.lrat
+
+      - name: Upload logs and certificates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: w320-exact-certificate
+          path: |
+            .w320/*.txt
+            .w320/*.log
+            .w320/*.cnf
+            .w320/*.lrat
+            .w320/*.zst
+          compression-level: 0
+          retention-days: 30
