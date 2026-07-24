@@ -152,40 +152,32 @@ theorem a100434_auxiliary_identities (n : ℕ) :
   · have h0 := two_mul_dHalfAbs (2 * k)
     have h1 := two_mul_dHalfAbs (2 * k + 1)
     simp only [cAbs] at h1
-    -- These sum and difference identities remove the recurrence terms before sign algebra.
     have hsum : dHalfAbs (2 * k) + dHalfAbs (2 * k + 1) = cAbs (2 * k + 1) := by
       linarith
     have hdiff : dHalfAbs (2 * k + 1) - dHalfAbs (2 * k) = cAbs (2 * k) := by
       linarith
     constructor
     · simp [c, d, e, f, g, h, b, pow_succ]
-      rw [← hdiff]
-      ring
+      linear_combination -((-1 : ℤ) ^ k) * hdiff
     constructor
     · simp [c, d, e, f, g, h, b, pow_succ]
-      rw [← hsum]
-      ring
+      linear_combination ((-1 : ℤ) ^ k) * hsum
     · simp [c, d, e, f, g, h, b, pow_succ]
-      rw [← hsum, ← hdiff]
-      ring
+      linear_combination ((-1 : ℤ) ^ k) * hsum - ((-1 : ℤ) ^ k) * hdiff
   · have h0 := two_mul_dHalfAbs (2 * k)
     have h1 := two_mul_dHalfAbs (2 * k + 1)
     simp only [cAbs] at h1
-    -- The same unsigned Pell identities govern the odd-indexed branch.
     have hsum : dHalfAbs (2 * k) + dHalfAbs (2 * k + 1) = cAbs (2 * k + 1) := by
       linarith
     have hdiff : dHalfAbs (2 * k + 1) - dHalfAbs (2 * k) = cAbs (2 * k) := by
       linarith
     constructor
     · simp [c, d, e, f, g, h, b, pow_succ]
-      rw [← hsum]
-      ring
+      linear_combination ((-1 : ℤ) ^ k) * hsum
     constructor
     · simp [c, d, e, f, g, h, b, pow_succ]
-      rw [← hsum]
-      ring
+      linear_combination -((-1 : ℤ) ^ k) * hsum
     · simp [c, d, e, f, g, h, b, pow_succ]
-      rw [← hsum, ← hdiff]
-      ring
+      linear_combination ((-1 : ℤ) ^ k) * hsum + ((-1 : ℤ) ^ k) * hdiff
 
 end OeisA100434
