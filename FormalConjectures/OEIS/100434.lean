@@ -158,30 +158,56 @@ theorem a100434_auxiliary_identities (n : ℕ) :
     have hdiff :
         dHalfAbs (2 * k + 1) - dHalfAbs (2 * k) = cAbs (2 * k) := by
       linarith
-    have hcd :
-        (-1 : ℤ) ^ k * cAbs (2 * k) +
-            2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k)) =
-          (-1 : ℤ) ^ k * dHalfAbs (2 * k) +
-            (-1 : ℤ) ^ k * dHalfAbs (2 * k + 1) := by
+    have hc0 :
+        c (2 * k) = (-1 : ℤ) ^ k * cAbs (2 * k) := by
+      change (-1 : ℤ) ^ ((2 * k + 1) / 2) * cAbs (2 * k) =
+        (-1 : ℤ) ^ k * cAbs (2 * k)
+      rw [show (2 * k + 1) / 2 = k by omega]
+    have hc1 :
+        c (2 * k + 1) = -((-1 : ℤ) ^ k * cAbs (2 * k + 1)) := by
+      change (-1 : ℤ) ^ ((2 * k + 1 + 1) / 2) * cAbs (2 * k + 1) =
+        -((-1 : ℤ) ^ k * cAbs (2 * k + 1))
+      rw [show (2 * k + 1 + 1) / 2 = k + 1 by omega, pow_succ]
+      ring
+    have hd0 :
+        d (2 * k) = 2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k)) := by
+      change 2 * ((-1 : ℤ) ^ ((2 * k) / 2) * dHalfAbs (2 * k)) =
+        2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k))
+      rw [show (2 * k) / 2 = k by omega]
+    have hd1 :
+        d (2 * k + 1) = 2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k + 1)) := by
+      change 2 * ((-1 : ℤ) ^ ((2 * k + 1) / 2) * dHalfAbs (2 * k + 1)) =
+        2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k + 1))
+      rw [show (2 * k + 1) / 2 = k by omega]
+    have he0 :
+        e (2 * k) = (-1 : ℤ) ^ k * dHalfAbs (2 * k) := by
+      rw [e, if_pos (by omega), hd0]
+      simp
+    have hf0 :
+        f (2 * k) = (-1 : ℤ) ^ k * dHalfAbs (2 * k + 1) := by
+      rw [f, if_pos (by omega), hd1]
+      simp
+    have hg0 : g (2 * k) = 0 := by
+      rw [g, if_pos (by omega)]
+    have hh0 :
+        h (2 * k) = (-1 : ℤ) ^ k * cAbs (2 * k + 1) := by
+      rw [h, if_pos (by omega), hc1]
+      ring
+    have hb0 :
+        b (2 * k) = -((-1 : ℤ) ^ k * cAbs (2 * k + 1)) := by
+      rw [b, if_pos (by omega), hc1]
+    have hp0 : (-1 : ℤ) ^ (2 * k + 1) = -1 := by
+      rw [pow_succ, pow_mul]
+      norm_num
+    constructor
+    · rw [hc0, hd0, he0, hf0]
       rw [← hdiff]
       ring
-    have hef :
-        (-1 : ℤ) ^ k * dHalfAbs (2 * k) +
-            (-1 : ℤ) ^ k * dHalfAbs (2 * k + 1) =
-          (-1 : ℤ) ^ k * cAbs (2 * k + 1) := by
-      rw [← hsum]
-      ring
-    have hcb :
-        (-1 : ℤ) ^ k * cAbs (2 * k) +
-            2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k)) =
-          (-1 : ℤ) ^ k * cAbs (2 * k + 1) := by
-      rw [← hdiff, ← hsum]
-      ring
     constructor
-    · simpa [c, d, e, f, g, h, b, pow_succ] using hcd
-    constructor
-    · simpa [c, d, e, f, g, h, b, pow_succ] using hef
-    · simpa [c, d, e, f, g, h, b, pow_succ] using hcb
+    · rw [he0, hf0, hg0, hh0, ← hsum]
+      ring
+    · rw [hc0, hd0, hb0, hp0, ← hdiff, ← hsum]
+      ring
   · have h0 := two_mul_dHalfAbs (2 * k)
     have h1 := two_mul_dHalfAbs (2 * k + 1)
     simp only [cAbs] at h1
@@ -191,30 +217,56 @@ theorem a100434_auxiliary_identities (n : ℕ) :
     have hdiff :
         dHalfAbs (2 * k + 1) - dHalfAbs (2 * k) = cAbs (2 * k) := by
       linarith
-    have hcd :
-        -((-1 : ℤ) ^ k * cAbs (2 * k + 1)) +
-            2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k + 1)) =
-          -((-1 : ℤ) ^ k * dHalfAbs (2 * k)) +
-            (-1 : ℤ) ^ k * dHalfAbs (2 * k + 1) := by
-      rw [← hsum]
+    have hc0 :
+        c (2 * k) = (-1 : ℤ) ^ k * cAbs (2 * k) := by
+      change (-1 : ℤ) ^ ((2 * k + 1) / 2) * cAbs (2 * k) =
+        (-1 : ℤ) ^ k * cAbs (2 * k)
+      rw [show (2 * k + 1) / 2 = k by omega]
+    have hc1 :
+        c (2 * k + 1) = -((-1 : ℤ) ^ k * cAbs (2 * k + 1)) := by
+      change (-1 : ℤ) ^ ((2 * k + 1 + 1) / 2) * cAbs (2 * k + 1) =
+        -((-1 : ℤ) ^ k * cAbs (2 * k + 1))
+      rw [show (2 * k + 1 + 1) / 2 = k + 1 by omega, pow_succ]
       ring
-    have hef :
-        -((-1 : ℤ) ^ k * dHalfAbs (2 * k)) +
-            (-1 : ℤ) ^ k * dHalfAbs (2 * k + 1) =
-          -((-1 : ℤ) ^ k * cAbs (2 * k + 1)) +
-            2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k + 1)) := by
-      rw [← hsum]
-      ring
-    have hcb :
-        -((-1 : ℤ) ^ k * cAbs (2 * k + 1)) +
-            2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k + 1)) =
-          (-1 : ℤ) ^ k * cAbs (2 * k) := by
-      rw [← hsum, ← hdiff]
+    have hd0 :
+        d (2 * k) = 2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k)) := by
+      change 2 * ((-1 : ℤ) ^ ((2 * k) / 2) * dHalfAbs (2 * k)) =
+        2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k))
+      rw [show (2 * k) / 2 = k by omega]
+    have hd1 :
+        d (2 * k + 1) = 2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k + 1)) := by
+      change 2 * ((-1 : ℤ) ^ ((2 * k + 1) / 2) * dHalfAbs (2 * k + 1)) =
+        2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k + 1))
+      rw [show (2 * k + 1) / 2 = k by omega]
+    have he1 :
+        e (2 * k + 1) = -((-1 : ℤ) ^ k * dHalfAbs (2 * k)) := by
+      rw [e, if_neg (by omega)]
+      rw [show 2 * k + 1 - 1 = 2 * k by omega, hd0]
+      simp
+    have hf1 :
+        f (2 * k + 1) = (-1 : ℤ) ^ k * dHalfAbs (2 * k + 1) := by
+      rw [f, if_neg (by omega), hd1]
+      simp
+    have hg1 :
+        g (2 * k + 1) = -((-1 : ℤ) ^ k * cAbs (2 * k + 1)) := by
+      rw [g, if_neg (by omega), hc1]
+    have hh1 :
+        h (2 * k + 1) = 2 * ((-1 : ℤ) ^ k * dHalfAbs (2 * k + 1)) := by
+      rw [h, if_neg (by omega), hd1]
+    have hb1 :
+        b (2 * k + 1) = (-1 : ℤ) ^ k * cAbs (2 * k) := by
+      rw [b, if_neg (by omega)]
+      rw [show 2 * k + 1 - 1 = 2 * k by omega, hc0]
+    have hp1 : (-1 : ℤ) ^ (2 * k + 1 + 1) = 1 := by
+      rw [show 2 * k + 1 + 1 = 2 * (k + 1) by omega, pow_mul]
+      norm_num
+    constructor
+    · rw [hc1, hd1, he1, hf1, ← hsum]
       ring
     constructor
-    · simpa [c, d, e, f, g, h, b, pow_succ] using hcd
-    constructor
-    · simpa [c, d, e, f, g, h, b, pow_succ] using hef
-    · simpa [c, d, e, f, g, h, b, pow_succ] using hcb
+    · rw [he1, hf1, hg1, hh1, ← hsum]
+      ring
+    · rw [hc1, hd1, hb1, hp1, ← hsum, ← hdiff]
+      ring
 
 end OeisA100434
