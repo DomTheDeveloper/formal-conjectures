@@ -4,6 +4,8 @@
 name: Litt most-unfair proof check
 
 on:
+  push:
+    branches: [audit/litt-final-current-main]
   pull_request:
     branches: [main]
     paths:
@@ -13,10 +15,12 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  issues: write
+  pull-requests: write
 
 concurrency:
-  group: litt-most-unfair-${{ github.event.pull_request.number || github.sha }}
+  group: litt-most-unfair-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -28,8 +32,7 @@ jobs:
       - name: Checkout proof head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Set up pinned Lean environment
         uses: leanprover/lean-action@v1
         with:
@@ -39,28 +42,6 @@ jobs:
           lint: false
           use-mathlib-cache: true
           use-github-cache: false
-      - name: Remove only the redundant left-endpoint tactic
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path('FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean')
-          text = path.read_text()
-          old = '''  have hrevLeft : left.rev = right := by
-    apply Fin.ext
-    dsimp [left, right, Fin.rev]
-    omega'''
-          new = '''  have hrevLeft : left.rev = right := by
-    apply Fin.ext
-    dsimp [left, right, Fin.rev]'''
-          if old in text:
-              text = text.replace(old, new, 1)
-          elif new not in text:
-              raise SystemExit('could not locate the left endpoint reversal proof')
-          path.write_text(text)
-          PY
       - name: Reject proof holes and trust shortcuts
         run: |
           set -euo pipefail
@@ -94,21 +75,31 @@ jobs:
           fi
       - name: Run exact finite audit
         run: python3 scripts/verify_litt_most_unfair.py --max-length 10
-      - name: Persist verified source repair
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+      - name: Report result on PR 239
+        if: always()
         env:
-          HEAD_REF: ${{ github.head_ref }}
-        shell: bash
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
         run: |
           set -euo pipefail
-          if git diff --quiet -- FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean; then
-            exit 0
-          fi
-          git config user.name 'ProofOrchestrator'
-          git config user.email 'actions@users.noreply.github.com'
-          git add FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean
-          git commit -m 'Remove redundant Litt left-endpoint arithmetic tactic'
-          git push origin "HEAD:${HEAD_REF}"
+          {
+            echo '## Final Litt current-main audit'
+            echo
+            echo "Commit: \`${GITHUB_SHA}\`"
+            echo "Result: **${JOB_STATUS}**"
+            echo
+            echo 'Checks: placeholder/trust scan, pinned Lean module build, terminal axiom audit, exact replay through length 10.'
+            if [[ -f /tmp/litt-lean.log ]]; then
+              echo
+              echo '<details><summary>Lean transcript tail</summary>'
+              echo
+              echo '```text'
+              tail -n 120 /tmp/litt-lean.log || true
+              echo '```'
+              echo '</details>'
+            fi
+          } >/tmp/litt-pr-comment.md
+          gh pr comment 239 --repo DomTheDeveloper/formal-conjectures --body-file /tmp/litt-pr-comment.md
       - name: Upload audit transcript
         if: always()
         uses: actions/upload-artifact@v4
