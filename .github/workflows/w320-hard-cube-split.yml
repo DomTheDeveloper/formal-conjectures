@@ -1,5 +1,6 @@
 name: W320 hard cube split
 
+# Post-PR trigger commit: exhaustively covers each selected parent cube.
 on:
   push:
     branches: [agent/w320-hard-cube-split]
