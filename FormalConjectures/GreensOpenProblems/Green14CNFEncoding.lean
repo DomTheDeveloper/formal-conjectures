@@ -24,9 +24,9 @@ import Std.Tactic.BVDecide.LRAT
 Variables are zero-based in Lean. Variable `i` is the color of the catalog
 point `i + 1`. The LRAT conversion shifts these to one-based DIMACS variables.
 
-For every `k`-term progression and target color `color`, the generated clause
-contains literals with polarity `!color`. It is satisfied exactly when at least
-one term of the progression has the opposite color.
+Clause order exactly matches `scripts/w320/generate_cnf.py`: progression step
+first, then progression start, with all 3-AP clauses before all 20-AP clauses.
+This order matters because LRAT hints refer to the original clauses by number.
 -/
 
 namespace Green14.CNFEncoding
@@ -35,11 +35,12 @@ open Green14.FunctionCertificateBridge
 open Green14.PositiveCertificateBridge
 
 /-- The CNF forbidding monochromatic `k`-term progressions of `color` in the
-zero-based interval `{0, ..., N - 1}`. -/
+zero-based interval `{0, ..., N - 1}`. The enumeration order is identical to the
+Python DIMACS generator used by the proof-producing SAT jobs. -/
 def apAvoidanceCNF (N k : Nat) (color : Bool) : Std.Sat.CNF Nat :=
-  (List.range N).flatMap fun a =>
-    (List.range ((N - 1 - a) / (k - 1))).map fun d0 =>
-      let d := d0 + 1
+  (List.range ((N - 1) / (k - 1))).flatMap fun d0 =>
+    let d := d0 + 1
+    (List.range (N - (k - 1) * d)).map fun a =>
       (List.range k).map fun i => (a + i * d, !color)
 
 /-- The unrestricted exact SAT instance for the upper bound `W(3,20) ≤ 389`. -/
@@ -61,17 +62,19 @@ theorem eval_apAvoidanceCNF_eq_true
     Std.Sat.CNF.eval coloring (apAvoidanceCNF N k color) = true := by
   rw [Std.Sat.CNF.eval, List.all_eq_true]
   intro clause hclause
-  rcases List.mem_flatMap.mp hclause with ⟨a, ha, hinner⟩
-  rcases List.mem_map.mp hinner with ⟨d0, hd0, rfl⟩
-  have haN : a < N := by simpa using ha
+  rcases List.mem_flatMap.mp hclause with ⟨d0, hd0, hinner⟩
+  rcases List.mem_map.mp hinner with ⟨a, ha, rfl⟩
   let d := d0 + 1
   have hdpos : 0 < d := by simp [d]
+  have hd0lt : d0 < (N - 1) / (k - 1) := by simpa using hd0
   have hkden : 0 < k - 1 := by omega
-  have hd0lt : d0 < (N - 1 - a) / (k - 1) := by simpa using hd0
-  have hdle : d ≤ (N - 1 - a) / (k - 1) := by
-    simpa [d] using hd0lt
-  have hmul : d * (k - 1) ≤ N - 1 - a :=
+  have hdle : d ≤ (N - 1) / (k - 1) := by
+    dsimp [d]
+    omega
+  have hmul : d * (k - 1) ≤ N - 1 :=
     (Nat.le_div_iff_mul_le hkden).mp hdle
+  have halt : a < N - (k - 1) * d := by simpa using ha
+  have haN : a < N := by omega
   have hend : a + (k - 1) * d < N := by
     rw [Nat.mul_comm] at hmul
     omega
