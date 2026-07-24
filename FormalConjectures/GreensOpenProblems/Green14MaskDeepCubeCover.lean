@@ -31,7 +31,7 @@ open Green14.MaskCubeCover
 
 /-- Encode three Boolean values as a little-endian mask in `0, ..., 7`. -/
 def mask3 (b0 b1 b2 : Bool) : Nat :=
-  b0.toNat + 2 * b1.toNat + 4 * b2.toNat
+  boolNat b0 + 2 * boolNat b1 + 4 * boolNat b2
 
 theorem mask3_lt_8 (b0 b1 b2 : Bool) : mask3 b0 b1 b2 < 8 := by
   cases b0 <;> cases b1 <;> cases b2 <;> decide
