@@ -1,10 +1,6 @@
 name: W320 exact certificate
 
 on:
-  push:
-    branches: [agent/w320-exact-certificate]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -62,7 +58,6 @@ jobs:
           status=${PIPESTATUS[0]}
           set -e
           echo "solver_status=$status" | tee .w320/status.txt
-          # CaDiCaL returns 20 for UNSAT. timeout returns 124.
           test "$status" -eq 20
           test -s .w320/w320_389.drat
 
