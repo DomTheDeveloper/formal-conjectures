@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   cancel-other-runs:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Drain every active run except fresh A100434 checks
