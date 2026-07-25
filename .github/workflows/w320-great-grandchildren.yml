@@ -26,7 +26,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          for run_id in 30106990655 30110101155 30106774260; do
+          for run_id in 30106990655 30110101155 30106774260 30110785703; do
             code=$(curl -sS -o "response-${run_id}.txt" -w '%{http_code}' \
               -X POST \
               -H "Authorization: Bearer ${GH_TOKEN}" \
@@ -45,7 +45,7 @@ jobs:
     timeout-minutes: 355
     strategy:
       fail-fast: false
-      max-parallel: 16
+      max-parallel: 2
       matrix:
         pair: ['11-4', '11-5', '11-6', '11-7', '14-2', '14-3', '14-4', '14-5', '14-6', '14-7', '25-5', '25-7']
         third: [0, 1, 2, 3, 4, 5, 6, 7]
