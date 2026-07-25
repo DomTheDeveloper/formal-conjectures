@@ -1,0 +1,53 @@
+name: A100434 clean proof audit
+
+on:
+  push:
+    branches:
+      - work/a100434-clean-v3
+    paths:
+      - FormalConjectures/OEIS/100434.lean
+      - .github/workflows/a100434-clean-v3.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout exact triggering revision
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Record revision
+        run: |
+          echo "GITHUB_SHA=$GITHUB_SHA"
+          git rev-parse HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+
+      - name: Install elan
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Mathlib cache
+        run: lake exe cache get
+
+      - name: Reject proof placeholders and unsafe shortcuts
+        run: |
+          ! grep -nE '\b(sorry|admit|native_decide)\b' FormalConjectures/OEIS/100434.lean
+
+      - name: Compile exact source file
+        run: lake env lean FormalConjectures/OEIS/100434.lean
+
+      - name: Audit theorem axioms
+        run: |
+          cat > /tmp/A100434Axioms.lean <<'EOF'
+          import FormalConjectures.OEIS.«100434»
+          #print axioms OeisA100434.a100434_auxiliary_identities
+          EOF
+          lake env lean /tmp/A100434Axioms.lean | tee /tmp/a100434-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.trustCompiler' /tmp/a100434-axioms.log
