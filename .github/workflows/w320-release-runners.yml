@@ -18,15 +18,16 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 10
     steps:
-      - name: Cancel obsolete W320 runs
+      - name: Cancel obsolete W320 and stale audit runs
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          # The remaining masks 11, 14, and 25 have been exhaustively split.
-          # Completed leaf artifacts from the first-level run are retained.
-          for run_id in 30106990655 30110101155 30106774260; do
+          for run_id in \
+            30106990655 30110101155 30106774260 \
+            30110785703 \
+            30159624435 30159624436 30159624437; do
             code=$(curl -sS -o "response-${run_id}.txt" -w '%{http_code}' \
               -X POST \
               -H "Authorization: Bearer ${GH_TOKEN}" \
