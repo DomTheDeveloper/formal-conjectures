@@ -12,9 +12,9 @@ permissions:
 jobs:
   cancel-other-runs:
     runs-on: macos-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - name: Cancel every active run except fresh A100434 checks
+      - name: Drain every active run except fresh A100434 checks
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
@@ -38,18 +38,18 @@ jobs:
 
           cancel_status() {
             local status="$1"
-            local page=1
-            while :; do
+            local pass=0
+            while [ "$pass" -lt 20 ]; do
+              pass=$((pass + 1))
               response=$(curl -fsS \
                 -H "Authorization: Bearer ${GH_TOKEN}" \
                 -H 'Accept: application/vnd.github+json' \
                 -H 'X-GitHub-Api-Version: 2022-11-28' \
-                "https://api.github.com/repos/${REPOSITORY}/actions/runs?status=${status}&per_page=100&page=${page}")
+                "https://api.github.com/repos/${REPOSITORY}/actions/runs?status=${status}&per_page=100&page=1")
 
-              count=$(printf '%s' "$response" | jq '.workflow_runs | length')
-              [ "$count" -gt 0 ] || break
-
-              printf '%s' "$response" | jq -r '.workflow_runs[].id' | while read -r run_id; do
+              cancelled=0
+              while read -r run_id; do
+                [ -n "$run_id" ] || continue
                 if should_keep "$run_id"; then
                   echo "keep run=${run_id} status=${status}"
                   continue
@@ -64,10 +64,13 @@ jobs:
                 echo "cancel run=${run_id} status=${status} http=${code}"
                 cat "response-${run_id}.txt" || true
                 test "$code" = 202 -o "$code" = 409
-              done
+                cancelled=$((cancelled + 1))
+              done < <(printf '%s' "$response" | jq -r '.workflow_runs[].id')
 
-              [ "$count" -lt 100 ] && break
-              page=$((page + 1))
+              if [ "$cancelled" -eq 0 ]; then
+                break
+              fi
+              sleep 2
             done
           }
 
