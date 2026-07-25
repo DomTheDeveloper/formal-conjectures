@@ -1,12 +1,8 @@
-name: W320 release obsolete runners
+name: Cancel non-A100434 Actions
 
 on:
   push:
     branches: [agent/w320-great-grandchildren]
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/w320-release-runners.yml'
   workflow_dispatch:
 
 permissions:
@@ -14,27 +10,67 @@ permissions:
   contents: read
 
 jobs:
-  cancel-superseded-runs:
+  cancel-other-runs:
     runs-on: macos-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Cancel obsolete W320 and stale audit runs
+      - name: Cancel every active run except fresh A100434 checks
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
+          CURRENT_RUN_ID: ${{ github.run_id }}
+          KEEP_RUN_IDS: '30162034339 30162034340 30162034347'
         run: |
           set -euo pipefail
-          for run_id in \
-            30106990655 30110101155 30106774260 \
-            30110785703 \
-            30159624435 30159624436 30159624437; do
-            code=$(curl -sS -o "response-${run_id}.txt" -w '%{http_code}' \
-              -X POST \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H 'Accept: application/vnd.github+json' \
-              -H 'X-GitHub-Api-Version: 2022-11-28' \
-              "https://api.github.com/repos/${REPOSITORY}/actions/runs/${run_id}/cancel")
-            echo "run=${run_id} http=${code}"
-            cat "response-${run_id}.txt" || true
-            test "$code" = 202 -o "$code" = 409
+
+          should_keep() {
+            local candidate="$1"
+            if [ "$candidate" = "$CURRENT_RUN_ID" ]; then
+              return 0
+            fi
+            for keep in $KEEP_RUN_IDS; do
+              if [ "$candidate" = "$keep" ]; then
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          cancel_status() {
+            local status="$1"
+            local page=1
+            while :; do
+              response=$(curl -fsS \
+                -H "Authorization: Bearer ${GH_TOKEN}" \
+                -H 'Accept: application/vnd.github+json' \
+                -H 'X-GitHub-Api-Version: 2022-11-28' \
+                "https://api.github.com/repos/${REPOSITORY}/actions/runs?status=${status}&per_page=100&page=${page}")
+
+              count=$(printf '%s' "$response" | jq '.workflow_runs | length')
+              [ "$count" -gt 0 ] || break
+
+              printf '%s' "$response" | jq -r '.workflow_runs[].id' | while read -r run_id; do
+                if should_keep "$run_id"; then
+                  echo "keep run=${run_id} status=${status}"
+                  continue
+                fi
+
+                code=$(curl -sS -o "response-${run_id}.txt" -w '%{http_code}' \
+                  -X POST \
+                  -H "Authorization: Bearer ${GH_TOKEN}" \
+                  -H 'Accept: application/vnd.github+json' \
+                  -H 'X-GitHub-Api-Version: 2022-11-28' \
+                  "https://api.github.com/repos/${REPOSITORY}/actions/runs/${run_id}/cancel")
+                echo "cancel run=${run_id} status=${status} http=${code}"
+                cat "response-${run_id}.txt" || true
+                test "$code" = 202 -o "$code" = 409
+              done
+
+              [ "$count" -lt 100 ] && break
+              page=$((page + 1))
+            done
+          }
+
+          for status in queued in_progress waiting pending requested; do
+            cancel_status "$status"
           done
