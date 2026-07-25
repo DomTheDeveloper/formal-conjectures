@@ -5,14 +5,18 @@ on:
     branches: [agent/w320-great-grandchildren]
   workflow_dispatch:
 
+concurrency:
+  group: cancel-non-a100434-actions
+  cancel-in-progress: true
+
 permissions:
   actions: write
   contents: read
 
 jobs:
   cancel-other-runs:
-    runs-on: macos-latest
-    timeout-minutes: 20
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
     steps:
       - name: Drain every active run except fresh A100434 checks
         env:
@@ -20,6 +24,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           CURRENT_RUN_ID: ${{ github.run_id }}
           KEEP_RUN_IDS: '30162034339 30162034340 30162034347'
+        shell: bash
         run: |
           set -euo pipefail
 
@@ -65,7 +70,7 @@ jobs:
                 cat "response-${run_id}.txt" || true
                 test "$code" = 202 -o "$code" = 409
                 cancelled=$((cancelled + 1))
-              done < <(printf '%s' "$response" | jq -r '.workflow_runs[].id')
+              done < <(printf '%s' "$response" | python3 -c 'import json,sys; print("\n".join(str(x["id"]) for x in json.load(sys.stdin)["workflow_runs"]))')
 
               if [ "$cancelled" -eq 0 ]; then
                 break
