@@ -7,6 +7,12 @@ on:
     paths:
       - FormalConjectures/OEIS/100434.lean
       - .github/workflows/a100434-clean-v3.yml
+  pull_request:
+    branches:
+      - baseline/a100434-clean-v3
+    paths:
+      - FormalConjectures/OEIS/100434.lean
+      - .github/workflows/a100434-clean-v3.yml
   workflow_dispatch:
 
 permissions:
