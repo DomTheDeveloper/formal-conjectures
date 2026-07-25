@@ -1,8 +1,6 @@
 name: Cancel non-A100434 Actions
 
 on:
-  push:
-    branches: [agent/w320-great-grandchildren]
   pull_request:
     branches: [main]
     paths:
