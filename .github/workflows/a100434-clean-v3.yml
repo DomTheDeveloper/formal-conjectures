@@ -15,13 +15,17 @@ on:
       - .github/workflows/a100434-clean-v3.yml
   workflow_dispatch:
 
+concurrency:
+  group: a100434-clean-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 75
     steps:
       - name: Checkout exact triggering revision
         uses: actions/checkout@v6
@@ -44,16 +48,78 @@ jobs:
 
       - name: Reject proof placeholders and unsafe shortcuts
         run: |
-          ! grep -nE '\b(sorry|admit|native_decide)\b' FormalConjectures/OEIS/100434.lean
+          set -euo pipefail
+          file=FormalConjectures/OEIS/100434.lean
+          ! grep -nE '\b(sorry|admit|native_decide|bv_decide|axiom|unsafe|opaque)\b|Lean\.(ofReduce|ofReduceBool|trustCompiler)' "$file"
 
-      - name: Compile exact source file
+      - name: Independently replay the OEIS sequences
+        run: |
+          python3 - <<'PY'
+          N = 10_000
+          c_abs = [0] * (N + 2)
+          d_half_abs = [0] * (N + 2)
+          c_abs[0], c_abs[1] = 1, 3
+          d_half_abs[0], d_half_abs[1] = 1, 2
+          for n in range(N):
+              c_abs[n + 2] = 2 * c_abs[n + 1] + c_abs[n]
+              d_half_abs[n + 2] = 2 * d_half_abs[n + 1] + d_half_abs[n]
+
+          def c(n):
+              return (-1) ** ((n + 1) // 2) * c_abs[n]
+
+          def d(n):
+              return 2 * ((-1) ** (n // 2) * d_half_abs[n])
+
+          def b(n):
+              return c(n + 1) if n % 2 == 0 else c(n - 1)
+
+          def e(n):
+              return d(n) // 2 if n % 2 == 0 else -(d(n - 1) // 2)
+
+          def f(n):
+              return d(n + 1) // 2 if n % 2 == 0 else d(n) // 2
+
+          def g(n):
+              return 0 if n % 2 == 0 else c(n)
+
+          def h(n):
+              return -c(n + 1) if n % 2 == 0 else d(n)
+
+          assert [c(n) for n in range(6)] == [1, -3, -7, 17, 41, -99]
+          assert [d(n) for n in range(6)] == [2, 4, -10, -24, 58, 140]
+          assert c(0) + d(0) == 3 and b(0) == -3
+          assert c(0) + d(0) != b(0)
+
+          for n in range(N + 1):
+              lhs = c(n) + d(n)
+              assert lhs == e(n) + f(n)
+              assert lhs == g(n) + h(n)
+              assert lhs == (-1) ** (n + 1) * b(n)
+          print(f"independent replay passed for n=0..{N}")
+          PY
+
+      - name: Build the exact project module
+        run: lake build 'FormalConjectures.OEIS.«100434»'
+
+      - name: Compile the exact source file
         run: lake env lean FormalConjectures/OEIS/100434.lean
 
-      - name: Audit theorem axioms
+      - name: Formally check source typo and corrected identity
         run: |
-          cat > /tmp/A100434Axioms.lean <<'EOF'
+          cat > /tmp/A100434Semantics.lean <<'EOF'
           import FormalConjectures.OEIS.«100434»
+
+          open OeisA100434
+
+          example : c 0 = 1 := by norm_num [c, cAbs]
+          example : d 0 = 2 := by norm_num [d, dHalfAbs]
+          example : b 0 = -3 := by norm_num [b, c, cAbs]
+          example : c 0 + d 0 ≠ b 0 := by norm_num [b, c, d, cAbs, dHalfAbs]
+          example : c 0 + d 0 = (-1 : ℤ) ^ (0 + 1) * b 0 := by
+            norm_num [b, c, d, cAbs, dHalfAbs]
+
+          #check OeisA100434.a100434_auxiliary_identities
           #print axioms OeisA100434.a100434_auxiliary_identities
           EOF
-          lake env lean /tmp/A100434Axioms.lean | tee /tmp/a100434-axioms.log
-          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.trustCompiler' /tmp/a100434-axioms.log
+          lake env lean /tmp/A100434Semantics.lean | tee /tmp/a100434-audit.log
+          ! grep -E 'sorryAx|Lean\.(ofReduce|ofReduceBool|trustCompiler)' /tmp/a100434-audit.log
