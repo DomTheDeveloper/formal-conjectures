@@ -37,7 +37,7 @@ jobs:
       - name: Compile exact proof module
         run: |
           set -o pipefail
-          lake env lean FormalConjectures/ErdosProblems/36Proof.lean 2>&1 | tee /tmp/minimum-overlap-two-build.log
+          lake build FormalConjectures.ErdosProblems.«36Proof» 2>&1 | tee /tmp/minimum-overlap-two-build.log
       - name: Audit exact theorem axioms
         run: |
           cat > /tmp/MinimumOverlapTwoAxioms.lean <<'EOF'
