@@ -51,7 +51,7 @@ by their contradictory hypothesis; see `Erdos361_15.lean`.)
 -/
 
 set_option linter.unusedTactic false
-set_option linter.tacticAnalysis.neverExecuted false
+set_option linter.unreachableTactic false
 
 open Filter Asymptotics Finset Real
 open scoped Topology ArithmeticFunction.sigma Nat Pointwise
