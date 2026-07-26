@@ -1,0 +1,59 @@
+name: OpenAI immutable SIC proof audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-sic-immutable-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: 7aeef3c2aca76d413f94d13ebf6044e9b6c1d712
+          fetch-depth: 1
+      - name: Confirm immutable SIC proof commit
+        run: test "$(git rev-parse HEAD)" = 7aeef3c2aca76d413f94d13ebf6044e9b6c1d712
+      - name: Install pinned Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: sic-immutable-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: sic-immutable-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Compile exact canonical source
+        run: |
+          set -o pipefail
+          lake env lean FormalConjectures/OpenQuantumProblems/23.lean 2>&1 | tee /tmp/sic-immutable-build.log
+      - name: Audit exact theorem axioms
+        run: |
+          cp FormalConjectures/OpenQuantumProblems/23.lean /tmp/SICImmutableAxioms.lean
+          cat >> /tmp/SICImmutableAxioms.lean <<'EOF'
+
+          #print axioms OpenQuantumProblem23.qubitSICFamily_pairwise
+          #print axioms OpenQuantumProblem23.hasSICPOVM_two
+          #print axioms OpenQuantumProblem23.hesseFamily_pairwise
+          #print axioms OpenQuantumProblem23.hasSICPOVM_three
+          EOF
+          lake env lean /tmp/SICImmutableAxioms.lean 2>&1 | tee /tmp/sic-immutable-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/sic-immutable-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sic-immutable-${{ github.run_id }}
+          path: |
+            /tmp/sic-immutable-build.log
+            /tmp/sic-immutable-axioms.log
+          if-no-files-found: warn
