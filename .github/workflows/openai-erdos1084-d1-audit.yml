@@ -1,0 +1,80 @@
+name: OpenAI Erdos 1084 dimension-one audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-erdos1084-d1-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned current Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: erdos1084-d1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: erdos1084-d1-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Build current catalog module
+        run: lake build FormalConjectures.ErdosProblems.«1084»
+      - name: Generate immutable proof-only source
+        run: |
+          curl -fsSL 'https://raw.githubusercontent.com/Sanexxxx777/formal-conjectures/9e4f3845be122a8fa3190d38543ebdd0a6f25605/FormalConjectures/ErdosProblems/1084.lean' -o /tmp/Erdos1084Historical.lean
+          test "$(git hash-object /tmp/Erdos1084Historical.lean)" = '771c6c62762fa9e970dd3d3c52e984d18db216d5'
+          python3 - <<'PY'
+          from pathlib import Path
+          src = Path('/tmp/Erdos1084Historical.lean').read_text()
+          start = src.index('namespace upper_d1')
+          end = src.index('/-- It is easy to check that $f_2(n) < 3n$. -/')
+          body = src[start:end]
+          body = body.replace(
+              'theorem erdos_1084.variants.upper_d1',
+              'theorem erdos_1084.variants.upper_d1_kernel',
+              1,
+          )
+          out = '''import FormalConjectures.ErdosProblems.«1084»
+          open Finset Filter Metric Real
+          open scoped EuclideanGeometry
+          namespace Erdos1084
+          ''' + body + '\nend Erdos1084\n'
+          Path('/tmp/Erdos1084D1Proof.lean').write_text(out)
+          PY
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/Erdos1084D1Proof.lean
+      - name: Compile proof-only source
+        run: |
+          set -o pipefail
+          lake env lean /tmp/Erdos1084D1Proof.lean 2>&1 | tee /tmp/erdos1084-d1-build.log
+      - name: Audit exact theorem axioms
+        run: |
+          cp /tmp/Erdos1084D1Proof.lean /tmp/Erdos1084D1Axioms.lean
+          sed -i '$d' /tmp/Erdos1084D1Axioms.lean
+          cat >> /tmp/Erdos1084D1Axioms.lean <<'EOF'
+          #print axioms Erdos1084.erdos_1084.variants.upper_d1_kernel
+          end Erdos1084
+          EOF
+          lake env lean /tmp/Erdos1084D1Axioms.lean 2>&1 | tee /tmp/erdos1084-d1-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/erdos1084-d1-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: erdos1084-d1-${{ github.run_id }}
+          path: |
+            /tmp/erdos1084-d1-build.log
+            /tmp/erdos1084-d1-axioms.log
+          if-no-files-found: warn
