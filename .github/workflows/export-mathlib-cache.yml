@@ -2,6 +2,10 @@ name: Export mathlib build cache
 
 on:
   workflow_dispatch:
+  push:
+    branches: [claude/easily-solvable-conjectures-smsjwa]
+    paths:
+      - '.github/workflows/export-mathlib-cache.yml'
 
 permissions:
   contents: write
