@@ -21,7 +21,7 @@ import FormalConjectures.Wikipedia.DedekindNumber
 
 The catalog already contains the theorem `M_eq_kisielewiczFormula`, proving an
 explicit arithmetic formula for all Dedekind numbers. Therefore the literal
-existential-answer declaration `M = answer(sorry)` is solved by choosing
+unrestricted formula-answer declaration is solved by choosing
 `kisielewiczFormula`.
 
 This does not make the formula computationally efficient and does not determine
