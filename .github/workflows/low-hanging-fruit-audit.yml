@@ -53,7 +53,7 @@ jobs:
           cat > /tmp/LowHangingAxioms.lean <<'EOF'
           import FormalConjectures.Other.LowHangingFruitAudit
           #print axioms DedekindNumber.M_eq_via_antichains
-          #print axioms MovingSofa.not_literal_uniqueness
+          #print axioms MovingSofa.no_literal_volume_unique
           EOF
           lake env lean /tmp/LowHangingAxioms.lean 2>&1 | tee /tmp/low-hanging-axioms.log
           ! grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/low-hanging-axioms.log
