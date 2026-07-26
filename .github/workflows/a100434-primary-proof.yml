@@ -1,0 +1,65 @@
+name: A100434 primary-sequence proof audit
+
+on:
+  push:
+    branches:
+      - work/a100434-primary-proof
+    paths:
+      - FormalConjectures/OEIS/100434.lean
+      - FormalConjectures/OEIS/100434PrimaryProof.lean
+      - .github/workflows/a100434-primary-proof.yml
+  pull_request:
+    branches:
+      - baseline/a100434-primary-proof-39f0
+    paths:
+      - FormalConjectures/OEIS/100434.lean
+      - FormalConjectures/OEIS/100434PrimaryProof.lean
+      - .github/workflows/a100434-primary-proof.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout exact triggering revision
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Record revision
+        run: |
+          echo "GITHUB_SHA=$GITHUB_SHA"
+          git rev-parse HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+
+      - name: Install elan
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Mathlib cache
+        run: lake exe cache get
+
+      - name: Reject proof placeholders and unsafe shortcuts
+        run: |
+          ! grep -nE '\b(sorry|admit|native_decide|bv_decide|unsafe|axiom)\b' FormalConjectures/OEIS/100434PrimaryProof.lean
+
+      - name: Build exact proof module
+        run: lake build FormalConjectures.OEIS.«100434PrimaryProof»
+
+      - name: Compile exact proof source
+        run: lake env lean FormalConjectures/OEIS/100434PrimaryProof.lean
+
+      - name: Audit final theorem axioms
+        run: |
+          cat > /tmp/A100434PrimaryAxioms.lean <<'EOF'
+          import FormalConjectures.OEIS.«100434PrimaryProof»
+          #print axioms OeisA100434.a_eq_h
+          #print axioms OeisA100434.a100434_auxiliary_identities_primary
+          EOF
+          lake env lean /tmp/A100434PrimaryAxioms.lean | tee /tmp/a100434-primary-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.trustCompiler' /tmp/a100434-primary-axioms.log
