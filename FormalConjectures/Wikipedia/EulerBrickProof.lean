@@ -16,6 +16,13 @@ limitations under the License.
 
 import FormalConjectures.Wikipedia.EulerBrick
 
+/-!
+# Explicit Euler brick witness
+
+The classical cuboid with edges `44`, `117`, and `240` has integral face
+diagonals `125`, `244`, and `267`.
+-/
+
 namespace EulerBrick
 
 private def side44 : ℕ+ := ⟨44, by norm_num⟩
@@ -27,11 +34,11 @@ private def side240 : ℕ+ := ⟨240, by norm_num⟩
 theorem isEulerBrick_44_117_240_kernel : IsEulerBrick side44 side117 side240 := by
   refine ⟨?_, ?_, ?_⟩
   · refine ⟨125, ?_⟩
-    norm_num [side44, side117]
+    norm_num [side44, side117, pow_two]
   · refine ⟨244, ?_⟩
-    norm_num [side44, side240]
+    norm_num [side44, side240, pow_two]
   · refine ⟨267, ?_⟩
-    norm_num [side117, side240]
+    norm_num [side117, side240, pow_two]
 
 /-- Euler bricks exist in three dimensions. -/
 @[category test, AMS 11]
