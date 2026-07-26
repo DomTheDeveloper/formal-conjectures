@@ -510,8 +510,12 @@ private lemma explicit_omega_sq_audit :
   change Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) * (star ω) ^ 2) =
     (1 / 3 : ℝ)
   rw [star_omega_audit]
-  simpa only [pow_two, omega_sq_mul_omega_sq_audit] using
-    normSq_qubit_offdiag_omega_audit
+  have hpow : (ω ^ 2) ^ 2 = ω := by
+    calc
+      (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+      _ = ω := omega_four_audit
+  rw [hpow]
+  exact normSq_qubit_offdiag_omega_audit
 
 @[simp] private lemma overlap_three_two_star_pow_audit :
     Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
@@ -519,8 +523,12 @@ private lemma explicit_omega_sq_audit :
   change Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
     (star ω) ^ 2 * ((tetraB : ℂ) * ω)) = (1 / 3 : ℝ)
   rw [star_omega_audit]
-  simpa only [pow_two, omega_sq_mul_omega_sq_audit] using
-    overlap_three_two_simplified_audit
+  have hpow : (ω ^ 2) ^ 2 = ω := by
+    calc
+      (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+      _ = ω := omega_four_audit
+  rw [hpow]
+  exact overlap_three_two_simplified_audit
 
 /-- The tetrahedral qubit SIC family has the correct constant pairwise overlap. -/
 @[category test, AMS 15 47 81]
@@ -819,8 +827,12 @@ private lemma q3_explicit_omega_sq :
   change Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) * (star ω) ^ 2) =
     (1 / 4 : ℝ)
   rw [q3_star_omega]
-  simpa only [pow_two, q3_omega_sq_mul_omega_sq] using
-    q3_normSq_half_add_half_mul_omega
+  have hpow : (ω ^ 2) ^ 2 = ω := by
+    calc
+      (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+      _ = ω := q3_omega_four
+  rw [hpow]
+  exact q3_normSq_half_add_half_mul_omega
 
 @[simp] private lemma q3_normSq_half_add_hesseS_star_omega_pow_two_mul_hesseS_omega :
     Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) *
@@ -828,8 +840,12 @@ private lemma q3_explicit_omega_sq :
   change Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) *
     (star ω) ^ 2 * ((hesseS : ℂ) * ω)) = (1 / 4 : ℝ)
   rw [q3_star_omega]
-  simpa only [pow_two, q3_omega_sq_mul_omega_sq] using
-    q3_normSq_half_add_hesseS_omega_mul_hesseS_omega
+  have hpow : (ω ^ 2) ^ 2 = ω := by
+    calc
+      (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+      _ = ω := q3_omega_four
+  rw [hpow]
+  exact q3_normSq_half_add_hesseS_omega_mul_hesseS_omega
 
 @[simp] private lemma q3_normSq_half_mul_omega_sq_add_half :
     Complex.normSq ((1 / 2 : ℂ) * (ω ^ 2) + (1 / 2 : ℂ)) =
