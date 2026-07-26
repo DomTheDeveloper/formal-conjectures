@@ -57,14 +57,22 @@ jobs:
           name: moving-sofa-lean-log
           path: /tmp/moving-sofa-lean.log
 
-      - name: Audit theorem axioms
+      - name: Audit axiom-clean generic theorem
         run: |
-          cat > /tmp/MovingSofaLiteralAxioms.lean <<'EOF'
+          cat > /tmp/MovingSofaGenericAxioms.lean <<'EOF'
+          import FormalConjectures.Wikipedia.MovingSofaLiteralCounterexample
+          #print axioms MovingSofa.volume_does_not_characterize_exact_set
+          EOF
+          lake env lean /tmp/MovingSofaGenericAxioms.lean | tee /tmp/generic-axioms.log
+          if grep -E 'sorryAx|Lean\.(ofReduce|ofReduceBool|trustCompiler)' /tmp/generic-axioms.log; then
+            echo 'Forbidden axiom dependency found in generic theorem.'
+            exit 1
+          fi
+
+      - name: Record exact-wrapper axioms
+        run: |
+          cat > /tmp/MovingSofaExactAxioms.lean <<'EOF'
           import FormalConjectures.Wikipedia.MovingSofaLiteralCounterexample
           #print axioms MovingSofa.sofaConstant_eq_volume_iff_eq_gerversSofa_false
           EOF
-          lake env lean /tmp/MovingSofaLiteralAxioms.lean | tee /tmp/axioms.log
-          if grep -E 'sorryAx|Lean\.(ofReduce|ofReduceBool|trustCompiler)' /tmp/axioms.log; then
-            echo 'Forbidden axiom dependency found.'
-            exit 1
-          fi
+          lake env lean /tmp/MovingSofaExactAxioms.lean | tee /tmp/exact-axioms.log
