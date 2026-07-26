@@ -295,7 +295,7 @@ private lemma tetraB_sq_audit : tetraB ^ (2 : ℕ) = (2 / 3 : ℝ) := by
 private lemma sq_sqrt_three_audit : (Real.sqrt 3) ^ (2 : ℕ) = (3 : ℝ) := by
   nlinarith [Real.sq_sqrt (by positivity : 0 ≤ (3 : ℝ))]
 
-@[simp] private lemma omega_sq_audit :
+private lemma omega_sq_audit :
     ω ^ 2 = ((-(1 : ℝ) / 2 : ℝ) : ℂ) -
       ((Real.sqrt 3 / 2 : ℝ) : ℂ) * Complex.I := by
   apply Complex.ext
@@ -757,9 +757,9 @@ private lemma q3_explicit_omega_sq :
       (1 / 2 : ℂ)) = (1 / 4 : ℝ) := by
   simpa [add_comm] using q3_normSq_half_add_hesseS_star_omega_mul_hesseS_explicit_sq
 
+set_option maxHeartbeats 1000000 in
 /-- The Hesse qutrit SIC family has the correct constant pairwise overlap. -/
 @[category test, AMS 15 47 81]
-set_option maxHeartbeats 1000000 in
 lemma hesseFamily_pairwise :
     HasConstantOverlapSq (sicOverlapSq 3) hesseFamily := by
   rintro ⟨i, hi⟩ ⟨j, hj⟩ hij
