@@ -1,0 +1,89 @@
+name: Fix SIC power normalization
+
+on:
+  push:
+    branches:
+      - agent/solve-sic-low-dim-v2
+    paths:
+      - '.github/workflows/fix-sic-pow-normalization.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/solve-sic-low-dim-v2
+          fetch-depth: 0
+      - name: Normalize the four remaining omega powers explicitly
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('FormalConjectures/OpenQuantumProblems/23.lean')
+          text = path.read_text()
+
+          text = text.replace(
+          '''  rw [star_omega_audit]
+            simpa only [pow_two, omega_sq_mul_omega_sq_audit] using
+              normSq_qubit_offdiag_omega_audit''',
+          '''  rw [star_omega_audit]
+            have hpow : (ω ^ 2) ^ 2 = ω := by
+              calc
+                (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+                _ = ω := omega_four_audit
+            rw [hpow]
+            exact normSq_qubit_offdiag_omega_audit''',
+          1)
+
+          text = text.replace(
+          '''  rw [star_omega_audit]
+            simpa only [pow_two, omega_sq_mul_omega_sq_audit] using
+              overlap_three_two_simplified_audit''',
+          '''  rw [star_omega_audit]
+            have hpow : (ω ^ 2) ^ 2 = ω := by
+              calc
+                (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+                _ = ω := omega_four_audit
+            rw [hpow]
+            exact overlap_three_two_simplified_audit''',
+          1)
+
+          text = text.replace(
+          '''  rw [q3_star_omega]
+            simpa only [pow_two, q3_omega_sq_mul_omega_sq] using
+              q3_normSq_half_add_half_mul_omega''',
+          '''  rw [q3_star_omega]
+            have hpow : (ω ^ 2) ^ 2 = ω := by
+              calc
+                (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+                _ = ω := q3_omega_four
+            rw [hpow]
+            exact q3_normSq_half_add_half_mul_omega''',
+          1)
+
+          text = text.replace(
+          '''  rw [q3_star_omega]
+            simpa only [pow_two, q3_omega_sq_mul_omega_sq] using
+              q3_normSq_half_add_hesseS_omega_mul_hesseS_omega''',
+          '''  rw [q3_star_omega]
+            have hpow : (ω ^ 2) ^ 2 = ω := by
+              calc
+                (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+                _ = ω := q3_omega_four
+            rw [hpow]
+            exact q3_normSq_half_add_hesseS_omega_mul_hesseS_omega''',
+          1)
+
+          path.write_text(text)
+          PY
+      - name: Commit normalization fix
+        run: |
+          rm .github/workflows/fix-sic-pow-normalization.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add FormalConjectures/OpenQuantumProblems/23.lean .github/workflows/fix-sic-pow-normalization.yml
+          git commit -m 'Normalize remaining SIC omega powers'
+          git push origin HEAD:agent/solve-sic-low-dim-v2
