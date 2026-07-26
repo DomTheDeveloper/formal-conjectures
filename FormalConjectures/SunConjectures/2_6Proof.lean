@@ -108,7 +108,7 @@ private lemma sqrt_lt_primeCounting (x : ℕ) (hx : 2401 ≤ x) :
     nlinarith
   exact hs_lower.trans (primeCounting_lower x hx)
 
-private lemma analytic_case (n k : ℕ) (hn : 120 ≤ n) (hk : 1 ≤ k)
+private lemma analytic_case (n k : ℕ) (hn : 214 ≤ n) (hk : 1 ≤ k)
     (hx : 2401 ≤ k * n) :
     (π (k * n)) ^ (k + 1) > (π ((k + 1) * n)) ^ k := by
   let x := k * n
@@ -179,16 +179,16 @@ private lemma analytic_case (n k : ℕ) (hn : 120 ≤ n) (hk : 1 ≤ k)
 /-- Zhi-Wei Sun's Conjecture 2.6. -/
 theorem conjecture_2_6_proved (n k : ℕ) (hn : 4 < n) (hk_pos : 1 ≤ k) (hk_le : k ≤ n) :
     (π (k * n)) ^ (k + 1) > (π ((k + 1) * n)) ^ k := by
-  by_cases hnsmall : n < 120
+  by_cases hnsmall : n < 214
   · exact conjecture_2_6_finite_small_n ⟨n, hnsmall⟩ ⟨k, hk_le.trans_lt hnsmall⟩
       hn hk_pos hk_le
-  · have hnlarge : 120 ≤ n := by omega
+  · have hnlarge : 214 ≤ n := by omega
     by_cases hxsmall : k * n < 2401
     · have hn2401 : n < 2401 := by
         have : n ≤ k * n := by nlinarith
         omega
-      have hk21 : k < 21 := by nlinarith
-      exact conjecture_2_6_finite_small_x ⟨n, hn2401⟩ ⟨k, hk21⟩
+      have hk12 : k < 12 := by nlinarith
+      exact conjecture_2_6_finite_small_x ⟨n, hn2401⟩ ⟨k, hk12⟩
         hnlarge hk_pos hk_le hxsmall
     · exact analytic_case n k hnlarge hk_pos (by omega)
 
