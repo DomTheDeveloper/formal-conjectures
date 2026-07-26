@@ -166,6 +166,18 @@ private lemma q3_explicit_omega_sq :
   rw [h]
   exact q3_normSq_half_mul_one_add_omega_sq
 
+@[simp] private lemma q3_normSq_half_add_half_mul_star_omega_exact :
+    Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) * (starRingEnd ℂ) ω) =
+      (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) * star ω) = (1 / 4 : ℝ)
+  rw [q3_star_omega]
+  exact q3_normSq_half_add_half_mul_omega_sq
+
+@[simp] private lemma q3_normSq_half_mul_star_omega_add_half_exact :
+    Complex.normSq ((1 / 2 : ℂ) * (starRingEnd ℂ) ω + (1 / 2 : ℂ)) =
+      (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_half_mul_star_omega_exact
+
 @[simp] private lemma q3_normSq_half_add_half_mul_explicit_omega_sq :
     Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) *
       (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I)) = (1 / 4 : ℝ) := by
