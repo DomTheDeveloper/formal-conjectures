@@ -1,0 +1,81 @@
+name: OpenAI proof candidate inventory
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-proof-candidate-scan.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build open theorem inventory
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          rows = []
+          for path in sorted(Path('FormalConjectures').rglob('*.lean')):
+              text = path.read_text(encoding='utf-8')
+              lines = text.splitlines()
+              for i, line in enumerate(lines):
+                  if 'category research open' not in line and 'category test' not in line:
+                      continue
+                  end = min(len(lines), i + 45)
+                  block = '\n'.join(lines[i:end])
+                  if 'sorry' not in block:
+                      continue
+                  theorem_match = re.search(r'\b(theorem|lemma)\s+([^\s:(]+)', block)
+                  if not theorem_match:
+                      continue
+                  name = theorem_match.group(2)
+                  score = 0
+                  reasons = []
+                  probes = {
+                      'finite-domain': ['Fin ', 'Finset', 'Fintype', 'fin_cases'],
+                      'explicit-numeral': ['norm_num', ':= 0', ':= 1', '= 0', '= 1'],
+                      'answer-placeholder': ['answer(sorry)'],
+                      'implication': ['→'],
+                      'existential': ['∃'],
+                      'empty-structure': ['Set ∅', 'Fin 0', 'Empty', '∅'],
+                      'existing-result': ['variants.', 'conditional_', 'special case', 'implies'],
+                  }
+                  weights = {'finite-domain': 5, 'explicit-numeral': 3, 'answer-placeholder': -3,
+                             'implication': 1, 'existential': 1, 'empty-structure': 4,
+                             'existing-result': 3}
+                  for reason, needles in probes.items():
+                      if any(n in block for n in needles):
+                          reasons.append(reason)
+                          score += weights[reason]
+                  signature = []
+                  started = False
+                  for j in range(i, end):
+                      s = lines[j]
+                      if re.search(r'\b(theorem|lemma)\s+', s):
+                          started = True
+                      if started:
+                          signature.append(s)
+                          if ':= by' in s or ' := by' in s or s.strip().endswith('sorry'):
+                              break
+                          if len(signature) >= 18:
+                              break
+                  rows.append((score, str(path), i + 1, name, ','.join(reasons), '\n'.join(signature)))
+
+          rows.sort(key=lambda r: (-r[0], r[1], r[2]))
+          out = []
+          for score, path, line, name, reasons, sig in rows:
+              out.append(f'## SCORE {score} | {name} | {path}:{line} | {reasons}\n{sig}\n')
+          Path('/tmp/open-proof-candidates.md').write_text('\n'.join(out), encoding='utf-8')
+          print(f'wrote {len(rows)} candidates')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: open-proof-candidates
+          path: /tmp/open-proof-candidates.md
+          if-no-files-found: error
