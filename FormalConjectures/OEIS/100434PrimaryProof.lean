@@ -97,8 +97,11 @@ theorem a_eq_h (n : ℕ) : a n = h n := by
   | h n ih =>
       by_cases hn : n < 4
       · interval_cases n <;> norm_num [a, h, c, d, cAbs, dHalfAbs]
-      · obtain ⟨m, rfl⟩ : ∃ m, n = m + 4 := by omega
-        rw [a, ih (m + 2) (by omega), ih m (by omega), h_four_step]
+      · let m := n - 4
+        have hn_eq : n = m + 4 := by
+          dsimp [m]
+          omega
+        rw [hn_eq, a, ih (m + 2) (by omega), ih m (by omega), h_four_step]
 
 /-- The corrected A100434 identities, stated using the primary sequence `a`. -/
 @[category research solved, AMS 11]
