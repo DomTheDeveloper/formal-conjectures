@@ -48,7 +48,7 @@ def singleEdgeGraph (r : ℕ) : SimpleGraph (Fin (r + 2)) where
     · exact Or.inl ⟨h.2, h.1⟩
   loopless := by
     intro v h
-    rcases h with h | h <;> omega
+    rcases h with ⟨h0, h1⟩ | ⟨h1, h0⟩ <;> simp_all
 
 /-- The graph really has exactly the single undirected edge `{0, 1}`. -/
 theorem singleEdgeGraph_adj_iff (r : ℕ) (u v : Fin (r + 2)) :
