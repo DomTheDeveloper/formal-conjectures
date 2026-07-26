@@ -49,7 +49,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          lake env lean FormalConjectures/Wikipedia/MovingSofaLiteralCounterexample.lean > /tmp/moving-sofa-lean.log 2>&1
+          lake build FormalConjectures.Wikipedia.MovingSofaLiteralCounterexample > /tmp/moving-sofa-lean.log 2>&1
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           cat /tmp/moving-sofa-lean.log
