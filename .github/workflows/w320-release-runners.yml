@@ -1,4 +1,4 @@
-name: Cancel non-A100434 Actions
+name: Cancel obsolete Actions
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: cancel-non-a100434-actions
+  group: cancel-obsolete-actions
   cancel-in-progress: true
 
 permissions:
@@ -23,12 +23,12 @@ jobs:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 15
     steps:
-      - name: Drain every active run except fresh A100434 checks
+      - name: Preserve only exact final A100434 validations
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
           CURRENT_RUN_ID: ${{ github.run_id }}
-          KEEP_RUN_IDS: '30162034339 30162034340 30162034347'
+          KEEP_RUN_IDS: '30182437731 30182479011'
         shell: bash
         run: |
           set -euo pipefail
