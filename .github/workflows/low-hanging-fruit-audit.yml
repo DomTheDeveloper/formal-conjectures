@@ -46,7 +46,7 @@ jobs:
       - name: Compile audit module
         run: |
           set -o pipefail
-          lake env lean FormalConjectures/Other/LowHangingFruitAudit.lean 2>&1 | tee /tmp/low-hanging-compile.log
+          lake build FormalConjectures.Other.LowHangingFruitAudit 2>&1 | tee /tmp/low-hanging-compile.log
       - name: Audit clean theorem axioms
         if: success()
         run: |
