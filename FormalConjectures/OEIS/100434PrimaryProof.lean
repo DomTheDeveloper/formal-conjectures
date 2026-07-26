@@ -16,6 +16,13 @@ limitations under the License.
 
 import FormalConjectures.OEIS.«100434»
 
+/-!
+# OEIS A100434 primary-sequence bridge
+
+This file proves that the recurrence-defined primary sequence `a` agrees with
+the auxiliary piecewise sequence later called `h` in the OEIS comment.
+-/
+
 namespace OeisA100434
 
 @[category API, AMS 11]
@@ -83,15 +90,17 @@ private theorem h_four_step (n : ℕ) :
       hd, hp1, hp2]
     ring
 
+/-- The primary A100434 recurrence agrees with the OEIS piecewise sequence `h`. -/
 @[category API, AMS 11]
 theorem a_eq_h (n : ℕ) : a n = h n := by
-  apply Nat.strong_induction_on n
-  intro n ih
-  by_cases hn : n < 4
-  · interval_cases n <;> norm_num [a, h, c, d, cAbs, dHalfAbs]
-  · obtain ⟨m, rfl⟩ : ∃ m, n = m + 4 := by omega
-    rw [a, ih (m + 2) (by omega), ih m (by omega), h_four_step]
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      by_cases hn : n < 4
+      · interval_cases n <;> norm_num [a, h, c, d, cAbs, dHalfAbs]
+      · obtain ⟨m, rfl⟩ : ∃ m, n = m + 4 := by omega
+        rw [a, ih (m + 2) (by omega), ih m (by omega), h_four_step]
 
+/-- The corrected A100434 identities, stated using the primary sequence `a`. -/
 @[category research solved, AMS 11]
 theorem a100434_auxiliary_identities_primary (n : ℕ) :
     c n + d n = e n + f n ∧
