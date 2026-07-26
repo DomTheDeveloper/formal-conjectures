@@ -1,0 +1,97 @@
+[
+  {
+    "number": "90",
+    "lean_status": "solved",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "119",
+    "lean_status": "open",
+    "yaml_status": "solved"
+  },
+  {
+    "number": "123",
+    "lean_status": "open",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "321",
+    "lean_status": "open",
+    "yaml_status": "solved"
+  },
+  {
+    "number": "330",
+    "lean_status": "open",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "469",
+    "lean_status": "open",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "613",
+    "lean_status": "solved",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "655",
+    "lean_status": "formally solved",
+    "yaml_status": "open"
+  },
+  {
+    "number": "659",
+    "lean_status": "solved",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "678",
+    "lean_status": "solved",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "694",
+    "lean_status": "solved",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "742",
+    "lean_status": "open",
+    "yaml_status": "solved"
+  },
+  {
+    "number": "750",
+    "lean_status": "open",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "848",
+    "lean_status": "formally solved",
+    "yaml_status": "solved"
+  },
+  {
+    "number": "865",
+    "lean_status": "open",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "884",
+    "lean_status": "solved",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "920",
+    "lean_status": "open",
+    "yaml_status": "solved"
+  },
+  {
+    "number": "1148",
+    "lean_status": "solved",
+    "yaml_status": "formally solved"
+  },
+  {
+    "number": "1176",
+    "lean_status": "open",
+    "yaml_status": "solved"
+  }
+]

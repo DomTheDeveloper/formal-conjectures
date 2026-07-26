@@ -1,0 +1,2903 @@
+[
+{
+"n": 262,
+"title": "Develop CRT obstruction for Erd\u0151s Problem 7",
+"state": "open",
+"merged_at": null,
+"head": "research/erdos7-pairwise-coprime-obstruction",
+"created": "2026-07-26",
+"body": "## Result\n\nFormalizes a necessary structural condition for every finite congruence cover relevant to Erd\u0151s Problem 7.\n\nFor pairwise-coprime moduli `m i &gt; 1`, the finite Chinese remainder theorem produces an integer satisfying\n\n```lean\nx \u2261 a i + 1 [MOD m i]\n```\n\nfor every index `i`. This integer avoids every original class `a i (mod m i)`, so such classes cannot cover all natural numbers.\n\nThe f",
+"labels": [
+"erdos-problems"
+]
+},
+{
+"n": 261,
+"title": "Develop parametric families for A280831",
+"state": "open",
+"merged_at": null,
+"head": "research/a280831-parametric-families",
+"created": "2026-07-26",
+"body": "## Goal\n\nRecord kernel-verified algebraic progress toward Zhi-Wei Sun\u2019s 1680-conjecture (OEIS A280831).\n\n## Verified results\n\nThe exact module at `c39efc8f29479a6111a627fb388a846147a40556` passed ProofPlaygrond targeted audit run `30187962389`, including source scanning, compilation of every theorem below, printed-axiom inspection, and rejection of `sorryAx` and compiler-trust shortcuts.\n\n- every ",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 260,
+"title": "Audit complete A263135 kernel proof",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a263135-full-proof-cb8",
+"created": "2026-07-26",
+"body": "## Superseded audit\n\nClosed because the exact immutable proof tip already has a successful isolated kernel audit in `DomTheDeveloper/ProofPlaygrond` workflow run `29988298559`.\n\nThat run:\n\n- rejected `sorry`, `admit`, `native_decide`, `unsafe`, custom axioms, and compiler-trust shortcuts;\n- built the complete A263135 module chain;\n- ran the exact canonical theorem axiom audit;\n- passed the final a",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 259,
+"title": "Audit current-main nonlinear Voronovskaja submission",
+"state": "open",
+"merged_at": null,
+"head": "agent/solve-voronovskaja-clean",
+"created": "2026-07-26",
+"body": "## Audit target\n\nRuns the fork&#39;s current Formal Conjectures checks against the repaired Google-facing nonlinear Voronovskaja branch.\n\n## Exact shape\n\n- base: upstream `main` at `5a60e068cceb4edffa992dd0bdbda8c6c17185c5`;\n- head: `agent/solve-voronovskaja-clean`;\n- exactly one commit;\n- exactly one changed file: `FormalConjectures/Paper/VoronovskajaTypeFormula.lean`.\n\nThe branch also replaces f",
+"labels": []
+},
+{
+"n": 258,
+"title": "Audit current-main RNA quasi-powers submission",
+"state": "open",
+"merged_at": null,
+"head": "agent/rna-quasipowers-gdm-submit-20260722",
+"created": "2026-07-26",
+"body": "## Exact audited result\n\nThis one-file catalog submission exposes a rigorously verified algebraic certificate for the RNA hairpin/basepair generating function studied in arXiv:2602.19255.\n\nThe immutable underlying proof is frozen at:\n\n`a4fc5e6c9f846c424ba20bd3b6587546841cd811`\n\nProofPlaygrond exact audit run `30188372158` passed every gate:\n\n- confirmed the exact immutable source and pinned Lean 4",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 257,
+"title": "Audit current-main A263135 clean submission",
+"state": "open",
+"merged_at": null,
+"head": "submit/oeis-a263135-solved-clean",
+"created": "2026-07-26",
+"body": "## Audit target\n\nRuns the fork&#39;s current Formal Conjectures checks against the repaired Google-facing A263135 branch.\n\n## Exact shape\n\n- base: upstream `main` at `5a60e068cceb4edffa992dd0bdbda8c6c17185c5`;\n- head: `submit/oeis-a263135-solved-clean`;\n- exactly two commits;\n- exactly one new file: `FormalConjectures/KageyProblems/20.lean`.\n\nCommit 1 adds the theorem as `research open`. Commit 2 ",
+"labels": []
+},
+{
+"n": 256,
+"title": "Formalize and develop Sun Conjecture 2.6",
+"state": "open",
+"merged_at": null,
+"head": "statement/sun-2-7-i",
+"created": "2026-07-26",
+"body": "## Statement\n\nAdds an exact formalization of Zhi-Wei Sun\u2019s Conjecture 2.6:\n\n```lean\n(\u03c0 (k * n)) ^ (k + 1) &gt; (\u03c0 ((k + 1) * n)) ^ k\n```\n\nfor `n &gt; 4` and `1 \u2264 k \u2264 n`.\n\n## New proof architecture\n\nThe branch now contains a sorry-free full proof attempt using only the pinned Mathlib plus finite kernel computation:\n\n- `Nat.primeCounting_add_le` with modulus `30` bounds the number of new primes in a",
+"labels": []
+},
+{
+"n": 255,
+"title": "Formalize Erd\u0151s 545 literal counterexamples",
+"state": "open",
+"merged_at": null,
+"head": "research/erdos-545-counterexample",
+"created": "2026-07-26",
+"body": "## Result\n\nThis branch gives a Lean-verified counterexample family to the literal formulation of Erd\u0151s Problem 545 in google-deepmind/formal-conjectures issue #782.\n\nDefine `singleEdgeGraph r` to be one edge together with `r` isolated vertices. Under the standard non-induced monochromatic-copy definition, the file proves\n\n```lean\nsingleEdgeRamseyNumber r = r + 2\n```\n\nand therefore:\n\n- `K\u2082 \u2294 K\u2081` ha",
+"labels": [
+"erdos-problems"
+]
+},
+{
+"n": 254,
+"title": "Validate clean A100434 primary proof artifact",
+"state": "open",
+"merged_at": null,
+"head": "proof/a100434-primary-final",
+"created": "2026-07-26",
+"body": "Internal validation of the immutable formal-proof artifact.\n\n## Scope\n\n- parent: kernel-verified A100434 auxiliary proof commit `39f0f1c01b545bfdfa65a2fc4c9b1a5f4cdeec4e`\n- one commit\n- one added proof file\n- no temporary workflow\n\n## New proof\n\nProves that the recurrence-defined primary A100434 sequence `a` equals the OEIS piecewise sequence later called `h`, then derives the corrected auxiliary ",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 253,
+"title": "Audit A100434 primary-sequence bridge",
+"state": "closed",
+"merged_at": null,
+"head": "work/a100434-primary-proof",
+"created": "2026-07-26",
+"body": "Superseded by the clean immutable proof artifact in #254. The proof file from this audit branch passed the focused kernel, direct-source, no-shortcut, and axiom checks; the temporary workflow and iterative commits are intentionally excluded from #254.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 252,
+"title": "Validate upstream-ready OEIS A100434 statement",
+"state": "open",
+"merged_at": null,
+"head": "submit/a100434-corrected-identities-upstream",
+"created": "2026-07-26",
+"body": "Internal validation PR for the exact Google DeepMind candidate.\n\n## Scope\n\n- current upstream base: `5a60e068cceb4edffa992dd0bdbda8c6c17185c5`\n- one commit\n- one added file: `FormalConjectures/OEIS/100434.lean`\n- no temporary workflow or unrelated changes\n\n## Correct statement\n\nThe OEIS comment lists the primary sequence as `a` and later as `h`. This candidate uses the recurrence-defined primary s",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 251,
+"title": "Validate corrected OEIS A100434 auxiliary identities",
+"state": "closed",
+"merged_at": null,
+"head": "submit/a100434-corrected-identities-clean",
+"created": "2026-07-26",
+"body": "Superseded by #252 and #254. This branch embedded the long proof inline and therefore was not suitable for upstream submission under the Formal Conjectures proof-length policy.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 250,
+"title": "Audit clean A100434 proof",
+"state": "closed",
+"merged_at": null,
+"head": "work/a100434-clean-v3",
+"created": "2026-07-25",
+"body": "Superseded by the clean upstream candidate in #252 and immutable proof artifact in #254. This earlier audit branch included a temporary workflow and an earlier theorem presentation; do not use it for submission.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 249,
+"title": "[superseded] Stable audit for A100434 exact proof",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a100434-stable-39dd",
+"created": "2026-07-24",
+"body": "Superseded temporary audit for obsolete proof head `39dd7e1a393510e89469a4365aceec13f704e839`. The active audit targets current PR #4560 head `44f20bd9058d7054e7c2055156c8e32ff534b996` in ProofPlaygrond PR #111.",
+"labels": []
+},
+{
+"n": 248,
+"title": "W(3,20): certify profiled third-level hard cubes",
+"state": "closed",
+"merged_at": null,
+"head": "agent/w320-great-grandchildren",
+"created": "2026-07-24",
+"body": "## Goal\n\nCertify the remaining hard regions of the exact `W(3,20) \u2264 389` search after two exhaustive cube levels.\n\n## Profiled decomposition\n\nIndependent exact MILP probes identified 12 grandchildren that remained difficult after fixing DIMACS variables `193..198` and `190..192`. This branch exhaustively fixes DIMACS variables `199..201` in all eight ways for each of those 12 grandchildren, produc",
+"labels": []
+},
+{
+"n": 247,
+"title": "W(3,20): split kernel-only LRAT checker for Lean 4.27",
+"state": "open",
+"merged_at": null,
+"head": "agent/w320-lrat-kernel-v2",
+"created": "2026-07-24",
+"body": "## Summary\n\nAdds a modular kernel-reducible LRAT checker for the repository&#39;s pinned Lean 4.27 list-based CNF implementation.\n\nThe first module handles clause construction, variable lifting, formula conversion, and semantic soundness. The second handles RAT hint enumeration, the recursive LRAT loop, and the final theorem\n\n```lean\ncheckKernel cnf proof = true \u2192 cnf.Unsat\n```\n\nThe audit also bui",
+"labels": [
+"green-problems"
+]
+},
+{
+"n": 246,
+"title": "W(3,20): add kernel-only LRAT checker for Lean 4.27",
+"state": "closed",
+"merged_at": null,
+"head": "agent/w320-lrat-kernel",
+"created": "2026-07-24",
+"body": "## Summary\n\nAdds a kernel-reducible LRAT checking layer specialized to the repository&#39;s pinned Lean 4.27 list-based `Std.Sat.CNF` representation.\n\nThe checker replaces only implementation details that block kernel reduction\u2014HashMap-backed clause construction, classically branching relabeling, and the array-based RAT exhaustiveness path\u2014then derives soundness from Lean core&#39;s verified `lrat",
+"labels": [
+"green-problems"
+]
+},
+{
+"n": 245,
+"title": "W(3,20): recursively certify hard SAT cubes",
+"state": "closed",
+"merged_at": null,
+"head": "agent/w320-hard-cube-split",
+"created": "2026-07-24",
+"body": "## Goal\n\nRecursively split the first long-running six-variable cubes from the exact `W(3,20) \u2264 389` proof search.\n\n## Decomposition\n\nFor parent masks `11`, `14`, and `25`, this branch fixes the original DIMACS variables `193..198`, then exhaustively fixes variables `190..192` in all eight ways. The resulting 24 grandchildren exactly cover those three parent cubes.\n\nEvery grandchild must:\n\n- return",
+"labels": []
+},
+{
+"n": 244,
+"title": "[superseded] Audit A100434 exact Lean proof",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a100434-exact-ci",
+"created": "2026-07-24",
+"body": "Superseded duplicate temporary audit. The active dependency-complete audit for current PR #4560 head `44f20bd9058d7054e7c2055156c8e32ff534b996` is ProofPlaygrond PR #111.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 243,
+"title": "W(3,20): add exact-value upper-order bridge",
+"state": "closed",
+"merged_at": null,
+"head": "agent/w320-upper-lean-bridge",
+"created": "2026-07-24",
+"body": "## Summary\n\nAdds the Lean order-theoretic bridge needed for the exact value `W(3,20) = 389`.\n\nGiven a semantic upper-bound certificate proving\n\n```lean\n389 \u2208 Green14.mixedMonoAPGuaranteeSet 3 20\n```\n\nthe new theorem derives `Green14.W 3 20 \u2264 389` from the `sInf` definition and combines it with the existing kernel-checked lower bound `Green14.FastKernel.W_3_20_lower_fast`.\n\nThis PR intentionally do",
+"labels": [
+"green-problems"
+]
+},
+{
+"n": 242,
+"title": "W(3,20): generate exact upper-bound certificate",
+"state": "closed",
+"merged_at": null,
+"head": "agent/w320-exact-certificate",
+"created": "2026-07-24",
+"body": "## Goal\n\nGenerate and independently verify a proof-producing SAT refutation for the exact upper bound `W(3,20) \u2264 389`.\n\n## Contents\n\n- deterministic generator for the unrestricted 389-variable van der Waerden CNF;\n- structural checks for 41,426 clauses (37,636 length-3 and 3,790 length-20 clauses);\n- CaDiCaL DRAT proof generation;\n- DRAT-to-LRAT conversion and verification;\n- retained CNF, logs, h",
+"labels": []
+},
+{
+"n": 241,
+"title": "BMO #8: correct the reduced recurrence and audit the green certificate",
+"state": "closed",
+"merged_at": null,
+"head": "fix/bmo8-faithful-recurrence",
+"created": "2026-07-23",
+"body": "## Summary\n\nThis PR corrects the reduced BMO #8 transition system and reclassifies the existing green Lean certificate.\n\nThe previous two-branch recurrence was encoded over `\u2115`, so the expression\n\n```lean\na - b / 2 - 3\n```\n\nuses truncated subtraction. At the first boundary state `(675, 1347)`, that model moves to `(0, 2028)`.\n\nThe machine-derived reduction has a separate difference-two transition ",
+"labels": []
+},
+{
+"n": 240,
+"title": "Audit BMO8 Lean certificate",
+"state": "open",
+"merged_at": null,
+"head": "audit/bmo8-green-20260723",
+"created": "2026-07-23",
+"body": "Runs a dedicated Lean audit for `FormalConjectures/Other/BeaverMathOlympiad8Proof.lean` against the current repository toolchain.\n\nThe audit:\n\n- builds the exact BMO8 certificate with `lake env lean`;\n- rejects `sorry` and `admit` placeholders;\n- does not alter the mathematical statement or witness.\n\nThis PR is an audit lane only and should be merged only after the targeted check is green.",
+"labels": []
+},
+{
+"n": 239,
+"title": "Final audit: corrected Litt proof on current main",
+"state": "open",
+"merged_at": null,
+"head": "audit/litt-final-current-main",
+"created": "2026-07-23",
+"body": "## Purpose\n\nFinal clean audit of the Litt / most-unfair fair-binary coin-word theorem on the latest `main`.\n\nThis branch contains only:\n\n- the complete Lean proof modules;\n- the corrected constant-interior two-endpoint argument;\n- the independent exact-arithmetic verifier; and\n- the minimal compatibility aggregate required by the historical proof imports.\n\nIt excludes every prior workflow trigger,",
+"labels": []
+},
+{
+"n": 238,
+"title": "Test separated symbolic strategy MDD for A147983",
+"state": "open",
+"merged_at": null,
+"head": "experiment/a147983-prestrategy-mdd",
+"created": "2026-07-23",
+"body": "## Purpose\n\nTest a compressed symbolic route for the three `10 \u00d7 42` Chomp openings after the explicit-position carrier was shown to grow essentially one-for-one with processed states.\n\n## Results so far\n\nThe separated construction substantially improves on the original combined `(source node, candidate set)` checker:\n\n- at `5,000,000` raw states it produced `1,452,385` canonical strategy states;\n",
+"labels": []
+},
+{
+"n": 237,
+"title": "BMO #8: attribution and upstream preparation",
+"state": "open",
+"merged_at": null,
+"head": "agent/bmo8-prooforchestrator-certificate",
+"created": "2026-07-23",
+"body": "## Summary\n\nAdds the requested authorship and ProofOrchestrator attribution to the verified BMO #8 Lean certificate without changing the recurrence, witness, theorem statement, or proof term.\n\nThe certified witness is at Lean&#39;s zero-based index `1_210_682`:\n\n```text\n(a\u1d62, b\u1d62) = (1_749_056, 3_498_111)\n```\n\nand satisfies:\n\n```text\n1_749_056 = 3_498_111 / 2 + 1\n```\n\n## Attribution\n\nSolved and form",
+"labels": []
+},
+{
+"n": 236,
+"title": "feat(Other): solve Beaver Math Olympiad #8",
+"state": "closed",
+"merged_at": null,
+"head": "solve-bmo8-green-proof",
+"created": "2026-07-23",
+"body": "## Summary\n\nAdds a kernel-checkable Lean proof for Beaver Math Olympiad Problem 8 and marks the conjecture as solved.\n\nThe proof follows the recurrence over `\u2115`, including Lean&#39;s truncated natural-number subtraction, and certifies the explicit zero-based witness index `1_210_682`, where the orbit reaches `(1_749_056, 3_498_111)`.\n\n## Validation\n\n- Exact witness checked by Lean with `native_dec",
+"labels": [
+"erdos-problems",
+"oeis",
+"green-problems",
+"wikipedia",
+"arxiv",
+"kourovka",
+"mathoverflow",
+"millenium-problems"
+]
+},
+{
+"n": 235,
+"title": "Audit: BMO #8 upstream-ready statement",
+"state": "open",
+"merged_at": null,
+"head": "agent/bmo8-upstream-solved",
+"created": "2026-07-23",
+"body": "Final fork-side audit of the repaired BMO #8 upstream branch. The branch contains one commit and modifies only `FormalConjectures/Other/BeaverMathOlympiad.lean`; its immutable external certificate has already passed a dependency-aware `lake --wfail build` and a no-`sorryAx` axiom audit.",
+"labels": []
+},
+{
+"n": 234,
+"title": "Measure A147983 compact carrier beyond the premature 100k gate",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a147983-compact-carrier-500k",
+"created": "2026-07-23",
+"body": "## Purpose\n\nRerun the exact root-reachable closed-response carrier synthesis for the three `10 \u00d7 42` Chomp P-positions with a 500,000-position gate.\n\nThe earlier measurements stopped at `carrier = 100001`. The high-area run had processed `99,774` positions with only `225` pending, so that cap did not establish that the carrier was large or divergent.\n\nThis audit:\n\n1. regenerates the exact `107,342",
+"labels": []
+},
+{
+"n": 233,
+"title": "Audit WOWII 59 counterexample on current main",
+"state": "open",
+"merged_at": null,
+"head": "audit/wowii59-clean-current",
+"created": "2026-07-23",
+"body": "## Purpose\n\nClean one-file audit of the explicit 18-vertex counterexample to Written on the Wall II Conjecture 59.\n\nThe Lean proof verifies:\n\n- the graph is connected;\n- its Havel\u2013Hakimi residue is exactly `10`;\n- its largest induced bipartite subgraph has size at least `17`;\n- every induced forest has size at most `13`, using a finite 25-cycle covering certificate; and\n- therefore the conjectured",
+"labels": []
+},
+{
+"n": 232,
+"title": "Audit complete Litt most-unfair proof on current main",
+"state": "open",
+"merged_at": null,
+"head": "audit/litt-clean-current",
+"created": "2026-07-23",
+"body": "## Purpose\n\nClean audit PR for the complete Litt / most-unfair fair-binary coin-word theorem.\n\nThis branch is based directly on current `main` and adds only:\n\n- the 28 Lean proof modules;\n- the terminal exact theorem module; and\n- the independent exact-arithmetic verifier.\n\nIt deliberately excludes the 800+ unrelated historical changes from the original development branch.\n\n## Audit gate\n\nThe regi",
+"labels": []
+},
+{
+"n": 231,
+"title": "CI: reproduce BMO #8 proof compilation",
+"state": "closed",
+"merged_at": null,
+"head": "agent/bmo8-proof-repro",
+"created": "2026-07-23",
+"body": "Temporary targeted verification PR for the BMO #8 external proof certificate. It compiles the exact proof file under the repository-pinned Lean toolchain and audits the final theorem for `sorryAx`. This PR is not intended to merge.",
+"labels": []
+},
+{
+"n": 230,
+"title": "Audit complete Litt most-unfair proof on main",
+"state": "closed",
+"merged_at": null,
+"head": "agent/litt-most-unfair-proof",
+"created": "2026-07-23",
+"body": "Audit-only PR for the complete sorry-free Litt / most-unfair fair-binary coin-word proof.\n\nThe registered focused workflow compiles the full Walsh-energy proof chain with warnings fatal, rejects proof holes and trust escapes, and exhaustively replays all ordered pairs through length ten using exact arithmetic.\n\nDo not merge this historical proof branch. The clean one-file upstream package is maint",
+"labels": [
+"erdos-problems",
+"oeis",
+"green-problems",
+"wikipedia",
+"arxiv",
+"kourovka",
+"mathoverflow",
+"millenium-problems"
+]
+},
+{
+"n": 229,
+"title": "audit: run isolated BMO #8 Lean verification",
+"state": "open",
+"merged_at": null,
+"head": "audit/bmo8-pr-run",
+"created": "2026-07-23",
+"body": "Temporary audit PR. It runs the repository-pinned Lean compiler on the exact BMO #8 proof module and rejects any `sorryAx` dependency. It is not intended to merge.",
+"labels": []
+},
+{
+"n": 228,
+"title": "Audit complete Litt most-unfair proof",
+"state": "closed",
+"merged_at": null,
+"head": "agent/litt-most-unfair-proof",
+"created": "2026-07-23",
+"body": "## Purpose\n\nFresh validation wrapper for the complete sorry-free Litt / most-unfair fair-binary coin-word proof.\n\nThe proof branch establishes the sharp bound `1 - 2^(1-n)` for distinct binary words of length `n`, together with equality for the constant-word/one-endpoint-flip family.\n\nThe registered validation workflow:\n\n- rejects `sorry`, `admit`, `native_decide`, custom axioms, unsafe and opaque",
+"labels": [
+"erdos-problems",
+"oeis",
+"green-problems",
+"wikipedia",
+"arxiv",
+"kourovka",
+"mathoverflow",
+"millenium-problems"
+]
+},
+{
+"n": 227,
+"title": "Prove WOWII Conjecture 59 false",
+"state": "closed",
+"merged_at": null,
+"head": "audit/wowii59-clean-final",
+"created": "2026-07-23",
+"body": "## Summary\n\nRebuilds the WOWII 59 counterexample as a clean one-file proof on current `main`.\n\nThe 18-vertex connected graph consists of a ten-vertex bipartite core, a universal hub, and seven leaves. The Lean proof verifies:\n\n- `residue G = 10` by a finite kernel certificate;\n- `b G \u2265 17` by an explicit two-coloring after deleting the hub;\n- every induced forest has at most 13 vertices, using a f",
+"labels": []
+},
+{
+"n": 226,
+"title": "Audit Kagey Problem 137 in KageyProblems",
+"state": "open",
+"merged_at": null,
+"head": "submit/kagey-problem-137-clean",
+"created": "2026-07-23",
+"body": "Fresh current-upstream audit for the relocated Kagey Problem 137 catalog entry.\n\nThe branch is based directly on `google-deepmind/formal-conjectures@e751934294a381afd2d5fc1124c5953c8e25f9fa` and adds only `FormalConjectures/KageyProblems/137.lean`.\n\nThis verifies the maintainer-requested source organization and LaTeX Markdown documentation before upstream submission. The substantial proof remains ",
+"labels": []
+},
+{
+"n": 225,
+"title": "Run sparse A147983 kernel audit",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a147983-sparse-check",
+"created": "2026-07-23",
+"body": "Audit-only trigger. Builds `SparseStrategyData` with warnings fatal, rejects proof escapes, and prints its theorem axioms against the current canonical proof-branch head. Do not merge.",
+"labels": []
+},
+{
+"n": 224,
+"title": "Audit sparse A147983 strategy checker",
+"state": "closed",
+"merged_at": "2026-07-23T16:52:26Z",
+"head": "infra/a147983-sparse-audit",
+"created": "2026-07-23",
+"body": "Adds the new `SparseStrategyData` module to the focused pinned-Lean build and axiom audit. Infrastructure only.",
+"labels": []
+},
+{
+"n": 223,
+"title": "Run low-area A147983 audit on standard Ubuntu",
+"state": "closed",
+"merged_at": "2026-07-23T16:08:44Z",
+"head": "infra/a147983-low-area-x64",
+"created": "2026-07-23",
+"body": "Moves the deterministic low-area carrier measurement from the congested ARM pool to the standard Ubuntu runner pool. Audit infrastructure only.",
+"labels": []
+},
+{
+"n": 222,
+"title": "Install low-area A147983 carrier audit",
+"state": "closed",
+"merged_at": "2026-07-23T16:06:21Z",
+"head": "audit/a147983-low-area-100k",
+"created": "2026-07-23",
+"body": "Switches the temporary A147983 compact-carrier measurement from the failed high-area tie-break to the unmeasured low-area tie-break at the same 100,000-position gate. Audit infrastructure only.",
+"labels": []
+},
+{
+"n": 221,
+"title": "[Superseded] Measure low-area A147983 compact carrier",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a147983-low-area-100k-v2",
+"created": "2026-07-23",
+"body": "Closed because the workflow introduced in this PR could not run until installed on main. The active corrected low-area audit is PR #213.",
+"labels": []
+},
+{
+"n": 220,
+"title": "[Superseded] Generate explicit OEIS A147983 proof on macOS",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a147983-generate-explicit-proof-macos",
+"created": "2026-07-23",
+"body": "Closed because it repeats the failed 100,000-position high-area carrier gate. The corrected low-area comparison is tracked in PR #213.",
+"labels": []
+},
+{
+"n": 219,
+"title": "Install macOS OEIS A147983 proof-generation race",
+"state": "closed",
+"merged_at": "2026-07-23T15:52:38Z",
+"head": "infra/a147983-generator-macos",
+"created": "2026-07-23",
+"body": "## Purpose\n\nAdds an isolated macOS verification race for the exact same compact certificate and explicit Lean proof generator. A successful run pushes only to `proof/oeis-a147983-chomp-kernel-macos-candidate`; it cannot overwrite the authoritative branch. The candidate is usable only after the full build and final axiom audit pass.",
+"labels": []
+},
+{
+"n": 218,
+"title": "Move OEIS A147983 proof generation to ARM64",
+"state": "closed",
+"merged_at": "2026-07-23T15:50:14Z",
+"head": "infra/a147983-generator-arm64",
+"created": "2026-07-23",
+"body": "## Purpose\n\nMoves the architecture-independent exact Chomp computation and pinned Lean build to the repository&#39;s Linux ARM64 runner pool, avoiding the saturated x64 queue without changing the proof, certificate format, or acceptance gates.",
+"labels": []
+},
+{
+"n": 217,
+"title": "[Failed 100k high-area gate] Generate explicit sorry-free OEIS A147983 proof",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a147983-generate-explicit-proof",
+"created": "2026-07-23",
+"body": "Closed after the exact carrier export hit the 100,000-position cap. P-stream and MDD regeneration passed; explicit proof generation did not begin. Superseded by the low-area carrier audit in PR #213. Do not treat this run as a proof.",
+"labels": []
+},
+{
+"n": 216,
+"title": "Install explicit OEIS A147983 proof generator",
+"state": "closed",
+"merged_at": "2026-07-23T15:45:26Z",
+"head": "infra/a147983-generate-explicit-proof",
+"created": "2026-07-23",
+"body": "## Purpose\n\nInstalls the final fork-only promotion gate for the sorry-free OEIS A147983 proof.\n\nThe workflow regenerates the exact P-position database and reduced MDD, exports a compact closed response carrier, emits explicit Lean `Outcome` proof terms for every legal move, builds the generated theorem with warnings fatal, prints the final theorem&#39;s axioms, and pushes to `proof/oeis-a147983-ch",
+"labels": []
+},
+{
+"n": 215,
+"title": "Audit clean OEIS A226247 GDM package",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a226247-gdm-current",
+"created": "2026-07-23",
+"body": "Focused current-upstream audit for the exact one-commit Google DeepMind package on `submit/oeis-a226247-gdm-current`.\n\nThe package adds one catalog file, links the immutable full proof, and is zero commits behind the recorded upstream base. This PR compiles only that catalog file with warnings as errors.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 214,
+"title": "Audit clean OEIS A343881 GDM package",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a343881-gdm-current",
+"created": "2026-07-23",
+"body": "Focused current-upstream audit for the exact one-commit Google DeepMind package on `submit/oeis-a343881-gdm-current`.\n\nThe package adds one catalog file, links the immutable full proof, and is zero commits behind the recorded upstream base. This PR compiles only that catalog file with warnings as errors.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 213,
+"title": "[Completed measurement: low-area also exceeds 100k] OEIS A147983 compact carrier",
+"state": "closed",
+"merged_at": null,
+"head": "experiment/a147983-compact-export",
+"created": "2026-07-23",
+"body": "Audit experiment only. Exact local reproduction matched the canonical P-stream and MDD totals, then the low-area carrier exceeded the 100,000-position cap at `carrier=100001 processed=98972 responses=6389435 stack=1027`. The high-area carrier had already exceeded the same cap. Explicit theorem-per-position generation is therefore abandoned; the proof proceeds through the symbolic MDD closure inter",
+"labels": []
+},
+{
+"n": 212,
+"title": "Install compact OEIS A147983 certificate exporter",
+"state": "closed",
+"merged_at": "2026-07-23T15:42:38Z",
+"head": "infra/a147983-compact-export-workflow",
+"created": "2026-07-23",
+"body": "Installs a fork-only audit that regenerates the exact P-position oracle, synthesizes the root-reachable high-area carrier, emits a compact explicit response table, independently replays every first and second move without consulting the oracle, and uploads the binary certificate for Lean conversion. This workflow does not treat the C++ replay as the formal proof.",
+"labels": []
+},
+{
+"n": 211,
+"title": "Audit full OEIS A226247 proof on current upstream",
+"state": "open",
+"merged_at": null,
+"head": "audit/full-oeis-a226247-current-upstream",
+"created": "2026-07-23",
+"body": "Clean one-file proof audit based directly on `google-deepmind/formal-conjectures@e751934294a381afd2d5fc1124c5953c8e25f9fa`.\n\nThe head reuses the exact immutable proof blob from commit `f14200cfbd7a5b23839ce72e69eb99d2df603b20`; no text was copied or modified. The only difference from upstream is `FormalConjectures/OEIS/226247.lean`, containing the complete proofs of shortest canonical depth, the r",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 210,
+"title": "Add explicit finite strategy-table checker for A147983",
+"state": "closed",
+"merged_at": null,
+"head": "proof/a147983-explicit-strategy-data",
+"created": "2026-07-23",
+"body": "Adds the generic pure-Lean checker that converts a finite carrier array and bounded response table into `StrategyCertificate`, then into the exact three-opening theorem. The concrete table generator remains untrusted; `ExplicitStrategyData.Valid` is a finite proposition intended to be discharged by ordinary kernel reduction or sharded kernel lemmas. No `sorry`, `native_decide`, custom axiom, or co",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 209,
+"title": "Audit full OEIS A343881 proof on current upstream",
+"state": "open",
+"merged_at": null,
+"head": "audit/full-oeis-a343881-current-upstream",
+"created": "2026-07-23",
+"body": "Clean one-file proof audit based directly on `google-deepmind/formal-conjectures@e751934294a381afd2d5fc1124c5953c8e25f9fa`.\n\nThe head reuses the exact immutable proof blob from commit `7db1d1a3347619a7c3f5d0662c43d77ed47e130e`; no text was copied or modified. The only difference from upstream is `FormalConjectures/OEIS/343881.lean`, containing the complete no-`sorry` disproof.\n\nThis audit PR exist",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 208,
+"title": "Fix OEIS A147983 axiom audit imports",
+"state": "closed",
+"merged_at": "2026-07-23T15:37:03Z",
+"head": "infra/a147983-axiom-imports",
+"created": "2026-07-23",
+"body": "## Purpose\n\nImports the independent `KernelPSet` and `MDDCertificate` modules explicitly before printing their theorem axioms. The prior focused build was fully green; the axiom step failed only because those constants were not in the audit file&#39;s import closure.",
+"labels": []
+},
+{
+"n": 207,
+"title": "Scale the promising A147983 compact-carrier run",
+"state": "closed",
+"merged_at": "2026-07-23T15:32:38Z",
+"head": "infra/a147983-compact-carrier-scale",
+"created": "2026-07-23",
+"body": "Raises the high-area root-carrier gate from 5,000 to 100,000 positions and removes the inferior low-area rerun. The first measurement reached 5,001 positions with only 272 scheduled nodes remaining, so this run should determine the exact completed carrier size. Audit infrastructure only.",
+"labels": []
+},
+{
+"n": 206,
+"title": "Run exact OEIS A147983 reachable strategy audit",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a147983-reachable-strategy-run",
+"created": "2026-07-23",
+"body": "Superseded by explicit proof-generation gate #217. The exact reachable-carrier experiment is no longer the decisive path; #217 exports the compact high-area carrier, generates explicit Lean proof terms, builds them, audits the final theorem, and pushes only on success.",
+"labels": []
+},
+{
+"n": 205,
+"title": "Install OEIS A147983 reachable strategy audit",
+"state": "closed",
+"merged_at": "2026-07-23T15:25:30Z",
+"head": "infra/a147983-reachable-strategy-audit",
+"created": "2026-07-23",
+"body": "## Purpose\n\nInstalls a fork-only audit that regenerates the exact P-position database and extracts only the losing positions reachable from the three `10 \u00d7 42` roots under one explicit legal response for every encountered opponent position.\n\nThis measures the compressed carrier required by the sorry-free Lean `StrategyCertificate`, rather than the entire 107-million-position P-language.",
+"labels": []
+},
+{
+"n": 204,
+"title": "Measure compact closed carrier for OEIS A147983",
+"state": "closed",
+"merged_at": null,
+"head": "experiment/a147983-compact-carrier",
+"created": "2026-07-23",
+"body": "Superseded by explicit proof-generation gate #217. The useful measurement was retained: the high-area strategy reached `carrier=5001`, `processed=4727`, `stack=272` at the 5,000-node gate. #217 now completes that strategy, exports the concrete reply table, generates explicit Lean proof terms, and promotes only after build and axiom success.",
+"labels": []
+},
+{
+"n": 203,
+"title": "Install compact OEIS A147983 carrier measurement",
+"state": "closed",
+"merged_at": "2026-07-23T15:24:49Z",
+"head": "infra/a147983-compact-carrier-workflow",
+"created": "2026-07-23",
+"body": "Installs a narrowly scoped audit workflow for the root-reachable Chomp carrier experiment. It regenerates the exact P stream and reduced MDD, then measures low-area and high-area greedy closed carriers from only the three 10\u00d742 roots. This is a certificate-size experiment, not a proof submission.",
+"labels": []
+},
+{
+"n": 202,
+"title": "Mark BMO #8 solved with verified finite certificate",
+"state": "closed",
+"merged_at": null,
+"head": "agent/bmo8-upstream-solved",
+"created": "2026-07-23",
+"body": "## Summary\n\nMarks Beaver Math Olympiad Problem 8 as solved.\n\nThe recurrence reaches the target at zero-based index `1_210_682`:\n\n```text\n(a\u1d62, b\u1d62) = (1_749_056, 3_498_111)\n```\n\nso `a\u1d62 = b\u1d62 / 2 + 1`.\n\n## Attribution\n\nSolved and formalized by **Dominic Dabish**.\n\n**ProofOrchestrator**, using OpenAI GPT-5.6 Thinking, assisted with the mathematical argument, Lean formalization, and submission preparati",
+"labels": []
+},
+{
+"n": 201,
+"title": "audit: OEIS A226247 GDM-ready statement",
+"state": "closed",
+"merged_at": null,
+"head": "ready/a226247-gdm-20260723",
+"created": "2026-07-23",
+"body": "Fresh one-file catalog package based on `google-deepmind/formal-conjectures@e751934294a381afd2d5fc1124c5953c8e25f9fa`.\n\nThis PR is the DTD validation gate before an upstream submission.\n\nThe catalog theorem preserves the complete correctness chain proved in the immutable Lean artifact at commit `a3c908d4ca232e3d4add5373d3a803aed1f3c9a8`:\n\n1. canonical rational evaluation is injective;\n2. normalize",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 200,
+"title": "audit: OEIS A343881 GDM-ready statement",
+"state": "closed",
+"merged_at": null,
+"head": "ready/a343881-gdm-20260723",
+"created": "2026-07-23",
+"body": "Fresh one-file package based on `google-deepmind/formal-conjectures@e751934294a381afd2d5fc1124c5953c8e25f9fa`.\n\nThis PR is the DTD validation gate before an upstream submission.\n\nThe statement records the `k = 12` counterexample and links the immutable complete Lean proof at commit `a0a0c32026e662e2661b126e7782dfc283c2c278`. The proof compares the 2-adic and 3-adic exponent equations and uses the ",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 199,
+"title": "audit: WorldCup7 GDM-ready statement",
+"state": "closed",
+"merged_at": null,
+"head": "ready/worldcup7-gdm-20260723",
+"created": "2026-07-23",
+"body": "Fresh one-file package based on `google-deepmind/formal-conjectures@e751934294a381afd2d5fc1124c5953c8e25f9fa`.\n\nThis PR exists only as the DTD validation gate before an upstream submission.\n\n- exact computational/Ehrhart proof and data are linked from the file\n- the catalog theorem intentionally remains `sorry`, as permitted for Formal Conjectures statements\n- the two executable polynomial sanity ",
+"labels": []
+},
+{
+"n": 198,
+"title": "Add verified BMO #8 Lean certificate",
+"state": "closed",
+"merged_at": "2026-07-23T15:23:49Z",
+"head": "agent/bmo8-proof-certificate",
+"created": "2026-07-23",
+"body": "## Summary\n\nAdds a clean finite Lean certificate for Beaver Math Olympiad Problem 8.\n\nThe exact recurrence reaches the target state at Lean&#39;s zero-based index `1_210_682`:\n\n```text\n(a\u1d62, b\u1d62) = (1_749_056, 3_498_111)\n```\n\nHence `a\u1d62 = b\u1d62 / 2 + 1` under natural-number division.\n\n## Proof structure\n\n- Defines the exact recurrence from `BeaverMathOlympiad.lean`.\n- Proves that every pair of sequences",
+"labels": []
+},
+{
+"n": 197,
+"title": "Increase OEIS A147983 strategy measurement cap",
+"state": "closed",
+"merged_at": "2026-07-23T15:15:49Z",
+"head": "infra/a147983-strategy-cap-10m",
+"created": "2026-07-23",
+"body": "## Purpose\n\nRaises the exact symbolic response-closure state cap from 500,000 to 10,000,000 and prints the current first-move template before traversal. The previous run reconstructed the exact P-position MDD successfully and stopped only at the conservative state cap.",
+"labels": []
+},
+{
+"n": 196,
+"title": "Capture OEIS A147983 Lean build diagnostics",
+"state": "closed",
+"merged_at": "2026-07-23T15:14:29Z",
+"head": "infra/a147983-kernel-audit-logs",
+"created": "2026-07-23",
+"body": "## Purpose\n\nUpdates the focused OEIS A147983 audit to build each module separately and upload the complete compiler transcript, including the first failing module. This is fork-only diagnostic infrastructure.",
+"labels": []
+},
+{
+"n": 195,
+"title": "Run focused OEIS A147983 kernel audit",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a147983-kernel-run",
+"created": "2026-07-23",
+"body": "Superseded by explicit proof-generation gate #217. The focused module build already passed with warnings fatal, and the only axiom-step issue was a missing audit import. #217 now performs the generated concrete proof build and final theorem axiom audit in one promotion gate.",
+"labels": []
+},
+{
+"n": 194,
+"title": "Install focused OEIS A147983 kernel audit",
+"state": "closed",
+"merged_at": "2026-07-23T15:08:56Z",
+"head": "infra/a147983-kernel-audit-workflow",
+"created": "2026-07-23",
+"body": "## Purpose\n\nAdds a fork-only targeted Lean gate for the sorry-free OEIS A147983 proof branch.\n\nThe audit checks out `proof/oeis-a147983-chomp-kernel`, rejects placeholders and prohibited trust escapes, builds the focused modules with warnings fatal, and prints the axioms of every reduction theorem currently used toward the final result.",
+"labels": []
+},
+{
+"n": 193,
+"title": "Focused Lean audit: OEIS A343881 proof",
+"state": "closed",
+"merged_at": null,
+"head": "proof/oeis-a343881-current-audit-v2",
+"created": "2026-07-23",
+"body": "Isolated proof audit against current Google DeepMind `main` (`e751934294a381afd2d5fc1124c5953c8e25f9fa`).\n\nThe base branch contains only the temporary focused workflow. The head adds the complete warning-free A343881 Lean proof and a terminal `#print axioms OeisA343881.conjecture` audit.\n\nThis PR is verification-only and must not be merged into a submission branch.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 192,
+"title": "Audit current GDM package for OEIS A226247",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a226247-gdm-current",
+"created": "2026-07-23",
+"body": "Validates the clean one-file Google DeepMind submission package for OEIS A226247 / Kagey Problem 137 against an exact mirror of current upstream `main` (`e751934294a381afd2d5fc1124c5953c8e25f9fa`).\n\nThe catalog file records:\n\n- canonical shortest-path minimality;\n- the rank recurrence `a(n) = a(n - 1) + a(n - 3)` for `n \u2265 4`;\n- the characterization that a canonical vertex is blue exactly when its ",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 191,
+"title": "Audit current GDM package for OEIS A343881",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a343881-gdm-current",
+"created": "2026-07-23",
+"body": "Validates the clean one-file Google DeepMind submission package for OEIS A343881 against an exact mirror of current upstream `main` (`e751934294a381afd2d5fc1124c5953c8e25f9fa`).\n\nThe catalog file records the disproof and links the immutable warning-free Lean proof at commit `7db1d1a3347619a7c3f5d0662c43d77ed47e130e`.\n\nThis is a fork-local audit PR. The upstream-facing branch is `submit/oeis-a34388",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 190,
+"title": "Run exact OEIS A147983 strategy MDD audit",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a147983-strategy-mdd-run",
+"created": "2026-07-23",
+"body": "## Audit only\n\nClean branch based directly on `main` containing only the three exact certificate generators and one trigger file.\n\nThe installed workflow regenerates the P-position stream, validates the reduced MDD counts, and measures the exact two-ply response-closure automaton. This PR must not be merged.",
+"labels": []
+},
+{
+"n": 189,
+"title": "Audit OEIS A147983 response-strategy MDD",
+"state": "closed",
+"merged_at": null,
+"head": "proof-artifacts/oeis-a147983-chomp",
+"created": "2026-07-23",
+"body": "Superseded by clean audit PR #190, which is based directly on `main` and changes only the three exact certificate generators plus one trigger file. This broad artifact-branch PR must not be merged.",
+"labels": [
+"erdos-problems",
+"oeis",
+"green-problems",
+"wikipedia",
+"arxiv",
+"kourovka",
+"mathoverflow",
+"millenium-problems"
+]
+},
+{
+"n": 188,
+"title": "Install OEIS A147983 strategy MDD audit",
+"state": "closed",
+"merged_at": "2026-07-23T15:03:05Z",
+"head": "infra/a147983-strategy-mdd-workflow",
+"created": "2026-07-23",
+"body": "## Purpose\n\nInstalls a narrowly scoped workflow on the fork for measuring the exact response-strategy automaton used by the sorry-free OEIS A147983 proof development.\n\nThe workflow:\n\n- regenerates the exact P-position stream through the third `10 \u00d7 42` target;\n- serializes the exact reduced MDD;\n- verifies the known word/node/transition counts;\n- runs an exact, collision-safe symbolic two-ply clos",
+"labels": []
+},
+{
+"n": 187,
+"title": "Audit Geode5 arithmetic and cast bridges",
+"state": "closed",
+"merged_at": null,
+"head": "audit-geode5-arithmetic-proof",
+"created": "2026-07-23",
+"body": "Temporary checker PR for the sorry-free arithmetic side of the Geode5 proof.\n\nIt checks:\n\n- the exact factorial reduction of every alternating-sum term;\n- reduction of hyper-Catalan integrality to a multinomial word-length divisibility theorem;\n- the multinomial divisibility proof;\n- the natural-number hyper-Catalan quotient and rational cast bridge;\n- the cast from the original `geode5Diagonal` b",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 186,
+"title": "Prove OEIS A147983 Chomp result with a symbolic kernel certificate",
+"state": "open",
+"merged_at": null,
+"head": "proof/oeis-a147983-chomp-kernel",
+"created": "2026-07-23",
+"body": "## Status\n\nThe reusable pure-Lean theorem layers are compiled and sorry-free. They formalize ranked normal-play outcomes, Chomp move preservation and strict area decrease, the bridge to the catalog `IsPPosition`, closed response strategies, and MDD inclusion/disjointness certificates.\n\n## Exact finite data\n\nThe corrected retrograde computation and exact reduced MDD have been independently reproduc",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 185,
+"title": "[Blocked: sorry-free proof in progress] OEIS A147983 Chomp",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a147983-chomp-formal-conjectures-only",
+"created": "2026-07-23",
+"body": "Closed as superseded by explicit proof-generation gate #217 and the authoritative proof branch `proof/oeis-a147983-chomp-kernel`. This catalog branch contains `sorry` and must not be promoted. A new clean two-commit catalog branch will be created only after the linked proof is sorry-free, built, and axiom-audited.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 184,
+"title": "Develop a no-sorry proof of the five-dimensional Geode value",
+"state": "open",
+"merged_at": null,
+"head": "audit-geode5-crt-proof",
+"created": "2026-07-23",
+"body": "## Goal\n\nKernel-verify the exact 8,367-digit value of the five-dimensional Geode number\n\n`G(1000,1000,1000,1000,1000)`\n\nand promote the completed proof only after the final theorem passes the pinned Lean build and axiom audit.\n\n## Current theorem\n\n`FormalConjectures/Arxiv/2508.10245/Geode5.lean` now contains the original benchmark theorem with a genuine proof:\n\n```lean\ntheorem geode5_1000 : geode5",
+"labels": [
+"arxiv",
+"ci:full"
+]
+},
+{
+"n": 183,
+"title": "Run explicit-access Chomp checker audit",
+"state": "closed",
+"merged_at": null,
+"head": "ci/chomp-native-final-audit-6",
+"created": "2026-07-23",
+"body": "Fresh internal audit trigger for immutable proof commit `dc00fb21fbcbb57a4e86930f09e8c677b56f59ea`. It checks the exact Lean-native 6\u00d713 regression after replacing the remaining ambiguous syntax with explicit array and `UInt64` operations. This PR contains no proof changes and is not a submission PR.",
+"labels": []
+},
+{
+"n": 182,
+"title": "Run corrected immutable Chomp checker audit",
+"state": "closed",
+"merged_at": null,
+"head": "ci/chomp-native-final-audit-5",
+"created": "2026-07-23",
+"body": "Closed as an obsolete corrected-source audit trigger. Superseded by the dedicated Chomp audit on PR #183.",
+"labels": []
+},
+{
+"n": 181,
+"title": "Trigger final Litt predecessor-bound repair",
+"state": "closed",
+"merged_at": null,
+"head": "trigger/litt-constant-repair",
+"created": "2026-07-23",
+"body": "Internal one-shot trigger. The default-branch workflow replaces the final brittle natural-subtraction tactic in `LittMostUnfairBetWalshTwoEndpointConstant.lean` with the exact theorem term `Nat.le_sub_of_add_le hn`, commits it to `agent/litt-most-unfair-proof`, and does not modify the proof statement. This PR must not be merged.",
+"labels": []
+},
+{
+"n": 180,
+"title": "Trigger exact WOWII 59 source repair",
+"state": "closed",
+"merged_at": null,
+"head": "trigger/wowii59-repair",
+"created": "2026-07-23",
+"body": "Internal one-shot trigger. The default-branch workflow applies three exact changes to `agent/solve-wowii-59`: a kernel-evaluable residue certificate, an explicit finite decision procedure for the 25-cycle cover, and a direct theorem exhibiting the `Fin 18` counterexample. This PR contains no proof source and must not be merged.",
+"labels": []
+},
+{
+"n": 179,
+"title": "Run import-isolated Chomp checker audit",
+"state": "closed",
+"merged_at": null,
+"head": "ci/chomp-native-final-audit-4",
+"created": "2026-07-23",
+"body": "Closed as an obsolete import-isolation audit trigger. Superseded by the dedicated Chomp audit on PR #183.",
+"labels": []
+},
+{
+"n": 178,
+"title": "Run Lake-based trusted Chomp audit",
+"state": "closed",
+"merged_at": null,
+"head": "ci/chomp-native-final-audit-3",
+"created": "2026-07-23",
+"body": "Closed as an obsolete Lake-target audit trigger. Superseded by the dedicated Chomp audit on PR #183.",
+"labels": []
+},
+{
+"n": 177,
+"title": "Formalize OEIS A147983 Chomp three-opening challenge",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a147983-chomp-final-gdm",
+"created": "2026-07-23",
+"body": "Superseded by #185. The replacement points only to the dedicated `DomTheDeveloper/formal-conjectures` proof-artifact branch.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 176,
+"title": "Run fresh trusted Chomp native audit",
+"state": "closed",
+"merged_at": null,
+"head": "ci/chomp-native-final-audit-2",
+"created": "2026-07-23",
+"body": "Closed as an obsolete registered-workflow audit trigger. Superseded by the dedicated Chomp audit on PR #183.",
+"labels": []
+},
+{
+"n": 175,
+"title": "Run trusted Chomp native proof audit",
+"state": "closed",
+"merged_at": null,
+"head": "ci/chomp-native-final-audit",
+"created": "2026-07-23",
+"body": "Closed as an obsolete one-shot audit trigger. It was superseded by the dedicated Chomp audit workflow and current audit PR.",
+"labels": []
+},
+{
+"n": 174,
+"title": "WIP: exact Lean-native Chomp checker",
+"state": "closed",
+"merged_at": null,
+"head": "work/chomp-native-proof-v3",
+"created": "2026-07-23",
+"body": "Closed as a stale proof-development PR. It is superseded by the clean immutable checker branch and the dedicated Chomp audit.",
+"labels": []
+},
+{
+"n": 173,
+"title": "Green14: prove W(3,20) \u2265 389 by kernel-checked certificate",
+"state": "closed",
+"merged_at": "2026-07-23T09:51:23Z",
+"head": "agent/w320-kernel-proof",
+"created": "2026-07-23",
+"body": "## Summary\n\nAdds a self-contained Lean proof of the recorded lower bound `W(3,20) \u2265 389`.\n\nThe proof uses the published 388-point two-coloring certificate, stores the 48 color-0 positions as one compact natural-number bit mask, reflects the finite Boolean arithmetic-progression check into the repository&#39;s exact `Set.IsAPOfLength` formulation, proves the mixed guarantee set is nonempty from fin",
+"labels": [
+"green-problems",
+"ci:full"
+]
+},
+{
+"n": 172,
+"title": "Exact Lean audit: OEIS A226247 / Kagey Problem 137",
+"state": "closed",
+"merged_at": null,
+"head": "solve-a226247-1000",
+"created": "2026-07-23",
+"body": "Fresh focused audit of the A226247 proof branch. The active repository workflow recognizes `solve-a226247-1000` and compiles only `FormalConjectures/OEIS/226247.lean` with warnings as errors.",
+"labels": [
+"oeis",
+"ci:full"
+]
+},
+{
+"n": 171,
+"title": "Temporary audit: Geode5 on GDM-clean base",
+"state": "closed",
+"merged_at": null,
+"head": "gdm-geode5-1000",
+"created": "2026-07-23",
+"body": "Temporary CI-only pull request to compile `FormalConjectures/Arxiv/2508.10245/Geode5.lean` from the branch based directly on Google DeepMind `main`. This PR will not be merged.",
+"labels": [
+"erdos-problems",
+"oeis",
+"green-problems",
+"wikipedia",
+"arxiv",
+"kourovka",
+"mathoverflow",
+"millenium-problems"
+]
+},
+{
+"n": 170,
+"title": "Audit GDM-ready OEIS A343881 statement",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a343881",
+"created": "2026-07-23",
+"body": "Temporary audit against an exact mirror of `google-deepmind/formal-conjectures@8eda3cc8`. This PR verifies the one-file upstream package using the upstream repository structure and workflows.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 169,
+"title": "WIP: exact Lean-native Chomp checker",
+"state": "closed",
+"merged_at": null,
+"head": "work/chomp-native-proof-v2",
+"created": "2026-07-23",
+"body": "Superseded by a clean branch rebuilt from current `main`. This branch contained historical audit commits that prevented GitHub from synthesizing a clean PR merge commit.",
+"labels": []
+},
+{
+"n": 168,
+"title": "Use trusted trigger for OEIS A226247 audit",
+"state": "closed",
+"merged_at": "2026-07-23T08:06:09Z",
+"head": "agent/register-a226247-audit",
+"created": "2026-07-23",
+"body": "Updates the read-only A226247 branch-specific audit to use the repository&#39;s established `pull_request_target` pattern, matching the trusted W(3,20) kernel audit. The workflow still checks out and compiles only the same-repository PR head.",
+"labels": []
+},
+{
+"n": 167,
+"title": "Refresh A226247 audit branch from main",
+"state": "closed",
+"merged_at": "2026-07-23T08:03:55Z",
+"head": "main",
+"created": "2026-07-23",
+"body": "Temporary branch-to-branch update so the focused A226247 audit branch includes the current repository base without changing the proof file.",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 166,
+"title": "Audit warning-free OEIS A343881 proof",
+"state": "closed",
+"merged_at": null,
+"head": "ci/oeis-a343881-warning-free",
+"created": "2026-07-23",
+"body": "Temporary audit PR for the warning-free A343881 proof. The only change from the already verified proof is installing `Fact p.Prime` from the existing prime hypothesis before the `ZMod p` calculation.",
+"labels": [
+"oeis",
+"ci:full"
+]
+},
+{
+"n": 165,
+"title": "Add Kauers\u2013Zeilberger restricted-run tableaux Conjecture 2a",
+"state": "closed",
+"merged_at": "2026-07-23T08:08:22Z",
+"head": "agent/restricted-run-tableaux-gdm-ready",
+"created": "2026-07-23",
+"body": "## Summary\n\nAdds a precise Lean formalization of Kauers\u2013Zeilberger Conjecture 2a using the standard ballot-word encoding of rectangular standard Young tableaux.\n\nThis PR adds:\n\n- reusable finite definitions in `FormalConjecturesForMathlib/Combinatorics/RestrictedRunTableaux.lean`;\n- the required `FormalConjecturesForMathlib.lean` index import;\n- the arXiv-sourced open-conjecture statement in `Form",
+"labels": [
+"arxiv",
+"ci:full"
+]
+},
+{
+"n": 164,
+"title": "Audit OEIS A226247 / Kagey Problem 137",
+"state": "closed",
+"merged_at": null,
+"head": "solve-a226247-1000",
+"created": "2026-07-23",
+"body": "Focused audit PR for the exact proof from #130, rebased through a merge onto current `main`. The dedicated read-only workflow compiles `FormalConjectures/OEIS/226247.lean` with `-DwarningAsError=true`.",
+"labels": [
+"oeis",
+"ci:full"
+]
+},
+{
+"n": 163,
+"title": "Stage exact A226247 proof for focused audit",
+"state": "closed",
+"merged_at": "2026-07-23T08:02:03Z",
+"head": "agent/solve-oeis-a226247-kagey137",
+"created": "2026-07-23",
+"body": "Temporary branch-to-branch merge that places the exact two-commit A226247 proof on the current-main `solve-a226247-1000` audit branch.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 162,
+"title": "Add focused OEIS A226247 audit",
+"state": "closed",
+"merged_at": "2026-07-23T08:01:40Z",
+"head": "agent/add-a226247-pr-audit",
+"created": "2026-07-23",
+"body": "Adds the same read-only branch-specific Lean audit pattern used by other active proofs. The workflow compiles only `FormalConjectures/OEIS/226247.lean` with warnings as errors when the `solve-a226247-1000` PR carries `ci:full`.",
+"labels": []
+},
+{
+"n": 161,
+"title": "Audit WOWII Conjecture 59 counterexample",
+"state": "closed",
+"merged_at": null,
+"head": "agent/solve-wowii-59",
+"created": "2026-07-23",
+"body": "Draft verification PR for the proposed explicit 18-vertex counterexample to Written on the Wall II Conjecture 59.\n\nThe repaired source uses kernel-checked finite certificates for the Havel\u2013Hakimi residue and induced-cycle cover, corrected theorem specialization, and explicit high-resource Lean settings. This PR is for repository-native build checks only.\n\nIt must remain draft until the exact file ",
+"labels": [
+"erdos-problems",
+"oeis",
+"green-problems",
+"wikipedia",
+"arxiv",
+"kourovka",
+"mathoverflow",
+"millenium-problems"
+]
+},
+{
+"n": 160,
+"title": "Audit Litt most-unfair bet proof",
+"state": "closed",
+"merged_at": null,
+"head": "agent/litt-most-unfair-proof",
+"created": "2026-07-23",
+"body": "Draft verification PR for the complete Litt / most-unfair fair-binary coin-word proof.\n\nThe branch contains the formal Walsh-energy argument and an exact finite replay script through length ten. This PR is for repository-native build checks only and must remain draft until the terminal theorem compiles and its axiom audit passes.\n\nNo upstream submission is authorized from this PR until the proof i",
+"labels": [
+"erdos-problems",
+"oeis",
+"green-problems",
+"wikipedia",
+"arxiv",
+"kourovka",
+"mathoverflow",
+"millenium-problems"
+]
+},
+{
+"n": 159,
+"title": "Focused current-base audit for OEIS A226247",
+"state": "closed",
+"merged_at": null,
+"head": "agent/a226247-focused-ci-v3",
+"created": "2026-07-23",
+"body": "Temporary read-only diagnostic PR based on current `main`. It contains the exact A226247 proof from PR #130 and compiles only `FormalConjectures.OEIS.\u00ab226247\u00bb` under the pinned Lean toolchain.",
+"labels": [
+"oeis",
+"ci:full"
+]
+},
+{
+"n": 158,
+"title": "Add restricted-run tableaux statement and verified reduction",
+"state": "closed",
+"merged_at": null,
+"head": "agent/restricted-run-tableaux-clean-reduction",
+"created": "2026-07-23",
+"body": "Superseded by merged DTD PR #165 and the clean upstream-based branch `agent/restricted-run-tableaux-upstream`. This reduction draft is not a completed proof of Conjecture 2a.",
+"labels": [
+"arxiv",
+"ci:full"
+]
+},
+{
+"n": 157,
+"title": "Audit clean A263135 catalog submission",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a263135-catalog-e1f22",
+"created": "2026-07-23",
+"body": "Runs the fork&#39;s standard Formal Conjectures checks against exact clean submission commit `e1f22c58af222484dbcecf3fbd2f0a9301e5a5a1`.\n\nThe added Markdown file is audit-only. The GDM-facing branch remains `submit/oeis-a263135-solved-clean`, based on current GDM main with exactly two commits and one new catalog file.\n\nThe underlying proof at `cb8de9921fc62810991a0384ee412cfed0ad8e7c` has already ",
+"labels": [
+"erdos-problems",
+"oeis",
+"green-problems",
+"wikipedia",
+"arxiv",
+"kourovka",
+"mathoverflow",
+"millenium-problems"
+]
+},
+{
+"n": 156,
+"title": "ci: full audit for clean WorldCup7 PR branch",
+"state": "closed",
+"merged_at": null,
+"head": "formalize-worldcup7-polynomial-pr",
+"created": "2026-07-23",
+"body": "Final repository-wide validation of the clean one-commit `formalize-worldcup7-polynomial-pr` branch against an untouched branch pinned to the current Google DeepMind `main` commit.",
+"labels": []
+},
+{
+"n": 155,
+"title": "WIP: Chomp native proof checker",
+"state": "closed",
+"merged_at": null,
+"head": "work/chomp-native-proof",
+"created": "2026-07-23",
+"body": "Superseded by a fresh PR pinned to the full Lean solver commit. This PR remained cached at the preliminary mutable-array smoke test and was never a final submission.",
+"labels": []
+},
+{
+"n": 154,
+"title": "Stage A226247 proof on current audit base",
+"state": "closed",
+"merged_at": "2026-07-23T07:59:26Z",
+"head": "agent/solve-oeis-a226247-kagey137",
+"created": "2026-07-23",
+"body": "Temporary branch-to-branch merge used only to place the exact PR #130 proof commit on the current-main audit branch.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 153,
+"title": "Focused audit for OEIS A226247",
+"state": "closed",
+"merged_at": null,
+"head": "agent/a226247-focused-ci-v2",
+"created": "2026-07-23",
+"body": "Temporary read-only diagnostic PR. It keeps the exact A226247 proof source from PR #130 and changes only the CI workflow on this branch to compile `FormalConjectures.OEIS.\u00ab226247\u00bb` under the pinned toolchain.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 152,
+"title": "Exact final Lean audit: OEIS A343881",
+"state": "closed",
+"merged_at": null,
+"head": "ci/oeis-a343881-final-audit",
+"created": "2026-07-23",
+"body": "Temporary one-file audit of commit `e73de8e31767caacbed3b8d5d6edcbcc170704a4`. The scoped workflow compiles `FormalConjectures.OEIS.\u00ab343881\u00bb` and runs an external `#print axioms OeisA343881.conjecture`, rejecting `sorryAx`. This PR will be closed after the logs are captured.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 151,
+"title": "Final exact Lean audit: OEIS A343881",
+"state": "closed",
+"merged_at": null,
+"head": "ci/oeis-a343881-clean",
+"created": "2026-07-23",
+"body": "Final one-file audit of commit `15a25c05d9e39bae94255290a870984ee949c2b0`. The temporary workflow compiles `FormalConjectures.OEIS.\u00ab343881\u00bb` and runs `#print axioms OeisA343881.conjecture`, rejecting `sorryAx`. This PR will be closed after logs are captured.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 150,
+"title": "Formalize OEIS A147983 Chomp three-opening challenge",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a147983-chomp-corrected-gdm",
+"created": "2026-07-23",
+"body": "Superseded by #177. The replacement fixes the obsolete import, preserves the required two-commit history, compiles under pinned Lean 4.27, and passes the no-`sorryAx` audit for all concrete reduction lemmas.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 149,
+"title": "Green14: prove W(3,20) \u2265 389 by kernel-checked certificate",
+"state": "closed",
+"merged_at": null,
+"head": "agent/w320-kernel-proof",
+"created": "2026-07-23",
+"body": "## Summary\n\nAdds a self-contained Lean proof of the recorded lower bound `W(3,20) \u2265 389`.\n\nThe proof uses the published 388-point two-coloring certificate, reflects a direct Boolean-array arithmetic-progression check into the repository&#39;s exact `Set.IsAPOfLength` formulation, proves the mixed guarantee set is nonempty from finite Hales\u2013Jewett, and derives the lower bound for the catalog&#39;s ",
+"labels": [
+"green-problems",
+"ci:full"
+]
+},
+{
+"n": 148,
+"title": "audit: WorldCup7 Lean candidate \u2014 green",
+"state": "closed",
+"merged_at": null,
+"head": "worldcup7-final-lean-audit",
+"created": "2026-07-23",
+"body": "Successful isolated validation of the WorldCup7 Formal Conjectures candidate against a clean branch pinned to Google DeepMind `main` (`8eda3cc8ebd281bf7efa1c435a19ca6b87c6f4ff`).\n\nValidated exact file blob: `7b9579e17cb45c4d33486283e9f289034e5a7bf3`.\n\nChecks:\n- `lake --wfail build FormalConjectures.Other.WorldCup7` \u2014 passed (`8040/8040` jobs)\n- copyright-header check \u2014 passed\n\nThe clean upstream P",
+"labels": []
+},
+{
+"n": 147,
+"title": "Add and mark OEIS A263135 even-index conjecture solved",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a263135-solved-clean",
+"created": "2026-07-23",
+"body": "## Audit target\n\nRuns the fork&#39;s current Formal Conjectures checks against the repaired Google-facing A263135 branch.\n\n## Exact shape\n\n- base: upstream `main` at `5a60e068cceb4edffa992dd0bdbda8c6c17185c5`;\n- head: `submit/oeis-a263135-solved-clean`;\n- exactly two commits;\n- exactly one new file: `FormalConjectures/KageyProblems/20.lean`.\n\nCommit 1 adds the theorem as `research open`. Commit 2 ",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 146,
+"title": "WIP audit: formalize Chomp three-opening reduction",
+"state": "closed",
+"merged_at": null,
+"head": "audit/chomp-three-openings-reduction-v2",
+"created": "2026-07-23",
+"body": "Closed as an incomplete reduction-only experiment. It did not prove the three 10\u00d742 P-position obligations and is superseded by the clean Lean-native checker work.",
+"labels": []
+},
+{
+"n": 145,
+"title": "[Formal proof in progress] OEIS A147983 Chomp 10x42",
+"state": "closed",
+"merged_at": null,
+"head": "agent/oeis-a147983-chomp-dtd",
+"created": "2026-07-23",
+"body": "Superseded by #185.\n\nThe authoritative computational artifact is stored on the dedicated `DomTheDeveloper/formal-conjectures` branch `proof-artifacts/oeis-a147983-chomp`:\n\nhttps://github.com/DomTheDeveloper/formal-conjectures/tree/a0c8858ce9b22166d0616931ea1fc996e335b03d/ProofArtifacts/OEIS/A147983\n\nThe clean submission remains two commits, one changed Lean file, and zero commits behind the record",
+"labels": [
+"oeis",
+"ci:full"
+]
+},
+{
+"n": 144,
+"title": "Run focused A226247 Lean audit",
+"state": "closed",
+"merged_at": null,
+"head": "agent/a226247-focused-trigger",
+"created": "2026-07-23",
+"body": "Temporary audit-only PR. It changes no proof source; it triggers the focused Lean 4.27 build for `FormalConjectures.OEIS.\u00ab226247\u00bb` against the exact proof branch content.",
+"labels": []
+},
+{
+"n": 143,
+"title": "Frozen native Lean audit for OEIS A263135",
+"state": "closed",
+"merged_at": null,
+"head": "audit/a263135-native",
+"created": "2026-07-23",
+"body": "Isolated verification of the active OEIS A263135 proof against a frozen compatible base.\n\nThis draft PR builds the complete `Scratch.A263135*` module graph with the repository&#39;s pinned Lean 4.27 toolchain, rejects `sorry`, `admit`, `native_decide`, unsafe shortcuts, and custom axioms, and checks the printed axioms of `OeisA263135.conjecture_solved`.\n\nThe workflow file and frozen base are audit",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 142,
+"title": "Formalize the five-dimensional Geode challenge",
+"state": "closed",
+"merged_at": "2026-07-23T08:03:00Z",
+"head": "solve-geode5-1000",
+"created": "2026-07-23",
+"body": "## Summary\n\nAdds a Formal Conjectures statement for the five-dimensional Geode challenge from arXiv:2508.10245 and records the computed exact value of `G(1000,1000,1000,1000,1000)`.\n\nThe history is intentionally split into two commits:\n\n1. add the open conjecture and definitions;\n2. replace the unknown answer with the exact 8,367-digit value and mark the problem as solved.\n\n## Formalization\n\n- def",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 141,
+"title": "Focused Lean audit: OEIS A343881",
+"state": "closed",
+"merged_at": null,
+"head": "ci/oeis-a343881-clean",
+"created": "2026-07-23",
+"body": "Fresh focused audit PR opened after the exact-module workflow was installed on `main`. This branch contains only `FormalConjectures/OEIS/343881.lean`; the audit compiles that module and rejects `sorryAx` before final DTD/GDM packaging.",
+"labels": [
+"oeis",
+"ci:full"
+]
+},
+{
+"n": 140,
+"title": "ci: isolated WorldCup7 Lean audit",
+"state": "closed",
+"merged_at": null,
+"head": "worldcup7-lean-audit-clean",
+"created": "2026-07-23",
+"body": "Fresh one-commit validation PR against the compact clean-base checker. It compiles only `FormalConjectures/Other/WorldCup7.lean` with the current upstream-pinned toolchain and Mathlib cache.",
+"labels": []
+},
+{
+"n": 139,
+"title": "WIP audit: formalize Chomp three-opening reduction",
+"state": "closed",
+"merged_at": null,
+"head": "audit/chomp-three-openings-reduction",
+"created": "2026-07-23",
+"body": "Superseded by #146 because this PR remained pinned to the earlier audit commit. It was an internal compile-only audit and never claimed the three 10\u00d742 P-position proofs were complete.",
+"labels": []
+},
+{
+"n": 138,
+"title": "Develop restricted-run tableaux Conjecture 2a reduction",
+"state": "closed",
+"merged_at": null,
+"head": "proof/restricted-run-tableaux-reduction",
+"created": "2026-07-23",
+"body": "Superseded. The statement-only formalization was merged cleanly in #165. The Markov-additive reduction remains research scaffolding and does not prove the open asymptotic theorem.",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 137,
+"title": "Solve OEIS A263135: maximum honeycomb contacts at even indices",
+"state": "closed",
+"merged_at": null,
+"head": "repair/a263135-patchcorners",
+"created": "2026-07-23",
+"body": "## Summary\n\nThis proof PR sits on top of the statement-only branch from PR #100 and proves the exact canonical theorem `OeisA263135.conjecture` without changing its mathematical statement.\n\nThe proof establishes\n\n`A263135 (2 * n) = 3 * n - ceil (sqrt (3 * n))`\n\nfor every positive natural number `n`, by combining:\n\n- a three-direction row and chain decomposition of finite honeycomb subsets;\n- a sha",
+"labels": []
+},
+{
+"n": 136,
+"title": "ci: targeted check for WorldCup7.lean",
+"state": "closed",
+"merged_at": null,
+"head": "worldcup7-targeted-check-main",
+"created": "2026-07-23",
+"body": "Temporary targeted Lean audit for the exact `FormalConjectures/Other/WorldCup7.lean` candidate. The dedicated workflow compiles only this file with the repository-pinned toolchain so diagnostics are not buried in the full documentation build.",
+"labels": []
+},
+{
+"n": 135,
+"title": "Audit Lean refutation of OEIS A343881",
+"state": "closed",
+"merged_at": null,
+"head": "ci/oeis-a343881-clean",
+"created": "2026-07-23",
+"body": "Focused internal audit PR for OEIS A343881. The branch contains exactly one new Lean file and is intended to run the repository&#39;s pinned Lean build and axiom checks before clean DTD and Google DeepMind packaging.",
+"labels": [
+"oeis",
+"ci:full"
+]
+},
+{
+"n": 134,
+"title": "[Superseded] Formalize OEIS A147983 Chomp three-opening challenge",
+"state": "closed",
+"merged_at": null,
+"head": "oeis-a147983-chomp-10x42-gdm",
+"created": "2026-07-23",
+"body": "Superseded by #185.\n\nThe corrected computational artifact is stored only on the dedicated `DomTheDeveloper/formal-conjectures` branch `proof-artifacts/oeis-a147983-chomp`:\n\nhttps://github.com/DomTheDeveloper/formal-conjectures/tree/a0c8858ce9b22166d0616931ea1fc996e335b03d/ProofArtifacts/OEIS/A147983",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 133,
+"title": "Formalize OEIS A147983 Chomp three-opening challenge",
+"state": "closed",
+"merged_at": null,
+"head": "oeis-a147983-chomp-10x42-upstream",
+"created": "2026-07-23",
+"body": "Superseded by #134, which preserves the required two-commit open-then-solved history and includes the immutable computational-proof link and ProofOrchestrator disclosure.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 132,
+"title": "Run native Lean audit for OEIS A343881",
+"state": "closed",
+"merged_at": null,
+"head": "audit/oeis-a343881",
+"created": "2026-07-23",
+"body": "Temporary internal audit PR opened after the narrowly scoped default-branch workflow was installed. This PR is only for compilation and axiom logs; it is not the upstream submission.",
+"labels": [
+"oeis",
+"ci:full"
+]
+},
+{
+"n": 131,
+"title": "Add Kauers\u2013Zeilberger restricted-run tableaux Conjecture 2a",
+"state": "closed",
+"merged_at": null,
+"head": "agent/restricted-run-tableaux-final",
+"created": "2026-07-23",
+"body": "Superseded by merged DTD PR #165 and the clean upstream-based branch `agent/restricted-run-tableaux-upstream`.\n\nThe formalized statement is complete and Lean-checked. This does not claim a proof of Conjecture 2a; the fixed-endpoint Markov-additive cone local-limit theorem remains open.",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 130,
+"title": "Prove OEIS A226247 / Kagey Problem 137",
+"state": "closed",
+"merged_at": null,
+"head": "agent/solve-oeis-a226247-kagey137",
+"created": "2026-07-23",
+"body": "## Summary\n\nFormalizes the canonical shortest-path tree generated from `0 : \u211a` by `f(x) = x + 1` and `g(x) = -1/x`, and proves both parts of Kagey Problem 137:\n\n- the rank-count recurrence `a(n) = a(n - 1) + a(n - 3)` for `n \u2265 4`;\n- a canonical vertex is blue exactly when its rational value is negative.\n\n## Formalization details\n\n- models the four canonical rational regions as an indexed vertex ty",
+"labels": [
+"oeis",
+"ci:full"
+]
+},
+{
+"n": 129,
+"title": "Audit OEIS A343881 Lean refutation",
+"state": "closed",
+"merged_at": null,
+"head": "audit/oeis-a343881",
+"created": "2026-07-23",
+"body": "Temporary internal audit PR for the exact OEIS A343881 theorem. This is not the upstream submission branch. It exists only to run the repository&#39;s native Lean checks and will be closed after the proof is packaged cleanly.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 128,
+"title": "Formalize OEIS A147983 Chomp challenge",
+"state": "closed",
+"merged_at": null,
+"head": "solve-oeis-a147983-chomp-10x42",
+"created": "2026-07-23",
+"body": "Superseded by #134. The replacement branch is based directly on current Google DeepMind Formal Conjectures main, follows the numeric OEIS filename and namespace conventions, and preserves the required two-commit history.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 127,
+"title": "Formalize the five-dimensional Geode number challenge",
+"state": "closed",
+"merged_at": null,
+"head": "agent/geode5-1000-gdm",
+"created": "2026-07-23",
+"body": "## Purpose\n\nClean Google DeepMind mirror validation for the five-dimensional Geode-number exact-value formalization.\n\nThis PR is based exactly on `google-deepmind/formal-conjectures@8eda3cc8ebd281bf7efa1c435a19ca6b87c6f4ff`, not on the diverged DTD `main`. The upstream comparison contains exactly two commits and one added file.\n\n## Commit structure\n\n1. Add the source definitions and open exact-val",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 126,
+"title": "Add Kauers\u2013Zeilberger restricted-run tableaux Conjecture 2a",
+"state": "closed",
+"merged_at": null,
+"head": "agent/restricted-run-tableaux-conjecture-2a-v2",
+"created": "2026-07-23",
+"body": "## Summary\n\nAdds a precise Lean formalization of Kauers\u2013Zeilberger Conjecture 2a using the standard ballot-word encoding of rectangular standard Young tableaux.\n\nThis PR adds:\n\n- reusable finite definitions in `FormalConjecturesForMathlib/Combinatorics/RestrictedRunTableaux.lean`;\n- the required `FormalConjecturesForMathlib.lean` index import;\n- the arXiv-sourced open-conjecture statement in `Form",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 125,
+"title": "Add Kauers\u2013Zeilberger restricted-run tableaux Conjecture 2a",
+"state": "closed",
+"merged_at": null,
+"head": "agent/restricted-run-tableaux-conjecture-2a",
+"created": "2026-07-23",
+"body": "## Summary\n\nAdds a precise Lean formalization of Kauers\u2013Zeilberger Conjecture 2a using the standard ballot-word encoding of rectangular standard Young tableaux.\n\nThe file defines:\n\n- fixed-length three-letter words of length `3n`;\n- ballot prefix inequalities;\n- equal content `(n,n,n)`;\n- the no-singleton-run condition;\n- the finite counting function `G`;\n- the asymptotic conjecture `G(n) ~ C\u2081 \u00b7 8",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 124,
+"title": "Formalize the five-dimensional Geode number challenge",
+"state": "closed",
+"merged_at": null,
+"head": "agent/geode5-1000",
+"created": "2026-07-23",
+"body": "Superseded by #127. The original branch was based on the diverged DTD `main` and would have produced a polluted upstream comparison. PR #127 contains the same intended two commits on an exact mirror of the current Google DeepMind `main`, yielding a clean one-file upstream diff.",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 123,
+"title": "ci: validate WorldCup7 formalization",
+"state": "closed",
+"merged_at": null,
+"head": "formalize-worldcup7-polynomial",
+"created": "2026-07-23",
+"body": "Temporary validation PR against a clean branch pinned to the current Google DeepMind Formal Conjectures `main` commit. This isolates the WorldCup7 file from the fork&#39;s divergent `main` history and is intended only to run the repository checks before preparing the upstream PR.",
+"labels": []
+},
+{
+"n": 122,
+"title": "feat: add solved monochromatic checkerboard no-three-in-line bound",
+"state": "open",
+"merged_at": null,
+"head": "submit/checkerboard-all-n-solved",
+"created": "2026-07-23",
+"body": "## Summary\n\nAdds the solved Formal Conjectures catalog entry for the monochromatic checkerboard no-three-in-line problem:\n\n&gt; For every `n \u2265 6`, every no-three-in-line subset of either checkerboard color class in the `n \u00d7 n` lattice has cardinality at most `2n - 4`.\n\n## Statement fidelity\n\n- checkerboard color is exactly `(row + column) % 2`;\n- collinearity is the exact integer determinant condi",
+"labels": []
+},
+{
+"n": 121,
+"title": "Submitted upstream: RNA quasi-powers certificates",
+"state": "closed",
+"merged_at": null,
+"head": "agent/rna-quasipowers-gdm-submit-20260722",
+"created": "2026-07-23",
+"body": "The canonical upstream submission is now open as google-deepmind/formal-conjectures#4561:\n\nhttps://github.com/google-deepmind/formal-conjectures/pull/4561\n\nThat PR uses this exact clean branch and contains one commit and one new catalog file based directly on current GDM `main`. The substantial proof is immutably linked and kernel-audited; the scope is limited to the three exact model-specific cer",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 120,
+"title": "Superseded RNA upstream audit branch",
+"state": "closed",
+"merged_at": null,
+"head": "agent/rna-quasipowers-gdm-final",
+"created": "2026-07-23",
+"body": "Superseded by PR #121, which contains the corrected Google-facing patch as exactly one commit and one file based directly on upstream main. Do not merge this two-commit staging PR.",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 119,
+"title": "Superseded RNA upstream staging branch",
+"state": "closed",
+"merged_at": null,
+"head": "rna-quasipowers-upstream",
+"created": "2026-07-23",
+"body": "Superseded by PR #120, which is a clean one-commit, one-file patch based directly on current Google DeepMind Formal Conjectures main. Do not merge this stale staging PR.",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 118,
+"title": "Superseded: RNA quasi-powers submission candidate",
+"state": "closed",
+"merged_at": null,
+"head": "submit/rna-quasipowers-certificates",
+"created": "2026-07-23",
+"body": "Closed as superseded by PR #121, which is the canonical Google-facing RNA quasi-powers patch.\n\nPR #121 is based directly on current upstream `main`, contains exactly one commit and one catalog file, links the immutable kernel-audited proof, and states the precise scope boundary. No second RNA submission PR should be opened from this branch.",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 117,
+"title": "Audit quantum color restriction against PR 4511 base",
+"state": "closed",
+"merged_at": null,
+"head": "agent/quantum-n6-all-colors-status",
+"created": "2026-07-22",
+"body": "Closed as completed audit staging. The standalone color-restriction theorem compiled successfully under the pinned Lean toolchain with no `sorryAx`; the structural theorem axiom set is exactly `propext`, `Classical.choice`, and `Quot.sound`. The complete proof was subsequently merged through DTD PR #96.",
+"labels": []
+},
+{
+"n": 116,
+"title": "Apply final A261865 arithmetic repair",
+"state": "closed",
+"merged_at": null,
+"head": "ci/a261865-repair-pass3",
+"created": "2026-07-22",
+"body": "Triggers the focused repair of the last two natural-number goals in `A261865Base.lean`.",
+"labels": []
+},
+{
+"n": 115,
+"title": "Prepare clean Google quantum all-colors patch",
+"state": "closed",
+"merged_at": null,
+"head": "agent/quantum-n6-all-colors-gdm-clean",
+"created": "2026-07-22",
+"body": "Closed as completed staging. The clean final Google-facing branch is `agent/quantum-n6-all-colors-gdm-final`, one commit directly on google-deepmind/formal-conjectures main commit `ca8e34cae845185b1fc18d3148deaee146ee1ee8`, changing only `FormalConjectures/Paper/MonochromaticQuantumGraph.lean`. The exact statement-file blob passed the focused pinned-Lean build.",
+"labels": []
+},
+{
+"n": 114,
+"title": "Apply A261865 arithmetic repair pass",
+"state": "closed",
+"merged_at": null,
+"head": "ci/a261865-repair-pass2",
+"created": "2026-07-22",
+"body": "Triggers the focused one-shot repair of the remaining A261865 cast, square-root, induction, and terminal-box positivity goals on `a261865-research`.",
+"labels": []
+},
+{
+"n": 113,
+"title": "Emergency: clear congested Actions queue",
+"state": "closed",
+"merged_at": null,
+"head": "emergency/clear-actions-20260722",
+"created": "2026-07-22",
+"body": "Temporary operations-only PR. Its sole purpose is to trigger the trusted `pull_request_target` emergency workflow, which normal-cancels and force-cancels every other queued or in-progress Actions run in this repository across ARM, macOS, and Windows runner pools. Do not merge; close after the queue is clear.",
+"labels": []
+},
+{
+"n": 112,
+"title": "Audit complete A263135 honeycomb proof",
+"state": "closed",
+"merged_at": null,
+"head": "dtd/oeis-a263135-scd-scratch",
+"created": "2026-07-22",
+"body": "Isolated proof-development audit for the actual OEIS A263135 honeycomb contact theorem. This compares the completed 27-module scratch proof against the faithful statement branch. It is intended to expose the full proof diff, run the pinned Lean build, and support promotion into the canonical statement file after a no-placeholder and axiom audit.",
+"labels": []
+},
+{
+"n": 111,
+"title": "Add solved Litt most-unfair coin-word theorem",
+"state": "closed",
+"merged_at": null,
+"head": "submit/litt-most-unfair-solved",
+"created": "2026-07-22",
+"body": "[Temporary A226247 raw compiler log](https://api.github.com/repos/DomTheDeveloper/formal-conjectures/actions/jobs/89143002253/logs)\n\n## Upstream submission candidate\n\nAdds the Ekhad\u2013Zeilberger/Janson\u2013Nica\u2013Segert most-unfair fair-binary coin-word problem to Formal Conjectures.\n\nFor distinct words of length `n`, the overlap functional is bounded sharply by\n\n`1 - 2^(1-n)`,\n\nand the constant-word/one-",
+"labels": []
+},
+{
+"n": 110,
+"title": "Add and mark OEIS A261865 solved",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a261865-solved",
+"created": "2026-07-22",
+"body": "## Summary\n\nAdds Peter Kagey&#39;s Problem 13 / OEIS A261865 and records its verified solution.\n\nFor every squarefree `j \u2265 2`, the positive indices where `j` is the least radicand having a positive integer multiple of `\u221aj` in `(n, n + 1)` have natural density\n\n`(1 / \u221aj) * \u220f_{2 \u2264 s &lt; j, Squarefree s} (1 - 1 / \u221as)`.\n\n## Commit structure\n\nThis PR intentionally separates the statement from the solu",
+"labels": [
+"oeis",
+"green-problems"
+]
+},
+{
+"n": 109,
+"title": "Final audit: Litt most-unfair Lean proof",
+"state": "closed",
+"merged_at": null,
+"head": "audit/litt-final-20260722",
+"created": "2026-07-22",
+"body": "Superseded by the current proof on PR #101 and the exact cross-repository Linux/macOS audits on DomTheDeveloper/crl#214. This frozen snapshot is stale and should not be merged or used for certification.",
+"labels": []
+},
+{
+"n": 108,
+"title": "solve: RNA quasi-powers algebraic certificates and density correction",
+"state": "closed",
+"merged_at": "2026-07-22T23:48:11Z",
+"head": "audit/rna-quasipowers-exact",
+"created": "2026-07-22",
+"body": "## Kernel-verified result\n\nThe RNA quasi-powers finite/model-specific certificate is now **kernel-verified** at commit `5ddd77b2d405816c868d73a933447615fd1594ba` with exact `leanprover/lean4:v4.27.0`.\n\nIndependent verification run: `DomTheDeveloper/ProofPlaygrond` Actions run `29965542553`.\n\nThe successful gate:\n\n- checked out the immutable proof commit;\n- used the committed `lake-manifest.json`;\n",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 107,
+"title": "Formalize RNA Gaussian-density erratum",
+"state": "closed",
+"merged_at": null,
+"head": "agent/rna-density-erratum",
+"created": "2026-07-22",
+"body": "## Result\n\nFormalizes the exact inconsistency in the density displayed in arXiv:2602.19255.\n\nThe conjecture standardizes each coordinate by its exact standard deviation, so the intended Gaussian has unit marginal variances. The printed density has precision matrix `[[1,-c],[-c,1]]`, hence marginal variance `1/(1-c^2)`. For the paper&#39;s claimed correlation, the new theorem proves this is strictl",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 106,
+"title": "feat: add RNA quasi-powers solved statements",
+"state": "closed",
+"merged_at": null,
+"head": "rna-quasipowers-upstream",
+"created": "2026-07-22",
+"body": "## Summary\n\nAdds a clean Formal Conjectures source file for three exact results from arXiv:2602.19255:\n\n1. the recursive RNA grammar has the paper&#39;s displayed radicand;\n2. the dominant-root/implicit-derivative calculation yields the exact means, covariance matrix, positive determinant, and correlation;\n3. the Gaussian density printed in the paper is incompatible with coordinatewise standardiza",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 105,
+"title": "Audit Litt most-unfair proof snapshot",
+"state": "closed",
+"merged_at": null,
+"head": "audit/litt-proof-20260722-a",
+"created": "2026-07-22",
+"body": "Superseded by the sorry-free proof on PR #101 and the frozen final kernel audit on PR #109. This earlier snapshot predates the terminal theorem and should not be merged or used for validation.",
+"labels": []
+},
+{
+"n": 104,
+"title": "audit: RNA quasi-powers three-track Lean certificate",
+"state": "closed",
+"merged_at": null,
+"head": "rna-quasipowers-webtest",
+"created": "2026-07-22",
+"body": "Superseded by PR #108.\n\nThis PR&#39;s head branch ends in `-webtest`. The repository&#39;s build workflow explicitly treats that suffix as website-only and skips Lean compilation, so this PR cannot serve as a kernel audit. PR #108 points to the same Lean source on a branch that runs the exact pinned `lake --wfail build`.\n\nNo verification claim should cite this PR.",
+"labels": []
+},
+{
+"n": 103,
+"title": "WIP: solve OEIS A261865 Problem 13",
+"state": "closed",
+"merged_at": null,
+"head": "solve-oeis-a261865",
+"created": "2026-07-22",
+"body": "Superseded by draft PR #99, which contains the same torus Weyl infrastructure plus the exact OEIS A261865 statement, the interval/fractional-part equivalence, and the square-factor reduction. This duplicate is closed to keep one canonical research branch. No solved claim is made.",
+"labels": []
+},
+{
+"n": 102,
+"title": "Prove Sun Conjecture 2.14(ii)",
+"state": "closed",
+"merged_at": null,
+"head": "agent/sun-214-ii-dev",
+"created": "2026-07-22",
+"body": "## What changed\n\n- adds a formal statement of Zhi-Wei Sun&#39;s Conjecture 2.14(ii)\n- proves the exact integer-power form of the strict decrease\n- uses a self-contained Chebyshev lower bound, a certified 210-wheel interval bound, and exact finite verification\n\n## Validation\n\nThis is a development PR used to run the pinned Formal Conjectures Lean checks. It will remain draft until the proof compile",
+"labels": [
+"arxiv"
+]
+},
+{
+"n": 101,
+"title": "Prove the most-unfair Litt coin-word conjecture",
+"state": "closed",
+"merged_at": null,
+"head": "agent/litt-most-unfair-proof",
+"created": "2026-07-22",
+"body": "## Mathematical result\n\nThis branch contains a complete proof of the Ekhad\u2013Zeilberger fair-binary coin-word extremal conjecture.\n\nFor distinct binary words of length `n`, the sharp leading overlap functional is\n\n`1 - 2^(1-n)`,\n\nand equality is attained by a constant word versus a one-endpoint flip. The full human proof is recorded in `FormalConjectures/Other/LittMostUnfairBetProof.md`.\n\n## Formali",
+"labels": [
+"erdos-problems",
+"oeis",
+"green-problems",
+"wikipedia",
+"arxiv",
+"kourovka",
+"mathoverflow",
+"millenium-problems"
+]
+},
+{
+"n": 100,
+"title": "Formalize OEIS A263135 honeycomb contact theorem",
+"state": "closed",
+"merged_at": null,
+"head": "dtd/oeis-a263135",
+"created": "2026-07-22",
+"body": "Faithful formalization of OEIS A263135: the maximum number of contacts among vertices of the infinite honeycomb graph.\n\nThe canonical statement branch contains the concrete lattice model and the exact even-index theorem\n\n`A263135 (2n) = 3n - ceil(sqrt(3n))`.\n\nA complete 27-module Lean proof is present on `dtd/oeis-a263135-scd-scratch`, currently pinned at repaired commit `6ad03f2a0fa5de81c0ed08fd0",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 99,
+"title": "Prove OEIS A261865 density formula",
+"state": "closed",
+"merged_at": "2026-07-23T00:09:30Z",
+"head": "a261865-research",
+"created": "2026-07-22",
+"body": "## Verified status\n\nThe exact OEIS A261865 theorem is **sorry-free and kernel-verified** at immutable commit `796f5e8919a844d78e8bb683d1974e118aa263ee`.\n\nIndependent verification: [ProofPlaygrond PR #46](https://github.com/DomTheDeveloper/ProofPlaygrond/pull/46), workflow run `29967706220`.\n\nThe pinned Lean 4.27.0 audit successfully:\n\n1. checked out and confirmed the immutable proof commit;\n2. rej",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 98,
+"title": "INVALID \u2014 BMO 8 is not OEIS A263135",
+"state": "closed",
+"merged_at": null,
+"head": "submit/bmo8-solved",
+"created": "2026-07-22",
+"body": "Closed after exact recurrence replay and source correction.\n\nThis PR incorrectly associated Beaver Math Olympiad problem 8 with OEIS A263135. OEIS A263135 is the honeycomb-lattice maximum-contact sequence, formalized separately in PR #100 with the complete proof under audit in PR #112.\n\nThe claimed BMO8 witness at zero-based index 1,210,682 does not satisfy the stated recurrence and must not be su",
+"labels": []
+},
+{
+"n": 97,
+"title": "formalize A248380 odd-reply reduction",
+"state": "closed",
+"merged_at": null,
+"head": "agent/a248380-odd-reply-reduction",
+"created": "2026-07-22",
+"body": "## What changed\n\nAdds a Lean formalization of the known odd-reply reduction for Sylver Coinage after opening move `16`.\n\n## Scope\n\n- proves every odd natural number `q` is coprime to `16`;\n- derives the N-position conclusion for every nonterminal odd reply `q &gt; 1` from an abstract statement of Hutchings&#39;s two-generator theorem;\n- records that the remaining odd reply `q = 1` loses immediatel",
+"labels": []
+},
+{
+"n": 96,
+"title": "Add complete quantum graph N=6 proof and color restriction",
+"state": "closed",
+"merged_at": "2026-07-22T23:44:09Z",
+"head": "agent/quantum-n6-proof-main-clean",
+"created": "2026-07-22",
+"body": "## Summary\n\nThis clean DTD-main integration adds the complete `N = 6`, `D = 3` integer monochromatic-quantum-graph obstruction and the general color-restriction theorem extending it to every `D \u2265 3`.\n\n## Verified proof package\n\n- complete 47-orbit reflected LRAT certificate development;\n- checksum-pinned certificate download and deterministic replay;\n- semantic, parity, orbit-classification, and g",
+"labels": []
+},
+{
+"n": 95,
+"title": "CI: isolated BMO 8 proof check",
+"state": "closed",
+"merged_at": null,
+"head": "bmo8-slim-audit",
+"created": "2026-07-22",
+"body": "Temporary isolated audit for the BMO #8 / A263135 Lean certificate. Reopened solely to run the corrected verifier: it rejects placeholders in the proof file, builds the exact proof module without treating unrelated open-problem warnings as errors, and runs a terminal `#print axioms` check. This audit harness should not be merged; the canonical solved-status submission remains PR #98.",
+"labels": []
+},
+{
+"n": 94,
+"title": "Sync main into quantum proof branch",
+"state": "closed",
+"merged_at": null,
+"head": "sync/main-into-quantum-proof",
+"created": "2026-07-22",
+"body": "Closed as superseded. Attempting to merge current `main` into the historical proof branch exposed unrelated conflicts. The proof was instead transplanted cleanly as one child commit of current `main` in DomTheDeveloper/formal-conjectures#96.",
+"labels": [
+"erdos-problems",
+"oeis"
+]
+},
+{
+"n": 93,
+"title": "CI audit: clean BMO 8 Lean proof",
+"state": "closed",
+"merged_at": null,
+"head": "solve-bmo8-clean",
+"created": "2026-07-22",
+"body": "Superseded by the isolated certificate audit in #95 and the exact one-file submission audit in #98.",
+"labels": []
+},
+{
+"n": 92,
+"title": "CI audit: BMO 8 positive Lean proof",
+"state": "closed",
+"merged_at": null,
+"head": "solve-bmo8-positive",
+"created": "2026-07-22",
+"body": "Superseded by clean one-file audit PR #93.",
+"labels": []
+},
+{
+"n": 91,
+"title": "Extend quantum graph N=6 obstruction to all integer colors",
+"state": "closed",
+"merged_at": null,
+"head": "agent/quantum-n6-all-colors-status",
+"created": "2026-07-22",
+"body": "Stacked on the exact head of google-deepmind/formal-conjectures#4511.\n\nThis adds a standalone Lean proof that `EqSystemN` solution existence is downward-closed in the number of colors. Therefore the `N = 6, D = 3` integer obstruction from #4511 immediately implies:\n\n- no integer solution for `D = 5`;\n- no integer solution for every `D \u2265 3`;\n- the corresponding `{-1,0,1}`-restricted statements.\n\nCa",
+"labels": []
+},
+{
+"n": 90,
+"title": "Audit C217 terminal proof stack",
+"state": "closed",
+"merged_at": null,
+"head": "audit/c217-terminal-2026-07-22",
+"created": "2026-07-22",
+"body": "Audit-only snapshot against the exact latest C217 audit base.\n\nThe focused macOS Lean 4.27 job builds the path-closure, Chv\u00e1tal, order-bound, finite-certificate, degree/leaf, and degree-two modules; replays both deterministic certificates byte-for-byte; and rejects proof holes, native_decide, custom axioms, sorryAx, and compiler-trust shortcuts.\n\nThis remains draft. The exact catalog theorem still",
+"labels": []
+},
+{
+"n": 89,
+"title": "Prove quantum graph color restriction and N=6 consequences",
+"state": "closed",
+"merged_at": null,
+"head": "agent/quantum-n6d3-full-proof-color-restriction",
+"created": "2026-07-22",
+"body": "Closed as superseded by DomTheDeveloper/formal-conjectures#96.\n\nPR #96 is a clean one-commit transplant built directly on current `main`. It preserves the complete 47-certificate proof, color-restriction theorem, four terminal consequences, status patch, and focused audit workflow without importing unrelated historical divergence.\n\nThe upstream integration stack remains tracked separately through ",
+"labels": []
+},
+{
+"n": 88,
+"title": "Disprove the convex additive-VC\u2082 bound in \u211d\u00b3",
+"state": "closed",
+"merged_at": null,
+"head": "agent/solve-vc2-convex-counterexample",
+"created": "2026-07-22",
+"body": "## Result\n\nThis branch formalizes the explicit counterexample supplied in `PROOF.md` to\n`VCDimConvex.hasAddVCNDimAtMost_two_one_of_convex_r3`.\n\nIt defines a convex polyhedron `C \u2286 \u211d\u00b3` as the intersection of 13 closed halfspaces and explicit witnesses `x` and `y` that realize every subset of `Fin 2 \u2192 Fin 2`. The terminal result is\n\n```lean\n\u2203 C : Set \u211d\u00b3, Convex \u211d C \u2227 \u00ac HasAddVCNDimAtMost C 2 1\n```\n\n",
+"labels": []
+},
+{
+"n": 87,
+"title": "Audit monochromatic quantum graph color restriction",
+"state": "closed",
+"merged_at": null,
+"head": "audit/quantum-color-restriction-trigger-2026-07-22",
+"created": "2026-07-22",
+"body": "Internal pinned Lean 4.27 audit for the structural color-restriction theorem.\n\nThe proof shows that every `D`-color solution restricts along an embedding `Fin d \u21aa Fin D`, hence nonexistence at `d` colors propagates to all `D \u2265 d`. It is coefficient-domain independent over any semiring and includes the pointwise-restricted-weight version.\n\nThe audit rejects `sorry`, `admit`, `native_decide`, custom",
+"labels": []
+},
+{
+"n": 86,
+"title": "Audit C217 graph order bound and certificates",
+"state": "closed",
+"merged_at": null,
+"head": "audit/c217-integrated-order-2026-07-22",
+"created": "2026-07-22",
+"body": "Audit-only PR for the exact current C217 head against the latest audit workflow.\n\nThe pinned Lean 4.27 job builds the Bondy\u2013Chv\u00e1tal path-closure stack, maximum-leaf degree theorem, maximum-degree-two traceability theorem, base C217 branch reduction, symmetric-power order certificate, graph cardinality bridge, and the 40-row exceptional-sequence certificate. Both deterministic Python certificates a",
+"labels": []
+},
+{
+"n": 85,
+"title": "Audit C217 integrated proof and order certificates",
+"state": "closed",
+"merged_at": null,
+"head": "audit/c217-integrated-order-2026-07-22",
+"created": "2026-07-22",
+"body": "Audit-only PR for the exact current C217 development head and the latest audit base.\n\nThe pinned Lean 4.27 job builds the path-closure stack, maximum-leaf degree theorem, maximum-degree-two traceability theorem, base C217 reduction, 40-row degree-sequence certificate, and symmetric-power order certificate. It independently replays both deterministic Python certificates and rejects `sorry`, `admit`",
+"labels": []
+},
+{
+"n": 84,
+"title": "Audit C217 integrated certificate and reductions",
+"state": "closed",
+"merged_at": null,
+"head": "audit/c217-integrated-2026-07-22",
+"created": "2026-07-22",
+"body": "Audit-only PR for the exact current C217 development head.\n\nThis runs the pinned Lean 4.27 project build for the Bondy\u2013Chv\u00e1tal path-closure stack, the maximum-leaf degree theorem, the maximum-degree-two traceability theorem, the base C217 reduction, and the 40-row kernel-reducible finite certificate. It also independently replays the deterministic Python certificate and rejects proof holes, `nativ",
+"labels": []
+},
+{
+"n": 83,
+"title": "Audit residual quantum K3,3 cases with native XOR certificates",
+"state": "closed",
+"merged_at": null,
+"head": "audit/quantum-k33-xor-trigger-2026-07-22",
+"created": "2026-07-22",
+"body": "Temporary internal certificate audit only. It solves the same four exhaustive residual K3,3 orbit patterns as PR #81, but preserves the 15-term parity equations as native XOR constraints. CryptoMiniSat emits FRAT-XOR proofs, which are elaborated to XLRUP and checked by the formally verified cake_xlrup checker. Do not merge.",
+"labels": []
+},
+{
+"n": 82,
+"title": "Completed audit: WOWII 2 proof stack",
+"state": "closed",
+"merged_at": null,
+"head": "audit/c2-counting-2026-07-22",
+"created": "2026-07-22",
+"body": "The complete WOWII Conjecture 2 proof stack passed the focused pinned-Lean audit through `conjecture2_complete`, with no `sorryAx` or unsupported trust shortcut. The printed axiom footprint is limited to `propext`, `Classical.choice`, and `Quot.sound`.\n\nThe clean upstream-facing patch is now preserved on branch `submit/wowii2-solved-clean`, based directly on current Google DeepMind `main` commit `",
+"labels": []
+},
+{
+"n": 81,
+"title": "Audit sole remaining quantum K3,3 residual orbits",
+"state": "closed",
+"merged_at": null,
+"head": "audit/quantum-k33-trigger-2026-07-22",
+"created": "2026-07-22",
+"body": "Temporary internal certificate audit only. The earlier exact symmetry analysis reduces every unresolved N=6, D=3 mod-two case to the K3,3 factorisation. Its residual C3 action has exactly four binary orbit patterns: 000, 111, 100, and 110. This PR solves and independently DRAT-verifies those four exhaustive cases. Do not merge.",
+"labels": []
+},
+{
+"n": 80,
+"title": "C2 audit: formalize neighborhood double-counting core",
+"state": "closed",
+"merged_at": null,
+"head": "audit/c2-counting-2026-07-22",
+"created": "2026-07-22",
+"body": "Internal proof-development PR for WOWII Conjecture 2. This is not an upstream submission and must remain draft until the exact theorem is sorry-free and kernel-clean.\n\nThe branch records a complete mathematical proof architecture and formalizes the algebraic endgame of the new double-counting argument:\n\n- choose a maximum independent set in every vertex neighborhood;\n- sum the inequalities `|N(v) ",
+"labels": []
+},
+{
+"n": 79,
+"title": "ci: audit WOWII 59 proof",
+"state": "closed",
+"merged_at": null,
+"head": "audit/wowii-59-ci",
+"created": "2026-07-22",
+"body": "Temporary CI-only PR. Closed because GitHub Actions did not schedule a run in the fork. The clean submission branch remains `agent/solve-wowii-59`; no verification claim is based on this PR.",
+"labels": []
+},
+{
+"n": 78,
+"title": "feat(WrittenOnTheWallII/59): disprove conjecture",
+"state": "closed",
+"merged_at": null,
+"head": "agent/solve-wowii-59",
+"created": "2026-07-22",
+"body": "Audit PR for the upstream-ready WOWII Conjecture 59 counterexample.\n\nThis compares the solution branch against the exact current upstream base commit, so the diff is limited to `FormalConjectures/WrittenOnTheWallII/GraphConjecture59.lean`.\n\nThe proof supplies an explicit connected 18-vertex counterexample with residue `10`, an induced bipartite subgraph on `17` vertices, and largest induced forest",
+"labels": []
+},
+{
+"n": 77,
+"title": "Audit C160 finishing lemmas",
+"state": "closed",
+"merged_at": null,
+"head": "audit/c160-finish-2026-07-22",
+"created": "2026-07-22",
+"body": "Temporary internal pinned-Lean audit for the remaining WOWII 160 forest construction and leaf inequalities. This PR is proof-development infrastructure only and must not be merged.",
+"labels": []
+},
+{
+"n": 76,
+"title": "Audit quantum D3 bit-vector certificate",
+"state": "closed",
+"merged_at": null,
+"head": "audit/quantum-d3-mod2-2026-07-22",
+"created": "2026-07-22",
+"body": "Temporary internal audit branch for the N=6, D=3 characteristic-two obstruction. This PR targets the isolated audit workflow only and must not be merged.",
+"labels": []
+},
+{
+"n": 75,
+"title": "Verify current-upstream OEIS A100434 submission patch",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a100434-current",
+"created": "2026-07-22",
+"body": "Temporary validation PR for the exact Google DeepMind submission branch.\n\nScope is intentionally one commit and one file over current upstream commit `fbcd0768164813204c4af65f9518cd08b268e798`.\n\nThe exact source has already passed the pinned Lean 4.27.0 audit in `DomTheDeveloper/crl#192`, run `29897812502`, including initial-term checks and `#print axioms` for `OeisA100434.a100434_conjecture_false",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 74,
+"title": "Disprove OEIS A100434 auxiliary-sequence conjecture",
+"state": "closed",
+"merged_at": "2026-07-22T07:04:34Z",
+"head": "add/oeis-a100434",
+"created": "2026-07-22",
+"body": "## Summary\n\n- adds a numbered Formal Conjectures entry for OEIS A100434;\n- defines and tests the primary sequence from its generating-function recurrence;\n- formalizes the seven auxiliary sequences recorded in the OEIS comment;\n- disproves the recorded universal equality at `n = 2`.\n\n## Counterexample\n\nAt `n = 2`, the formalized definitions give:\n\n- `c 2 = -7`;\n- `d 2 = -10`;\n- `b 2 = c 3 = 17`.\n\n",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 73,
+"title": "Verify clean OEIS A100434 upstream patch",
+"state": "closed",
+"merged_at": null,
+"head": "submit/oeis-a100434",
+"created": "2026-07-22",
+"body": "Temporary validation PR for the clean Google DeepMind submission branch.\n\nScope is intentionally one commit and one file over upstream commit `e923379e609b9d5987011a1d1f06ec22ea25cd20`.\n\nThe file follows the numbered OEIS conventions, defines and tests the primary A100434 sequence, formalizes the auxiliary sequences from the OEIS comment, and disproves the recorded universal equality at `n = 2`.\n\n",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 72,
+"title": "Disprove OEIS A100434 auxiliary-sequence conjecture",
+"state": "closed",
+"merged_at": null,
+"head": "solve/oeis-a100434",
+"created": "2026-07-22",
+"body": "## Summary\n\n- adds a numbered Formal Conjectures entry for OEIS A100434;\n- formalizes the seven auxiliary sequences from the parity formulas recorded in the OEIS comment;\n- proves that the recorded universal conjecture is false.\n\n## Counterexample\n\nAt `n = 2`, the definitions give\n\n- `c 2 = -7`;\n- `d 2 = -10`;\n- `b 2 = c 3 = 17`.\n\nThus the claimed equality `c 2 + d 2 = b 2` becomes `-17 = 17`.\n\n##",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 71,
+"title": "C217 mathematical solution and four-certificate Lean reduction",
+"state": "closed",
+"merged_at": null,
+"head": "agent/c217-closure-backport",
+"created": "2026-07-22",
+"body": "## Status\n\n**Mathematics: complete.** The exact WOWII Conjecture 217 proof and no-Graffiti fallback remain archived under `_certificates/WOWII217/`.\n\n**Lean source reduction: complete up to four finite LRAT certificates.** The branch now contains:\n\n- the complete `residue \u2260 2` branch;\n- degree-versus-maximum-leaf and connected maximum-degree-two traceability;\n- order at most 14, Chv\u00e1tal path crite",
+"labels": []
+},
+{
+"n": 70,
+"title": "Run focused clean Voronovskaja statement build",
+"state": "closed",
+"merged_at": null,
+"head": "agent/verify-voronovskaja-clean-statement",
+"created": "2026-07-22",
+"body": "Temporary focused validation PR. The workflow is identical on the base and head branches, so the only code difference under test is the final one-file Voronovskaja statement patch.",
+"labels": []
+},
+{
+"n": 69,
+"title": "Verify clean Voronovskaja upstream patch",
+"state": "closed",
+"merged_at": null,
+"head": "agent/solve-voronovskaja-clean",
+"created": "2026-07-22",
+"body": "Superseded by the completed Google DeepMind submission PR google-deepmind/formal-conjectures#4525. This temporary fork validation PR is no longer the canonical submission or audit target.",
+"labels": [
+"wikipedia"
+]
+},
+{
+"n": 68,
+"title": "Audit C217 kernel-clean partial proof",
+"state": "closed",
+"merged_at": null,
+"head": "agent/c217-kernel-dev",
+"created": "2026-07-22",
+"body": "Fork-internal development audit for WOWII Conjecture 217. This is not an upstream submission and does not claim the conjecture is solved.\n\nThe branch contains four focused Lean modules that currently establish:\n\n- every vertex degree is at most the maximum spanning-tree leaf count `Ls G`;\n- every finite connected graph of maximum degree at most two has a Hamiltonian path;\n- the full `residue G \u2260 2",
+"labels": []
+},
+{
+"n": 67,
+"title": "Temporary: certify quantum N=6 D=3 mod-2 obstruction",
+"state": "closed",
+"merged_at": null,
+"head": "audit/quantum-mod2-sat-2026-07-21",
+"created": "2026-07-22",
+"body": "Disposable audit PR. It generates the exact Boolean reduction of the N=6, D=3 integer monochromatic-quantum-graph equations, splits the justified perfect-matching symmetry into three orbit cases, runs CaDiCaL, and independently verifies any UNSAT result with DRAT-trim. This is not an upstream submission.",
+"labels": []
+},
+{
+"n": 66,
+"title": "Temporary current-upstream Lean proof audit",
+"state": "closed",
+"merged_at": null,
+"head": "audit/upstream-proofs-2026-07-21",
+"created": "2026-07-22",
+"body": "Temporary audit PR only. The pinned Lean 4.27 proof audit is complete, and the verified sources, exact logs, axiom reports, repaired partial proofs, and checksums were packaged separately. Closed without merge.",
+"labels": []
+},
+{
+"n": 65,
+"title": "C217 internal checker harness",
+"state": "closed",
+"merged_at": null,
+"head": "agent/c217-proof",
+"created": "2026-07-22",
+"body": "Closed without merge after the pinned Lean 4.27 environment export completed successfully. The exported checker artifacts and C217 proof branches remain preserved; this PR was temporary bootstrap infrastructure only.",
+"labels": []
+},
+{
+"n": 64,
+"title": "Temporary isolated Lean proof audit",
+"state": "closed",
+"merged_at": null,
+"head": "audit/lean-proofs-2026-07-21",
+"created": "2026-07-22",
+"body": "Disposable draft between two audit branches. It exists only to run the pinned Lean checker on the uploaded proof bundle and will be closed after logs are collected.",
+"labels": []
+},
+{
+"n": 63,
+"title": "Temporary Lean proof audit",
+"state": "closed",
+"merged_at": null,
+"head": "audit/lean-proofs-2026-07-21",
+"created": "2026-07-22",
+"body": "Temporary draft used only to run the pinned Lean checker against the uploaded proof bundle. This is not a submission and will be closed after logs are collected.",
+"labels": []
+},
+{
+"n": 62,
+"title": "Mark WOWII 145 solved",
+"state": "closed",
+"merged_at": null,
+"head": "agent/solve-wowii-145-current",
+"created": "2026-07-21",
+"body": "Marks Written on the Wall II Graph Conjecture 145 as solved and links the complete immutable Lean 4 proof. The exact theorem statement and hypotheses are unchanged, and the upstream change is limited to the solved status, the `formal_proof` reference, and provenance.\n\nThe complete proof is named `145.lean` and is available at https://github.com/DomTheDeveloper/crl/blob/2ee448baa80c98f0c8b9a0c1c3d9",
+"labels": []
+},
+{
+"n": 61,
+"title": "Audit only: trusted pinned build for WOWII 145",
+"state": "closed",
+"merged_at": null,
+"head": "solve-wowii-145-root-audit",
+"created": "2026-07-21",
+"body": "Closed without merge. The WOWII 145 proof and axiom audit were completed and preserved separately; this fork-internal audit PR is obsolete.",
+"labels": []
+},
+{
+"n": 60,
+"title": "Audit only: pinned Lean check for WOWII 145",
+"state": "closed",
+"merged_at": null,
+"head": "solve-wowii-145-final-audit-webtest",
+"created": "2026-07-21",
+"body": "Closed: this temporary audit PR modified a workflow file, so GitHub suppressed the trusted build workflow. Replaced by a clean fork-internal audit PR containing no workflow changes.",
+"labels": []
+},
+{
+"n": 59,
+"title": "CI: verify standalone WOWII 145 proof",
+"state": "closed",
+"merged_at": null,
+"head": "agent/wowii-145-proof",
+"created": "2026-07-21",
+"body": "Fork-internal draft used only to run the pinned Lean 4.27.0 checker and axiom audit. This is not the upstream solution PR and will be closed after verification.",
+"labels": []
+},
+{
+"n": 58,
+"title": "Verified: numbered WOWII 100 proof audit",
+"state": "closed",
+"merged_at": null,
+"head": "audit/wowii-100-numbered-final",
+"created": "2026-07-21",
+"body": "Final verification completed successfully for clean proof commit `0a0d23bdfcea605892146b039dfbdd4896229b32`.\n\nChecks performed:\n\n- rejected `sorry` and `admit` in `FormalConjectures/WrittenOnTheWallII/100.lean`;\n- built `FormalConjectures.WrittenOnTheWallII.GraphConjecture100Complete` against pinned Lean 4.27;\n- compiled the exact numbered `100.lean` wrapper under `set -o pipefail`;\n- inspected th",
+"labels": []
+},
+{
+"n": 57,
+"title": "Superseded: preliminary numbered WOWII 100 packaging",
+"state": "closed",
+"merged_at": null,
+"head": "proof/wowii-100-numbered",
+"created": "2026-07-21",
+"body": "Superseded by the clean standalone proof commit `0a0d23bdfcea605892146b039dfbdd4896229b32` and the successful final audit recorded in fork PR #58.\n\nThe final external proof entry is:\n\n`FormalConjectures/WrittenOnTheWallII/100.lean`\n\nThe preliminary rename-only packaging in this PR is no longer used.",
+"labels": []
+},
+{
+"n": 56,
+"title": "Audit WOWII 100 solved metadata",
+"state": "closed",
+"merged_at": null,
+"head": "submit/wowii-100-solved",
+"created": "2026-07-21",
+"body": "Temporary verification-only PR for the one-file upstream submission metadata. Final result: `lake --wfail build FormalConjectures.WrittenOnTheWallII.GraphConjecture100` passed, and the copyright check passed. The permanent submission branch is `submit/wowii-100-solved`; this audit PR is now closed.",
+"labels": []
+},
+{
+"n": 55,
+"title": "Targeted audit: Voronovskaja submission file",
+"state": "closed",
+"merged_at": null,
+"head": "audit/voronovskaja-minimal-target",
+"created": "2026-07-21",
+"body": "Targeted audit completed successfully with `lake --wfail build FormalConjectures.Paper.VoronovskajaTypeFormula`. Closing the temporary workflow PR. The clean submission branch is `solve-voronovskaja-certified`, rebased one commit ahead of current upstream `main`.",
+"labels": []
+},
+{
+"n": 54,
+"title": "Audit: mark B\u00e9zier\u2013Bernstein Voronovskaja formula solved",
+"state": "closed",
+"merged_at": null,
+"head": "solve-voronovskaja-certified",
+"created": "2026-07-21",
+"body": "Closed without merge as superseded by the clean current-upstream validation branch and the separately kernel-audited proof. This was an internal audit PR only.",
+"labels": []
+},
+{
+"n": 53,
+"title": "Superseded: WOWII Conjecture 146 proof development",
+"state": "closed",
+"merged_at": null,
+"head": "solve-wowii-146",
+"created": "2026-07-21",
+"body": "Closing this fork-development PR to avoid duplicating the existing upstream Lean proof submission:\n\n- google-deepmind/formal-conjectures#4505\n\nThat upstream PR proves the exact current Conjecture 146 statement and includes a kernel-checked standalone Lean artifact, full-build verification, and an axiom audit. No competing upstream PR will be opened from this branch.",
+"labels": []
+},
+{
+"n": 52,
+"title": "Audit WOWII 100 exact formalization",
+"state": "closed",
+"merged_at": null,
+"head": "agent/solve-wowii-100",
+"created": "2026-07-21",
+"body": "Verification-only draft PR for WOWII 100. Final result: the source-aligned theorem without a `G\u1d9c.Connected` hypothesis compiled successfully under pinned Lean 4.27, and `#print axioms` reported only `propext`, `Classical.choice`, and `Quot.sound`. No `sorryAx`, `Lean.ofReduce`, or `Lean.trustCompiler` occurred. The permanent proof is retained at commit `3ef37a1eb2f13e164ddb663c408ceb20e8411c30`; t",
+"labels": []
+},
+{
+"n": 51,
+"title": "Certify the nonlinear B\u00e9zier\u2013Bernstein Voronovskaja formula",
+"state": "closed",
+"merged_at": null,
+"head": "solve-voronovskaja-no-sorry",
+"created": "2026-07-21",
+"body": "## What changed\n\n- proves the explicit `sqrt n` asymptotic for the nonlinear B\u00e9zier\u2013Bernstein operator;\n- identifies the limit as the powered-Gaussian first-moment constant times `sqrt (x * (1 - x)) * f&#39;(x)`;\n- proves the eventual-smoothness, existence-only, and explicit-threshold variants;\n- commits the previously generated Lean 4.27 migration output as ordinary source;\n- isolates the nonline",
+"labels": []
+},
+{
+"n": 50,
+"title": "Audit numbered Erd\u0151s 602 proof",
+"state": "closed",
+"merged_at": null,
+"head": "proof/erdos-602-countable-numbered",
+"created": "2026-07-21",
+"body": "Temporary verification PR for the canonical-number external Lean proof of the Erd\u0151s 602 countable-index variant. This will be closed after CI inspection.",
+"labels": [
+"erdos-problems"
+]
+},
+{
+"n": 49,
+"title": "Audit corrected WOWII 322 proof",
+"state": "closed",
+"merged_at": null,
+"head": "proof/wowii-322-corrected",
+"created": "2026-07-21",
+"body": "Temporary verification PR for the corrected complement-graph statement and exact Lean proof of WOWII Conjecture 322. This will be closed after CI inspection.",
+"labels": []
+},
+{
+"n": 48,
+"title": "Temporary: audit upstream marker branches",
+"state": "closed",
+"merged_at": null,
+"head": "automation/prepare-upstream-metadata",
+"created": "2026-07-21",
+"body": "Verification-only PR. Six upstream-facing branches compiled successfully. Closed to release runners for terminal axiom audits; WOWII 314 will receive a focused marker build separately.",
+"labels": []
+},
+{
+"n": 47,
+"title": "Temporary: audit merged WOWII fork proof files",
+"state": "closed",
+"merged_at": null,
+"head": "audit/wowii-fork-proof-main",
+"created": "2026-07-20",
+"body": "Verification-only PR. Closed after recovering current-fork successes for WOWII 65, 109, and 143 and confirming prior focused exact audits for the remaining immutable proof artifacts. No audit workflow changes are intended for merge.",
+"labels": []
+},
+{
+"n": 46,
+"title": "Add fork-hosted Lean proofs for WOWII 143 and 316",
+"state": "closed",
+"merged_at": "2026-07-20T23:13:16Z",
+"head": "proof/wowii-fork-proof-library",
+"created": "2026-07-20",
+"body": "Adds the complete, previously kernel-verified Lean developments for WOWII Graph Conjectures 143 and 316 directly to this fork under a dedicated `WOWII` Lean library.\n\nThe original catalog files remain unchanged. Two package-native wrapper files prove the exact catalog theorem types:\n\n- `FormalConjectures/WrittenOnTheWallII/GraphConjecture143ForkProof.lean`\n- `FormalConjectures/WrittenOnTheWallII/G",
+"labels": []
+},
+{
+"n": 45,
+"title": "Run all Green14 kernel certificate audits",
+"state": "closed",
+"merged_at": null,
+"head": "audit/green14-kernel-matrix-trigger",
+"created": "2026-07-20",
+"body": "Verification-only Green14 matrix trigger. Closed to release hosted runners while completed theorem imports are finalized. No theorem result is claimed; the proof and certificate branches remain preserved.",
+"labels": [
+"green-problems"
+]
+},
+{
+"n": 44,
+"title": "Add exact Lean proof of Erd\u0151s 602 countable-index variant",
+"state": "closed",
+"merged_at": "2026-07-20T22:47:17Z",
+"head": "proof/erdos602-countable-index",
+"created": "2026-07-20",
+"body": "Adds the complete, previously kernel-verified Lean proof of the exact `erdos_602.variants.countable_index` theorem as a fork-hosted proof module. This is the direct repository-file format preferred over an external website link. The main arbitrary-index Erd\u0151s 602 problem remains open.",
+"labels": [
+"erdos-problems"
+]
+},
+{
+"n": 43,
+"title": "Sync upstream-merged OEIS A317940 entry",
+"state": "closed",
+"merged_at": "2026-07-20T22:45:44Z",
+"head": "sync/upstream-a317940",
+"created": "2026-07-20",
+"body": "Copies the exact A317940 catalog file currently merged in google-deepmind/formal-conjectures into this fork. This keeps DTD/FC aligned with the accepted upstream result; no theorem or metadata changes are introduced beyond the upstream file.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 42,
+"title": "Import and prove WOWII Graph Conjecture 316",
+"state": "closed",
+"merged_at": null,
+"head": "merge/wowii316-full-proof",
+"created": "2026-07-20",
+"body": "Superseded by clean combined fork-proof library PR #46. The complete proof blobs are preserved there under a dedicated fork Lean library with exact wrapper theorem files.",
+"labels": []
+},
+{
+"n": 41,
+"title": "Import and prove WOWII Graph Conjecture 143",
+"state": "closed",
+"merged_at": null,
+"head": "merge/wowii143-full-proof",
+"created": "2026-07-20",
+"body": "Superseded by clean combined fork-proof library PR #46. The complete proof blobs are preserved there without catalog rewrites, website dependencies, temporary import workflows, or import cycles.",
+"labels": []
+},
+{
+"n": 40,
+"title": "Temporary: audit merged solved theorem heads",
+"state": "closed",
+"merged_at": null,
+"head": "audit/postmerge-solved-theorems",
+"created": "2026-07-20",
+"body": "Superseded by the narrower merged-main WOWII fork-proof audit in PR #47. The earlier audit harness was repaired but remained queued behind stale repository-wide builds; closing it removes duplicate work.",
+"labels": []
+},
+{
+"n": 39,
+"title": "Add missing Lean copyright headers",
+"state": "closed",
+"merged_at": "2026-07-20T22:37:45Z",
+"head": "fix/lean-copyright-headers",
+"created": "2026-07-20",
+"body": "Repository-wide cleanup required by the existing copyright-header check. A one-shot branch workflow prepends the exact standard Apache 2.0 header to headerless Lean modules introduced by recent proof merges. The workflow file will be removed before merge; the final PR will contain only header additions.",
+"labels": []
+},
+{
+"n": 38,
+"title": "Audit Green14 with direct Boolean arrays",
+"state": "closed",
+"merged_at": null,
+"head": "audit/green14-fast-kernel",
+"created": "2026-07-20",
+"body": "Verification-only experiment for the exact t=20 certificate. It preserves the finite checker semantics but replaces repeated list-membership color lookup with a direct Boolean array, then uses kernel `decide` and rejects compiler-trust axioms.",
+"labels": [
+"green-problems"
+]
+},
+{
+"n": 37,
+"title": "Disprove WOWII Graph Conjecture 109",
+"state": "closed",
+"merged_at": "2026-07-20T22:35:54Z",
+"head": "solve-wowii-109",
+"created": "2026-07-20",
+"body": "Internal verification PR for a complete Lean disproof of Written on the Wall II Conjecture 109.\n\nThe explicit connected graph on 21 vertices has:\n- an independent set of size 15;\n- Havel\u2013Hakimi residue 8;\n- three vertex-disjoint triangles, forcing every induced bipartite subgraph to have at most 18 vertices.\n\nHence the conjectured upper bound is at most floor((8 + 2\u00b718)/3) = 14, contradicting alph",
+"labels": []
+},
+{
+"n": 36,
+"title": "Temporary: conflict-free Voronovskaja migration audit",
+"state": "closed",
+"merged_at": null,
+"head": "solve-voronovskaja-no-sorry",
+"created": "2026-07-20",
+"body": "Superseded by the direct pinned audits in CRL PR #138. Closing this duplicate migration lane prevents redundant full-project checks; the proof branch remains preserved.",
+"labels": []
+},
+{
+"n": 35,
+"title": "Prove WOWII Graph Conjecture 314",
+"state": "closed",
+"merged_at": "2026-07-20T11:35:46Z",
+"head": "fix/wowii314-final-verified",
+"created": "2026-07-20",
+"body": "Completes the canonical theorem `WrittenOnTheWallII.GraphConjecture314.conjecture314` via the bipartite chain-graph / nonbipartite induced-C5 blow-up classification. The finite C5 neighborhood classification and bag uniqueness orientation have been repaired and passed an isolated exact Lean build plus axiom audit. A final clean audit pinned to this committed branch is being run before merge.",
+"labels": []
+},
+{
+"n": 34,
+"title": "Audit Green14 t=20 with kernel decide",
+"state": "closed",
+"merged_at": null,
+"head": "audit/green14-kernel-decide",
+"created": "2026-07-20",
+"body": "Verification-only experiment replacing `native_decide` with kernel `decide` in a generated temporary module for the exact t=20 certificate. The audit rejects `sorryAx`, `Lean.ofReduceBool`, and `Lean.trustCompiler`.",
+"labels": []
+},
+{
+"n": 33,
+"title": "Audit Green14 certificate with bv_decide",
+"state": "closed",
+"merged_at": null,
+"head": "audit/green14-bv-kernel",
+"created": "2026-07-20",
+"body": "Verification-only experiment for the exact t=20 certificate. It replaces `native_decide` in a generated temporary module with `bv_decide`, compiles the proof, prints its axiom footprint, and rejects compiler-trust axioms. No theorem statement or checked certificate data is changed.",
+"labels": []
+},
+{
+"n": 32,
+"title": "Temporary A317940 Lean audit",
+"state": "closed",
+"merged_at": null,
+"head": "a317940-lean-audit",
+"created": "2026-07-20",
+"body": "Temporary internal PR used only to run GitHub Actions against the exact source commit submitted in upstream PR #4438. The sole diff is a focused workflow compiling `FormalConjectures.OEIS.317940`.",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 31,
+"title": "Prove WOWII Graph Conjecture 322",
+"state": "closed",
+"merged_at": "2026-07-20T05:29:47Z",
+"head": "solve/wowii322-verified-main",
+"created": "2026-07-20",
+"body": "Proves the unchanged catalog theorem `WrittenOnTheWallII.GraphConjecture322.conjecture322` on the fork&#39;s current `main`. The local independence condition forces each neighborhood to be a clique; connectedness then makes the graph complete, and every minimal total dominating set has cardinality two.\n\nThe proof has passed a pinned historical kernel audit. A second exact audit against this curren",
+"labels": []
+},
+{
+"n": 30,
+"title": "Bootstrap local Lean verification sandbox",
+"state": "closed",
+"merged_at": null,
+"head": "lean-sandbox-bootstrap",
+"created": "2026-07-18",
+"body": "Temporary transport PR used only to export the pinned Lean 4.27/Mathlib toolchain and checked-out project as an artifact, so the proofs can be compiled inside the isolated ChatGPT sandbox. It will be closed after the artifact is downloaded.",
+"labels": []
+},
+{
+"n": 29,
+"title": "Temporary: exact Voronovskaja child audit",
+"state": "closed",
+"merged_at": null,
+"head": "audit/voronovskaja-exact2",
+"created": "2026-07-18",
+"body": "Verification-only child PR against the current proof branch. The only diff is a workflow comment; the base branch\u2019s exact Voronovskaja workflow builds the repaired theorem stack and audits the final theorem axioms.",
+"labels": []
+},
+{
+"n": 28,
+"title": "Upstream candidate: mark WOWII Graph Conjecture 322 solved",
+"state": "closed",
+"merged_at": null,
+"head": "submission/wowii322-solved",
+"created": "2026-07-18",
+"body": "## Upstream submission candidate\n\nThis is the exact minimal patch intended for `google-deepmind/formal-conjectures`.\n\n- changes `research open` to `research solved`;\n- adds the short structural proof explanation;\n- links the externally hosted exact Lean proof at commit `271895775d9833dd8a1480126cbe112779d953ef`;\n- preserves the original theorem statement unchanged;\n- leaves the repository body as ",
+"labels": []
+},
+{
+"n": 27,
+"title": "Temporary fast-only WOWII 322 kernel audit",
+"state": "closed",
+"merged_at": null,
+"head": "audit/wowii322-fast-only",
+"created": "2026-07-18",
+"body": "Superseded by isolated verification PR DomTheDeveloper/crl#64. The exact patched proof remains on `agent/prove-wowii-322` and `submission/wowii322-solved`; this CI-only PR is closed to cancel duplicate broad audit jobs.",
+"labels": []
+},
+{
+"n": 26,
+"title": "Temporary exact audit for WOWII 322",
+"state": "closed",
+"merged_at": null,
+"head": "audit/wowii322-exact",
+"created": "2026-07-18",
+"body": "Temporary CI-only pull request. It adds one Windows workflow that:\n\n1. compiles `FormalConjectures.WrittenOnTheWallII.GraphConjecture322` against the repository&#39;s pinned Lean/Mathlib toolchain;\n2. rejects `sorry`, `admit`, `axiom`, `opaque`, and `native_decide` in the theorem file;\n3. runs `#print axioms` on the exact theorem and fails if `sorryAx` appears;\n4. uploads the build and axiom trans",
+"labels": []
+},
+{
+"n": 25,
+"title": "Prove WOWII graph conjecture 322",
+"state": "closed",
+"merged_at": null,
+"head": "agent/prove-wowii-322",
+"created": "2026-07-18",
+"body": "## Summary\n\n- proves Written on the Wall II Graph Conjecture 322\n- shows the local independence hypothesis forces every neighborhood to be a clique\n- propagates adjacency along connected paths, so the graph is complete\n- classifies every minimal total dominating set as a two-element set\n- updates the problem status from `research open` to `research solved`\n\nThe theorem statement is unchanged. The ",
+"labels": []
+},
+{
+"n": 24,
+"title": "Run exhaustive eight-vertex census for WOWII 217",
+"state": "closed",
+"merged_at": null,
+"head": "attack-fresh-formal-conjectures-ci",
+"created": "2026-07-18",
+"body": "Temporary CI-only PR. It exhaustively checks all 11,117 connected unlabeled graphs on eight vertices against the exact residue/maximum-leaf/traceability condition used by WOWII Graph Conjecture 217.",
+"labels": []
+},
+{
+"n": 23,
+"title": "Green14 W(3,t) certificates for t=20\u201339",
+"state": "closed",
+"merged_at": null,
+"head": "agent/green14-certificates-20-39",
+"created": "2026-07-18",
+"body": "Proof branch preserved. Temporarily closed to stop duplicate full-project and Windows workflows while focused child audits compile the kernel-clean array bridge and exact theorem. Reopen only after the focused theorem matrix passes.",
+"labels": [
+"green-problems"
+]
+},
+{
+"n": 22,
+"title": "Temporary: exact single-job WOWII 314 audit",
+"state": "closed",
+"merged_at": null,
+"head": "audit/wowii314-fast-only",
+"created": "2026-07-17",
+"body": "Temporary CI-only pull request. Its merge tree disables unrelated workflows and runs one exact Lean 4.27 audit: build the official Graph Conjecture 314 statement, compile the complete proof stack, verify the exact theorem type, and reject `sorryAx`. The proof-bearing branches are preserved separately.",
+"labels": []
+},
+{
+"n": 21,
+"title": "Prove Beaver Math Olympiad problem 4",
+"state": "closed",
+"merged_at": "2026-07-20T22:39:13Z",
+"head": "solve-bmo4-no-sorry",
+"created": "2026-07-16",
+"body": "## Complete solution of Beaver Math Olympiad problem 4\n\nThis PR replaces the original `sorry` in `BeaverMathOlympiad.beaver_math_olympiad_problem_4` with a complete four-case induction for the exact theorem over `\u2115`.\n\nThe invariant is indexed by `n % 4`:\n\n- `n % 4 = 0`: `5 * a n = 3 * 2 ^ n + 7`;\n- `n % 4 = 1`: `5 * a n + 6 = 3 * 2 ^ n`;\n- `n % 4 = 2`: `5 * a n = 3 * 2 ^ n + 3`;\n- `n % 4 = 3`: `5 ",
+"labels": []
+},
+{
+"n": 20,
+"title": "Temporary: observable Windows kernel check",
+"state": "closed",
+"merged_at": null,
+"head": "verify-voronovskaja-windows-0ad9715",
+"created": "2026-07-16",
+"body": "Ephemeral draft PR used only to run the frozen Voronovskaja proof on the Windows GitHub-hosted runner through a workflow stored on this temporary base branch. Close and delete both branches after diagnostics.",
+"labels": []
+},
+{
+"n": 19,
+"title": "Temporary: pin simplified Voronovskaja verification",
+"state": "closed",
+"merged_at": null,
+"head": "verify-voronovskaja-pinned-4191e0d",
+"created": "2026-07-16",
+"body": "Ephemeral draft PR pinning the simplified proof head `4191e0d05a8bb856f690e0a457869b68e0477eb1`. This isolates the exact Lean 4.27 build and axiom audit from concurrent edits on PR #7. Close after diagnostics; no proof development belongs on this branch.",
+"labels": []
+},
+{
+"n": 18,
+"title": "Temporary: pinned Voronovskaja kernel verification",
+"state": "closed",
+"merged_at": null,
+"head": "verify-voronovskaja-pinned-80ea40e",
+"created": "2026-07-16",
+"body": "Ephemeral draft PR pinning commit `80ea40ef092b1eace20a24481deeb7551633eeff` so the complete Lean 4.27 build and axiom audit can run without cancellation from concurrent updates to PR #7. No proof changes are developed here; close after diagnostics.",
+"labels": []
+},
+{
+"n": 17,
+"title": "CI: one-job clean-room audit of latest CRL A387471 theorem",
+"state": "closed",
+"merged_at": null,
+"head": "ci/a387471-cleanroom",
+"created": "2026-07-16",
+"body": "Disposable verification-only PR, now closed.\n\nTemporary exact Mathlib 4.27 cache manifest:\n\n[Mathlib cache commit manifest](https://lakecache.blob.core.windows.net/mathlib4/c/a3a10db0e9d66acbebf76c5e6a135066525ac900)\n\nTemporary AXLE bootstrap link:\n\n[Run Lean 4.27 check](https://axle.axiommath.ai/check?data=eyJjb250ZW50IjoiI2NoZWNrIE5hdFxuI2NoZWNrIExpc3RcbiNldmFsIDEgKyAxIiwibWF0aGxpYl9vcHRpb25zIjp",
+"labels": []
+},
+{
+"n": 16,
+"title": "WIP: Verify Erd\u0151s 7 finite obstruction lemmas",
+"state": "closed",
+"merged_at": null,
+"head": "erdos7-obstruction-lean",
+"created": "2026-07-16",
+"body": "Compiles and axiom-audits the no-`sorry` algebraic and arithmetic kernel from the Erd\u0151s Problem 7 finite-LCM obstruction campaign.\n\nThis does **not** claim a solution of Erd\u0151s Problem 7. The exact conjecture remains open; the branch currently formalizes only reusable obstruction implications and numerical certificates while the stronger combinatorial lemmas are developed.\n\nThe dedicated workflow r",
+"labels": [
+"erdos-problems"
+]
+},
+{
+"n": 15,
+"title": "Formalize exact A281976 parameter families and 16-scaling",
+"state": "closed",
+"merged_at": null,
+"head": "agent/a281976-reductions",
+"created": "2026-07-16",
+"body": "## What changed\n\n- adds four sorry-free constructors for the two exact parameter families\n  - `x = (6s-r)^2`, `y = rs`\n  - `x = (3s-2r)^2`, `y = rs`\n  with both orientations of the natural-number differences;\n- adds the sorry-free implication `P(n) \u2192 P(16n)` by scaling all four coordinates by four;\n- leaves the original universal conjecture explicitly open.\n\n## Why\n\nThese lemmas isolate the algebr",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 14,
+"title": "research(OEIS A308734): add four-adic reduction lemmas",
+"state": "closed",
+"merged_at": null,
+"head": "a308734-reductions",
+"created": "2026-07-16",
+"body": "Partial, explicitly non-solving progress on OEIS A308734.\n\nThis adds:\n- a verified base representation for 4;\n- closure of the target representation under multiplication by 4;\n- a strong-induction reduction showing it is enough to prove the conjecture for integers not divisible by 4.\n\nThe original research theorem deliberately remains `sorry`; this PR does **not** claim the conjecture or the $2,50",
+"labels": [
+"oeis"
+]
+},
+{
+"n": 13,
+"title": "WIP: prove WOWII Graph Conjecture 314",
+"state": "closed",
+"merged_at": null,
+"head": "proof/wowii314-upstream",
+"created": "2026-07-16",
+"body": "## Exact theorem wired; isolated audit in progress\n\nThe original catalog theorem `WrittenOnTheWallII.GraphConjecture314.conjecture314` is proved by the completed bipartite-chain-graph / nonbipartite-`C\u2085`-blow-up classification. The remaining raw finite-`C\u2085` decisions have been normalized to modular arithmetic.\n\nThis PR is temporarily closed solely to cancel duplicate broad CI jobs. Exact verificat",
+"labels": []
+},
+{
+"n": 12,
+"title": "CI: audit CRL WOWII 314 proof",
+"state": "closed",
+"merged_at": null,
+"head": "audit/wowii314-crl",
+"created": "2026-07-16",
+"body": "Temporary verification-only PR. It checks the canonical CRL proof branch against the pinned Formal Conjectures environment, compiles the exact theorem, and rejects `sorryAx`. This PR will be closed after the audit; the proof-bearing PR is DomTheDeveloper/crl#31.\n\nTemporary local-bootstrap source archive: [Lean 4.27.0 source zip](https://codeload.github.com/leanprover/lean4/zip/refs/tags/v4.27.0).",
+"labels": []
+},
+{
+"n": 11,
+"title": "Fix WOWII 160 C4-free characteristic",
+"state": "closed",
+"merged_at": null,
+"head": "wowii-160-c4-fix",
+"created": "2026-07-16",
+"body": "Fork-local CI validation for the correction proposed in upstream issue #4423.\n\nThis changes the theorem from the unrelated invariant `countInducedC4 G` to the historical WOWII `\u03c7_{C\u2084}(G)`: `1` when the graph contains no four-cycle subgraph and `0` otherwise. The four-cycle need not be induced.\n\nThe theorem remains `research open`; this PR does not claim that the corrected conjecture is solved.\n\nAI",
+"labels": []
+},
+{
+"n": 10,
+"title": "Validate WOWII 65 solved metadata",
+"state": "closed",
+"merged_at": null,
+"head": "wowii-65-solved",
+"created": "2026-07-16",
+"body": "Fork-local CI validation for the one-file WOWII 65 solved-status change and immutable external Lean proof link.",
+"labels": []
+},
+{
+"n": 9,
+"title": "Validate WOWII 143 solved metadata",
+"state": "closed",
+"merged_at": null,
+"head": "wowii-143-solved",
+"created": "2026-07-16",
+"body": "Fork-local CI validation for the one-file WOWII 143 solved-status change and immutable external Lean proof link.\n\nThe external theorem exactly matches the current statement, and the repository definition documents `secondSmallestDegree` as DeLaVina&#39;s `\u03c3(G)` from WOWII definition entry 65.",
+"labels": []
+},
+{
+"n": 8,
+"title": "Verify WotW316 proof branch",
+"state": "closed",
+"merged_at": null,
+"head": "agent/wotw316-verification",
+"created": "2026-07-15",
+"body": "Temporary independent CI lane that checks out `DomTheDeveloper/crl:agent/wotw316-proof` and runs the complete Lean build with placeholder and `sorryAx` guards. This PR is only for verification and should not be merged.",
+"labels": []
+},
+{
+"n": 7,
+"title": "WIP: Certify the nonlinear B\u00e9zier\u2013Bernstein Voronovskaja formula",
+"state": "closed",
+"merged_at": null,
+"head": "solve-voronovskaja-no-sorry",
+"created": "2026-07-15",
+"body": "Superseded by fork PR #51, which targets `main` and contains the committed-source nonlinear proof certification. Closing this obsolete audit-base PR to avoid duplicate workflow events on the same branch.",
+"labels": []
+},
+{
+"n": 6,
+"title": "Prove Written on the Wall II Conjecture 65",
+"state": "closed",
+"merged_at": "2026-07-20T22:38:24Z",
+"head": "proof/wowii-conjecture65",
+"created": "2026-07-15",
+"body": "Upstream-ready one-file patch for `google-deepmind/formal-conjectures`.\n\nProves `WrittenOnTheWallII.GraphConjecture65.conjecture65` and changes its category from `research open` to `research solved`.\n\nProof:\n\n1. For every nonempty vertex set `S` in a connected graph, `distMin G S \u2264 1`: a walk from outside `S` into `S` contains a crossing edge.\n2. The minimum- and maximum-degree vertex sets are non",
+"labels": []
+},
+{
+"n": 5,
+"title": "Solve Written on the Wall II Conjecture 316",
+"state": "closed",
+"merged_at": null,
+"head": "agent/solve-wotw316",
+"created": "2026-07-15",
+"body": "Research branch for a proof of Conjecture 316. The current commit develops the structural theorem that a graph whose non-pendant core is a clique is well totally dominated. The numerical degree-count reduction is still being formalized. This draft does not yet claim the main theorem.",
+"labels": []
+},
+{
+"n": 4,
+"title": "disprove(WrittenOnTheWallII): Graph Conjecture 160",
+"state": "closed",
+"merged_at": null,
+"head": "disprove-wowii-160",
+"created": "2026-07-15",
+"body": "Upstream-ready change marking WOWII Graph Conjecture 160 false and linking a verified Lean counterexample.\n\nCounterexample: `K_{2,3}` plus one edge inside the part of size three, with edge set `{02, 03, 04, 12, 13, 14, 24}`.\n\nIts maximum local independence is `2`, maximum triangle incidence is `2`, and it has two induced four-cycles, so the conjectured lower bound is `6`. Every spanning tree has a",
+"labels": []
+},
+{
+"n": 3,
+"title": "solve(WrittenOnTheWallII): Graph Conjecture 65",
+"state": "closed",
+"merged_at": null,
+"head": "solve-wowii-65",
+"created": "2026-07-15",
+"body": "Upstream-ready change marking WOWII Graph Conjecture 65 solved and linking the verified external Lean proof.\n\nProof outline:\n- every nonempty vertex set in a connected graph has `distMin \u2264 1`;\n- the minimum- and maximum-degree vertex sets are nonempty;\n- therefore the conjecture&#39;s left side is at most `2`;\n- every nontrivial connected graph contains an edge, whose endpoints induce a two-vertex",
+"labels": []
+},
+{
+"n": 2,
+"title": "Prove the Parseval lower bound for Erd\u0151s 1150",
+"state": "closed",
+"merged_at": "2026-07-20T22:39:40Z",
+"head": "agent/erdos1150-parseval-proof",
+"created": "2026-07-15",
+"body": "Closes the `sorry` in the textbook variant `Erdos1150.erdos_1150.variants.parseval_lower_bound`.\n\nThe proof uses the unnormalised DFT on `ZMod (n + 1)`:\n\n- proves discrete Parseval from character orthogonality and Fourier inversion;\n- shows a unit-modulus coefficient vector has a Fourier coefficient of norm at least `sqrt (n + 1)`;\n- identifies those Fourier coefficients with polynomial evaluation",
+"labels": [
+"erdos-problems"
+]
+},
+{
+"n": 1,
+"title": "Independent Lean verification of the Erd\u0151s 1150 Parseval lower bound",
+"state": "closed",
+"merged_at": null,
+"head": "erdos1150-parseval-proof",
+"created": "2026-07-15",
+"body": "Independent kernel-checked Lean 4 verification of `erdos_1150.variants.parseval_lower_bound`.\n\nUpstream PR `google-deepmind/formal-conjectures#4110` already proves the same textbook theorem using a different roots-of-unity development, so this staging PR is closed as a duplicate rather than submitted upstream.\n\nThe independent proof remains available in `DomTheDeveloper/crl` PR #2. It was checked ",
+"labels": [
+"erdos-problems"
+]
+}
+]
