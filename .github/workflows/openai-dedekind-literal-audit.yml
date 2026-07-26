@@ -49,7 +49,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          lake env lean FormalConjectures/Wikipedia/DedekindNumberLiteralSolution.lean > /tmp/dedekind-lean.log 2>&1
+          lake build FormalConjectures.Wikipedia.DedekindNumberLiteralSolution > /tmp/dedekind-lean.log 2>&1
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           cat /tmp/dedekind-lean.log
