@@ -38,7 +38,8 @@ family of admissible integers
 namespace OeisA280831
 
 /-- Every representation by three squares gives an A280831 representation by taking `z = 0`. -/
-theorem of_three_squares (n x y w : ℕ) (h : n = x ^ 2 + y ^ 2 + w ^ 2) : A n := by
+theorem of_three_squares (n x y w : ℕ) (h : n = x ^ 2 + y ^ 2 + w ^ 2) :
+    HasSquareCondition n := by
   refine ⟨x, y, 0, w, ?_, ?_⟩
   · simpa [h, add_assoc]
   · refine ⟨x ^ 2, ?_⟩
@@ -47,7 +48,7 @@ theorem of_three_squares (n x y w : ℕ) (h : n = x ^ 2 + y ^ 2 + w ^ 2) : A n :
 /-- General algebraic family: a solution of `c^4 + 1680 d = q^2` gives infinitely many
 A280831 representations. -/
 theorem parametric_family (c d q y w : ℕ) (h : c ^ 4 + 1680 * d = q ^ 2) :
-    A ((c ^ 2 + 1 + d ^ 2) * y ^ 2 + w ^ 2) := by
+    HasSquareCondition ((c ^ 2 + 1 + d ^ 2) * y ^ 2 + w ^ 2) := by
   refine ⟨c * y, y, d * y, w, ?_, ?_⟩
   · ring
   · refine ⟨q * y ^ 2, ?_⟩
@@ -58,15 +59,15 @@ theorem parametric_family (c d q y w : ℕ) (h : c ^ 4 + 1680 * d = q ^ 2) :
       _ = (q * y ^ 2) * (q * y ^ 2) := by ring
 
 /-- The identity `1^4 + 1680 = 41^2` gives every number `3 y^2 + w^2`. -/
-theorem family_three (y w : ℕ) : A (3 * y ^ 2 + w ^ 2) := by
+theorem family_three (y w : ℕ) : HasSquareCondition (3 * y ^ 2 + w ^ 2) := by
   simpa using parametric_family 1 1 41 y w (by norm_num)
 
 /-- The identity `1^4 + 1680 · 3 = 71^2` gives every number `11 y^2 + w^2`. -/
-theorem family_eleven (y w : ℕ) : A (11 * y ^ 2 + w ^ 2) := by
+theorem family_eleven (y w : ℕ) : HasSquareCondition (11 * y ^ 2 + w ^ 2) := by
   simpa using parametric_family 1 3 71 y w (by norm_num)
 
 /-- The identity `4^4 + 1680 = 44^2` gives every number `18 y^2 + w^2`. -/
-theorem family_eighteen (y w : ℕ) : A (18 * y ^ 2 + w ^ 2) := by
+theorem family_eighteen (y w : ℕ) : HasSquareCondition (18 * y ^ 2 + w ^ 2) := by
   simpa using parametric_family 4 1 44 y w (by norm_num)
 
 #print axioms of_three_squares
