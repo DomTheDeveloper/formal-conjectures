@@ -32,7 +32,7 @@ namespace SunConjectures
 
 open scoped Nat.Prime
 
-private lemma log_succ_le_nine_hundredths (x : ℝ) (hx : 10000 ≤ x) :
+private lemma log_succ_le_nine_hundredths (x : ℝ) (hx : 2401 ≤ x) :
     Real.log (x + 1) < (9 / 100 : ℝ) * x := by
   have hx0 : 0 ≤ x := by positivity
   have hy0 : 0 < x + 1 := by positivity
@@ -52,7 +52,7 @@ private lemma log_succ_le_nine_hundredths (x : ℝ) (hx : 10000 ≤ x) :
     _ ≤ 2 * (x / 25) := by gcongr
     _ < (9 / 100 : ℝ) * x := by nlinarith
 
-private lemma log_lt_three_fifths_sqrt (x : ℝ) (hx : 10000 ≤ x) :
+private lemma log_lt_three_fifths_sqrt (x : ℝ) (hx : 2401 ≤ x) :
     Real.log x < (3 / 5 : ℝ) * Real.sqrt x := by
   have hx0 : 0 ≤ x := by positivity
   let s := Real.sqrt x
@@ -61,12 +61,12 @@ private lemma log_lt_three_fifths_sqrt (x : ℝ) (hx : 10000 ≤ x) :
   have hu0 : 0 ≤ u := by simp [u]
   have hs_sq : s ^ 2 = x := by simpa [s] using Real.sq_sqrt hx0
   have hu_sq : u ^ 2 = s := by simpa [u] using Real.sq_sqrt hs0
-  have hu10 : 10 ≤ u := by
+  have hu7 : 7 ≤ u := by
     by_contra! h
-    have hs_lt : s < 100 := by nlinarith
-    have hx_lt : x < 10000 := by nlinarith
+    have hs_lt : s < 49 := by nlinarith
+    have hx_lt : x < 2401 := by nlinarith
     linarith
-  have hupos : 0 < u := lt_of_lt_of_le (by norm_num) hu10
+  have hupos : 0 < u := lt_of_lt_of_le (by norm_num) hu7
   have hlogu := Real.log_le_sub_one_of_pos hupos
   have hlog_s : Real.log s = Real.log x / 2 := by
     simpa [s] using Real.log_sqrt hx0
@@ -78,9 +78,9 @@ private lemma log_lt_three_fifths_sqrt (x : ℝ) (hx : 10000 ≤ x) :
     _ < (3 / 5 : ℝ) * (u ^ 2) := by nlinarith
     _ = (3 / 5 : ℝ) * Real.sqrt x := by simp [hu_sq, s]
 
-private lemma primeCounting_lower (x : ℕ) (hx : 10000 ≤ x) :
+private lemma primeCounting_lower (x : ℕ) (hx : 2401 ≤ x) :
     (3 / 5 : ℝ) * (x : ℝ) / Real.log x < (π x : ℝ) := by
-  have hxreal : (10000 : ℝ) ≤ x := by exact_mod_cast hx
+  have hxreal : (2401 : ℝ) ≤ x := by exact_mod_cast hx
   have hx1 : (1 : ℝ) < x := by linarith
   have hlogpos : 0 < Real.log x := Real.log_pos hx1
   have hlogsucc := log_succ_le_nine_hundredths (x : ℝ) hxreal
@@ -94,9 +94,9 @@ private lemma primeCounting_lower (x : ℕ) (hx : 10000 ≤ x) :
     exact (div_lt_div_iff_of_pos_right hlogpos).2 hnum
   exact hdiv.trans_le (Chebyshev.pi_ge x)
 
-private lemma sqrt_lt_primeCounting (x : ℕ) (hx : 10000 ≤ x) :
+private lemma sqrt_lt_primeCounting (x : ℕ) (hx : 2401 ≤ x) :
     Real.sqrt x < (π x : ℝ) := by
-  have hxreal : (10000 : ℝ) ≤ x := by exact_mod_cast hx
+  have hxreal : (2401 : ℝ) ≤ x := by exact_mod_cast hx
   have hx0 : (0 : ℝ) ≤ x := by positivity
   have hx1 : (1 : ℝ) < x := by linarith
   have hlogpos : 0 < Real.log x := Real.log_pos hx1
@@ -109,7 +109,7 @@ private lemma sqrt_lt_primeCounting (x : ℕ) (hx : 10000 ≤ x) :
   exact hs_lower.trans (primeCounting_lower x hx)
 
 private lemma analytic_case (n k : ℕ) (hn : 120 ≤ n) (hk : 1 ≤ k)
-    (hx : 10000 ≤ k * n) :
+    (hx : 2401 ≤ k * n) :
     (π (k * n)) ^ (k + 1) > (π ((k + 1) * n)) ^ k := by
   let x := k * n
   let A := π x
@@ -183,12 +183,12 @@ theorem conjecture_2_6_proved (n k : ℕ) (hn : 4 < n) (hk_pos : 1 ≤ k) (hk_le
   · exact conjecture_2_6_finite_small_n ⟨n, hnsmall⟩ ⟨k, hk_le.trans_lt hnsmall⟩
       hn hk_pos hk_le
   · have hnlarge : 120 ≤ n := by omega
-    by_cases hxsmall : k * n < 10000
-    · have hn10000 : n < 10000 := by
+    by_cases hxsmall : k * n < 2401
+    · have hn2401 : n < 2401 := by
         have : n ≤ k * n := by nlinarith
         omega
-      have hk84 : k < 84 := by nlinarith
-      exact conjecture_2_6_finite_small_x ⟨n, hn10000⟩ ⟨k, hk84⟩
+      have hk21 : k < 21 := by nlinarith
+      exact conjecture_2_6_finite_small_x ⟨n, hn2401⟩ ⟨k, hk21⟩
         hnlarge hk_pos hk_le hxsmall
     · exact analytic_case n k hnlarge hk_pos (by omega)
 
