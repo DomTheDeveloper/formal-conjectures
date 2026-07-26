@@ -1,0 +1,60 @@
+name: OpenAI moving-sofa literal counterexample audit
+
+on:
+  push:
+    branches:
+      - openai/disprove-moving-sofa-uniqueness-literal
+    paths:
+      - 'FormalConjectures/Wikipedia/MovingSofaLiteralCounterexample.lean'
+      - '.github/workflows/openai-moving-sofa-literal-audit.yml'
+  pull_request:
+    paths:
+      - 'FormalConjectures/Wikipedia/MovingSofaLiteralCounterexample.lean'
+      - '.github/workflows/openai-moving-sofa-literal-audit.yml'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pinned Lean toolchain
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Lake cache
+        uses: actions/cache@v4
+        with:
+          path: .lake
+          key: ${{ runner.os }}-lake-${{ hashFiles('lake-manifest.json', 'lean-toolchain') }}
+          restore-keys: |
+            ${{ runner.os }}-lake-
+
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          file='FormalConjectures/Wikipedia/MovingSofaLiteralCounterexample.lean'
+          if grep -nE '\b(sorry|admit|unsafe|axiom)\b|native_decide|Lean\.(ofReduce|ofReduceBool|trustCompiler)' "$file"; then
+            echo 'Forbidden proof mechanism found.'
+            exit 1
+          fi
+
+      - name: Compile exact counterexample module
+        run: lake env lean FormalConjectures/Wikipedia/MovingSofaLiteralCounterexample.lean
+
+      - name: Audit theorem axioms
+        run: |
+          cat > /tmp/MovingSofaLiteralAxioms.lean <<'EOF'
+          import FormalConjectures.Wikipedia.MovingSofaLiteralCounterexample
+          #print axioms MovingSofa.sofaConstant_eq_volume_iff_eq_gerversSofa_false
+          EOF
+          lake env lean /tmp/MovingSofaLiteralAxioms.lean | tee /tmp/axioms.log
+          if grep -E 'sorryAx|Lean\.(ofReduce|ofReduceBool|trustCompiler)' /tmp/axioms.log; then
+            echo 'Forbidden axiom dependency found.'
+            exit 1
+          fi
