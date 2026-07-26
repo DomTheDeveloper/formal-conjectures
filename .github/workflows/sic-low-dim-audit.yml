@@ -41,10 +41,10 @@ jobs:
             sleep 10
           done
           exit 1
-      - name: Build local utility dependency
+      - name: Build exact local import dependency
         run: |
           set -o pipefail
-          lake build FormalConjecturesUtil 2>&1 | tee /tmp/sic-low-dim-dependency.log
+          lake build FormalConjectures.Util.ProblemImports 2>&1 | tee /tmp/sic-low-dim-dependency.log
       # Compile the canonical numeric module directly; Lake target syntax treats `23` as a path.
       - name: Compile canonical module
         run: |
