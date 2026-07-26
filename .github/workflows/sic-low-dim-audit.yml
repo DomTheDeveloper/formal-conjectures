@@ -41,6 +41,7 @@ jobs:
             sleep 10
           done
           exit 1
+      # Compile the canonical numeric module directly; Lake target syntax treats `23` as a path.
       - name: Compile canonical module
         run: |
           set -o pipefail
