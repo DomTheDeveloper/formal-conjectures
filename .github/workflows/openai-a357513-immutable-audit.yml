@@ -31,7 +31,7 @@ jobs:
       - name: Fetch immutable proof source
         run: |
           curl -fsSL 'https://raw.githubusercontent.com/google-deepmind/formal-conjectures/9c7f21e7d4445637538bc1817b058b9b3f31bd2b/FormalConjectures/OEIS/357513.lean' -o /tmp/A357513Immutable.lean
-          test "$(sha256sum /tmp/A357513Immutable.lean | cut -d' ' -f1)" = '726088a9dcd90607ed1b9ef966fdb3b9657406b3c23768daa50c880970617f9d'
+          test "$(git hash-object /tmp/A357513Immutable.lean)" = '3836ebd03272ccb84543ab15cecaf61c19a290f8'
       - name: Reject proof holes and trust escapes
         run: |
           set -euo pipefail
