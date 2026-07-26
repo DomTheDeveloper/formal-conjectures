@@ -5,9 +5,6 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/sic-low-dim-audit.yml'
-      - 'FormalConjectures/Other/SICLowDimAudit.lean'
-      - 'FormalConjectures/Other/SICQutritAudit.lean'
-      - 'FormalConjectures/Other/SICQutritAudit2.lean'
       - 'FormalConjectures/OpenQuantumProblems/23.lean'
 
 concurrency:
@@ -24,8 +21,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          repository: DomTheDeveloper/formal-conjectures
-          ref: agent/solve-sic-low-dim-v2
           fetch-depth: 1
       - name: Install Lean
         run: |
@@ -46,19 +41,19 @@ jobs:
             sleep 10
           done
           exit 1
-      - name: Compile exact modules
+      - name: Compile canonical module
         run: |
           set -o pipefail
-          lake build FormalConjectures.Other.SICQutritAudit2 2>&1 | tee /tmp/sic-low-dim-compile.log
-      - name: Audit theorem axioms
+          lake build FormalConjectures.OpenQuantumProblems.23 2>&1 | tee /tmp/sic-low-dim-compile.log
+      - name: Audit canonical theorem axioms
         if: success()
         run: |
           cat > /tmp/SICLowDimAxioms.lean <<'EOF'
-          import FormalConjectures.Other.SICQutritAudit2
-          #print axioms OpenQuantumProblem23.qubitSICFamily_pairwise_audit
-          #print axioms OpenQuantumProblem23.hasSICPOVM_two_audit
-          #print axioms OpenQuantumProblem23.hesseFamily_pairwise_audit2
-          #print axioms OpenQuantumProblem23.hasSICPOVM_three_audit2
+          import FormalConjectures.OpenQuantumProblems.«23»
+          #print axioms OpenQuantumProblem23.qubitSICFamily_pairwise
+          #print axioms OpenQuantumProblem23.hasSICPOVM_two
+          #print axioms OpenQuantumProblem23.hesseFamily_pairwise
+          #print axioms OpenQuantumProblem23.hasSICPOVM_three
           EOF
           lake env lean /tmp/SICLowDimAxioms.lean 2>&1 | tee /tmp/sic-low-dim-axioms.log
           ! grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/sic-low-dim-axioms.log
