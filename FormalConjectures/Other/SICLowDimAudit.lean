@@ -166,6 +166,19 @@ private lemma explicit_omega_sq_audit :
   rw [hrewrite, Complex.normSq_mul, normSq_one_add_two_mul_omega_sq_audit]
   norm_num [Complex.normSq_ofReal]
 
+@[simp] private lemma normSq_qubit_offdiag_explicit_omega_sq_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) *
+      (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I)) = (1 / 3 : ℝ) := by
+  rw [explicit_omega_sq_audit]
+  exact normSq_qubit_offdiag_omega_sq_audit
+
+@[simp] private lemma normSq_qubit_offdiag_star_omega_exact_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) * (starRingEnd ℂ) ω) =
+      (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) * star ω) = (1 / 3 : ℝ)
+  rw [star_omega_audit]
+  exact normSq_qubit_offdiag_omega_sq_audit
+
 @[simp] private lemma overlap_one_two_audit :
     Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * ((tetraB : ℂ) * ω)) =
       (1 / 3 : ℝ) := by
@@ -194,6 +207,15 @@ private lemma explicit_omega_sq_audit :
   simpa only [pow_two, tetraB_sq_complex_audit, omega_four_audit] using
     normSq_qubit_offdiag_omega_audit
 
+@[simp] private lemma overlap_two_three_exact_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * (starRingEnd ℂ) ω *
+      ((tetraB : ℂ) * (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I))) =
+      (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * star ω *
+    ((tetraB : ℂ) * (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I))) =
+    (1 / 3 : ℝ)
+  exact overlap_two_three_audit
+
 @[simp] private lemma overlap_three_one_audit :
     Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
       (-(1 : ℂ) / (starRingEnd ℂ) 2 +
@@ -211,6 +233,18 @@ private lemma explicit_omega_sq_audit :
   ring_nf
   simpa only [pow_two, tetraB_sq_complex_audit] using
     normSq_qubit_offdiag_omega_sq_audit
+
+@[simp] private lemma overlap_three_two_simplified_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * ω *
+      ((tetraB : ℂ) * ω)) = (1 / 3 : ℝ) := by
+  have hphase :
+      (tetraB : ℂ) * ω * ((tetraB : ℂ) * ω) = (2 / 3 : ℂ) * (ω ^ 2) := by
+    calc
+      (tetraB : ℂ) * ω * ((tetraB : ℂ) * ω) =
+          ((tetraB : ℂ) * tetraB) * (ω ^ 2) := by ring
+      _ = (2 / 3 : ℂ) * (ω ^ 2) := by rw [tetraB_sq_complex_audit]
+  rw [hphase]
+  exact normSq_qubit_offdiag_omega_sq_audit
 
 @[category test, AMS 15 47 81]
 lemma qubitSICFamily_pairwise_audit :
