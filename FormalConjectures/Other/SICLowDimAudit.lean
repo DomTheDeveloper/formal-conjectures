@@ -65,7 +65,7 @@ private lemma sq_sqrt_three_audit : (Real.sqrt 3) ^ (2 : ℕ) = (3 : ℝ) := by
   · simp [ω, pow_two, Complex.add_im, Complex.mul_re, Complex.mul_im, Complex.sub_im]
     ring_nf
 
-@[simp] private lemma explicit_omega_sq_audit :
+private lemma explicit_omega_sq_audit :
     (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I) = ω ^ 2 := by
   rw [omega_sq_audit]
   apply Complex.ext <;> simp <;> ring
