@@ -1,0 +1,57 @@
+name: OpenAI Euler brick witness audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-euler-brick-witness-audit.yml'
+      - 'FormalConjectures/Wikipedia/EulerBrickProof.lean'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: euler-brick-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: euler-brick-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          f=FormalConjectures/Wikipedia/EulerBrickProof.lean
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' "$f"
+      - name: Compile exact registered proof module
+        run: |
+          set -o pipefail
+          lake build FormalConjectures.Wikipedia.EulerBrickProof 2>&1 | tee /tmp/euler-brick-build.log
+      - name: Audit exact theorem axioms
+        run: |
+          cat > /tmp/EulerBrickAxioms.lean <<'EOF'
+          import FormalConjectures.Wikipedia.EulerBrickProof
+          #print axioms EulerBrick.isEulerBrick_44_117_240_kernel
+          #print axioms EulerBrick.exists_euler_brick_kernel
+          EOF
+          lake env lean /tmp/EulerBrickAxioms.lean 2>&1 | tee /tmp/euler-brick-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/euler-brick-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: euler-brick-${{ github.run_id }}
+          path: |
+            /tmp/euler-brick-build.log
+            /tmp/euler-brick-axioms.log
+          if-no-files-found: warn
