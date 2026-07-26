@@ -34,7 +34,7 @@ namespace SunConjectures
 
 open scoped Nat.Prime
 
-private def sun26Claim (n k : ℕ) : Prop :=
+private abbrev sun26Claim (n k : ℕ) : Prop :=
   (π (k * n)) ^ (k + 1) > (π ((k + 1) * n)) ^ k
 
 set_option maxRecDepth 100000 in
@@ -56,7 +56,7 @@ theorem conjecture_2_6_finite_small_n :
   let b : Fin 27 := ⟨n.val / 8, hb⟩
   let i : Fin 8 := ⟨n.val % 8, Nat.mod_lt _ (by norm_num)⟩
   have heq : b.val * 8 + i.val = n.val := by
-    simpa [b, i] using Nat.div_add_mod n.val 8
+    simpa [b, i, Nat.mul_comm] using Nat.div_add_mod n.val 8
   have h := small_n_blocks b i k
     (by simpa [heq] using n.isLt)
     (by simpa [heq] using hn)
@@ -84,7 +84,7 @@ theorem conjecture_2_6_finite_small_x :
   let b : Fin 49 := ⟨n.val / 50, hb⟩
   let i : Fin 50 := ⟨n.val % 50, Nat.mod_lt _ (by norm_num)⟩
   have heq : b.val * 50 + i.val = n.val := by
-    simpa [b, i] using Nat.div_add_mod n.val 50
+    simpa [b, i, Nat.mul_comm] using Nat.div_add_mod n.val 50
   have h := small_x_blocks b i k
     (by simpa [heq] using n.isLt)
     (by simpa [heq] using hn)
