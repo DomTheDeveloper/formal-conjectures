@@ -42,7 +42,7 @@ jobs:
           done
           exit 1
       # Compile the canonical numeric module directly; Lake target syntax treats `23` as a path.
-      # This run verifies the final orientation-lemma integration.
+      # This run verifies the explicit omega-power normalization.
       - name: Compile canonical module
         run: |
           set -o pipefail
