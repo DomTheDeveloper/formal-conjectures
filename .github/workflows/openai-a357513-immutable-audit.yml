@@ -28,6 +28,8 @@ jobs:
           restore-keys: a357513-current-${{ runner.os }}-${{ runner.arch }}-
       - name: Fetch compiled dependencies
         run: lake exe cache get
+      - name: Build current support module
+        run: lake build FormalConjectures.Util.ProblemImports
       - name: Fetch immutable proof source
         run: |
           curl -fsSL 'https://raw.githubusercontent.com/google-deepmind/formal-conjectures/9c7f21e7d4445637538bc1817b058b9b3f31bd2b/FormalConjectures/OEIS/357513.lean' -o /tmp/A357513Immutable.lean
