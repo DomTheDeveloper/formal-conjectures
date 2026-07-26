@@ -20,6 +20,70 @@ jobs:
           fetch-depth: 1
       - name: Confirm immutable SIC proof commit
         run: test "$(git rev-parse HEAD)" = 7aeef3c2aca76d413f94d13ebf6044e9b6c1d712
+      - name: Apply four deterministic phase-normalization repairs
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('FormalConjectures/OpenQuantumProblems/23.lean')
+          s = p.read_text()
+
+          def replace_between(start_pat, end_pat, replacement):
+              global s
+              pattern = re.escape(start_pat) + r'.*?(?=' + re.escape(end_pat) + r')'
+              s2, n = re.subn(pattern, replacement.rstrip() + '\n\n', s, count=1, flags=re.S)
+              if n != 1:
+                  raise SystemExit(f'failed replacement for {start_pat}: {n}')
+              s = s2
+
+          replace_between(
+              '@[simp] private lemma normSq_qubit_offdiag_star_omega_pow_two_audit',
+              '@[simp] private lemma overlap_three_two_star_pow_audit',
+              '''@[simp] private lemma normSq_qubit_offdiag_star_omega_pow_two_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2) = (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) *
+    ((ω ^ 2) * (ω ^ 2))) = (1 / 3 : ℝ)
+  rw [omega_sq_mul_omega_sq_audit]
+  exact normSq_qubit_offdiag_omega_audit''')
+
+          replace_between(
+              '@[simp] private lemma overlap_three_two_star_pow_audit',
+              '/-- The tetrahedral qubit SIC family has the correct constant pairwise overlap. -/',
+              '''@[simp] private lemma overlap_three_two_star_pow_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2 * ((tetraB : ℂ) * ω)) = (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+    ((ω ^ 2) * (ω ^ 2)) * ((tetraB : ℂ) * ω)) = (1 / 3 : ℝ)
+  rw [omega_sq_mul_omega_sq_audit]
+  exact overlap_three_two_simplified_audit''')
+
+          replace_between(
+              '@[simp] private lemma q3_normSq_half_add_half_mul_star_omega_pow_two',
+              '@[simp] private lemma q3_normSq_half_add_hesseS_star_omega_pow_two_mul_hesseS_omega',
+              '''@[simp] private lemma q3_normSq_half_add_half_mul_star_omega_pow_two :
+    Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2) = (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) *
+    ((ω ^ 2) * (ω ^ 2))) = (1 / 4 : ℝ)
+  rw [q3_omega_sq_mul_omega_sq]
+  exact q3_normSq_half_add_half_mul_omega''')
+
+          replace_between(
+              '@[simp] private lemma q3_normSq_half_add_hesseS_star_omega_pow_two_mul_hesseS_omega',
+              '@[simp] private lemma q3_normSq_half_mul_omega_sq_add_half',
+              '''@[simp] private lemma q3_normSq_half_add_hesseS_star_omega_pow_two_mul_hesseS_omega :
+    Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2 * ((hesseS : ℂ) * ω)) = (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) *
+    ((ω ^ 2) * (ω ^ 2)) * ((hesseS : ℂ) * ω)) = (1 / 4 : ℝ)
+  rw [q3_omega_sq_mul_omega_sq]
+  exact q3_normSq_half_add_hesseS_omega_mul_hesseS_omega''')
+
+          p.write_text(s)
+          PY
+          git diff --check
+          git diff -- FormalConjectures/OpenQuantumProblems/23.lean > /tmp/sic-four-repairs.patch
       - name: Install pinned Lean toolchain
         run: |
           curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
@@ -33,7 +97,7 @@ jobs:
           restore-keys: sic-immutable-${{ runner.os }}-${{ runner.arch }}-
       - name: Fetch compiled dependencies
         run: lake exe cache get
-      - name: Compile exact registered canonical module
+      - name: Compile patched registered canonical module
         run: |
           set -o pipefail
           lake build FormalConjectures.OpenQuantumProblems.«23» 2>&1 | tee /tmp/sic-immutable-build.log
@@ -53,6 +117,7 @@ jobs:
         with:
           name: sic-immutable-${{ github.run_id }}
           path: |
+            /tmp/sic-four-repairs.patch
             /tmp/sic-immutable-build.log
             /tmp/sic-immutable-axioms.log
           if-no-files-found: warn
