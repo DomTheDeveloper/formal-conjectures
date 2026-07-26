@@ -37,7 +37,7 @@ jobs:
       - name: Compile exact proof module
         run: |
           set -o pipefail
-          lake env lean FormalConjectures/ErdosProblems/138Proof.lean 2>&1 | tee /tmp/vdw-base-build.log
+          lake build FormalConjectures.ErdosProblems.«138Proof» 2>&1 | tee /tmp/vdw-base-build.log
       - name: Audit exact theorem axioms
         run: |
           cat > /tmp/VdWBaseAxioms.lean <<'EOF'
