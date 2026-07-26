@@ -34,11 +34,14 @@ private def side240 : ℕ+ := ⟨240, by norm_num⟩
 theorem isEulerBrick_44_117_240_kernel : IsEulerBrick side44 side117 side240 := by
   refine ⟨?_, ?_, ?_⟩
   · refine ⟨125, ?_⟩
-    norm_num [side44, side117, pow_two]
+    change (44 : ℕ) * 44 + 117 * 117 = 125 * 125
+    decide
   · refine ⟨244, ?_⟩
-    norm_num [side44, side240, pow_two]
+    change (44 : ℕ) * 44 + 240 * 240 = 244 * 244
+    decide
   · refine ⟨267, ?_⟩
-    norm_num [side117, side240, pow_two]
+    change (117 : ℕ) * 117 + 240 * 240 = 267 * 267
+    decide
 
 /-- Euler bricks exist in three dimensions. -/
 @[category test, AMS 11]
