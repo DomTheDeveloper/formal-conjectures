@@ -1,0 +1,57 @@
+name: OpenAI unitary-perfect example audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-unitary-perfect-audit.yml'
+      - 'FormalConjectures/ErdosProblems/1052Proof.lean'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: unitary-perfect-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: unitary-perfect-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          f=FormalConjectures/ErdosProblems/1052Proof.lean
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' "$f"
+      - name: Compile exact proof module
+        run: |
+          set -o pipefail
+          lake env lean FormalConjectures/ErdosProblems/1052Proof.lean 2>&1 | tee /tmp/unitary-perfect-build.log
+      - name: Audit exact theorem axioms
+        run: |
+          cat > /tmp/UnitaryPerfectAxioms.lean <<'EOF'
+          import FormalConjectures.ErdosProblems.«1052Proof»
+          #print axioms Erdos1052.isUnitaryPerfect_87360_kernel
+          #print axioms Erdos1052.isUnitaryPerfect_146361946186458562560000_kernel
+          EOF
+          lake env lean /tmp/UnitaryPerfectAxioms.lean 2>&1 | tee /tmp/unitary-perfect-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/unitary-perfect-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unitary-perfect-${{ github.run_id }}
+          path: |
+            /tmp/unitary-perfect-build.log
+            /tmp/unitary-perfect-axioms.log
+          if-no-files-found: warn
