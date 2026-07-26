@@ -17,6 +17,10 @@ on:
       - .github/workflows/a100434-primary-proof.yml
   workflow_dispatch:
 
+concurrency:
+  group: a100434-primary-proof-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -49,7 +53,22 @@ jobs:
           ! grep -nE '\b(sorry|admit|native_decide|bv_decide|unsafe|axiom)\b' FormalConjectures/OEIS/100434PrimaryProof.lean
 
       - name: Build exact proof module
-        run: lake build FormalConjectures.OEIS.«100434PrimaryProof»
+        id: build
+        shell: bash
+        run: |
+          set +e
+          lake build FormalConjectures.OEIS.«100434PrimaryProof» > /tmp/a100434-primary-build.log 2>&1
+          status=$?
+          cat /tmp/a100434-primary-build.log
+          exit "$status"
+
+      - name: Upload compact build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a100434-primary-build-log
+          path: /tmp/a100434-primary-build.log
+          if-no-files-found: warn
 
       - name: Compile exact proof source
         run: lake env lean FormalConjectures/OEIS/100434PrimaryProof.lean
