@@ -46,8 +46,9 @@ jobs:
               1,
           )
           out = '''import FormalConjectures.ErdosProblems.«1084»
+          /-! Exact proof-only replay of the one-dimensional unit-distance value. -/
           open Finset Filter Metric Real
-          open scoped EuclideanGeometry
+          open scoped EuclideanGeometry ENNReal
           namespace Erdos1084
           ''' + body + '\nend Erdos1084\n'
           Path('/tmp/Erdos1084D1Proof.lean').write_text(out)
@@ -75,6 +76,7 @@ jobs:
         with:
           name: erdos1084-d1-${{ github.run_id }}
           path: |
+            /tmp/Erdos1084D1Proof.lean
             /tmp/erdos1084-d1-build.log
             /tmp/erdos1084-d1-axioms.log
           if-no-files-found: warn
