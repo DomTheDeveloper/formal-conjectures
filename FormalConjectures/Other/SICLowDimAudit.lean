@@ -24,6 +24,9 @@ A focused proof of the tetrahedral qubit SIC benchmark using exact algebraic ide
 
 namespace OpenQuantumProblem23
 
+set_option linter.style.ams_attribute false
+set_option linter.style.category_attribute false
+
 private lemma tetraA_sq_audit : tetraA ^ (2 : ℕ) = (1 / 3 : ℝ) := by
   unfold tetraA
   nlinarith [Real.sq_sqrt (by positivity : 0 ≤ (1 / 3 : ℝ))]
@@ -40,11 +43,15 @@ private lemma tetraB_sq_audit : tetraB ^ (2 : ℕ) = (2 / 3 : ℝ) := by
 
 @[simp] private lemma tetraA_sq_complex_audit :
     ((tetraA : ℂ) * tetraA) = (1 / 3 : ℂ) := by
-  exact_mod_cast tetraA_mul_self_audit
+  have h : (((tetraA * tetraA : ℝ)) : ℂ) = (1 / 3 : ℂ) := by
+    norm_num [tetraA_mul_self_audit]
+  simpa only [Complex.ofReal_mul] using h
 
 @[simp] private lemma tetraB_sq_complex_audit :
     ((tetraB : ℂ) * tetraB) = (2 / 3 : ℂ) := by
-  exact_mod_cast tetraB_mul_self_audit
+  have h : (((tetraB * tetraB : ℝ)) : ℂ) = (2 / 3 : ℂ) := by
+    norm_num [tetraB_mul_self_audit]
+  simpa only [Complex.ofReal_mul] using h
 
 private lemma sq_sqrt_three_audit : (Real.sqrt 3) ^ (2 : ℕ) = (3 : ℝ) := by
   nlinarith [Real.sq_sqrt (by positivity : 0 ≤ (3 : ℝ))]
@@ -57,6 +64,20 @@ private lemma sq_sqrt_three_audit : (Real.sqrt 3) ^ (2 : ℕ) = (3 : ℝ) := by
     nlinarith [sq_sqrt_three_audit]
   · simp [ω, pow_two, Complex.add_im, Complex.mul_re, Complex.mul_im, Complex.sub_im]
     ring_nf
+
+@[simp] private lemma explicit_omega_sq_audit :
+    (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I) = ω ^ 2 := by
+  rw [omega_sq_audit]
+  apply Complex.ext <;> simp <;> ring
+
+@[simp] private lemma explicit_omega_audit :
+    (-(1 : ℂ) / (starRingEnd ℂ) 2 +
+      ((Real.sqrt 3 : ℂ) / (starRingEnd ℂ) 2) * Complex.I) = ω := by
+  have htwo : (starRingEnd ℂ) (2 : ℂ) = 2 := by
+    change star (2 : ℂ) = 2
+    simp
+  rw [htwo]
+  apply Complex.ext <;> simp [ω] <;> ring
 
 @[simp] private lemma star_omega_audit : star ω = ω ^ 2 := by
   rw [omega_sq_audit]
@@ -97,6 +118,18 @@ private lemma sq_sqrt_three_audit : (Real.sqrt 3) ^ (2 : ℕ) = (3 : ℝ) := by
     (ω ^ 2) * (ω ^ 2) = ω ^ 4 := by ring
     _ = ω := omega_four_audit
 
+@[simp] private lemma tetraB_sq_mul_audit (z : ℂ) :
+    (tetraB : ℂ) * ((tetraB : ℂ) * z) = (2 / 3 : ℂ) * z := by
+  calc
+    (tetraB : ℂ) * ((tetraB : ℂ) * z) = ((tetraB : ℂ) * tetraB) * z := by ring
+    _ = (2 / 3 : ℂ) * z := by rw [tetraB_sq_complex_audit]
+
+@[simp] private lemma tetraB_mul_mul_tetraB_audit (z : ℂ) :
+    (tetraB : ℂ) * z * (tetraB : ℂ) = (2 / 3 : ℂ) * z := by
+  calc
+    (tetraB : ℂ) * z * (tetraB : ℂ) = ((tetraB : ℂ) * tetraB) * z := by ring
+    _ = (2 / 3 : ℂ) * z := by rw [tetraB_sq_complex_audit]
+
 @[simp] private lemma normSq_one_add_two_mul_omega_audit :
     Complex.normSq (1 + 2 * ω) = 3 := by
   have hrewrite :
@@ -132,6 +165,52 @@ private lemma sq_sqrt_three_audit : (Real.sqrt 3) ^ (2 : ℕ) = (3 : ℝ) := by
     ring
   rw [hrewrite, Complex.normSq_mul, normSq_one_add_two_mul_omega_sq_audit]
   norm_num [Complex.normSq_ofReal]
+
+@[simp] private lemma overlap_one_two_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * ((tetraB : ℂ) * ω)) =
+      (1 / 3 : ℝ) := by
+  rw [tetraB_sq_mul_audit]
+  exact normSq_qubit_offdiag_omega_audit
+
+@[simp] private lemma overlap_one_three_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+      ((tetraB : ℂ) * (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I))) =
+      (1 / 3 : ℝ) := by
+  rw [explicit_omega_sq_audit, tetraB_sq_mul_audit]
+  exact normSq_qubit_offdiag_omega_sq_audit
+
+@[simp] private lemma overlap_two_one_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * star ω * (tetraB : ℂ)) =
+      (1 / 3 : ℝ) := by
+  rw [star_omega_audit, tetraB_mul_mul_tetraB_audit]
+  exact normSq_qubit_offdiag_omega_sq_audit
+
+@[simp] private lemma overlap_two_three_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * star ω *
+      ((tetraB : ℂ) * (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I))) =
+      (1 / 3 : ℝ) := by
+  rw [star_omega_audit, explicit_omega_sq_audit]
+  ring_nf
+  simpa only [pow_two, tetraB_sq_complex_audit, omega_four_audit] using
+    normSq_qubit_offdiag_omega_audit
+
+@[simp] private lemma overlap_three_one_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+      (-(1 : ℂ) / (starRingEnd ℂ) 2 +
+        ((Real.sqrt 3 : ℂ) / (starRingEnd ℂ) 2) * Complex.I) * (tetraB : ℂ)) =
+      (1 / 3 : ℝ) := by
+  rw [explicit_omega_audit, tetraB_mul_mul_tetraB_audit]
+  exact normSq_qubit_offdiag_omega_audit
+
+@[simp] private lemma overlap_three_two_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+      (-(1 : ℂ) / (starRingEnd ℂ) 2 +
+        ((Real.sqrt 3 : ℂ) / (starRingEnd ℂ) 2) * Complex.I) *
+      ((tetraB : ℂ) * ω)) = (1 / 3 : ℝ) := by
+  rw [explicit_omega_audit]
+  ring_nf
+  simpa only [pow_two, tetraB_sq_complex_audit] using
+    normSq_qubit_offdiag_omega_sq_audit
 
 @[category test, AMS 15 47 81]
 lemma qubitSICFamily_pairwise_audit :
