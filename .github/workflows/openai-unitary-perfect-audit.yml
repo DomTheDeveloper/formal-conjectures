@@ -37,7 +37,7 @@ jobs:
       - name: Compile exact proof module
         run: |
           set -o pipefail
-          lake env lean FormalConjectures/ErdosProblems/1052Proof.lean 2>&1 | tee /tmp/unitary-perfect-build.log
+          lake build FormalConjectures.ErdosProblems.«1052Proof» 2>&1 | tee /tmp/unitary-perfect-build.log
       - name: Audit exact theorem axioms
         run: |
           cat > /tmp/UnitaryPerfectAxioms.lean <<'EOF'
