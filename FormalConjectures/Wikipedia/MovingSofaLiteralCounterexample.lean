@@ -33,7 +33,7 @@ namespace MovingSofa
 open MeasureTheory
 open scoped ENNReal Real unitInterval EuclideanGeometry
 
-private abbrev Plane := Fin 2 → ℝ
+private abbrev Plane := ℝ²
 
 /-- Under atomless planar volume, no fixed number can characterize one exact set by volume alone. -/
 @[category research solved, AMS 28 49]
@@ -46,7 +46,7 @@ theorem volume_does_not_characterize_exact_set (c : ℝ≥0∞) (g : Set Plane) 
     let s : Set Plane := ({p}ᶜ)
     have huniv : (Set.univ : Set Plane) = insert p ({p}ᶜ) := by
       ext x
-      simp [eq_comm]
+      by_cases hx : x = p <;> simp [hx]
     have hae : (Set.univ : Set Plane) =ᵐ[volume] s := by
       rw [huniv]
       simpa [s] using (insert_ae_eq_self (μ := volume) p ({p}ᶜ))
