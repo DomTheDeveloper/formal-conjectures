@@ -7,6 +7,7 @@ on:
       - '.github/workflows/sic-low-dim-audit.yml'
       - 'FormalConjectures/Other/SICLowDimAudit.lean'
       - 'FormalConjectures/Other/SICQutritAudit.lean'
+      - 'FormalConjectures/Other/SICQutritAudit2.lean'
       - 'FormalConjectures/OpenQuantumProblems/23.lean'
 
 concurrency:
@@ -48,16 +49,16 @@ jobs:
       - name: Compile exact modules
         run: |
           set -o pipefail
-          lake build FormalConjectures.Other.SICQutritAudit 2>&1 | tee /tmp/sic-low-dim-compile.log
+          lake build FormalConjectures.Other.SICQutritAudit2 2>&1 | tee /tmp/sic-low-dim-compile.log
       - name: Audit theorem axioms
         if: success()
         run: |
           cat > /tmp/SICLowDimAxioms.lean <<'EOF'
-          import FormalConjectures.Other.SICQutritAudit
+          import FormalConjectures.Other.SICQutritAudit2
           #print axioms OpenQuantumProblem23.qubitSICFamily_pairwise_audit
           #print axioms OpenQuantumProblem23.hasSICPOVM_two_audit
-          #print axioms OpenQuantumProblem23.hesseFamily_pairwise_audit
-          #print axioms OpenQuantumProblem23.hasSICPOVM_three_audit
+          #print axioms OpenQuantumProblem23.hesseFamily_pairwise_audit2
+          #print axioms OpenQuantumProblem23.hasSICPOVM_three_audit2
           EOF
           lake env lean /tmp/SICLowDimAxioms.lean 2>&1 | tee /tmp/sic-low-dim-axioms.log
           ! grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/sic-low-dim-axioms.log
