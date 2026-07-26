@@ -24,10 +24,10 @@ These two kernel-checked computations discharge exactly the finite remainder
 needed by the elementary Chebyshev/totient proof architecture:
 
 * every admissible pair with `n < 120`;
-* every admissible pair with `120 ≤ n` and `k * n < 10000`.
+* every admissible pair with `120 ≤ n` and `k * n < 2401`.
 
-The second bound `k < 84` is automatic in its range, because
-`120 ≤ n` and `k * n < 10000` imply `k < 84`.
+The second bound `k < 21` is automatic in its range, because
+`120 ≤ n` and `k * n < 2401` imply `k < 21`.
 -/
 
 namespace SunConjectures
@@ -42,10 +42,10 @@ theorem conjecture_2_6_finite_small_n :
           (π ((k.val + 1) * n.val)) ^ k.val := by
   native_decide
 
-/-- All remaining admissible pairs below the analytic threshold `k * n = 10000`. -/
+/-- All remaining admissible pairs below the analytic threshold `k * n = 2401`. -/
 theorem conjecture_2_6_finite_small_x :
-    ∀ n : Fin 10000, ∀ k : Fin 84,
-      120 ≤ n.val → 1 ≤ k.val → k.val ≤ n.val → k.val * n.val < 10000 →
+    ∀ n : Fin 2401, ∀ k : Fin 21,
+      120 ≤ n.val → 1 ≤ k.val → k.val ≤ n.val → k.val * n.val < 2401 →
         (π (k.val * n.val)) ^ (k.val + 1) >
           (π ((k.val + 1) * n.val)) ^ k.val := by
   native_decide
