@@ -1,0 +1,56 @@
+name: OpenAI weak Giuga criterion audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-weak-giuga-audit.yml'
+      - 'FormalConjectures/Wikipedia/AgohGiugaProof.lean'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: weak-giuga-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: weak-giuga-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          f=FormalConjectures/Wikipedia/AgohGiugaProof.lean
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' "$f"
+      - name: Compile exact registered proof module
+        run: |
+          set -o pipefail
+          lake build FormalConjectures.Wikipedia.AgohGiugaProof 2>&1 | tee /tmp/weak-giuga-build.log
+      - name: Audit theorem axioms
+        run: |
+          cat > /tmp/WeakGiugaAxioms.lean <<'EOF'
+          import FormalConjectures.Wikipedia.AgohGiugaProof
+          #print axioms AgohGiuga.isWeakGiuga_iff_prime_dvd_kernel
+          EOF
+          lake env lean /tmp/WeakGiugaAxioms.lean 2>&1 | tee /tmp/weak-giuga-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/weak-giuga-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: weak-giuga-${{ github.run_id }}
+          path: |
+            /tmp/weak-giuga-build.log
+            /tmp/weak-giuga-axioms.log
+          if-no-files-found: warn
