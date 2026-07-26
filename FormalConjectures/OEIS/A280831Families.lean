@@ -19,13 +19,17 @@ import FormalConjectures.OEIS.«280831»
 /-!
 # Parametric families for Sun's 1680-conjecture
 
-This file records two concrete reductions toward OEIS A280831.
+This file records concrete reductions toward OEIS A280831.
 
 First, every three-square representation is automatically admissible by taking
 `z = 0`. Thus only the classical Legendre exceptional shape needs additional
 work.
 
-Second, whenever `c^4 + 1680 d = q^2`, choosing
+Second, the square condition is stable under multiplying the represented
+integer by any square. In particular, once the odd core of a number
+`4^a (8b+7)` is handled, the factor `4^a` follows automatically.
+
+Third, whenever `c^4 + 1680 d = q^2`, choosing
 
 `x = c y`, `z = d y`
 
@@ -44,6 +48,29 @@ theorem of_three_squares (n x y w : ℕ) (h : n = x ^ 2 + y ^ 2 + w ^ 2) :
   · simpa [h, add_assoc]
   · refine ⟨x ^ 2, ?_⟩
     ring
+
+/-- The A280831 condition is preserved after multiplying the represented integer by a square. -/
+theorem scale_by_square (n t : ℕ) (h : HasSquareCondition n) :
+    HasSquareCondition (t ^ 2 * n) := by
+  rcases h with ⟨x, y, z, w, hn, hsquare⟩
+  rcases hsquare with ⟨q, hq⟩
+  refine ⟨t * x, t * y, t * z, t * w, ?_, ?_⟩
+  · rw [hn]
+    ring
+  · refine ⟨t ^ 2 * q, ?_⟩
+    calc
+      (t * x) ^ 4 + 1680 * (t * y) ^ 3 * (t * z) =
+          t ^ 4 * (x ^ 4 + 1680 * y ^ 3 * z) := by ring
+      _ = t ^ 4 * (q * q) := by rw [hq]
+      _ = (t ^ 2 * q) * (t ^ 2 * q) := by ring
+
+/-- Closure under the exact powers of four occurring in Legendre's three-square obstruction. -/
+theorem scale_by_four_pow (n a : ℕ) (h : HasSquareCondition n) :
+    HasSquareCondition (4 ^ a * n) := by
+  have hpow : (2 ^ a) ^ 2 = 4 ^ a := by
+    rw [pow_two, ← mul_pow]
+    norm_num
+  simpa [hpow] using scale_by_square n (2 ^ a) h
 
 /-- General algebraic family: a solution of `c^4 + 1680 d = q^2` gives infinitely many
 A280831 representations. -/
@@ -71,6 +98,8 @@ theorem family_eighteen (y w : ℕ) : HasSquareCondition (18 * y ^ 2 + w ^ 2) :=
   simpa using parametric_family 4 1 44 y w (by norm_num)
 
 #print axioms of_three_squares
+#print axioms scale_by_square
+#print axioms scale_by_four_pow
 #print axioms parametric_family
 #print axioms family_three
 #print axioms family_eleven
