@@ -33,15 +33,14 @@ jobs:
           restore-keys: sic-immutable-${{ runner.os }}-${{ runner.arch }}-
       - name: Fetch compiled dependencies
         run: lake exe cache get
-      - name: Compile exact canonical source
+      - name: Compile exact registered canonical module
         run: |
           set -o pipefail
-          lake env lean FormalConjectures/OpenQuantumProblems/23.lean 2>&1 | tee /tmp/sic-immutable-build.log
+          lake build FormalConjectures.OpenQuantumProblems.«23» 2>&1 | tee /tmp/sic-immutable-build.log
       - name: Audit exact theorem axioms
         run: |
-          cp FormalConjectures/OpenQuantumProblems/23.lean /tmp/SICImmutableAxioms.lean
-          cat >> /tmp/SICImmutableAxioms.lean <<'EOF'
-
+          cat > /tmp/SICImmutableAxioms.lean <<'EOF'
+          import FormalConjectures.OpenQuantumProblems.«23»
           #print axioms OpenQuantumProblem23.qubitSICFamily_pairwise
           #print axioms OpenQuantumProblem23.hasSICPOVM_two
           #print axioms OpenQuantumProblem23.hesseFamily_pairwise
