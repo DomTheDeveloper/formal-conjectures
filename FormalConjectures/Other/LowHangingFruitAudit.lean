@@ -20,23 +20,16 @@ import FormalConjectures.Wikipedia.MovingSofa
 /-!
 # Low-hanging fruit audit
 
-This temporary module checks two candidate formal-conjectures targets before editing their
-source declarations.
+Clean formal consequences found while auditing two apparently easy open declarations.
 -/
 
 namespace DedekindNumber
 
 /-- A clean formal answer to the underspecified `M_eq` declaration using the already-proved
-antichain characterization. -/
+antichain characterization. This does not prove the intended efficient Kisielewicz formula. -/
 @[category test, AMS 5 6]
 theorem M_eq_via_antichains : M = answer(M') := by
   exact M_eq_M'
-
-/-- The mathematically intended Kisielewicz answer, audited separately because the source theorem
-still contains `sorry`. -/
-@[category test, AMS 5 6]
-theorem M_eq_via_kisielewicz : M = answer(kisielewiczFormula) := by
-  exact M_eq_kisielewiczFormula
 
 end DedekindNumber
 
@@ -67,13 +60,5 @@ theorem no_literal_volume_unique (g : Set ℝ²) :
     rw [hset]
     exact hp
   exact hp'.2 (by simp)
-
-/-- The repository's literal uniqueness conjecture is therefore false as written. This specialization
-mentions `gerversSofa`, whose current definition depends on the admitted Gerver-constant existence
-statement; the general theorem above is the clean axiom-audited result. -/
-@[category test, AMS 49]
-theorem not_literal_uniqueness :
-    ¬ (∀ s : Set ℝ², sofaConstant = volume s ↔ s = gerversSofa) :=
-  no_literal_volume_unique gerversSofa
 
 end MovingSofa
