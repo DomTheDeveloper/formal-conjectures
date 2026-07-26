@@ -1,0 +1,61 @@
+name: Export mathlib build cache
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: export-mathlib-cache-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Install pinned Lean toolchain
+        run: |
+          set -euo pipefail
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch Mathlib cache
+        run: |
+          set -euo pipefail
+          lake exe cache get
+
+      - name: Build ProblemImports prelude
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          lake build FormalConjectures.Util.ProblemImports 2>&1 | tail -40
+
+      - name: Drop local ltar cache to save disk
+        run: |
+          rm -rf ~/.cache/mathlib
+          df -h /
+
+      - name: Pack build directories
+        run: |
+          set -euo pipefail
+          du -sh .lake/packages/*/.lake/build .lake/build 2>/dev/null || true
+          tar -I 'zstd -T0 -8' -cf - .lake/packages/*/.lake/build .lake/build \
+            | split -b 1800m - cache-part-
+          ls -la cache-part-*
+
+      - name: Publish as release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="mathlib-cache-v4.27.0-r${GITHUB_RUN_ID}"
+          gh release create "$TAG" \
+            --title "mathlib build cache v4.27.0 (run ${GITHUB_RUN_ID})" \
+            --notes "Prebuilt .lake build directories for lean-toolchain v4.27.0, branch ${GITHUB_REF_NAME}. Concatenate cache-part-* and extract with: cat cache-part-* | tar -I zstd -x" \
+            cache-part-*
+          echo "Published tag: $TAG"
