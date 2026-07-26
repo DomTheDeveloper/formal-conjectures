@@ -45,15 +45,10 @@ jobs:
           fi
 
       - name: Compile exact counterexample module
-        id: compile
-        continue-on-error: true
         run: |
-          set +e
-          lake build FormalConjectures.Wikipedia.MovingSofaLiteralCounterexample > /tmp/moving-sofa-lean.log 2>&1
-          code=$?
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          lake build FormalConjectures.Wikipedia.MovingSofaLiteralCounterexample \
+            > /tmp/moving-sofa-lean.log 2>&1
           cat /tmp/moving-sofa-lean.log
-          exit $code
 
       - name: Upload compiler diagnostic
         if: always()
@@ -61,10 +56,6 @@ jobs:
         with:
           name: moving-sofa-lean-log
           path: /tmp/moving-sofa-lean.log
-
-      - name: Require successful compile
-        if: steps.compile.outputs.exit_code != '0'
-        run: exit 1
 
       - name: Audit theorem axioms
         run: |
