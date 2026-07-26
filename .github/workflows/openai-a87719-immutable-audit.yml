@@ -1,0 +1,62 @@
+name: OpenAI immutable A087719 formula audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-a87719-immutable-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned current Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: a87719-current-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: a87719-current-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Build current support module
+        run: lake build FormalConjectures.Util.ProblemImports
+      - name: Fetch immutable proof source
+        run: |
+          curl -fsSL 'https://raw.githubusercontent.com/google-deepmind/formal-conjectures/7a286754f623759d69a3dd18f482c53c1d70959b/FormalConjectures/OEIS/87719.lean' -o /tmp/A87719Immutable.lean
+          test "$(git hash-object /tmp/A87719Immutable.lean)" = '055d5e664a1163cbaa1ad8442aa827b326045d12'
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/A87719Immutable.lean
+      - name: Compile immutable proof on current toolchain
+        run: |
+          set -o pipefail
+          lake env lean /tmp/A87719Immutable.lean 2>&1 | tee /tmp/a87719-build.log
+      - name: Audit theorem axioms
+        run: |
+          cp /tmp/A87719Immutable.lean /tmp/A87719Axioms.lean
+          cat >> /tmp/A87719Axioms.lean <<'EOF'
+
+          #print axioms OeisA87719.a_exists
+          #print axioms OeisA87719.a_formula
+          EOF
+          lake env lean /tmp/A87719Axioms.lean 2>&1 | tee /tmp/a87719-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/a87719-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a87719-current-${{ github.run_id }}
+          path: |
+            /tmp/a87719-build.log
+            /tmp/a87719-axioms.log
+          if-no-files-found: warn
