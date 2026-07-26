@@ -45,7 +45,26 @@ jobs:
           fi
 
       - name: Compile exact proof module
-        run: lake env lean FormalConjectures/Wikipedia/DedekindNumberLiteralSolution.lean
+        id: compile
+        continue-on-error: true
+        run: |
+          set +e
+          lake env lean FormalConjectures/Wikipedia/DedekindNumberLiteralSolution.lean > /tmp/dedekind-lean.log 2>&1
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          cat /tmp/dedekind-lean.log
+          exit $code
+
+      - name: Upload compiler diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dedekind-lean-log
+          path: /tmp/dedekind-lean.log
+
+      - name: Require successful compile
+        if: steps.compile.outputs.exit_code != '0'
+        run: exit 1
 
       - name: Audit theorem axioms
         run: |
