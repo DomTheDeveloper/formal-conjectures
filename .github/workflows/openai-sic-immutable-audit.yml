@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/openai-sic-immutable-audit.yml'
+      - '.github/sic-audit-trigger'
 
 permissions:
   contents: read
@@ -117,6 +118,7 @@ jobs:
         with:
           name: sic-immutable-${{ github.run_id }}
           path: |
+            FormalConjectures/OpenQuantumProblems/23.lean
             /tmp/sic-four-repairs.patch
             /tmp/sic-immutable-build.log
             /tmp/sic-immutable-axioms.log
