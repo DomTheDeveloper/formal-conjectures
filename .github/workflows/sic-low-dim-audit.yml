@@ -41,6 +41,10 @@ jobs:
             sleep 10
           done
           exit 1
+      - name: Build local utility dependency
+        run: |
+          set -o pipefail
+          lake build FormalConjecturesUtil 2>&1 | tee /tmp/sic-low-dim-dependency.log
       # Compile the canonical numeric module directly; Lake target syntax treats `23` as a path.
       - name: Compile canonical module
         run: |
@@ -73,6 +77,7 @@ jobs:
         with:
           name: sic-low-dim-${{ github.run_id }}
           path: |
+            /tmp/sic-low-dim-dependency.log
             /tmp/sic-low-dim-compile.log
             /tmp/sic-low-dim-axioms.log
           if-no-files-found: warn
