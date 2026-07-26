@@ -65,7 +65,7 @@ theorem not_literal_uniqueness :
   obtain ⟨p, hp⟩ := hne
   have hmeasure :
       volume (gerversSofa \ ({p} : Set ℝ²)) = volume gerversSofa := by
-    exact measure_sdiff_null (by simp)
+    exact measure_diff_null (by simp)
   have hsvol : sofaConstant = volume (gerversSofa \ ({p} : Set ℝ²)) :=
     hvol.trans hmeasure.symm
   have hset : gerversSofa \ ({p} : Set ℝ²) = gerversSofa :=
