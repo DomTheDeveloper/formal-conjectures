@@ -33,7 +33,7 @@ jobs:
             ${{ runner.os }}-lake-
 
       - name: Fetch compiled dependencies
-        run: lake exe cache get
+        run: lake exe cache get > /tmp/cache-get.log
 
       - name: Reject proof holes and trust escapes
         run: |
