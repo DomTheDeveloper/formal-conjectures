@@ -1,0 +1,61 @@
+name: OpenAI immutable A080170 equivalence audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-a80170-immutable-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned current Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: a80170-current-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: a80170-current-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Build current support imports
+        run: lake build FormalConjectures.Util.ProblemImports
+      - name: Fetch immutable proof source
+        run: |
+          curl -fsSL 'https://raw.githubusercontent.com/guodk/formal-conjectures/0720658844d76a50d48e4baa152eef14d4462907/FormalConjectures/OEIS/80170.lean' -o /tmp/A80170Immutable.lean
+          test "$(git hash-object /tmp/A80170Immutable.lean)" = '4985c414321be15ed18552834b7aa7c0d9644eb7'
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/A80170Immutable.lean
+      - name: Compile complete immutable proof
+        run: |
+          set -o pipefail
+          lake env lean /tmp/A80170Immutable.lean 2>&1 | tee /tmp/a80170-build.log
+      - name: Audit exact theorem axioms
+        run: |
+          cp /tmp/A80170Immutable.lean /tmp/A80170Axioms.lean
+          cat >> /tmp/A80170Axioms.lean <<'EOF'
+
+          #print axioms OeisA80170.gcdCondition_iff_primePowerCondition
+          EOF
+          lake env lean /tmp/A80170Axioms.lean 2>&1 | tee /tmp/a80170-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/a80170-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a80170-current-${{ github.run_id }}
+          path: |
+            /tmp/a80170-build.log
+            /tmp/a80170-axioms.log
+          if-no-files-found: warn
