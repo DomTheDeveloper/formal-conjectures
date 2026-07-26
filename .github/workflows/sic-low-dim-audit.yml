@@ -42,22 +42,22 @@ jobs:
           done
           exit 1
       # Compile the canonical numeric module directly; Lake target syntax treats `23` as a path.
-      # This run verifies the explicit omega-power normalization.
       - name: Compile canonical module
         run: |
           set -o pipefail
           lake env lean FormalConjectures/OpenQuantumProblems/23.lean 2>&1 | tee /tmp/sic-low-dim-compile.log
-      - name: Audit canonical theorem axioms
+      - name: Audit canonical theorem axioms in the same compilation
         if: success()
         run: |
-          cat > /tmp/SICLowDimAxioms.lean <<'EOF'
-          import FormalConjectures.OpenQuantumProblems.«23»
+          cp FormalConjectures/OpenQuantumProblems/23.lean /tmp/SICLowDimCanonicalAudit.lean
+          cat >> /tmp/SICLowDimCanonicalAudit.lean <<'EOF'
+
           #print axioms OpenQuantumProblem23.qubitSICFamily_pairwise
           #print axioms OpenQuantumProblem23.hasSICPOVM_two
           #print axioms OpenQuantumProblem23.hesseFamily_pairwise
           #print axioms OpenQuantumProblem23.hasSICPOVM_three
           EOF
-          lake env lean /tmp/SICLowDimAxioms.lean 2>&1 | tee /tmp/sic-low-dim-axioms.log
+          lake env lean /tmp/SICLowDimCanonicalAudit.lean 2>&1 | tee /tmp/sic-low-dim-axioms.log
           ! grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/sic-low-dim-axioms.log
       - name: Save partial build cache
         if: always()
