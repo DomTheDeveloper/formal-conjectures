@@ -58,6 +58,14 @@ jobs:
           EOF
           lake env lean /tmp/SICLowDimAxioms.lean 2>&1 | tee /tmp/sic-low-dim-axioms.log
           ! grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/sic-low-dim-axioms.log
+      - name: Save partial build cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: sic-low-dim-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
       - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@v4
