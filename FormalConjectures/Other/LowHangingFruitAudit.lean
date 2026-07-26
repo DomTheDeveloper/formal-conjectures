@@ -26,11 +26,21 @@ source declarations.
 
 namespace DedekindNumber
 
+/-- A clean formal answer to the underspecified `M_eq` declaration using the already-proved
+antichain characterization. -/
 @[category test, AMS 5 6]
-theorem M_eq_low_hanging : M = answer(sorry) := by
+theorem M_eq_via_antichains : M = answer(M') := by
+  exact M_eq_M'
+
+#print axioms M_eq_via_antichains
+
+/-- The mathematically intended Kisielewicz answer, audited separately because the source theorem
+still contains `sorry`. -/
+@[category test, AMS 5 6]
+theorem M_eq_via_kisielewicz : M = answer(kisielewiczFormula) := by
   exact M_eq_kisielewiczFormula
 
-#print axioms M_eq_low_hanging
+#print axioms M_eq_via_kisielewicz
 
 end DedekindNumber
 
@@ -39,6 +49,7 @@ namespace MovingSofa
 open MeasureTheory
 open scoped ENNReal EuclideanGeometry
 
+/-- Literal set equality cannot characterize area maximizers: deleting one point preserves volume. -/
 @[category test, AMS 49]
 theorem not_literal_uniqueness :
     ¬ (∀ s : Set ℝ², sofaConstant = volume s ↔ s = gerversSofa) := by
