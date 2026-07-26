@@ -1,0 +1,69 @@
+name: SIC low-dimensional proof audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/sic-low-dim-audit.yml'
+      - 'FormalConjectures/Other/SICLowDimAudit.lean'
+      - 'FormalConjectures/OpenQuantumProblems/23.lean'
+
+concurrency:
+  group: sic-low-dimensional-proof-audit
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: DomTheDeveloper/formal-conjectures
+          ref: agent/solve-sic-low-dim-v2
+          fetch-depth: 1
+      - name: Install Lean
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: sic-low-dim-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: sic-low-dim-${{ runner.os }}-${{ runner.arch }}-
+      - name: Get Mathlib cache
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            lake exe cache get && exit 0
+            sleep 10
+          done
+          exit 1
+      - name: Compile exact module
+        run: |
+          set -o pipefail
+          lake build FormalConjectures.Other.SICLowDimAudit 2>&1 | tee /tmp/sic-low-dim-compile.log
+      - name: Audit theorem axioms
+        if: success()
+        run: |
+          cat > /tmp/SICLowDimAxioms.lean <<'EOF'
+          import FormalConjectures.Other.SICLowDimAudit
+          #print axioms OpenQuantumProblem23.qubitSICFamily_pairwise_audit
+          #print axioms OpenQuantumProblem23.hasSICPOVM_two_audit
+          EOF
+          lake env lean /tmp/SICLowDimAxioms.lean 2>&1 | tee /tmp/sic-low-dim-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/sic-low-dim-axioms.log
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sic-low-dim-${{ github.run_id }}
+          path: |
+            /tmp/sic-low-dim-compile.log
+            /tmp/sic-low-dim-axioms.log
+          if-no-files-found: warn
