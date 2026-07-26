@@ -1,0 +1,86 @@
+name: OpenAI exact open-proof inventory
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-proof-candidate-scan-v2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build exact declaration inventory
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          decl_re = re.compile(r'^\s*(theorem|lemma)\s+([^\s:(]+)')
+          top_re = re.compile(r'^(?:@\[|/--|theorem\s|lemma\s|def\s|abbrev\s|namespace\s|section\s|end(?:\s|$))')
+          rows = []
+
+          for path in sorted(Path('FormalConjectures').rglob('*.lean')):
+              lines = path.read_text(encoding='utf-8').splitlines()
+              for attr_i, attr in enumerate(lines):
+                  if 'category research open' not in attr and 'category test' not in attr:
+                      continue
+                  start = None
+                  match = None
+                  for i in range(attr_i + 1, min(len(lines), attr_i + 12)):
+                      match = decl_re.match(lines[i])
+                      if match:
+                          start = i
+                          break
+                  if start is None:
+                      continue
+                  end = len(lines)
+                  saw_body = False
+                  for j in range(start + 1, len(lines)):
+                      if ':= by' in lines[j] or lines[j].rstrip().endswith(':= by') or lines[j].strip() == 'sorry':
+                          saw_body = True
+                      if saw_body and lines[j] and not lines[j][0].isspace() and top_re.match(lines[j]):
+                          end = j
+                          break
+                  block = '\n'.join(lines[start:end])
+                  if not re.search(r'\bsorry\b', block):
+                      continue
+                  name = match.group(2)
+                  score = 0
+                  reasons = []
+                  probes = {
+                      'finite-domain': ['Fin ', 'Finset', 'Fintype', 'fin_cases', 'interval_cases'],
+                      'explicit-numeral': [' = 0', ' = 1', ' = 2', ' = 3', ' = 4', ' = 5', ' = 6', ' = 7', ' = 8', ' = 9'],
+                      'answer-placeholder': ['answer(sorry)'],
+                      'implication': ['→'],
+                      'existential': ['∃'],
+                      'empty-structure': ['Fin 0', 'IsEmpty', '∅', 'Empty'],
+                      'existing-result': ['variants.', 'conditional_', 'special case', 'implies', 'of_'],
+                      'equality': [' = '],
+                  }
+                  weights = {'finite-domain': 6, 'explicit-numeral': 4, 'answer-placeholder': -5,
+                             'implication': 1, 'existential': 1, 'empty-structure': 5,
+                             'existing-result': 3, 'equality': 1}
+                  for reason, needles in probes.items():
+                      if any(n in block for n in needles):
+                          reasons.append(reason)
+                          score += weights[reason]
+                  excerpt = '\n'.join(lines[max(attr_i - 2, 0):min(end, start + 45)])
+                  rows.append((score, str(path), start + 1, name, ','.join(reasons), excerpt))
+
+          rows.sort(key=lambda r: (-r[0], r[1], r[2]))
+          out = []
+          for score, path, line, name, reasons, excerpt in rows:
+              out.append(f'## SCORE {score} | {name} | {path}:{line} | {reasons}\n```lean\n{excerpt}\n```\n')
+          Path('/tmp/exact-open-proof-candidates.md').write_text('\n'.join(out), encoding='utf-8')
+          print(f'wrote {len(rows)} exact candidates')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: exact-open-proof-candidates
+          path: /tmp/exact-open-proof-candidates.md
+          if-no-files-found: error
