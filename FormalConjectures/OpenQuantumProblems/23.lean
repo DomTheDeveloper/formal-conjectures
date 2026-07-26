@@ -304,6 +304,7 @@ private lemma omega_sq_audit :
   · simp [ω, pow_two, Complex.add_im, Complex.mul_re, Complex.mul_im, Complex.sub_im]
     ring_nf
 
+set_option linter.unnecessarySeqFocus false in
 private lemma explicit_omega_sq_audit :
     (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I) = ω ^ 2 := by
   rw [omega_sq_audit]
@@ -316,7 +317,7 @@ private lemma explicit_omega_sq_audit :
     change star (2 : ℂ) = 2
     simp
   rw [htwo]
-  apply Complex.ext <;> simp [ω] <;> ring
+  apply Complex.ext <;> simp [ω]
 
 @[simp] private lemma star_omega_audit : star ω = ω ^ 2 := by
   rw [omega_sq_audit]
@@ -485,6 +486,42 @@ private lemma explicit_omega_sq_audit :
   rw [hphase]
   exact normSq_qubit_offdiag_omega_sq_audit
 
+
+@[simp] private lemma overlap_two_three_pow_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * (starRingEnd ℂ) ω *
+      ((tetraB : ℂ) * (ω ^ 2))) = (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * star ω *
+    ((tetraB : ℂ) * (ω ^ 2))) = (1 / 3 : ℝ)
+  rw [star_omega_audit]
+  have hphase :
+      (tetraB : ℂ) * (ω ^ 2) * ((tetraB : ℂ) * (ω ^ 2)) =
+        (2 / 3 : ℂ) * ω := by
+    calc
+      (tetraB : ℂ) * (ω ^ 2) * ((tetraB : ℂ) * (ω ^ 2)) =
+((tetraB : ℂ) * tetraB) * ((ω ^ 2) * (ω ^ 2)) := by ring
+      _ = (2 / 3 : ℂ) * ω := by
+        rw [tetraB_sq_complex_audit, omega_sq_mul_omega_sq_audit]
+  rw [hphase]
+  exact normSq_qubit_offdiag_omega_audit
+
+@[simp] private lemma normSq_qubit_offdiag_star_omega_pow_two_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2) = (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) * (star ω) ^ 2) =
+    (1 / 3 : ℝ)
+  rw [star_omega_audit]
+  simpa only [pow_two, omega_sq_mul_omega_sq_audit] using
+    normSq_qubit_offdiag_omega_audit
+
+@[simp] private lemma overlap_three_two_star_pow_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2 * ((tetraB : ℂ) * ω)) = (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+    (star ω) ^ 2 * ((tetraB : ℂ) * ω)) = (1 / 3 : ℝ)
+  rw [star_omega_audit]
+  simpa only [pow_two, omega_sq_mul_omega_sq_audit] using
+    overlap_three_two_simplified_audit
+
 /-- The tetrahedral qubit SIC family has the correct constant pairwise overlap. -/
 @[category test, AMS 15 47 81]
 lemma qubitSICFamily_pairwise :
@@ -542,6 +579,7 @@ private lemma q3_omega_sq :
   · simp [ω, pow_two, Complex.add_im, Complex.mul_re, Complex.mul_im, Complex.sub_im]
     ring_nf
 
+set_option linter.unnecessarySeqFocus false in
 private lemma q3_explicit_omega_sq :
     (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I) = ω ^ 2 := by
   rw [q3_omega_sq]
@@ -756,6 +794,64 @@ private lemma q3_explicit_omega_sq :
         (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I)) +
       (1 / 2 : ℂ)) = (1 / 4 : ℝ) := by
   simpa [add_comm] using q3_normSq_half_add_hesseS_star_omega_mul_hesseS_explicit_sq
+
+
+@[simp] private lemma q3_normSq_half_add_hesseS_star_omega_mul_hesseS_omega_sq :
+    Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) * (starRingEnd ℂ) ω *
+      ((hesseS : ℂ) * (ω ^ 2))) = (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) * star ω *
+    ((hesseS : ℂ) * (ω ^ 2))) = (1 / 4 : ℝ)
+  rw [q3_star_omega]
+  have hphase :
+      (hesseS : ℂ) * (ω ^ 2) * ((hesseS : ℂ) * (ω ^ 2)) =
+        (1 / 2 : ℂ) * ω := by
+    calc
+      (hesseS : ℂ) * (ω ^ 2) * ((hesseS : ℂ) * (ω ^ 2)) =
+((hesseS : ℂ) * hesseS) * ((ω ^ 2) * (ω ^ 2)) := by ring
+      _ = (1 / 2 : ℂ) * ω := by
+        rw [q3_hesseS_sq_complex, q3_omega_sq_mul_omega_sq]
+  rw [hphase]
+  exact q3_normSq_half_add_half_mul_omega
+
+@[simp] private lemma q3_normSq_half_add_half_mul_star_omega_pow_two :
+    Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2) = (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) * (star ω) ^ 2) =
+    (1 / 4 : ℝ)
+  rw [q3_star_omega]
+  simpa only [pow_two, q3_omega_sq_mul_omega_sq] using
+    q3_normSq_half_add_half_mul_omega
+
+@[simp] private lemma q3_normSq_half_add_hesseS_star_omega_pow_two_mul_hesseS_omega :
+    Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2 * ((hesseS : ℂ) * ω)) = (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) *
+    (star ω) ^ 2 * ((hesseS : ℂ) * ω)) = (1 / 4 : ℝ)
+  rw [q3_star_omega]
+  simpa only [pow_two, q3_omega_sq_mul_omega_sq] using
+    q3_normSq_half_add_hesseS_omega_mul_hesseS_omega
+
+@[simp] private lemma q3_normSq_half_mul_omega_sq_add_half :
+    Complex.normSq ((1 / 2 : ℂ) * (ω ^ 2) + (1 / 2 : ℂ)) =
+      (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_half_mul_omega_sq
+
+@[simp] private lemma q3_normSq_hesseS_star_omega_mul_hesseS_omega_sq_add_half :
+    Complex.normSq ((hesseS : ℂ) * (starRingEnd ℂ) ω *
+      ((hesseS : ℂ) * (ω ^ 2)) + (1 / 2 : ℂ)) = (1 / 4 : ℝ) := by
+  simpa [add_comm] using
+    q3_normSq_half_add_hesseS_star_omega_mul_hesseS_omega_sq
+
+@[simp] private lemma q3_normSq_half_mul_star_omega_pow_two_add_half :
+    Complex.normSq ((1 / 2 : ℂ) * ((starRingEnd ℂ) ω) ^ 2 +
+      (1 / 2 : ℂ)) = (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_half_mul_star_omega_pow_two
+
+@[simp] private lemma q3_normSq_hesseS_star_omega_pow_two_mul_hesseS_omega_add_half :
+    Complex.normSq ((hesseS : ℂ) * ((starRingEnd ℂ) ω) ^ 2 *
+      ((hesseS : ℂ) * ω) + (1 / 2 : ℂ)) = (1 / 4 : ℝ) := by
+  simpa [add_comm] using
+    q3_normSq_half_add_hesseS_star_omega_pow_two_mul_hesseS_omega
 
 set_option maxHeartbeats 1000000 in
 /-- The Hesse qutrit SIC family has the correct constant pairwise overlap. -/
