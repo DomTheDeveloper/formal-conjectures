@@ -44,7 +44,7 @@ jobs:
       - name: Compile canonical module
         run: |
           set -o pipefail
-          lake build FormalConjectures.OpenQuantumProblems.23 2>&1 | tee /tmp/sic-low-dim-compile.log
+          lake env lean FormalConjectures/OpenQuantumProblems/23.lean 2>&1 | tee /tmp/sic-low-dim-compile.log
       - name: Audit canonical theorem axioms
         if: success()
         run: |
