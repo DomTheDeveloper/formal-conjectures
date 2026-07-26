@@ -1,0 +1,54 @@
+name: OpenAI Lander-Parkin-Selfridge literal counterexample audit
+
+on:
+  push:
+    branches:
+      - openai/disprove-lander-parkin-selfridge-literal
+    paths:
+      - 'FormalConjectures/Wikipedia/LanderParkinSelfridgeLiteralCounterexample.lean'
+      - '.github/workflows/openai-lander-parkin-selfridge-literal-audit.yml'
+  pull_request:
+    paths:
+      - 'FormalConjectures/Wikipedia/LanderParkinSelfridgeLiteralCounterexample.lean'
+      - '.github/workflows/openai-lander-parkin-selfridge-literal-audit.yml'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Lean toolchain
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Restore Lake cache
+        uses: actions/cache@v4
+        with:
+          path: .lake
+          key: ${{ runner.os }}-lake-${{ hashFiles('lake-manifest.json', 'lean-toolchain') }}
+          restore-keys: |
+            ${{ runner.os }}-lake-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get > /tmp/cache-get.log
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          file='FormalConjectures/Wikipedia/LanderParkinSelfridgeLiteralCounterexample.lean'
+          if grep -nE '\b(sorry|admit|unsafe|axiom)\b|native_decide|Lean\.(ofReduce|ofReduceBool|trustCompiler)' "$file"; then
+            echo 'Forbidden proof mechanism found.'
+            exit 1
+          fi
+      - name: Compile exact counterexample module
+        run: lake build FormalConjectures.Wikipedia.LanderParkinSelfridgeLiteralCounterexample
+      - name: Audit theorem axioms
+        run: |
+          cat > /tmp/LanderLiteralAxioms.lean <<'EOF'
+          import FormalConjectures.Wikipedia.LanderParkinSelfridgeLiteralCounterexample
+          #print axioms LanderParkinSelfridge.lander_parkin_selfridge_false
+          EOF
+          lake env lean /tmp/LanderLiteralAxioms.lean | tee /tmp/axioms.log
+          if grep -E 'sorryAx|Lean\.(ofReduce|ofReduceBool|trustCompiler)' /tmp/axioms.log; then
+            echo 'Forbidden axiom dependency found.'
+            exit 1
+          fi
