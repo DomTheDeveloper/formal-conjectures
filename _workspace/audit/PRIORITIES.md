@@ -32,9 +32,10 @@ Every 'solved/solvable' claim below is static-analysis only until a `lake --wfai
 - **`GreensOpenProblems/14.lean:W_3_38_lower`** (cat 0, conf medium, L4, medium) — Port certificate to merged kernel bridge, set answer(True); verify build.
 - **`GreensOpenProblems/14.lean:W_3_39_lower`** (cat 0, conf medium, L5, medium) — Port certificate to merged kernel bridge (bitmask form), set answer(True); verify build. If kernel decide is too slow at N = 1418, fall back to native_decide subject to repo policy.
 
-## 1. External solutions to import (category 1)  (4)
+## 1. External solutions to import (category 1)  (5)
 
 - **`Arxiv/2107.00295/IndependentDomination.lean:independentDominationEven`** (cat 1, conf high, L9, none) — Reclassify to research solved and port the Cho-Kim-Kim-Oum discharging proof plus the easy D=2 case; large effort (research-scale graph-theory formalization).
+- **`ErdosProblems/1106.lean:erdos_1106.parts.i`** (cat 1, conf high, L9, none) — Retag as @[category research solved] with answer(True) and cite Schinzel-Wirsing / Erdos-Ivic. Formalizing the proof in Lean is research-scale (needs Tijdeman-type S-unit input or Ono's modular-forms 
 - **`GreensOpenProblems/14.lean:green_14_polynomial`** (cat 1, conf high, L10, none) — Report upstream: label should not be 'research open' as stated, and the statement likely misrenders Problem 14; either restate faithfully to Green's text or record answer(False) with the k-monotonicit
 - **`ErdosProblems/42.lean:erdos_42.variants.constructive`** (cat 1, conf medium, L5, none) — Port/import the external Lean proof of erdos_42, set answer(True), and derive f from the atTop-eventually threshold via Classical.choice (f M := witness N0 for M >= 1, arbitrary for M = 0); verify the
 - **`OpenQuantumProblems/23.lean:hasSICPOVM_56`** (cat 1, conf medium, L9, large) — Confirm against the primary source (Grassl's exact-solutions data / the 2025 JMP paper) which paper contains the d=56 fiducial; then answer := True. Formalizing the witness in Lean means verifying 313
@@ -112,10 +113,10 @@ Every 'solved/solvable' claim below is static-analysis only until a `lake --wfai
 - **`Paper/MonochromaticQuantumGraph.lean:eqSystem8_no_solution_d3_int`** (cat 6, conf medium, L8, large) — Extend the QuantumGraphN6D3 pipeline: reduce mod 2 (ring hom argument is N-generic), classify odd-perfect-matching diagonal supports of K8 up to S_8, emit one CNF per orbit (252 GF(2) weight variables
 - **`Paper/MonochromaticQuantumGraph.lean:eqSystem8_no_solution_d3_trinary_int`** (cat 6, conf medium, L8, large) — Follows for free from any N=8 integer resolution (trinary subset of Z); or attack directly as a finite CSP - but the mod-2 SAT route is strictly easier and already suffices, so extend the N=6 pipeline
 
-## 7. Deep research problems (category 8)  (230)
+## 7. Deep research problems (category 8)  (247)
 
-230 problems — see per-directory reports; not individually queued.
+247 problems — see per-directory reports; not individually queued.
 
-## 8. Major open problems (category 9)  (66)
+## 8. Major open problems (category 9)  (72)
 
-66 problems — see per-directory reports; not individually queued.
+72 problems — see per-directory reports; not individually queued.

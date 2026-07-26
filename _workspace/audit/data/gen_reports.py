@@ -160,5 +160,49 @@ for b, title in enumerate(BUCKETS):
     lines.append("")
 open(f"{AUD}/PRIORITIES.md", "w").write("\n".join(lines))
 
+# ---------- DEFECTS.md ----------
+defects = [p for p in problems if p["cat"] in (3, 4, 10) or p["match"] != "yes"]
+SEV = {3: "false as stated", 4: "provable without the mathematics", 10: "unclassifiable"}
+lines = [
+    "# Statement defects",
+    "",
+    f"{len(defects)} declarations whose formal statement does not faithfully capture the intended problem,",
+    "or whose meaning could not be pinned down. These are the repository's integrity risks: a prover can",
+    "produce a green build on many of them without doing any of the intended mathematics.",
+    "",
+    "The dominant pattern is the **`answer()` echo** — a goal `answer(sorry) = e` or `answer(sorry) ↔ P`",
+    "where `e`/`P` is already in scope, so the answer term can be instantiated to the thing being asked",
+    "about and closed by `rfl`. Fixing these is upstream-reportable work independent of solving anything.",
+    "",
+]
+for cat in (3, 4, 10):
+    grp = [p for p in defects if p["cat"] == cat]
+    if not grp:
+        continue
+    lines += [f"## Category {cat} — {SEV[cat]}  ({len(grp)})", ""]
+    for p in sorted(grp, key=lambda p: p["id"]):
+        f, _, name = p["id"].rpartition(":")
+        lines.append(f"### `{f.replace('FormalConjectures/', '')}:{name}`")
+        lines.append("")
+        lines.append(f"{p['plain']}")
+        lines.append("")
+        lines.append(f"- **Defect:** {p.get('match_note') or p['evidence']}")
+        lines.append(f"- **Match:** {p['match']} · **Confidence:** {p['conf']} · **Lean difficulty:** {p['ldiff']}/10")
+        if p.get("flags"):
+            lines.append(f"- **Flags:** {'; '.join(p['flags'])}")
+        lines.append(f"- **Fix:** {p['action']}")
+        lines.append("")
+mismatch_only = [p for p in defects if p["cat"] not in (3, 4, 10)]
+if mismatch_only:
+    lines += [f"## Faithfulness concerns in otherwise open problems  ({len(mismatch_only)})", "",
+              "Statements flagged `suspect` or `no` on match, but not otherwise defective.", "",
+              "| Declaration | Cat | Match | Note |", "|---|---|---|---|"]
+    for p in sorted(mismatch_only, key=lambda p: p["id"]):
+        f, _, name = p["id"].rpartition(":")
+        lines.append(f"| `{f.replace('FormalConjectures/', '')}:{name}` | {p['cat']} | {p['match']} | {esc(p.get('match_note') or '')[:150]} |")
+    lines.append("")
+open(f"{AUD}/DEFECTS.md", "w").write("\n".join(lines))
+
+print(f"wrote DEFECTS.md ({len(defects)} defects)")
 print("wrote INDEX.md, PRIORITIES.md, and", len(bydir), "directory reports to", AUD)
 print("bucket sizes:", {BUCKETS[b].split(".")[0]: len(v) for b, v in sorted(bybucket.items())})

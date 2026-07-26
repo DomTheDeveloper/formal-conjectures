@@ -1,7 +1,7 @@
 # Master audit index
 
-**384** `research open` declarations audited (of 1163 in inventory).
-Coverage gaps: 779 missing, 0 duplicated.
+**408** `research open` declarations audited (of 1163 in inventory).
+Coverage gaps: 755 missing, 0 duplicated.
 See [README.md](./README.md) for methodology and category definitions; per-directory detail reports carry the full 13 audit fields per problem.
 
 ## Category histogram
@@ -9,15 +9,15 @@ See [README.md](./README.md) for methodology and category definitions; per-direc
 | Cat | Meaning | Count |
 |---|---|---|
 | 0 | Already solved internally | 26 |
-| 1 | Already solved externally | 4 |
+| 1 | Already solved externally | 5 |
 | 2 | Trivially or easily solvable | 4 |
 | 3 | False / refutable as stated | 1 |
 | 4 | Vacuously true / accidentally weakened | 40 |
 | 5 | Solved mathematically, not yet formalized | 8 |
 | 6 | Computationally solvable with certificate | 2 |
 | 7 | Plausibly solvable with moderate formal work | 0 |
-| 8 | Deep but approachable research problem | 230 |
-| 9 | Major open problem / currently infeasible | 66 |
+| 8 | Deep but approachable research problem | 247 |
+| 9 | Major open problem / currently infeasible | 72 |
 | 10 | Cannot classify without correction/clarification | 3 |
 
 ## All problems
@@ -105,6 +105,30 @@ Columns: **Cat** = primary category, **Cat2** = secondary, **Match** = does the 
 | `ErdosProblems/108.lean` | `erdos_108` | 8 |  | yes | 9/9 | none | high | Leave open. Formalizing the solved r = 4 case (Rodl) would be a meaningful standalone project (noted as TODO i |
 | `ErdosProblems/1082.lean` | `erdos_1082.parts.i` | 8 |  | yes | 9/9 | none | high | Leave open. Any counterexample search would target small general-position multi-distance sets; none known. |
 | `ErdosProblems/1084.lean` | `erdos_1084.variants.triangular_optimal_d2` | 5 |  | yes | 5/9 | none | high | Relabel as research solved citing Harborth 1974 and attempt formalization: lower bound from the explicit hexag |
+| `ErdosProblems/1085.lean` | `erdos_1085.variants.upper_d3` | 9 |  | yes | 9/10 | none | high | Leave open. Any progress requires new incidence geometry in R^3; the Lean side additionally needs an entire th |
+| `ErdosProblems/1093.lean` | `erdos_1093.parts.i` | 8 |  | suspect | 8/9 | none | medium | Confirm the intended smoothness threshold against erdosproblems.com/1093 / [EES74]; if it is 'primes ≤ k', cha |
+| `ErdosProblems/1093.lean` | `erdos_1093.parts.ii` | 8 |  | suspect | 8/9 | none | medium | Fix the smoothness threshold jointly with parts.i, then leave open. |
+| `ErdosProblems/1094.lean` | `erdos_1094` | 8 |  | yes | 8/9 | none | medium | Verify the exact ELS93 constant against the source; otherwise leave open. Progress would need effective bounds |
+| `ErdosProblems/1095.lean` | `erdos_1095.variants.log_equivalent` | 8 | 3 | no | 9/9 | none | medium | Replace `(fun k ↦ log (g k)) ~[atTop] (fun k ↦ k / log k)` with `(fun k ↦ log (g k)) =Θ[atTop] (fun k ↦ (k : ℝ |
+| `ErdosProblems/1095.lean` | `erdos_1095.variants.lower_conjecture` | 8 |  | yes | 9/9 | none | high | Leave open. The gap between exp(c(log k)^2) and exp(ck/log k) is enormous; no strategy known. |
+| `ErdosProblems/1095.lean` | `erdos_1095.variants.upper_conjecture` | 8 |  | yes | 8/9 | none | high | Leave open. Would need genuinely new analytic number theory. |
+| `ErdosProblems/11.lean` | `erdos_11` | 9 |  | yes | 9/10 | none | high | Leave open (category 9). Do not attempt: a proof would resolve an open Wieferich-type question. |
+| `ErdosProblems/11.lean` | `erdos_11.variants.not_four_dvd` | 9 |  | yes | 9/10 | none | high | Leave open. If anything is ever proved here it should be derived from erdos_11 plus the even case, not attacke |
+| `ErdosProblems/11.lean` | `erdos_11.variants.two_pow_two` | 8 |  | yes | 8/9 | none | medium | Leave open, but this is the most approachable of the three: a sieve/covering argument over n mod small powers  |
+| `ErdosProblems/1101.lean` | `erdos_1101.parts.i` | 8 |  | yes | 9/9 | none | high | Leave open. Key obstruction: lower-bounding the largest gap in the u-sieved set for slowly growing u; a first  |
+| `ErdosProblems/1101.lean` | `erdos_1101.parts.ii` | 8 |  | yes | 8/9 | none | high | Leave open. Natural approach: refine Erdos's prime construction to control growth; first milestone is to forma |
+| `ErdosProblems/1106.lean` | `erdos_1106.parts.i` | 1 | 5 | yes | 5/9 | none | high | Retag as @[category research solved] with answer(True) and cite Schinzel-Wirsing / Erdos-Ivic. Formalizing the |
+| `ErdosProblems/1106.lean` | `erdos_1106.parts.ii` | 8 |  | yes | 9/9 | none | high | Leave open. Key obstruction: converting divisibility results for individual primes into a count of ≥ n distinc |
+| `ErdosProblems/1107.lean` | `erdos_1107` | 8 |  | yes | 8/9 | none | high | Leave open. The r = 2 case already required deep work on ternary quadratic forms; general r has no known appro |
+| `ErdosProblems/1108.lean` | `erdos_1108.parts.i` | 8 |  | yes | 8/9 | small | medium | Leave open. First milestone: a computational search for k-th powers in A up to a large bound would sharpen the |
+| `ErdosProblems/1108.lean` | `erdos_1108.parts.ii` | 8 |  | yes | 8/9 | small | medium | Leave open. Same obstruction as parts.i. |
+| `ErdosProblems/1113.lean` | `erdos_1113` | 8 |  | yes | 9/9 | small | high | Leave open. A plausible partial Lean target is formalizing that Izotov's m is a Sierpinski number (algebraic q |
+| `ErdosProblems/1113.lean` | `erdos_1113.variants.filaseta_finch_kozek` | 9 |  | yes | 9/10 | none | high | Leave open (category 9). No meaningful strategy exists; the statement quantifies over an infinite family with  |
+| `ErdosProblems/1133.lean` | `erdos_1133` | 8 |  | yes | 8/9 | none | medium | Leave open. Progress requires new extremal results on Chebyshev-type polynomials with a linear number of allow |
+| `ErdosProblems/1135.lean` | `erdos_1135` | 9 |  | yes | 10/10 | none | high | Leave open. If the Wikipedia file is ever closed, erdos_1135 closes by `exact CollatzConjecture.collatz_conjec |
+| `ErdosProblems/1137.lean` | `erdos_1137` | 8 |  | yes | 9/9 | none | high | Leave open. Key obstruction: no upper bound on max_{n<x} d_n is known that is anywhere near the Erdos-Rankin l |
+| `ErdosProblems/1139.lean` | `erdos_1139` | 8 |  | yes | 8/9 | none | medium | Leave open. Key obstruction: constructing long intervals free of primes AND semiprimes; Erdos-Rankin handles p |
+| `ErdosProblems/1142.lean` | `erdos_1142` | 9 |  | yes | 9/10 | none | high | Leave open. Neither direction is approachable: proving finiteness needs, for every large n, a k with n - 2^k c |
 | `ErdosProblems/357.lean` | `erdos_357.parts.i` | 8 |  | yes | 8/9 | none | high | Keep open; monitor erdosproblems.com/357 and follow-ups to Beker 2024 for progress on the o(n) question. |
 | `ErdosProblems/357.lean` | `erdos_357.parts.ii.bigO_version` | 4 | 2 | suspect | 8/1 | none | high | Tighten the encoding (e.g. require an explicit elementary function with a stated exponent) or accept as conven |
 | `ErdosProblems/357.lean` | `erdos_357.parts.ii.bigO_version_symm` | 4 | 2 | suspect | 8/1 | none | high | Same as bigO_version: tighten encoding or treat as convention-guarded. |

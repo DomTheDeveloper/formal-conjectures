@@ -1,6 +1,6 @@
 # Audit detail — ErdosProblems
 
-144 research-open declarations. Fields per problem: plain statement, source, category, match, status, action, difficulties, compute, confidence, evidence, flags.
+168 research-open declarations. Fields per problem: plain statement, source, category, match, status, action, difficulties, compute, confidence, evidence, flags.
 
 ## `erdos_1` — Major open problem / currently infeasible (cat 9)
 
@@ -548,6 +548,282 @@
 **Evidence:** f d n is the sup of unitDistNum over 1-separated (edist >= 1, closed condition, so unit distances are allowed) n-point sets - exactly the penny-graph edge count. Harborth's classical formula floor(3n - sqrt(12n-3)) specializes to 9m^2+3m at hexagonal numbers, proving the stated equality for every m (m = 0, 1 check by hand: 0 and 12). Docstring's 'f_2(3n^2+3n+1) < 9n^2+3n' is a typo for '=' (the lattice itself achieves 9n^2+3n, so '<' is impossible).  
 **Flags:** mislabeled research open; Harborth 1974 resolves it; docstring inequality '<' contradicts the (correct) '=' in the statement  
 **Next action:** Relabel as research solved citing Harborth 1974 and attempt formalization: lower bound from the explicit hexagonal-lattice configuration (medium), upper bound via Harborth's convex-position/boundary induction (large). Overall effort: large.
+
+## `erdos_1085.variants.upper_d3` — Major open problem / currently infeasible (cat 9)
+
+**File:** `FormalConjectures/ErdosProblems/1085.lean:58`  
+**Statement:** Let f_3(n) be the maximum number of unit-distance pairs among n points in R^3. Is Erdos's lower bound n^{4/3} log log n also an upper bound, i.e. f_3(n) = O(n^{4/3} log log n)?  
+**Source:** https://www.erdosproblems.com/1085 (state: open, tags geometry/distances); Erdos unit-distance problem in R^3; best known upper bound O(n^{3/2}) (Kaplan-Matousek-Safernova-Sharir 2012)  
+**Statement matches intent:** yes  
+**Known status:** Open. Erdos proved f_3(n) = Ω(n^{4/3} log log n) (stated as the solved variant lower_d3 in the same file); matching upper bound is a long-standing open problem. No PR in pr_register.json and no campaign in campaign_register.json touches 1085.  
+**Difficulty:** math 9/10, Lean 10/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Unit distances in R^3: the gap between the Erdos lower bound n^{4/3}loglog n and the KMSS upper bound O(n^{3/2}) is famously open; erdosproblems.com still lists 1085 as open today.  
+**Next action:** Leave open. Any progress requires new incidence geometry in R^3; the Lean side additionally needs an entire theory of unitDistNum bounds that Mathlib lacks.
+
+## `erdos_1093.parts.i` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1093.lean:38`  
+**Statement:** For binomial coefficients C(n,k) with n >= 2k all of whose prime factors exceed k, the 'deficiency' counts how many of the k integers n, n-1, ..., n-k+1 are k-smooth. Are there infinitely many such (k,n) with deficiency exactly 1?  
+**Source:** https://www.erdosproblems.com/1093 (state: open, tags number theory / binomial coefficients); Ecklund-Erdos-Selfridge circle of problems on prime factors of binomial coefficients  
+**Statement matches intent:** suspect — Off-by-one risk in the smoothness threshold. `deficiency n k` uses Mathlib's `Nat.smoothNumbers k`, which is {m ≠ 0 | ∀ p ∈ m.primeFactors, p < k}, i.e. prime factors STRICTLY BELOW k. The complementary condition used in the same statement is `k < p` for primes dividing C(n,k), whose complement is `p ≤ k`; the standard meaning of 'k-smooth' is also 'all prime factors ≤ k'. So the intended set is almost certainly `smoothNumbers (k+1)`. The two differ exactly when k is prime and k | (n-i) — infinitely many relevant cases, and the question is precisely about infinitude, so this could change the answer. ℕ-subtraction `n - i` is safe here because 2k ≤ n and i < k.  
+**Known status:** Open. No PR in pr_register.json mentions 1093; no campaign target. File is inherited from upstream google-deepmind/formal-conjectures.  
+**Difficulty:** math 8/10, Lean 9/10 · **Compute:** none · **Confidence:** medium  
+**Evidence:** Mathlib defines Nat.smoothNumbers n := {m | m ≠ 0 ∧ ∀ p ∈ m.primeFactors, p < n} (strict), which is off by one from the usual 'k-smooth'. Web lookup only echoed the Lean file itself, so the source wording could not be confirmed.  
+**Flags:** needs literature check; possible off-by-one: smoothNumbers k (p < k) vs intended p ≤ k  
+**Next action:** Confirm the intended smoothness threshold against erdosproblems.com/1093 / [EES74]; if it is 'primes ≤ k', change `smoothNumbers k` to `smoothNumbers (k+1)` in the `deficiency` definition (single-token fix, affects both parts). Then leave as open research.
+
+## `erdos_1093.parts.ii` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1093.lean:47`  
+**Statement:** Same setting: are there only finitely many pairs (k,n) with n >= 2k, all prime factors of C(n,k) greater than k, and deficiency greater than 1?  
+**Source:** https://www.erdosproblems.com/1093 (state: open)  
+**Statement matches intent:** suspect — Inherits exactly the same `smoothNumbers k` (p < k) vs 'p ≤ k' off-by-one as parts.i. Otherwise faithful: pair encoding is (k, n) = (x.1, x.2), the k=0 and k=1 degenerate cases are automatically excluded because deficiency is 0 there, and the statement is asserted (not answer()-encoded) in the direction Erdos expected.  
+**Known status:** Open. No internal or external resolution found.  
+**Difficulty:** math 8/10, Lean 9/10 · **Compute:** none · **Confidence:** medium  
+**Evidence:** Same definitional analysis as parts.i; the two statements share the single `deficiency` definition at line 32.  
+**Flags:** needs literature check; shares off-by-one smoothness threshold with parts.i  
+**Next action:** Fix the smoothness threshold jointly with parts.i, then leave open.
+
+## `erdos_1094` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1094.lean:34`  
+**Statement:** For all n >= 2k >= 2, the least prime factor of C(n,k) is at most max(n/k, k), with only finitely many exceptions.  
+**Source:** https://www.erdosproblems.com/1094 (state: open); [ELS93] Erdos, Lacampagne, Selfridge, Estimates of the least prime factor of a binomial coefficient, Math. Comp. 61 (1993), 215-224  
+**Statement matches intent:** yes  
+**Known status:** Open. No PR in pr_register.json mentions 1094; no campaign target; erdosproblems.com lists it open.  
+**Difficulty:** math 8/10, Lean 9/10 · **Compute:** none · **Confidence:** medium  
+**Evidence:** Careful check that truncated ℕ-division does not alter the statement because minFac ∈ ℕ; positivity hypothesis present; no vacuity.  
+**Flags:** needs literature check (exact form of the ELS bound: max(n/k,k) vs max(n/k,29))  
+**Next action:** Verify the exact ELS93 constant against the source; otherwise leave open. Progress would need effective bounds on the Erdos-Selfridge function.
+
+## `erdos_1095.variants.log_equivalent` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1095.lean:74`  
+**Secondary category:** 3 (False / refutable as stated)  
+**Statement:** Sorenson-Sorenson-Webster's heuristic that log g(k) is of the same order as k / log k.  
+**Source:** https://www.erdosproblems.com/1095 (state: open); [SSW20] Sorenson, Sorenson, Webster, An algorithm and estimates for the Erdos-Selfridge function (2020), 371-385  
+**Statement matches intent:** no — PROSE/FORMAL MISMATCH. The docstring states log g(k) \asymp k/log k (same ORDER, i.e. Θ / IsTheta), but the Lean uses `~[atTop]`, which is `Asymptotics.IsEquivalent`, i.e. log g(k) / (k/log k) → 1 — an asymptotic EQUALITY with implied constant exactly 1. This is strictly stronger than the cited heuristic and is very likely false if SSW's heuristic constant differs from 1 (their heuristic is of the shape g(k) ≈ exp(c k / log k)). The intended (Θ) version remains open either way.  
+**Known status:** Open as intended; as literally written the statement is a stronger, plausibly false claim. No PR or campaign addresses 1095.  
+**Difficulty:** math 9/10, Lean 9/10 · **Compute:** none · **Confidence:** medium  
+**Evidence:** Docstring uses \asymp; `~[l]` in Mathlib is IsEquivalent (f - g = o(g)), not IsTheta. The two are inequivalent whenever the true constant is not 1.  
+**Flags:** prose/formal mismatch: \asymp formalized as IsEquivalent instead of IsTheta; statement stronger than the cited conjecture; may be false as written; needs literature check (SSW20 constant)  
+**Next action:** Replace `(fun k ↦ log (g k)) ~[atTop] (fun k ↦ k / log k)` with `(fun k ↦ log (g k)) =Θ[atTop] (fun k ↦ (k : ℝ) / log k)` to match \asymp; then leave as open research. Also check SSW20 for the explicit constant.
+
+## `erdos_1095.variants.lower_conjecture` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1095.lean:67`  
+**Statement:** Erdos-Lacampagne-Selfridge's belief that the Erdos-Selfridge function satisfies g(k) >= exp(c k / log k) for some c > 0 and all large k.  
+**Source:** https://www.erdosproblems.com/1095 (state: open); [ELS93] Math. Comp. 61 (1993), 215-224  
+**Statement matches intent:** yes  
+**Known status:** Open. Konyagin's record (the solved variant lower_solved in the same file) is only g(k) ≫ exp(c (log k)^2), far below exp(ck/log k).  
+**Difficulty:** math 9/10, Lean 9/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Statement matches the docstring quote from ELS93; the companion solved variant documents that the current record is exponentially weaker.  
+**Next action:** Leave open. The gap between exp(c(log k)^2) and exp(ck/log k) is enormous; no strategy known.
+
+## `erdos_1095.variants.upper_conjecture` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1095.lean:58`  
+**Statement:** Let g(k) be the least n > k+1 such that every prime factor of C(n,k) exceeds k (the Erdos-Selfridge function). Ecklund-Erdos-Selfridge conjectured g(k) <= exp((1+o(1))k).  
+**Source:** https://www.erdosproblems.com/1095 (state: open); [EES74] Ecklund, Erdos, Selfridge, Math. Comp. 28 (1974), 647-649  
+**Statement matches intent:** yes  
+**Known status:** Open. Best known upper bounds are far weaker; Granville-Ramare [GrRa96] and Konyagin [Ko99b] give lower bounds. No PR/campaign hits.  
+**Difficulty:** math 8/10, Lean 9/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Definition well-formed; quantifier order (∃ o(1) function, then eventually) is correct; erdosproblems.com state open.  
+**Next action:** Leave open. Would need genuinely new analytic number theory.
+
+## `erdos_11` — Major open problem / currently infeasible (cat 9)
+
+**File:** `FormalConjectures/ErdosProblems/11.lean:30`  
+**Statement:** Is every odd n > 1 the sum of a squarefree number and a power of 2?  
+**Source:** https://www.erdosproblems.com/11 (state: open); [GrSo98] Granville and Soundararajan, A binary additive problem of Erdos and the order of 2 mod p^2, Ramanujan J. 2 (1998), 283-298  
+**Statement matches intent:** yes  
+**Known status:** Open, and provably hard: Granville-Soundararajan [GrSo98] (recorded as the solved variant `granville_soundararajan` in the same file) show a positive answer implies there are infinitely many primes with 2^p ≡ 2 (mod p^2), which is itself an open problem. Verified computationally for n < 2^50 (also recorded in the file). No PR in pr_register.json or campaign register touches Erdos 11.  
+**Difficulty:** math 9/10, Lean 10/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** The file's own solved variant records the Granville-Soundararajan implication, which certifies that erdos_11 is at least as hard as an open problem about 2^p mod p^2.  
+**Next action:** Leave open (category 9). Do not attempt: a proof would resolve an open Wieferich-type question.
+
+## `erdos_11.variants.not_four_dvd` — Major open problem / currently infeasible (cat 9)
+
+**File:** `FormalConjectures/ErdosProblems/11.lean:39`  
+**Statement:** Stronger form Erdos often asked: every n > 1 not divisible by 4 is the sum of a squarefree number and a power of 2.  
+**Source:** https://www.erdosproblems.com/11 (state: open)  
+**Statement matches intent:** yes  
+**Known status:** Open; strictly harder than erdos_11, which is already blocked by an open Wieferich-type question.  
+**Difficulty:** math 9/10, Lean 10/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Logical implication not_four_dvd ⟹ erdos_11 plus the GrSo98 consequence recorded in the same file.  
+**Next action:** Leave open. If anything is ever proved here it should be derived from erdos_11 plus the even case, not attacked directly.
+
+## `erdos_11.variants.two_pow_two` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/11.lean:47`  
+**Statement:** Is every odd n > 1 the sum of a squarefree number and two powers of 2?  
+**Source:** https://www.erdosproblems.com/11 (state: open)  
+**Statement matches intent:** yes  
+**Known status:** Open. Weaker relaxation of erdos_11; no known proof and no PR/campaign in this fork.  
+**Difficulty:** math 8/10, Lean 9/10 · **Compute:** none · **Confidence:** medium  
+**Evidence:** Two free powers of 2 give ~ (log n)^2 candidate residues n - 2^l - 2^m, versus ~log n for erdos_11, so the heuristic slack is much larger; still no unconditional argument is known.  
+**Flags:** 'two powers of 2' formalized without requiring l ≠ m (weaker but arguably intended)  
+**Next action:** Leave open, but this is the most approachable of the three: a sieve/covering argument over n mod small powers of 2 combined with squarefree density in progressions is the natural first attack. First milestone: show a positive-density set of odd n is representable.
+
+## `erdos_1101.parts.i` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1101.lean:57`  
+**Statement:** For a strictly increasing pairwise-coprime sequence u with convergent reciprocal sum, call u 'good' if the gaps in the set of integers divisible by no u_i are eventually below (1+eps) t_x / prod(1 - 1/u_i). Claim: no good sequence grows only polynomially.  
+**Source:** https://www.erdosproblems.com/1101 (state: open). Verified verbatim: 'Is there a good sequence such that u_n < n^{O(1)}?' Erdos believed the answer is no.  
+**Statement matches intent:** yes  
+**Known status:** Open. Erdos proved some good sequence exists (of primes) but believed no polynomially-growing one does. No PR in pr_register.json and no campaign target for 1101.  
+**Difficulty:** math 9/10, Lean 9/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Source statement retrieved and compared term by term; all four clauses of IsGood correspond, and every degenerate u is provably not good.  
+**Next action:** Leave open. Key obstruction: lower-bounding the largest gap in the u-sieved set for slowly growing u; a first milestone would be formalizing Erdos's construction of a good sequence of primes (currently absent from the file).
+
+## `erdos_1101.parts.ii` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1101.lean:63`  
+**Statement:** There exists a 'good' sequence (same definition) whose growth is sub-exponential, i.e. log u_n = o(n).  
+**Source:** https://www.erdosproblems.com/1101 (state: open). Source: 'is there a good sequence such that u_n <= e^{o(n)}?' Erdos believed yes.  
+**Statement matches intent:** yes  
+**Known status:** Open; Erdos believed the answer yes and proved existence of a good sequence (with no growth control).  
+**Difficulty:** math 8/10, Lean 9/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Direct comparison with the retrieved source text; asymptotic encoding is standard and correct.  
+**Next action:** Leave open. Natural approach: refine Erdos's prime construction to control growth; first milestone is to formalize IsGood for the primes-based construction at all.
+
+## `erdos_1106.parts.i` — Already solved externally (cat 1)
+
+**File:** `FormalConjectures/ErdosProblems/1106.lean:36`  
+**Secondary category:** 5 (Solved mathematically, not yet formalized)  
+**Statement:** Let F(n) be the number of distinct primes dividing p(1)p(2)...p(n), where p is the partition function. Does F(n) tend to infinity?  
+**Source:** https://www.erdosproblems.com/1106 (page state 'open' because of part ii). Schinzel's note in the Oberwolfach problem book: F(n) → ∞ follows from the asymptotics of p(n) together with a theorem of Tijdeman; details in a paper of Erdos and Ivic. Schinzel and Wirsing proved F(n) ≫ log n. Ono (Ann. of Math. 151 (2000)) proved every prime divides p(n) for some n.  
+**Statement matches intent:** yes  
+**Known status:** SOLVED EXTERNALLY, yet marked @[category research open] in this repo. Three independent published routes: (a) Schinzel via Tijdeman's theorem on S-smooth sequences plus the Hardy-Ramanujan asymptotic (written up by Erdos-Ivic); (b) Schinzel-Wirsing's stronger F(n) ≫ log n; (c) Ono's theorem that every prime divides some partition value. Only part ii (F(n) > n) remains open, which is why the site's aggregate state reads 'open'.  
+**Difficulty:** math 5/10, Lean 9/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Retrieved erdosproblems.com/1106 content: 'Schinzel noted ... that F(n) → ∞ follows from the asymptotic formula for p(n) and a result of Tijdeman'; 'Schinzel and Wirsing have proved that F(n) ≫ log n'. Both settle part i affirmatively.  
+**Flags:** MISCATEGORIZED: tagged research open but the mathematical question is settled in the literature; Lean proof remains research-scale (cat 5 secondary)  
+**Next action:** Retag as @[category research solved] with answer(True) and cite Schinzel-Wirsing / Erdos-Ivic. Formalizing the proof in Lean is research-scale (needs Tijdeman-type S-unit input or Ono's modular-forms machinery, none of which is in Mathlib), so the honest move is the metadata fix plus a documented citation, not a Lean proof.
+
+## `erdos_1106.parts.ii` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1106.lean:45`  
+**Statement:** With F(n) the number of distinct primes dividing p(1)...p(n), is F(n) > n for all sufficiently large n?  
+**Source:** https://www.erdosproblems.com/1106 (state: open); problem asked by Erdos at Oberwolfach 1986  
+**Statement matches intent:** yes  
+**Known status:** Open. The best published lower bound is Schinzel-Wirsing's F(n) ≫ log n — exponentially short of the required F(n) > n. Ono's theorem gives a positive-density set of n divisible by any fixed prime but no bound of size n on the number of distinct primes.  
+**Difficulty:** math 9/10, Lean 9/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Retrieved erdosproblems.com/1106: the only recorded lower bound is F(n) ≫ log n, so F(n) > n is far out of reach.  
+**Next action:** Leave open. Key obstruction: converting divisibility results for individual primes into a count of ≥ n distinct primes below the (huge) product; progress would be any bound F(n) ≫ n^c or F(n) ≫ (log n)^A.
+
+## `erdos_1107` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1107.lean:39`  
+**Statement:** For every r >= 2, is every sufficiently large integer the sum of at most r+1 r-powerful numbers (numbers where every prime factor appears to the power at least r)?  
+**Source:** https://www.erdosproblems.com/1107 (state: open, tags number theory / powerful); [He88] Heath-Brown, Ternary quadratic forms and sums of three square-full numbers (1988)  
+**Statement matches intent:** yes  
+**Known status:** Open for r ≥ 3. The r = 2 case is Heath-Brown's theorem, recorded as the solved variant `erdos_1107.variants.two` in the same file. No PR/campaign in this fork touches 1107.  
+**Difficulty:** math 8/10, Lean 9/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Definition Nat.Full checked at FormalConjecturesForMathlib/Data/Nat/Full.lean:30; degenerate members 0 and 1 do not weaken the statement because the summand count is capped.  
+**Next action:** Leave open. The r = 2 case already required deep work on ternary quadratic forms; general r has no known approach. A worthwhile intermediate Lean target is instead formalizing the trivial direction (density counts showing r+1 summands is the right order).
+
+## `erdos_1108.parts.i` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1108.lean:44`  
+**Statement:** Does the set of all finite sums of distinct factorials contain, for each k >= 2, only finitely many perfect k-th powers?  
+**Source:** https://www.erdosproblems.com/1108 (state: open, tags number theory / factorials)  
+**Statement matches intent:** yes  
+**Known status:** Open. Small squares in A are plentiful (4 = 0!+1!+2!, 9 = 1!+2!+3!, 25 = 0!+4!, 121 = 0!+5!), so the finiteness question is genuine and no elementary obstruction is known. No PR/campaign hits.  
+**Difficulty:** math 8/10, Lean 9/10 · **Compute:** small · **Confidence:** medium  
+**Evidence:** Explicit small solutions found by hand (4, 9, 25, 121) show the set is nonempty and the question non-trivial; the formal statement admits them exactly as the source does.  
+**Flags:** 0! = 1! means the index-set encoding admits sums that a 'distinct values' reading would exclude (matches source notation, noted for the record)  
+**Next action:** Leave open. First milestone: a computational search for k-th powers in A up to a large bound would sharpen the conjecture; a proof would likely need S-unit/Baker-type methods with no Mathlib support.
+
+## `erdos_1108.parts.ii` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1108.lean:52`  
+**Statement:** Does the set of all finite sums of distinct factorials contain only finitely many powerful numbers (numbers in which every prime factor occurs squared)?  
+**Source:** https://www.erdosproblems.com/1108 (state: open)  
+**Statement matches intent:** yes  
+**Known status:** Open; strictly stronger than parts.i (every k-th power with k ≥ 2 is powerful). No internal or external resolution found.  
+**Difficulty:** math 8/10, Lean 9/10 · **Compute:** small · **Confidence:** medium  
+**Evidence:** Definition-level check of IsPowerful and FactorialSums; implication parts.ii ⟹ parts.i confirms the relative difficulty ordering.  
+**Next action:** Leave open. Same obstruction as parts.i.
+
+## `erdos_1113` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1113.lean:75`  
+**Statement:** Do there exist Sierpinski numbers (odd k with k*2^n + 1 always composite) that possess no finite covering set of primes?  
+**Source:** https://www.erdosproblems.com/1113 (state: open); [ErGr80] Erdos-Graham; Guy's Unsolved Problems F13; [FFK08] Filaseta, Finch, Kozek, J. Number Theory 128 (2008), 1916-1940  
+**Statement matches intent:** yes  
+**Known status:** Open. Erdos and Graham conjectured yes. Izotov's argument (detailed by Filaseta-Finch-Kozek) makes m = 734110615000775^4 a candidate Sierpinski number with no covering set — Izotov proved it IS a Sierpinski number, but the absence of a covering set is not proved. No PR in pr_register.json or campaign_register.json touches 1113.  
+**Difficulty:** math 9/10, Lean 9/10 · **Compute:** small · **Confidence:** high  
+**Evidence:** Retrieved erdosproblems.com/1113: 'An argument of Izotov ... suggests that m = 734110615000775^4 is a Sierpinski number without a covering set, and Izotov proved that this m is indeed a Sierpinski number.' Status is therefore open.  
+**Next action:** Leave open. A plausible partial Lean target is formalizing that Izotov's m is a Sierpinski number (algebraic quartic factorization plus a small covering), which is a self-contained finite verification; proving it has no covering set is the open part.
+
+## `erdos_1113.variants.filaseta_finch_kozek` — Major open problem / currently infeasible (cat 9)
+
+**File:** `FormalConjectures/ErdosProblems/1113.lean:85`  
+**Statement:** Filaseta-Finch-Kozek's revised conjecture: every Sierpinski number is either a perfect power or possesses a finite covering set of primes.  
+**Source:** https://www.erdosproblems.com/1113; [FFK08] Filaseta, Finch, Kozek, On powers associated with Sierpinski numbers, Riesel numbers and Polignac's conjecture, J. Number Theory 128 (2008), 1916-1940  
+**Statement matches intent:** yes  
+**Known status:** Open, and strictly harder than erdos_1113 in the sense that it must classify ALL Sierpinski numbers. No known partial results toward the universal statement.  
+**Difficulty:** math 9/10, Lean 10/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Checked IsPerfectPower for the classic 'every n = n^1' vacuity loophole — the definition requires 1 < m, so no loophole. Conjecture wording confirmed against erdosproblems.com/1113.  
+**Next action:** Leave open (category 9). No meaningful strategy exists; the statement quantifies over an infinite family with no structural handle.
+
+## `erdos_1133` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1133.lean:39`  
+**Statement:** For every C > 0 is there eps > 0 such that for large n, for any x_1..x_n in [-1,1] one can pick y_1..y_n in [-1,1] so that any polynomial of degree < (1+eps)n interpolating at least (1-eps)n of the pairs has sup norm exceeding C on [-1,1]?  
+**Source:** https://www.erdosproblems.com/1133 (state: open, tags analysis / polynomials); [Er67] Erdos, Problems and results on the convergence and divergence properties of Lagrange interpolation polynomials, Mathematica (Cluj) (1967), 65-73  
+**Statement matches intent:** yes  
+**Known status:** Open. Erdos proved the weaker statement recorded as `erdos_1133.variants.weaker` in the same file, and remarks in [Er67] that he could not even prove the m = n case of the conjecture.  
+**Difficulty:** math 8/10, Lean 9/10 · **Compute:** none · **Confidence:** medium  
+**Evidence:** Full quantifier audit against the docstring; the only subtle points (natDegree junk value, repeated nodes, sup rendered as an existential) all fall on the safe side.  
+**Next action:** Leave open. Progress requires new extremal results on Chebyshev-type polynomials with a linear number of allowed exceptional nodes; the natural first milestone is formalizing Erdos's weaker theorem.
+
+## `erdos_1135` — Major open problem / currently infeasible (cat 9)
+
+**File:** `FormalConjectures/ErdosProblems/1135.lean:42`  
+**Statement:** The Collatz conjecture: iterating the 3x+1 map from any positive integer eventually reaches 1.  
+**Source:** https://www.erdosproblems.com/1135 (state: open, $500 prize); [La10] Lagarias, The 3x+1 problem: an overview; [La16] Lagarias, Erdos, Klarner, and the 3x+1 problem, Amer. Math. Monthly (2016)  
+**Statement matches intent:** yes  
+**Known status:** Open, famous, $500 Erdos prize. No PR in pr_register.json and no campaign in campaign_register.json targets Collatz.  
+**Difficulty:** math 10/10, Lean 10/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Collatz is a canonical unsolved problem; the duplication is intentional (the file's module docstring says it points to the canonical formalization).  
+**Flags:** duplicate of FormalConjectures/Wikipedia/CollatzConjecture.lean:collatz_conjecture (also sorry)  
+**Next action:** Leave open. If the Wikipedia file is ever closed, erdos_1135 closes by `exact CollatzConjecture.collatz_conjecture`; that is the only sensible dependency to record.
+
+## `erdos_1137` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1137.lean:34`  
+**Statement:** With d_n the n-th prime gap, does max_{n<x} d_n d_{n-1} divided by (max_{n<x} d_n)^2 tend to 0, i.e. can two consecutive gaps never both be near-maximal?  
+**Source:** https://www.erdosproblems.com/1137 (state: open, tags number theory / primes)  
+**Statement matches intent:** yes  
+**Known status:** Open. Related to Ford-Green-Konyagin-Maynard-Tao long-gaps work and Ford-Maynard-Tao 'chains of large gaps between primes', which produce many consecutive large gaps but nowhere near the maximum, so the conjecture is untouched. No PR/campaign hits for 1137.  
+**Difficulty:** math 9/10, Lean 9/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Definition of primeGap checked at FormalConjecturesForMathlib/NumberTheory/PrimeGap.lean:27; the n-1 truncation contributes only the value 1 to the numerator sup.  
+**Flags:** ℕ-subtraction primeGap (n-1) at n = 0 (harmless: contributes the minimal gap); max taken over prime index n < x rather than primes below x  
+**Next action:** Leave open. Key obstruction: no upper bound on max_{n<x} d_n is known that is anywhere near the Erdos-Rankin lower bound, so the denominator is uncontrolled.
+
+## `erdos_1139` — Deep but approachable research problem (cat 8)
+
+**File:** `FormalConjectures/ErdosProblems/1139.lean:34`  
+**Statement:** Let u_1 < u_2 < ... list the positive integers with at most 2 prime factors (counted with multiplicity). Is limsup_k (u_{k+1} - u_k)/log k infinite?  
+**Source:** https://www.erdosproblems.com/1139 (state: open, tags number theory / primes)  
+**Statement matches intent:** yes  
+**Known status:** Open. The counting function of {Ω ≤ 2} up to x is ~ x log log x / log x, so the average gap is ~ log x / log log x; gaps of size ≫ log k require long runs of integers all having at least 3 prime factors, well beyond current sieve technology. No internal or external resolution found.  
+**Difficulty:** math 8/10, Lean 9/10 · **Compute:** none · **Confidence:** medium  
+**Evidence:** Index-shift and junk-value analysis; density heuristic for Ω ≤ 2 shows the question is genuinely about exceptional runs, not typical behaviour.  
+**Flags:** 0-indexed Nat.nth vs 1-indexed source (limsup unaffected)  
+**Next action:** Leave open. Key obstruction: constructing long intervals free of primes AND semiprimes; Erdos-Rankin handles primes only. Progress would be any unconditional lower bound limsup (u_{k+1}-u_k)/log k > 0.
+
+## `erdos_1142` — Major open problem / currently infeasible (cat 9)
+
+**File:** `FormalConjectures/ErdosProblems/1142.lean:51`  
+**Statement:** Are there infinitely many n > 2 such that n - 2^k is prime for every k >= 1 with 2^k < n? (The only known such n are 4, 7, 15, 21, 45, 75, 105.)  
+**Source:** https://www.erdosproblems.com/1142 (state: open); OEIS A039669; [MiWe69] Mientka and Weitzenkamp, On f-plentiful numbers, JCT 7 (1969), 374-377  
+**Statement matches intent:** yes  
+**Known status:** Open; conjecturally the answer is no (105 is believed to be the largest). Mientka-Weitzenkamp verified no further examples up to 2^44 (recorded as a solved variant in the same file). No PR or campaign in this fork targets 1142.  
+**Difficulty:** math 9/10, Lean 10/10 · **Compute:** none · **Confidence:** high  
+**Evidence:** Predicate cross-checked against the file's seven test theorems and the A039669 definition; both directions of the infinitude question are beyond current methods.  
+**Next action:** Leave open. Neither direction is approachable: proving finiteness needs, for every large n, a k with n - 2^k composite (a covering-congruence style statement not implied by known de Polignac results), and proving infinitude needs simultaneous primality of ~log2(n) shifted values.
 
 ## `erdos_357.parts.i` — Deep but approachable research problem (cat 8)
 
