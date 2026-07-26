@@ -1,0 +1,85 @@
+name: OpenAI formal-proof gap inventory
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-formal-proof-gap-scan.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Find admitted declarations with formal-proof provenance
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          decl_re = re.compile(r'^\s*(theorem|lemma)\s+([^\s:(]+)')
+          top_re = re.compile(r'^(?:@\[|/--|theorem\s|lemma\s|def\s|abbrev\s|namespace\s|section\s|end(?:\s|$))')
+          rows = []
+          for path in sorted(Path('FormalConjectures').rglob('*.lean')):
+              lines = path.read_text(encoding='utf-8').splitlines()
+              for i, line in enumerate(lines):
+                  if 'formal_proof' not in line:
+                      continue
+                  attr_start = i
+                  while attr_start > 0 and '@[' not in lines[attr_start]:
+                      attr_start -= 1
+                  attr_end = i
+                  while attr_end < len(lines) and ']' not in lines[attr_end]:
+                      attr_end += 1
+                  attr = '\n'.join(lines[attr_start:min(attr_end + 1, len(lines))])
+                  if 'formal_proof' not in attr:
+                      continue
+                  start = None
+                  match = None
+                  for j in range(attr_end + 1, min(len(lines), attr_end + 15)):
+                      match = decl_re.match(lines[j])
+                      if match:
+                          start = j
+                          break
+                  if start is None:
+                      continue
+                  end = len(lines)
+                  saw_body = False
+                  for j in range(start + 1, len(lines)):
+                      if ':= by' in lines[j] or lines[j].strip() == 'sorry':
+                          saw_body = True
+                      if saw_body and lines[j] and not lines[j][0].isspace() and top_re.match(lines[j]):
+                          end = j
+                          break
+                  block = '\n'.join(lines[start:end])
+                  if not re.search(r'\bsorry\b', block):
+                      continue
+                  url = re.search(r'"(https://[^\"]+)"', attr)
+                  category = re.search(r'category\s+([^,\]]+)', attr)
+                  rows.append({
+                      'path': str(path),
+                      'line': start + 1,
+                      'name': match.group(2),
+                      'url': url.group(1) if url else '',
+                      'category': category.group(1).strip() if category else '',
+                      'attr': attr,
+                      'sig': '\n'.join(lines[start:min(end, start + 18)]),
+                  })
+
+          out = []
+          for r in rows:
+              out.append(
+                  f"## {r['name']} | {r['path']}:{r['line']} | {r['category']}\n"
+                  f"Source: {r['url']}\n\n```lean\n{r['attr']}\n{r['sig']}\n```\n"
+              )
+          Path('/tmp/formal-proof-gaps.md').write_text('\n'.join(out), encoding='utf-8')
+          print(f'wrote {len(rows)} formal-proof gaps')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formal-proof-gaps
+          path: /tmp/formal-proof-gaps.md
+          if-no-files-found: error
