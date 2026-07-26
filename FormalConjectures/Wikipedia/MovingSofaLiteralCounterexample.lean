@@ -19,10 +19,10 @@ import FormalConjectures.Wikipedia.MovingSofa
 /-!
 # Literal counterexample to moving-sofa uniqueness
 
-The catalog's uniqueness declaration quantifies over every set `s : Set ℝ²` and
-uses literal set equality. Lebesgue volume is unchanged by inserting or deleting
-a singleton, so no set can be uniquely characterized among all sets by its
-volume alone.
+The catalog's uniqueness declaration quantifies over every set `s` and uses
+literal set equality. Lebesgue volume is unchanged by inserting or deleting a
+singleton, so no set can be uniquely characterized among all sets by its volume
+alone.
 
 This only disproves the declaration as written. A corrected uniqueness theorem
 must restrict to valid moving sofas and should likely identify sets modulo null
@@ -32,12 +32,14 @@ sets or impose suitable regularity.
 namespace MovingSofa
 
 open MeasureTheory
+open scoped Real unitInterval EuclideanGeometry
 
 /-- Equal volume cannot characterize `gerversSofa` by literal equality among all sets. -/
 @[category research solved, AMS 49]
 theorem sofaConstant_eq_volume_iff_eq_gerversSofa_false :
     ¬ (∀ s : Set ℝ², sofaConstant = volume s ↔ s = gerversSofa) := by
   intro h
+  have hconst : sofaConstant = volume gerversSofa := (h gerversSofa).2 rfl
   by_cases hG : gerversSofa = Set.univ
   · let p : ℝ² := 0
     let s : Set ℝ² := ({p}ᶜ)
@@ -46,8 +48,7 @@ theorem sofaConstant_eq_volume_iff_eq_gerversSofa_false :
     have hvol : volume s = volume gerversSofa := by
       rw [hG]
       exact (measure_congr hae).symm
-    have hsconst : sofaConstant = volume s :=
-      sofaConstant_eq_volume_gerversSofa.trans hvol.symm
+    have hsconst : sofaConstant = volume s := hconst.trans hvol.symm
     have hseq : s = gerversSofa := (h s).1 hsconst
     have hpG : p ∈ gerversSofa := by
       rw [hG]
@@ -64,8 +65,7 @@ theorem sofaConstant_eq_volume_iff_eq_gerversSofa_false :
     have hae : s =ᵐ[volume] gerversSofa := by
       simpa [s] using (insert_ae_eq_self (μ := volume) p gerversSofa)
     have hvol : volume s = volume gerversSofa := measure_congr hae
-    have hsconst : sofaConstant = volume s :=
-      sofaConstant_eq_volume_gerversSofa.trans hvol.symm
+    have hsconst : sofaConstant = volume s := hconst.trans hvol.symm
     have hseq : s = gerversSofa := (h s).1 hsconst
     have hps : p ∈ s := by simp [s]
     have hpG : p ∈ gerversSofa := by
