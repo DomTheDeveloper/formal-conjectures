@@ -1,0 +1,80 @@
+name: OpenAI Erdos 828 phi classification audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-erdos828-phi-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned current Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: erdos828-phi-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: erdos828-phi-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Build current catalog module
+        run: lake build FormalConjectures.ErdosProblems.«828»
+      - name: Generate exact historical theorem source
+        run: |
+          curl -fsSL 'https://raw.githubusercontent.com/XC0R/formal-conjectures/03e00cf8d44098d0fb06e891fca30c29769df619/FormalConjectures/ErdosProblems/828.lean' -o /tmp/Erdos828Historical.lean
+          test "$(git hash-object /tmp/Erdos828Historical.lean)" = 'c1ebc4e74a2308c13aa72ce65fa3ea5a172c127e'
+          python3 - <<'PY'
+          from pathlib import Path
+          src = Path('/tmp/Erdos828Historical.lean').read_text()
+          start = src.index('theorem erdos_828.variants.phi_dvd_self_iff_pow2_pow3')
+          end = src.index('\n\nend Erdos828', start)
+          body = src[start:end].replace(
+              'theorem erdos_828.variants.phi_dvd_self_iff_pow2_pow3',
+              'theorem erdos_828.variants.phi_dvd_self_iff_pow2_pow3_kernel',
+              1,
+          )
+          out = '''import FormalConjectures.ErdosProblems.«828»
+          /-! Exact replay of the totient-divisibility classification. -/
+          namespace Erdos828
+          open scoped Nat
+          ''' + body + '\nend Erdos828\n'
+          Path('/tmp/Erdos828PhiProof.lean').write_text(out)
+          PY
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/Erdos828PhiProof.lean
+      - name: Compile exact theorem source
+        run: |
+          set -o pipefail
+          lake env lean /tmp/Erdos828PhiProof.lean 2>&1 | tee /tmp/erdos828-phi-build.log
+      - name: Audit exact theorem axioms
+        run: |
+          cp /tmp/Erdos828PhiProof.lean /tmp/Erdos828PhiAxioms.lean
+          sed -i '$d' /tmp/Erdos828PhiAxioms.lean
+          cat >> /tmp/Erdos828PhiAxioms.lean <<'EOF'
+          #print axioms Erdos828.erdos_828.variants.phi_dvd_self_iff_pow2_pow3_kernel
+          end Erdos828
+          EOF
+          lake env lean /tmp/Erdos828PhiAxioms.lean 2>&1 | tee /tmp/erdos828-phi-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/erdos828-phi-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: erdos828-phi-${{ github.run_id }}
+          path: |
+            /tmp/Erdos828PhiProof.lean
+            /tmp/erdos828-phi-build.log
+            /tmp/erdos828-phi-axioms.log
+          if-no-files-found: warn
