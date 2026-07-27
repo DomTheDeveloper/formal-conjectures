@@ -1,0 +1,81 @@
+name: OpenAI weak Giuga criterion audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-weak-giuga-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: weak-giuga-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: weak-giuga-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Build current catalog module
+        run: lake build FormalConjectures.Wikipedia.AgohGiuga
+      - name: Generate exact historical theorem source
+        run: |
+          curl -fsSL 'https://raw.githubusercontent.com/mo271/formal-conjectures/2663234a28260853790aa5752d8d4550ff0ab1ca/FormalConjectures/Wikipedia/AgohGiuga.lean' -o /tmp/AgohGiugaHistorical.lean
+          test "$(git hash-object /tmp/AgohGiugaHistorical.lean)" = 'b209f692e36e040acbff364e25871337f37c698d'
+          python3 - <<'PY'
+          from pathlib import Path
+          src = Path('/tmp/AgohGiugaHistorical.lean').read_text()
+          start = src.index('theorem isWeakGiuga_iff_prime_dvd')
+          end = src.index('/--\nA composite number $n$ is weak Giuga if and only if\n$$', start)
+          body = src[start:end]
+          body = body.replace(
+              'theorem isWeakGiuga_iff_prime_dvd',
+              'theorem isWeakGiuga_iff_prime_dvd_kernel',
+              1,
+          )
+          out = '''import FormalConjectures.Wikipedia.AgohGiuga
+          /-! Exact replay of the weak Giuga prime-divisor criterion. -/
+          open scoped Nat
+          namespace AgohGiuga
+          ''' + body + '\nend AgohGiuga\n'
+          Path('/tmp/WeakGiugaProof.lean').write_text(out)
+          PY
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/WeakGiugaProof.lean
+      - name: Compile exact proof source
+        run: |
+          set -o pipefail
+          lake env lean /tmp/WeakGiugaProof.lean 2>&1 | tee /tmp/weak-giuga-build.log
+      - name: Audit theorem axioms
+        run: |
+          cp /tmp/WeakGiugaProof.lean /tmp/WeakGiugaAxioms.lean
+          sed -i '$d' /tmp/WeakGiugaAxioms.lean
+          cat >> /tmp/WeakGiugaAxioms.lean <<'EOF'
+          #print axioms AgohGiuga.isWeakGiuga_iff_prime_dvd_kernel
+          end AgohGiuga
+          EOF
+          lake env lean /tmp/WeakGiugaAxioms.lean 2>&1 | tee /tmp/weak-giuga-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/weak-giuga-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: weak-giuga-${{ github.run_id }}
+          path: |
+            /tmp/WeakGiugaProof.lean
+            /tmp/weak-giuga-build.log
+            /tmp/weak-giuga-axioms.log
+          if-no-files-found: warn
