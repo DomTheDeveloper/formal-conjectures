@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjecturesUtil
+import FormalConjectures.Util.ProblemImports
 
 /-!
 # Nonnegativity of the Dirichlet square root of A046644
@@ -91,6 +91,18 @@ noncomputable def f : ℕ → ℚ :=
         else 0
       (target - interiorSum) / 2
 
+private lemma f_eq (n : ℕ) :
+    f n =
+      if n = 0 then 0
+      else if n = 1 then 1
+      else
+        let target : ℚ := a046644 n
+        let interiorSum : ℚ := Finset.sum (divisors n) fun d ↦
+          if h : d > 1 ∧ d < n then f d * f (n / d) else 0
+        (target - interiorSum) / 2 := by
+  unfold f
+  rw [WellFounded.fix_eq]
+
 /--
 A317940: the numerator of `f n`.
 -/
@@ -99,23 +111,44 @@ noncomputable def a (n : ℕ) : ℤ :=
 
 @[category test, AMS 11]
 theorem a_1 : a 1 = 1 := by
-  sorry
+  unfold a
+  rw [f_eq]
+  norm_num
 
 @[category test, AMS 11]
 theorem a_2 : a 2 = 1 := by
-  sorry
+  unfold a
+  rw [f_eq]
+  norm_num [a046644, a005187, Nat.Prime.factorization,
+    Nat.primeFactors, Nat.primeFactorsList]
 
 @[category test, AMS 11]
 theorem a_3 : a 3 = 1 := by
-  sorry
+  unfold a
+  rw [f_eq]
+  norm_num [a046644, a005187, Nat.Prime.factorization,
+    Nat.primeFactors, Nat.primeFactorsList]
 
 @[category test, AMS 11]
 theorem a_4 : a 4 = 7 := by
-  sorry
+  have hf2 : f 2 = 1 := by
+    rw [f_eq]
+    norm_num [a046644, a005187, Nat.Prime.factorization,
+      Nat.primeFactors, Nat.primeFactorsList]
+  have hfac : (4 : ℕ).factorization = Finsupp.single 2 2 := by
+    rw [show (4 : ℕ) = 2 ^ 2 by norm_num]
+    exact Nat.Prime.factorization_pow (by norm_num)
+  have hdiv : divisors 4 = {1, 2, 4} := by decide
+  unfold a
+  rw [f_eq]
+  norm_num [a046644, a005187, hfac, hdiv, hf2]
 
 @[category test, AMS 11]
 theorem a_5 : a 5 = 1 := by
-  sorry
+  unfold a
+  rw [f_eq]
+  norm_num [a046644, a005187, Nat.Prime.factorization,
+    Nat.primeFactors, Nat.primeFactorsList]
 
 /--
 "No negative terms among the first 2^20 terms. Is the sequence nonnegative?"
