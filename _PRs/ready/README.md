@@ -4,13 +4,11 @@ This directory contains candidates that are fully green and packaged for an upst
 
 Only place an item here after it satisfies every gate in [`../README.md`](../README.md).
 
-Each ready item must record:
+## Current ready set
 
-- canonical theorem and source path;
-- immutable green commit and workflow run;
-- exact axiom footprint;
-- upstream branch or compare link;
-- copy-paste PR title and description;
-- changed-file and commit counts.
+- [Kagey Problem 20 / OEIS A263135](kagey-20-a263135.md)
+- [Nonlinear Voronovskaja formula](nonlinear-voronovskaja.md)
+
+Each ready item records the canonical source, immutable proof and green runs, exact patch shape, and paste-ready upstream PR text.
 
 Once the GDM PR is opened, move the record to [`../open/`](../open/). No item is ready merely because a separate wrapper theorem compiles.

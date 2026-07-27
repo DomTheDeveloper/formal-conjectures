@@ -2,7 +2,7 @@
 
 ## Status
 
-Queued — not ready for Google DeepMind.
+Almost ready — the formalization defect is identified and the regression is green, but the corrected canonical statement has not yet been implemented and integrated.
 
 ## Problem
 
@@ -32,4 +32,4 @@ before the existing positivity, cross-distinctness, equality, and lower-bound hy
 
 ## Existing audit
 
-Draft PR #267 contains a green kernel-checked regression theorem exposing the current defect. It should be treated as evidence for the correction, not as a solved conjecture submission.
+Draft PR #267 contains the green kernel-checked regression theorem exposing the current defect. It is evidence for the correction, not a solved-conjecture submission.
