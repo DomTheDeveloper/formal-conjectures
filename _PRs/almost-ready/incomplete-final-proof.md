@@ -1,0 +1,19 @@
+# Incomplete final mathematics, certificate, or semantic bridge
+
+These projects have meaningful verified structure, reductions, or proof infrastructure, but the intended final theorem is not yet established by an acceptable exact Lean proof.
+
+| Problem | Progress already secured | Missing final step |
+|---|---|---|
+| OEIS A147983 / Chomp `10 × 42` | Exact P-position stream and reduced MDD infrastructure; kernel-checked certificate interfaces; large symbolic carrier experiments | Produce a complete response certificate, import it into the trusted Lean checker, and prove the exact three openings without `sorry`, `native_decide`, or compiler trust. Current final theorem remains incomplete. |
+| Exact `W(3,20)=389` upper bound | Lower bound is already an open green GDM PR; Lean order bridge and SAT/LRAT infrastructure exist | Finish every UNSAT cube certificate, validate the LRAT checker, import all leaves, and derive `W 3 20 ≤ 389`. |
+| Intended Beaver Math Olympiad Problem 8 dynamics | GDM PR #4594 merged the faithful integer-valued statement correction; the old truncated-`Nat` certificate was correctly demoted | Prove halting or nonhalting for the corrected intended recurrence. The earlier witness is not evidence for this theorem. |
+| Sun Conjecture 2.6 | Formal statement and analytic/finite proof architecture in PR #256; independent finite enumeration described | Replace the `native_decide` finite layer with an accepted kernel certificate, compile the analytic reduction, and audit the canonical theorem. |
+| Full RNA quasi-powers theorem | Exact algebraic radicand, dominant-root identities, covariance/correlation calculations, and normalization correction are green; package audit head `09c105e7cff2cad0cf3ac342b3f3a869917f705e` previously built | Prove uniform singularity separation, coefficient asymptotics, nondegeneracy, and multivariate weak convergence. The current verified package is only a partial certificate, not the full conjecture. |
+| WorldCup7 degree-29 identity | One-file catalog package head `1ce26d37b28865bd614b979da2b814c0ab281128` passed full build `30020200379` | Supply a fully trusted formal certificate for the complete Ehrhart/polynomial identity. The current package explicitly does not claim a kernel proof of the full identity. |
+| OEIS A280831 / Sun's 1680 conjecture | PR #261 gives green square-stability and infinite parametric families, including `3y²+w²`, `11y²+w²`, and `18y²+w²` | Cover the unresolved odd core `8b+7` and assemble the universal theorem. |
+| Erdős Problem 7 odd covering systems | PR #262 develops the finite CRT obstruction showing pairwise-coprime nontrivial moduli cannot cover | Prove the full nonexistence theorem or construct a strict odd covering system; the current result is only search pruning. |
+| Monochromatic quantum graph color restriction | Full quantum color-restriction audit workflows are green on the maintained proof stack | Isolate the exact canonical theorem, immutable proof head, and one-file GDM package; rerun the exact submission audit rather than relying on a general workflow result. |
+| Checkerboard `D_mono(n) ≤ 2n - 4` | A kernel-checked proof and staging package have been reported in prior work | Reattach the exact immutable proof, canonical source path, current DTD/GDM audit runs, and submission branch to this repository inventory before promotion. No unsupported readiness claim is made here. |
+| WOWII 133 | One structural branch is proved and the remaining case has been reduced | Establish the missing global charging/detour inequality or produce a counterexample, then formalize the complete theorem. |
+
+These lanes may remain almost-ready for a long time. Partial results and infrastructure must not be relabeled as the final solved theorem.
