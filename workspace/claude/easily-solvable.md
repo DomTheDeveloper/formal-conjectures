@@ -1,198 +1,272 @@
 # Easily Solvable "Open" Problems in formal-conjectures
 
 This document records statements in this repository tagged `@[category research open]`
-(plus two notable neighbors) that turn out to be **easily solvable as
-formalized** — together with machine-checked Lean proofs and an assessment of
-whether the *underlying informal problem* is truly open.
+(plus four tagged `research solved`) that turn out to be **easily solvable, or
+outright false, as formalized** — together with machine-checked Lean proofs and
+an assessment of whether the *underlying informal problem* is truly open.
+
+**Headline: 40 statements resolved — 36 tagged `research open`, 4 tagged
+`research solved`.** In every case the *informal* problem is untouched: what
+these proofs show is a gap between the formal statement and the mathematics it
+is meant to capture.
 
 All Lean proofs live in this directory and compile against the repo's toolchain
-(Lean 4.27.0, mathlib pinned by `lake-manifest.json`):
+(Lean 4.27.0, mathlib pinned by `lake-manifest.json`). Every theorem was
+verified `sorry`-free by `#print axioms` — only `propext`, `Classical.choice`,
+`Quot.sound` — with one explicitly noted exception where a `sorryAx` enters
+through a *definition* in the repository itself.
 
-| File | Contents |
-|---|---|
-| [`Disproofs.lean`](./Disproofs.lean) | negation of the moving-sofa uniqueness statement (fully general, sorry-free) |
-| [`Erdos486.lean`](./Erdos486.lean) | resolution of Erdős 486 as formalized: RHS disproved (≈250 lines of harmonic analysis) |
-| [`Erdos361_15.lean`](./Erdos361_15.lean) | Erdős 361 (contradictory hypothesis, ×3) and Erdős 15 (`Summable` misuse) |
-| [`ReflexiveAnswers.lean`](./ReflexiveAnswers.lean) | 25 asymptotic-estimate statements solved by answer-self-instantiation |
-| [`Solutions.lean`](./Solutions.lean) | degenerate-system proofs of the two Steiner-system statements |
-
-**Total: 33 statements resolved** (31 tagged `research open`, 2 tagged
-`research solved`), every proof verified `sorry`-free by `#print axioms`
-(only `propext`, `Classical.choice`, `Quot.sound`), except where a `sorryAx`
-enters through a *definition* in the repository itself (noted explicitly below).
+| File | Statements resolved | Contents |
+|---|---:|---|
+| [`ReflexiveAnswers.lean`](./ReflexiveAnswers.lean) | 25 | asymptotic-estimate questions solved by answer-self-instantiation |
+| [`Erdos507.lean`](./Erdos507.lean) | 2 + 2 | Heilbronn triangle problem: `α ≡ 0`; two `research solved` variants shown **false** |
+| [`Erdos361_15.lean`](./Erdos361_15.lean) | 4 | Erdős 361 (contradictory hypothesis ×3), Erdős 15 (`Summable` misuse) |
+| [`Erdos486.lean`](./Erdos486.lean) | 1 | Erdős 486: RHS disproved (~250 lines of harmonic analysis) |
+| [`Erdos128.lean`](./Erdos128.lean) | 1 | Erdős 128: quantifier-scope error |
+| [`Erdos683.lean`](./Erdos683.lean) | 1 | Erdős 683: strict vs. non-strict inequality |
+| [`Erdos42.lean`](./Erdos42.lean) | 1 | Erdős 42 "constructive" variant = the already-solved statement |
+| [`Disproofs.lean`](./Disproofs.lean) | 1 | moving-sofa uniqueness (fully general disproof) |
+| [`Solutions.lean`](./Solutions.lean) | 2 | Steiner systems via degenerate designs (`research solved`) |
 
 ---
 
 ## Methodology
 
-Three passes over all **1,166 research-open statements (624 files)**:
+Three passes over all **1,166 research-open statements in 624 files**:
 
 1. **Automated tactic sweep.** Every research-open declaration without
    `answer(sorry)` in its statement had its proof `sorry` replaced by a battery
-   (`omega`, `decide`, `norm_num`, `simp_all`, `positivity`, `grind`, `aesop`)
-   with strict re-verification of any hit (exit code 0 + `#print axioms`
-   clean). **Result: zero genuine hits** — the corpus is robust against
-   trivial automation. (One false positive in `Wikipedia/Agrawal.lean` — a
-   heartbeat-timeout elaboration stub — was rejected by strict verification.)
-2. **Semantic audit.** Manual review plus a 13-agent parallel audit of all
-   624 files, hunting junk-value exploits, vacuous hypotheses, quantifier
-   slips, and statements weaker than the problems they cite, with an
-   adversarial-skeptic pass over every candidate finding.
-3. **Ground truth.** Every surviving candidate was proved in Lean and
-   compiled. Nothing below is "sketch only".
+   (`omega`, `decide`, `norm_num`, `simp_all`, `positivity`, `grind`, `aesop`),
+   compiled, and any hit strictly re-verified (exit code 0 **and** clean
+   `#print axioms`). **Result: zero genuine hits** — the corpus is robust
+   against trivial automation. The one flagged candidate
+   (`Wikipedia/Agrawal.lean`) was a heartbeat-timeout elaboration artifact and
+   was rejected on strict verification.
+2. **Semantic audit.** Manual review plus a parallel multi-agent audit hunting
+   junk-value exploits, vacuous hypotheses, quantifier slips, and statements
+   weaker than the problems they cite. Every finding below was then **proved in
+   Lean**, which is a stronger check than any reviewer.
+3. **Openness research.** Literature/OEIS/erdosproblems.com checks on each
+   underlying problem, plus computational counterexample searches.
+
+**Coverage caveat:** the agent audit completed 7 of 13 planned file chunks
+before hitting a session limit. Fully audited: all of `ErdosProblems/` (354
+files) and one third of `Wikipedia/`. Not agent-audited (though all were
+covered by the tactic sweep, and ~25 files were reviewed by hand):
+two thirds of `Wikipedia/`, `GreensOpenProblems/`, `Paper/`,
+`WrittenOnTheWallII/`, `OEIS/`, `Mathoverflow/`, `Arxiv/`, `Books/`,
+`Millenium/`, and the small directories. **There is very likely more to find
+there.**
 
 ---
 
-## Finding 1 — Erdős Problem 486: resolved by `answer(False)` (the `n = 0` modulus bug)
+## Finding 1 — The reflexive-answer degeneracy class (25 statements)
 
-**Statement** (`FormalConjectures/ErdosProblems/486.lean`, `research open`):
+**Statements**: 25 `research open` asymptotic-estimate questions of the form
 
 ```lean
-theorem erdos_486 : answer(sorry) ↔
-    ∀ X : (n : ℕ) → Set (ZMod n), ∃ d, {m : ℕ | ∀ n, (m : ZMod n) ∉ X n}.HasLogDensity d
+theorem … : f =O[l] (answer(sorry) : ℕ → ℝ)     -- or =Θ, or ~
 ```
 
-**Defect.** The family ranges over *all* moduli including `n = 0`, and
-`ZMod 0 = ℤ` with the *injective* coercion `ℕ → ℤ`. So `X 0` alone can exclude
-an arbitrary set of integers: taking `X 0 := (Nat.cast '' S)ᶜ` and
-`X (n+1) := ∅` realizes `B = S` for **every** `S ⊆ ℕ`. The statement thus
-asserts that every subset of ℕ has a logarithmic density — false.
+across `ErdosProblems/142, 272, 321, 340, 357, 409, 422, 507, 539, 688, 789`
+and `GreensOpenProblems/27, 37`.
 
-**Proof** ([`Erdos486.lean`](./Erdos486.lean), sorry-free): the union of blocks
-`[2^(4^j), 2^(2·4^j))` has log-density partial sums `≥ 0.45` at the top of each
-block but `≤ 0.40` just before the next block, via mathlib's harmonic-sum
-bounds (`log (n+1) ≤ harmonic n ≤ 1 + log n`), so no limit exists. Main
-theorem: `Erdos486Resolution.erdos_486_rhs_false`. Hence `erdos_486` holds
-with `answer(False)`.
+**Defect.** `=O`, `=Θ` and `~` (`IsEquivalent`) are all **reflexive**, and the
+`answer( )` elaborator accepts any term of the right type — including the
+function being estimated. So `answer := f` resolves each statement in one
+line, with zero mathematical content.
 
-**Is the underlying problem open?** The intended problem restricts the
-congruence conditions to moduli `n < m` (see
-[erdosproblems.com/486](https://www.erdosproblems.com/486)) — a genuinely
-different and much subtler question. Notably, a 2026 proof claim by Shouqiao
-Wang on the [problem's discussion thread](https://www.erdosproblems.com/forum/thread/486)
-argues the answer to the *real* problem is also "no" (via congruence conditions
-activated at increasing scales), but that construction is real mathematics —
-nothing like the formalization's one-line `n = 0` carve-out. The formal
-statement needs moduli `n ≥ 1` (and the `n < m` guard) to capture the problem.
+**Proof** ([`ReflexiveAnswers.lean`](./ReflexiveAnswers.lean)): each original
+statement verbatim with `answer(sorry)` replaced by its own left-hand side,
+closed by `isBigO_refl` / `isTheta_refl` / `IsEquivalent.refl`. All 25
+sorry-free.
+
+**Are the underlying problems open?** Yes, all of them. The finding is
+structural: *any* `f REL answer( )` statement with a reflexive relation is
+formally degenerate. Two cases are aggravated:
+
+* `ErdosProblems/422.lean` defines its function by `partial def f`, which is
+  **logically opaque** in Lean — no defining equations are generated, so *no*
+  nontrivial growth bound about it is provable at all. The self-referential
+  answer is essentially the only provable one.
+* `ErdosProblems/507.lean` is degenerate for an independent reason — see
+  Finding 2.
+
+A fix could require answers drawn from a fixed vocabulary of elementary
+functions, or restate the questions as specific conjectured bounds (as several
+files already do in their `variants`).
 
 ---
 
-## Finding 2 — Erdős Problem 361: contradictory hypothesis (×3 statements)
+## Finding 2 — Erdős 507 (Heilbronn triangle problem): `α` is identically zero
 
-**Statements** (`FormalConjectures/ErdosProblems/361.lean`, all `research open`):
-`erdos_361.bigO`, `erdos_361.bigTheta`, `erdos_361.smallO`, each with parameter
-`(c : ℝ)` and hypothesis
+**Statements** (`FormalConjectures/ErdosProblems/507.lean`):
+`erdos_507.equivalent`, `.lower`, `.upper` (`research open`), plus
+`.variants.lower_erdos` and `.variants.lower_kps82` (**`research solved`**).
+
+**Defect.** `minTriangleArea S` is defined as an `sInf` of
+`EuclideanGeometry.triangle_area (t.points 0) (t.points 1) (t.points 2)` over
+all triangles `t` with vertices in `S`. But `triangle_area` is the **signed**
+area (`areaForm (a -ᵥ c) (b -ᵥ c) / 2`), and every unordered triangle appears
+with both vertex orientations, so the value set is closed under negation:
+`minTriangleArea S = −(max area) ≤ 0`. Flat near-degenerate configurations
+drive it to `0`, so `α ≡ 0` — the Heilbronn asymptotics are lost entirely.
+
+**Proof** ([`Erdos507.lean`](./Erdos507.lean), all sorry-free):
+
+* `alpha_eq_zero : ∀ n, α n = 0` — upper bound via orientation-swapping
+  (`Orientation.areaForm_swap`) plus finiteness of the value set; lower bound
+  via an explicit configuration (one point at `(0, δ)`, the rest on the
+  x-axis at spacing `δ`) with all signed areas `≥ −(3/2)nδ²`.
+* `erdos_507_upper_answered` — `erdos_507.upper` holds with the zero function.
+* `erdos_507_lower_unanswerable` — **no** answer makes `erdos_507.lower` true.
+* `not_lower_erdos`, `not_lower_kps82` — the two statements tagged
+  `research solved` (Erdős's `α ≫ 1/n²` and the Komlós–Pintz–Szemerédi
+  `log n/n² ≪ α`) are **false as formalized**, since `α ≡ 0` cannot dominate
+  an eventually-positive function.
+
+**Is the underlying problem open?** Yes — the Heilbronn triangle problem is
+famously open (current bounds: `log n/n²` lower, `n^{-7/6+o(1)}` upper by
+Cohen–Pohoata–Zakharov). The fix is to use `|triangle_area|`, or to define the
+minimum over unordered triples.
+
+---
+
+## Finding 3 — Erdős 361: contradictory hypothesis (3 statements)
+
+**Statements**: `erdos_361.bigO`, `.bigTheta`, `.smallO`, each with a parameter
+`(c : ℝ)` and the hypothesis
 
 ```lean
 hA : ∀ c n, A n = ((Finset.Icc 1 ⌊c * n⌋₊).powerset.filter
       (fun B ↦ n ≠ ∑ a ∈ B, a)).sup Finset.card
 ```
 
-**Defect.** The inner binder `c` *shadows* the theorem's real parameter `c`
-(and even elaborates at type `ℕ`, so the outer `c` is unused). The hypothesis
-pins `A n` for every `c` simultaneously and is contradictory: `c = 1, n = 1`
-forces `A 1 = 0` while `c = 3, n = 1` forces `A 1 = 3`. All three statements
-are vacuously provable **with any answer whatsoever**.
+**Defect.** The inner binder `c` **shadows** the theorem's parameter (and even
+elaborates at type `ℕ`, so the real `c` is entirely unused). The hypothesis
+pins `A n` for every `c` at once and is contradictory: `c = 1, n = 1` forces
+`A 1 = 0` while `c = 3, n = 1` forces `A 1 = 3`. All three statements are
+vacuously provable **with any answer whatsoever**.
 
-**Proof** ([`Erdos361_15.lean`](./Erdos361_15.lean), sorry-free):
-`erdos_361_hypothesis_inconsistent` is a one-line `decide`; the three
-statements follow with the zero function as answer.
+**Proof** ([`Erdos361_15.lean`](./Erdos361_15.lean)):
+`erdos_361_hypothesis_inconsistent` is a one-line `decide`.
 
-**Is the underlying problem open?** Yes —
-[erdosproblems.com/361](https://www.erdosproblems.com/361) (largest subset of
-`{1,…,⌊cn⌋}` with no subset summing to `n`) is open. The fix is
+**Is the underlying problem open?** Yes
+([erdosproblems.com/361](https://www.erdosproblems.com/361)). Fix:
 `hA : ∀ n, A n = …` using the theorem's own `c : ℝ`.
 
 ---
 
-## Finding 3 — Erdős Problem 15: `Summable` ≠ "converges" — resolved by `answer(False)`
+## Finding 4 — Erdős 486: resolved by `answer(False)` via the `n = 0` modulus
 
-**Statement** (`FormalConjectures/ErdosProblems/15.lean`, `research open`):
+**Statement**: `answer(sorry) ↔ ∀ X : (n : ℕ) → Set (ZMod n), ∃ d,
+{m : ℕ | ∀ n, (m : ZMod n) ∉ X n}.HasLogDensity d`.
 
-```lean
-theorem erdos_15 : answer(sorry) ↔
-    Summable (fun k : ℕ => (-1 : ℚ) ^ (k + 1) * (k + 1) / (k.nth Nat.Prime))
-```
+**Defect.** The moduli range over *all* of `ℕ` including `0`, and
+`ZMod 0 = ℤ` with the **injective** coercion `ℕ → ℤ`. So `X 0` alone excludes
+an arbitrary set: `X 0 := (Nat.cast '' S)ᶜ`, `X (n+1) := ∅` realizes `B = S`
+for **every** `S ⊆ ℕ`. The statement therefore asserts that every subset of ℕ
+has a logarithmic density — false.
 
-**Defect.** The problem asks whether `∑ (-1)^n n/p_n` *converges* — i.e.
-conditional convergence of the partial sums. Mathlib's `Summable` demands
-*unconditional* convergence (of the net over finite subsets), which for
-real/rational series forces absolute convergence. Since
-`|(-1)^(k+1)(k+1)/p_k| ≥ 1/p_k` and `∑ 1/p` over primes diverges, the RHS is
-plainly false — regardless of the deep open question.
+**Proof** ([`Erdos486.lean`](./Erdos486.lean), sorry-free): the union of blocks
+`[2^(4^j), 2^(2·4^j))` has log-density partial sums `≥ 0.45` at the top of each
+block but `≤ 0.40` just before the next, via mathlib's harmonic bounds
+(`log(n+1) ≤ harmonic n ≤ 1 + log n`), so no limit exists.
 
-**Proof** ([`Erdos361_15.lean`](./Erdos361_15.lean), sorry-free):
-`erdos_15_rhs_false` — cast to ℝ along `Rat.castHom`, take absolute values
-(`summable_abs_iff`), dominate the prime-indicator sum along `Nat.nth
-Nat.Prime`, and contradict mathlib's `not_summable_one_div_on_primes`. Hence
-`erdos_15` holds with `answer(False)`.
-
-**Is the underlying problem open?** Very much so:
-[erdosproblems.com/15](https://www.erdosproblems.com/15). Tao (2023) proved
-the series converges *assuming* a strong Hardy–Littlewood prime-tuples
-conjecture; unconditionally it is open, with numerics suggesting convergence
-to ≈ −0.05216. The fix is to state convergence of partial sums:
-`∃ L, Tendsto (fun N => ∑ k ∈ range N, …) atTop (𝓝 L)`.
+**Is the underlying problem open?** The intended problem restricts to moduli
+`n ≥ 1` (with `m > n`) — a genuinely subtler question. A 2026 proof claim by
+Shouqiao Wang on the [discussion thread](https://www.erdosproblems.com/forum/thread/486)
+argues the real answer is also "no", but via congruence conditions activated at
+increasing scales — real mathematics, nothing like the `n = 0` carve-out.
 
 ---
 
-## Finding 4 — The reflexive-answer degeneracy class (25 statements)
+## Finding 5 — Erdős 15: `Summable` ≠ "converges"
 
-**Statements**: 25 `research open` asymptotic-estimate questions of the form
+**Statement**: `answer(sorry) ↔ Summable (fun k : ℕ => (-1)^(k+1) * (k+1) / p_k)`.
 
-```lean
-theorem … : f =O[l] (answer(sorry) : ℕ → ℝ)   -- or =Θ, or ~
-```
+**Defect.** The problem asks whether `∑ (-1)ⁿ n/pₙ` *converges* —
+conditionally. Mathlib's `Summable` means **unconditional** convergence, which
+over ℝ/ℚ forces absolute convergence. Since `|(-1)^(k+1)(k+1)/p_k| ≥ 1/p_k` and
+`∑ 1/p` diverges, the RHS is plainly false.
 
-across `ErdosProblems/142, 272, 321, 340, 357, 409, 422, 507, 539, 688, 789`
-and `GreensOpenProblems/27, 37`.
+**Proof** ([`Erdos361_15.lean`](./Erdos361_15.lean)): cast along `Rat.castHom`,
+take absolute values (`summable_abs_iff`), dominate the prime-indicator sum
+along `Nat.nth Nat.Prime`, contradict `not_summable_one_div_on_primes`.
 
-**Defect.** `=O`, `=Θ` and `~` (`IsEquivalent`) are *reflexive*, and the
-`answer( )` elaborator accepts any term of the right type — including the
-function being estimated. So `answer := f` resolves each statement in one
-line, with zero mathematical content. Two aggravating special cases:
-
-- `ErdosProblems/422.lean` defines its function via `partial def f`, which is
-  logically *opaque* in Lean: no defining equations exist, so no nontrivial
-  growth bound could ever be proven about it — the self-referential answer is
-  essentially the only provable one.
-- `ErdosProblems/507.lean` (Heilbronn triangle problem) additionally defines
-  `minTriangleArea` via mathlib's **signed** `triangle_area` under an `sInf`
-  over all vertex orderings, so `minTriangleArea S = −(max area) ≤ 0` and the
-  quantity `α` being "estimated" is identically `0` for `n ≥ 3` — the
-  Heilbronn asymptotics are lost entirely (this also makes
-  `erdos_507.lower`/`upper` refutable/trivially provable, resp.).
-
-**Proof** ([`ReflexiveAnswers.lean`](./ReflexiveAnswers.lean), all 25
-sorry-free): each original statement verbatim with `answer(sorry)` replaced by
-its own left-hand side, closed by `isBigO_refl` / `isTheta_refl` /
-`IsEquivalent.refl`.
-
-**Are the underlying problems open?** Yes, all of them (they include the
-Heilbronn triangle problem, Erdős's `f(n) = f(n−f(n−1))+f(n−f(n−2))`
-recursion, Sidon-set growth questions, etc.). The finding is structural: the
-`answer( )` form does not constrain asymptotic answers to closed forms, so
-*any* `f REL answer( )` statement with a reflexive relation is formally
-degenerate. A fix could require answers drawn from a concrete vocabulary of
-elementary functions, or restate the questions as specific conjectured bounds
-(as some files already do in their `variants`).
+**Is the underlying problem open?** Very much so
+([erdosproblems.com/15](https://www.erdosproblems.com/15)) — Tao proved
+convergence *assuming* a strong Hardy–Littlewood prime-tuples conjecture;
+numerics suggest a limit ≈ −0.05216. Fix: state convergence of partial sums.
 
 ---
 
-## Finding 5 — Moving sofa uniqueness (misformalized ⇒ disproved)
+## Finding 6 — Erdős 128: quantifier-scope error
 
-**Statement** (`FormalConjectures/Wikipedia/MovingSofa.lean`, `research open`):
+**Statement**: `answer(sorry) ↔ ∀ V [Fintype V] (G) (V'), 2·|V'|+1 ≥ n →
+50·e(V') > n² → ¬G.CliqueFree 3`.
 
-```lean
-theorem sofaConstant_eq_volume_iff_eq_gerversSofa :
-    ∀ s : Set ℝ², sofaConstant = volume s ↔ s = gerversSofa
-```
+**Defect.** The intended problem requires the density condition to hold for
+**every** large induced subgraph, as a hypothesis. As formalized, currying
+makes it say: if there **exists** one large dense induced subgraph, then `G`
+has a triangle. A single edge on two vertices refutes this (`V' = univ` is
+"large" and "dense" for `n = 2`, but two vertices contain no triangle).
+
+**Proof** ([`Erdos128.lean`](./Erdos128.lean)): explicit `Fin 2` counterexample.
+
+**Is the underlying problem open?** Yes
+([erdosproblems.com/128](https://www.erdosproblems.com/128)).
+
+---
+
+## Finding 7 — Erdős 683: strict vs. non-strict inequality
+
+**Statement**: `answer(sorry) ↔ ∃ c > 0, ∀ n k, 0 < k ∧ k < n →
+P(n,k) > min(n-k+1, k^{1+c})`, where `P(n,k)` is the largest prime factor of
+`binom n k`.
+
+**Defect.** The source states the bound **non-strictly** (`≥`) precisely
+because equality occurs for `k` near `n`. With `>`, `n = 4, k = 3` refutes it
+for every `c`: `binom 4 3 = 4` so `P = 2`, while `min(2, 3^{1+c}) = 2`.
+(Infinitely many counterexamples: `n = 2^t`, `k = n-1`.)
+
+**Proof** ([`Erdos683.lean`](./Erdos683.lean)): the `n = 4, k = 3` computation.
+
+**Is the underlying problem open?** Yes — the `≥` version
+([erdosproblems.com/683](https://www.erdosproblems.com/683)).
+
+---
+
+## Finding 8 — Erdős 42: the "constructive" variant is the solved statement
+
+**Statements**: `erdos_42` (`research solved`, `answer(True)`, external Lean
+proof linked) has RHS `∀ M ≥ 1, ∀ᶠ N in atTop, Q M N`;
+`erdos_42.variants.constructive` (`research open`) has RHS
+`∃ f, ∀ M N, 1 ≤ M → f M ≤ N → Q M N`.
+
+**Defect.** `∀ᶠ N in atTop, …` unfolds to `∃ a, ∀ N ≥ a, …`, so the second is
+the first with bounds collected by choice — the two are equivalent in Lean.
+The "open" variant is the same problem, and its answer is `True`.
+
+**Proof** ([`Erdos42.lean`](./Erdos42.lean)): `constructive_iff_eventually`,
+via `Filter.eventually_atTop` and `choose`.
+
+**Note.** The formal `∃ f` is a *classical* existence claim and extracts no
+computational content, so it does not express the informal request for an
+*explicit* bound; capturing that needs a named `f` with a stated growth rate.
+
+---
+
+## Finding 9 — Moving sofa uniqueness (disproved)
+
+**Statement** (`Wikipedia/MovingSofa.lean`, `research open`):
+`∀ s : Set ℝ², sofaConstant = volume s ↔ s = gerversSofa`.
 
 **Defect.** Volume cannot characterize a set up to *equality*: adding one
 point to Gerver's sofa (or deleting one from `univ`) preserves volume but
 changes the set.
 
-**Proof** ([`Disproofs.lean`](./Disproofs.lean)): the fully general theorem
+**Proof** ([`Disproofs.lean`](./Disproofs.lean)): the fully general
 `not_volume_characterizes_any_set : ∀ g, ¬(∀ s, sofaConstant = volume s ↔ s = g)`
 is **sorry-free** — so no target set can repair the statement; the fix must
 change its shape (uniqueness up to rigid motion and null sets). The corollary
@@ -202,58 +276,74 @@ theorem mentioning `gerversSofa`.
 
 **Is the underlying problem open?** Essentially resolved: Baek's
 [*Optimality of Gerver's Sofa*, arXiv:2411.19826](https://arxiv.org/abs/2411.19826)
-proves Gerver's sofa attains the maximum area and is the unique maximizer up
-to rigid motion (Thm 1.1.1); under review at Annals of Mathematics, named a
-top-10 2025 breakthrough by Scientific American. The repo already tags the
-optimality statement `research solved`; this uniqueness variant kept
-`research open` but is false as written.
+proves Gerver's sofa is the unique maximizer up to rigid motion (Thm 1.1.1);
+under review at Annals of Mathematics. The repo already tags the optimality
+statement `research solved` citing this paper.
 
 ---
 
-## Finding 6 (bonus, tagged `research solved`) — Steiner systems via degeneracy
+## Finding 10 — Steiner systems via degenerate designs (2 `research solved`)
 
-**Statements** (`FormalConjectures/Wikipedia/SteinerSystem.lean`):
-`infinitely_many_steiner_t4` and `infinitely_many_steiner_t5`, attributed to
-Keevash's celebrated 2014 existence theorem.
+**Statements**: `infinitely_many_steiner_t4`, `infinitely_many_steiner_t5`
+(`Wikipedia/SteinerSystem.lean`), attributed to Keevash's celebrated 2014
+existence theorem.
 
-**Defect.** The `SteinerSystem t k n` structure never requires `t < k < n`,
-so the degenerate system on `n` points whose single block is `Finset.univ` is
-an `S(t, n, n)` for every `n` — giving infinitely many Steiner systems with
-no combinatorics at all.
+**Defect.** The `SteinerSystem t k n` structure never requires `t < k < n`, so
+the degenerate system on `n` points whose single block is `Finset.univ` is an
+`S(t, n, n)` for every `n` — infinitely many Steiner systems, no combinatorics.
 
-**Proof** ([`Solutions.lean`](./Solutions.lean), sorry-free): degenerate
-single-block systems + injectivity of `n ↦ ⟨n, n, _⟩`.
+**Proof** ([`Solutions.lean`](./Solutions.lean)): degenerate systems plus
+injectivity of `n ↦ ⟨n, n, _⟩`.
 
 **Is the underlying problem open?** No — the intended statement is Keevash's
-theorem (arXiv:1401.3665). But the formalization proves *itself* without it;
-it needs a nondegeneracy hypothesis. The genuinely open neighbor in the same
-file (`large_steiner_systems`, explicit witness with `5 < t < 10`, `n < 200`)
-is *not* affected — its `n > k > t` fields exclude degenerate systems.
+theorem (arXiv:1401.3665). But the formalization proves *itself* without it.
+The genuinely open neighbor in the same file (`large_steiner_systems`, explicit
+witness with `5 < t < 10`, `n < 200`) is **not** affected: its `n > k > t`
+fields exclude degenerate systems.
+
+---
+
+## Flagged but not resolved
+
+Three further defects were identified but are **not** cheaply provable and are
+recorded here as formalization-fidelity flags only:
+
+* **`ErdosProblems/522.lean`** (`erdos_522`, `.variants.zero_one`) —
+  `pdf.IsUniform (toFun i) {-1,1} ℙ volume` uses the *Lebesgue* measure on ℂ,
+  in which `{-1,1}` is null, so `cond volume {-1,1} = 0` and the hypothesis
+  degenerates to "each coefficient is not a.e.-measurable" — saying nothing
+  about ±1 values. Refuting it needs an explicit junk probability space.
+* **`ErdosProblems/996.lean`** — `fourierPartial f k` sums
+  `fourierCoeff f k • fourier i x` (coefficient index `k` frozen instead of
+  the summation index `i`), so it is `|ĉ_k(f)|` times the Dirichlet kernel,
+  not a partial sum; and the hypothesis bounds the partial sum's norm rather
+  than the tail `‖f − f_k‖₂`. Editorial fix: `fourierCoeff f i`.
+* **`Wikipedia/HardyLittlewood.lean`** (`first_hardy_littlewood_conjecture`) —
+  states `=O` where the conjecture asserts asymptotic *equivalence*, weakening
+  it to a Brun/Selberg sieve upper bound (known since 1919); also lacks a
+  distinctness hypothesis on the tuple.
 
 ---
 
 ## Negative results (evidence the rest is robust)
 
-- The **full tactic sweep** over all 1,166 research-open statements produced
+* The **full tactic sweep** over all 1,166 research-open statements produced
   zero genuine automated solves.
-- Formalizations checked by hand and found *correct* (their traps avoided):
-  Kaplansky conjectures (`IsMulTorsionFree` present), Chvátal's conjecture
-  (`Nonempty α` present), Carmichael totient (`m ≠ n` present), Büchi `M = 5`
-  (per-`M` counterexamples in test lemmas), Hilbert–Smith (manifold
-  hypotheses real), invariant subspace problem (nontriviality inside
-  `ClosedInvariantSubspace`), Selfridge's Fermat-factor conjecture (distinct
-  prime factor counts — monotone so far, genuinely open), Gilbreath, Agrawal,
-  Brennan (`sSup` sets mathematically bounded), Green 24, moving-sofa
-  optimality, RiemannZetaValues (coercion makes them "real and irrational" —
-  correct), Erdős 1041 (connectivity hypotheses present).
-- **Computational counterexample searches** (no hits, confirming openness):
-  A56777 "members come from prime quadruples" (all 10 terms to 2×10⁷ check
-  out), A63880 "terms ≡ 108 (mod 216)" (56,297 terms to 2×10⁷ all conform),
-  A67720 "k+1 prime except k=8" (all terms to k ≈ 4.5×10³ conform).
+* Formalizations checked by hand and found **correct** (traps avoided):
+  Kaplansky (`IsMulTorsionFree` present), Chvátal (`Nonempty α` present),
+  Carmichael totient (`m ≠ n` present), Büchi `M = 5` (per-`M` counterexamples
+  in test lemmas), Hilbert–Smith (real manifold hypotheses), invariant subspace
+  problem (nontriviality inside `ClosedInvariantSubspace`), Selfridge's
+  Fermat-factor conjecture, Gilbreath, Agrawal, Brennan, Green 24,
+  moving-sofa optimality, `RiemannZetaValues`, Erdős 1041, superperfect
+  numbers, Catch-Up, Wolstenholme, Euler bricks.
+* **Computational counterexample searches** (no hits, confirming openness):
+  A56777 "members come from prime quadruples" (all 10 terms below 2×10⁷),
+  A63880 "terms ≡ 108 mod 216" (all 56,297 terms below 2×10⁷),
+  A67720 "k+1 prime except k = 8" (all terms up to k ≈ 4.5×10³).
 
 ---
 
-*Produced with the repo's exact toolchain; each Lean file in this directory
-can be checked with `lake env lean workspace/claude/<file>.lean` after
-`lake exe cache get` (or the prebuilt cache) and `lake build
-FormalConjectures.Util.ProblemImports`.*
+*Reproduce with the repo's toolchain: `lake exe cache get`, `lake build
+FormalConjectures.Util.ProblemImports`, then `lake env lean
+workspace/claude/<file>.lean` for each file above.*
