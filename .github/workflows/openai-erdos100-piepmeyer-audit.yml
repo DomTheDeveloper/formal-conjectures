@@ -1,0 +1,86 @@
+name: OpenAI Erdos 100 Piepmeyer witness audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-erdos100-piepmeyer-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned current Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: erdos100-piepmeyer-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: erdos100-piepmeyer-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Build current catalog module
+        run: lake build FormalConjectures.ErdosProblems.«100»
+      - name: Generate immutable proof-only source
+        run: |
+          curl -fsSL 'https://raw.githubusercontent.com/theaustinhatfield/formal-conjectures/solve-erdos-100-piepmeyer/FormalConjectures/ErdosProblems/100.lean' -o /tmp/Erdos100Historical.lean
+          test "$(git hash-object /tmp/Erdos100Historical.lean)" = 'db773dd78975db6da5aed05c05c6eff1a26112b5'
+          python3 - <<'PY'
+          from pathlib import Path
+          src = Path('/tmp/Erdos100Historical.lean').read_text()
+          start = src.index('lemma dist_sq_eq_sum')
+          end = src.rindex('end Erdos100')
+          body = src[start:end]
+          body = body.replace(
+              'theorem erdos_100_piepmeyer',
+              'theorem erdos_100_piepmeyer_kernel',
+              1,
+          )
+          body = '\n'.join(
+              line for line in body.splitlines()
+              if 'category research formally solved' not in line
+          )
+          out = '''import FormalConjectures.ErdosProblems.«100»
+          /-! Exact proof-only replay of the nine-point Piepmeyer construction. -/
+          open Set Metric Filter Real
+          open scoped EuclideanGeometry
+          namespace Erdos100
+          ''' + body + '\nend Erdos100\n'
+          Path('/tmp/Erdos100PiepmeyerProof.lean').write_text(out)
+          PY
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/Erdos100PiepmeyerProof.lean
+      - name: Compile proof-only source
+        run: |
+          set -o pipefail
+          lake env lean /tmp/Erdos100PiepmeyerProof.lean 2>&1 | tee /tmp/erdos100-piepmeyer-build.log
+      - name: Audit exact theorem axioms
+        run: |
+          cp /tmp/Erdos100PiepmeyerProof.lean /tmp/Erdos100PiepmeyerAxioms.lean
+          sed -i '$d' /tmp/Erdos100PiepmeyerAxioms.lean
+          cat >> /tmp/Erdos100PiepmeyerAxioms.lean <<'EOF'
+          #print axioms Erdos100.erdos_100_piepmeyer_kernel
+          end Erdos100
+          EOF
+          lake env lean /tmp/Erdos100PiepmeyerAxioms.lean 2>&1 | tee /tmp/erdos100-piepmeyer-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/erdos100-piepmeyer-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: erdos100-piepmeyer-${{ github.run_id }}
+          path: |
+            /tmp/Erdos100PiepmeyerProof.lean
+            /tmp/erdos100-piepmeyer-build.log
+            /tmp/erdos100-piepmeyer-axioms.log
+          if-no-files-found: warn
