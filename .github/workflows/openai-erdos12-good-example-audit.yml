@@ -1,0 +1,80 @@
+name: OpenAI Erdos 12 good-example audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-erdos12-good-example-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned current Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: erdos12-good-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: erdos12-good-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Build current catalog module
+        run: lake build FormalConjectures.ErdosProblems.«12»
+      - name: Generate exact historical theorem source
+        run: |
+          curl -fsSL 'https://raw.githubusercontent.com/mo271/formal-conjectures/2663234a28260853790aa5752d8d4550ff0ab1ca/FormalConjectures/ErdosProblems/12.lean' -o /tmp/Erdos12Historical.lean
+          test "$(git hash-object /tmp/Erdos12Historical.lean)" = '551b4c3b82a0b446bdbe314ac487754fcc265d0a'
+          python3 - <<'PY'
+          from pathlib import Path
+          src = Path('/tmp/Erdos12Historical.lean').read_text()
+          start = src.index('theorem isGood_example')
+          end = src.index('\n\nopen Erdos12', start)
+          body = src[start:end].replace(
+              'theorem isGood_example',
+              'theorem isGood_example_kernel',
+              1,
+          )
+          out = '''import FormalConjectures.ErdosProblems.«12»
+          /-! Exact replay of the prime-square good-set example. -/
+          open Classical Filter Set
+          namespace Erdos12
+          ''' + body + '\nend Erdos12\n'
+          Path('/tmp/Erdos12GoodExample.lean').write_text(out)
+          PY
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/Erdos12GoodExample.lean
+      - name: Compile exact theorem source
+        run: |
+          set -o pipefail
+          lake env lean /tmp/Erdos12GoodExample.lean 2>&1 | tee /tmp/erdos12-good-build.log
+      - name: Audit exact theorem axioms
+        run: |
+          cp /tmp/Erdos12GoodExample.lean /tmp/Erdos12GoodAxioms.lean
+          sed -i '$d' /tmp/Erdos12GoodAxioms.lean
+          cat >> /tmp/Erdos12GoodAxioms.lean <<'EOF'
+          #print axioms Erdos12.isGood_example_kernel
+          end Erdos12
+          EOF
+          lake env lean /tmp/Erdos12GoodAxioms.lean 2>&1 | tee /tmp/erdos12-good-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/erdos12-good-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: erdos12-good-${{ github.run_id }}
+          path: |
+            /tmp/Erdos12GoodExample.lean
+            /tmp/erdos12-good-build.log
+            /tmp/erdos12-good-axioms.log
+          if-no-files-found: warn
