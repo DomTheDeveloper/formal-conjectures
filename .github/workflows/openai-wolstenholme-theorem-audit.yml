@@ -1,0 +1,79 @@
+name: OpenAI Wolstenholme theorem audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-wolstenholme-theorem-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned current Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: wolstenholme-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: wolstenholme-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Build current catalog module
+        run: lake build FormalConjectures.Wikipedia.WolstenholmePrime
+      - name: Generate exact historical theorem source
+        run: |
+          curl -fsSL 'https://raw.githubusercontent.com/mo271/formal-conjectures/d833ed31d82693f10bed7a4c9ac329545b556a03/FormalConjectures/Wikipedia/WolstenholmePrime.lean' -o /tmp/WolstenholmeHistorical.lean
+          test "$(git hash-object /tmp/WolstenholmeHistorical.lean)" = 'a5f9775d0307b1dfff4cbc60cd25beb1f3a4ef90'
+          python3 - <<'PY'
+          from pathlib import Path
+          src = Path('/tmp/WolstenholmeHistorical.lean').read_text()
+          start = src.index('theorem wolstenholme_theorem')
+          end = src.index('\n\n\n/--\nA prime $p > 7$', start)
+          body = src[start:end].replace(
+              'theorem wolstenholme_theorem',
+              'theorem wolstenholme_theorem_kernel',
+              1,
+          )
+          out = '''import FormalConjectures.Wikipedia.WolstenholmePrime
+          /-! Exact replay of Wolstenholme's theorem. -/
+          namespace WolstenholmePrime
+          ''' + body + '\nend WolstenholmePrime\n'
+          Path('/tmp/WolstenholmeProof.lean').write_text(out)
+          PY
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/WolstenholmeProof.lean
+      - name: Compile exact theorem source
+        run: |
+          set -o pipefail
+          lake env lean /tmp/WolstenholmeProof.lean 2>&1 | tee /tmp/wolstenholme-build.log
+      - name: Audit exact theorem axioms
+        run: |
+          cp /tmp/WolstenholmeProof.lean /tmp/WolstenholmeAxioms.lean
+          sed -i '$d' /tmp/WolstenholmeAxioms.lean
+          cat >> /tmp/WolstenholmeAxioms.lean <<'EOF'
+          #print axioms WolstenholmePrime.wolstenholme_theorem_kernel
+          end WolstenholmePrime
+          EOF
+          lake env lean /tmp/WolstenholmeAxioms.lean 2>&1 | tee /tmp/wolstenholme-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/wolstenholme-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wolstenholme-${{ github.run_id }}
+          path: |
+            /tmp/WolstenholmeProof.lean
+            /tmp/wolstenholme-build.log
+            /tmp/wolstenholme-axioms.log
+          if-no-files-found: warn
