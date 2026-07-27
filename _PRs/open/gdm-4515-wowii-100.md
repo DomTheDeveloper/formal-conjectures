@@ -2,7 +2,7 @@
 
 ## Status
 
-Submitted to Google DeepMind and green: [upstream PR #4515](https://github.com/google-deepmind/formal-conjectures/pull/4515).
+Open with Google DeepMind and green: [upstream PR #4515](https://github.com/google-deepmind/formal-conjectures/pull/4515).
 
 ## Canonical patch
 
@@ -21,4 +21,4 @@ Submitted to Google DeepMind and green: [upstream PR #4515](https://github.com/g
 
 ## State
 
-Ready and already submitted; awaiting upstream review/merge.
+Open upstream; awaiting review or merge. Move this record to `../merged/` only after the official PR is merged.
