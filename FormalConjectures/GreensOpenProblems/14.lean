@@ -202,8 +202,10 @@ theorem W_3_19 : W 3 19 = 349 := by sorry
 /-- $W(3, 20) \ge 389$ from [AKS14, Table 2]. -/
 @[category research solved, AMS 5 11,
   formal_proof using formal_conjectures at "https://github.com/DomTheDeveloper/formal-conjectures/blob/main/FormalConjectures/GreensOpenProblems/Green14FastKernel20.lean"]
-theorem W_3_20_lower : answer(True) ↔ W 3 20 ≥ 389 :=
-  iff_of_true trivial FastKernel.W_3_20_lower_fast
+theorem W_3_20_lower : answer(True) ↔ W 3 20 ≥ 389 := by
+  show True ↔ _
+  simp only [true_iff]
+  exact FastKernel.W_3_20_lower_fast
 
 /-- $W(3, 21) \ge 416$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]
