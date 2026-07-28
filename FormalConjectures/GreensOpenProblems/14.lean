@@ -15,6 +15,8 @@ limitations under the License.
 -/
 
 import FormalConjectures.Util.ProblemImports
+import FormalConjectures.GreensOpenProblems.Green14Defs
+import FormalConjectures.GreensOpenProblems.Green14FastKernel20
 
 /-!
 # Ben Green's Open Problem 14
@@ -40,22 +42,6 @@ import FormalConjectures.Util.ProblemImports
 open Filter Set Topology
 
 namespace Green14
-
-/--
-The set of natural numbers $N$ such that any 2-coloring of ${1, ..., N}$ contains a monochromatic
-arithmetic progression of length $k$ (color 0) or length $r$ (color 1).
--/
-def mixedMonoAPGuaranteeSet (k r : ℕ) : Set ℕ :=
-  { N | ∀ coloring : Icc 1 N → Fin 2,
-    (∃ s : Finset (Icc 1 N), ({(s' : ℕ) | s' ∈ s}).IsAPOfLength k ∧ ∀ x ∈ s, coloring x = 0) ∨
-    (∃ s : Finset (Icc 1 N), ({(s' : ℕ) | s' ∈ s}).IsAPOfLength r ∧ ∀ x ∈ s, coloring x = 1) }
-
-/--
-We define the 2-colour van der Waerden numbers $W(k, r)$ to be the least quantities such that if
-$\{1, ... , W(k, r)\}$ is coloured red and blue then there is either a red $k$-term progression
-or a blue $r$-term progression.
--/
-noncomputable def W (k r : ℕ) : ℕ := sInf (mixedMonoAPGuaranteeSet k r)
 
 /--
 Is $W(k, r)$ a polynomial in $r$, for fixed $k$?
@@ -214,8 +200,10 @@ theorem W_3_19 : W 3 19 = 349 := by sorry
 
 -- Conjectured lower bounds for W(3,r) from [AKS14, Table 2].
 /-- $W(3, 20) \ge 389$ from [AKS14, Table 2]. -/
-@[category research open, AMS 5 11]
-theorem W_3_20_lower : answer(sorry) ↔ W 3 20 ≥ 389 := sorry
+@[category research solved, AMS 5 11,
+  formal_proof using formal_conjectures at "https://github.com/DomTheDeveloper/formal-conjectures/blob/main/FormalConjectures/GreensOpenProblems/Green14FastKernel20.lean"]
+theorem W_3_20_lower : answer(True) ↔ W 3 20 ≥ 389 :=
+  iff_of_true trivial FastKernel.W_3_20_lower_fast
 
 /-- $W(3, 21) \ge 416$ from [AKS14, Table 2]. -/
 @[category research open, AMS 5 11]

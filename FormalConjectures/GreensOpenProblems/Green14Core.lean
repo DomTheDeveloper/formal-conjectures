@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjectures.GreensOpenProblems.«14»
+import FormalConjectures.GreensOpenProblems.Green14Defs
 
 /-!
 # Core import for the Green14 certificate proof
 
 The certificate proof is kept outside the catalog file and imports the exact
-`Green14.mixedMonoAPGuaranteeSet` and `Green14.W` definitions from problem 14.
-No catalog definition or theorem statement is duplicated here; the proof
-therefore checks the same objects used by `Green14.W_3_20_lower`.
+`Green14.mixedMonoAPGuaranteeSet` and `Green14.W` definitions shared with
+problem 14 via `Green14Defs`. No catalog definition or theorem statement is
+duplicated here; the proof therefore checks the same objects used by
+`Green14.W_3_20_lower`.
 -/
