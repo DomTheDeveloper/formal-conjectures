@@ -5,8 +5,11 @@ This document records statements in this repository tagged `@[category research 
 outright false, as formalized** — together with machine-checked Lean proofs and
 an assessment of whether the *underlying informal problem* is truly open.
 
-**Headline: 40 statements resolved — 36 tagged `research open`, 4 tagged
-`research solved`.** In every case the *informal* problem is untouched: what
+**Headline: 46 statements resolved — 42 tagged `research open`, 4 tagged
+`research solved`** — including a machine-checked refutation of the **Jacobian
+conjecture** (disproved 19 July 2026) and a new theorem correcting my own
+earlier recommendation on Erdős 486. Part I covers formalization defects;
+Part II covers genuine mathematics. In every case the *informal* problem is untouched: what
 these proofs show is a gap between the formal statement and the mathematics it
 is meant to capture.
 
@@ -300,6 +303,104 @@ theorem (arXiv:1401.3665). But the formalization proves *itself* without it.
 The genuinely open neighbor in the same file (`large_steiner_systems`, explicit
 witness with `5 < t < 10`, `n < 200`) is **not** affected: its `n > k > t`
 fields exclude degenerate systems.
+
+---
+
+---
+
+# Part II — Genuine mathematical results (second pass)
+
+The findings above are all *formalization* defects. This second pass targeted
+real mathematics: statements whose underlying problem has actually been
+settled, and one new theorem. Six more Lean files, all sorry-free.
+
+| File | What it establishes |
+|---|---|
+| [`JacobianCounterexample.lean`](./JacobianCounterexample.lean) | **The Jacobian conjecture is false** — refutes the repo's `research open` statement |
+| [`Erdos486Strong.lean`](./Erdos486Strong.lean) | Erdős 486 stays false even for positive moduli — corrects my own Part I advice |
+| [`Erdos457.lean`](./Erdos457.lean) | `erdos_457.variants.qnk` follows from the *solved* `erdos_457` |
+| [`Green1.lean`](./Green1.lean) | Green Problem 1 is solved (Bedert 2025); reduction to the repo's form |
+| [`Green19.lean`](./Green19.lean) | `green_19.lower`/`.upper` follow from the *solved* `green_19` |
+
+## II.1 — The Jacobian conjecture is FALSE (`Wikipedia/JacobianConjecture.lean`)
+
+The repository tags `jacobian_conjecture` as `research open`. It was
+**disproved on 19 July 2026** by Levent Alpöge (problem posed by Akhil Mathew;
+discovery computer-assisted). The counterexample is an explicit map ℚ³→ℚ³:
+
+```
+P = (1+xy)³z + y²(1+xy)(4+3xy)
+Q = y + 3x(1+xy)²z + 3xy²(4+3xy)
+R = 2x − 3x²y − x³z
+```
+
+`det J_F = −2` identically — a Keller map — yet the three *distinct* points
+`(0,0,−1/4)`, `(1,−3/2,13/2)`, `(−1,3/2,13/2)` all map to `(−1/4,0,0)`.
+**I re-verified this here independently with exact rational arithmetic, in two
+separate implementations (sympy and plain Python `Fraction`)** before
+formalizing anything.
+
+Because the repo statement quantifies over an arbitrary `Fintype σ` and any
+characteristic-0 field, the `σ = Fin 3`, `k = ℚ` instance refutes it. The
+proof uses the file's own `comp_aeval`: a two-sided inverse `G` forces
+`G.aeval ∘ F.aeval = id`, hence `F.aeval` injective — contradicted by the
+collision. Formalized sorry-free as `jacobianDet_eq`, `isUnit_jacobianDet`,
+`aeval_collision`, `not_injective_aeval`, `not_jacobian_conjecture`.
+
+Adjoining identity coordinates extends this to every dimension ≥ 3.
+**Dimension 2 remains open.** The statement should be retagged
+`research solved` (answer: refuted).
+
+*Refs:* [Tao's digestion](https://terrytao.wordpress.com/2026/07/21/a-digestion-of-the-jacobian-conjecture-counterexample/),
+[Secret Blogging Seminar](https://sbseminar.wordpress.com/2026/07/20/the-new-counterexample-to-the-jacobian-conjecture/).
+
+## II.2 — Erdős 486 is still false for positive moduli (correcting Part I)
+
+Finding 4 above disproved `erdos_486` via the degenerate modulus `n = 0`, and
+I recommended "quantify over `n ≥ 1`" as the fix. **That advice was
+incomplete, and this file proves it.** The original problem also carries the
+guard that a modulus `n` only constrains integers `m > n`; without it the
+statement is false using only *large* moduli.
+
+Construction: kill the block `[2^(10^j), 2^(2·10^j))` with the single modulus
+`2^(10^(j+1))`, whose residues below it pin down individual integers.
+Translates are negligible — `b_i/nMod_i = 2^(−8·10^i)`, summing to `≤ 1/128`.
+The surviving set's log-density partial sums oscillate between `≤ 0.6` and
+`≥ 0.8`, so no logarithmic density exists (`erdos_486_rhs_false_pos_moduli`,
+624 lines, sorry-free).
+
+This does **not** resolve the genuine Erdős problem, which keeps the `m > n`
+guard and remains open.
+
+## II.3 — Problems the repo calls open that the literature has settled
+
+| Statement | Status | Evidence |
+|---|---|---|
+| `GreensOpenProblems/1.lean` `green_1` | **Solved**, answer `True` | Bedert, [arXiv:2502.08624](https://arxiv.org/abs/2502.08624): sum-free subset of size `n/3 + c log log n`. Green's own 2025 update marks it solved. [`Green1.lean`](./Green1.lean) proves the reduction from his asymptotic bound to the repo's all-`n` form (small `n` absorbed since `Ω` need only tend to infinity). |
+| `GreensOpenProblems/14.lean` — ~20 decls `W_3_t_lower` | **Known theorems** | Each is `W(3,t) ≥ v` with the docstring citing *[AKS14, Table 2]* as the source. Those bounds are published (SAT-certified partitions); what AKS14 *conjectures* is that they are **exact**. Only the `≥` direction is formalized, so all should be `research solved`. |
+| `ErdosProblems/457.lean` `variants.qnk` | **Follows from solved `erdos_457`** | If every prime `≤ (2+ε)log n` divides the product, the least prime *not* dividing it exceeds that bound; same `ε`, set inclusion, infinitude transfers. Proved in [`Erdos457.lean`](./Erdos457.lean). |
+| `GreensOpenProblems/19.lean` `green_19.lower`, `.upper` | **Follow from solved `green_19`** | `C = 4` is tagged solved ([FSS20]); `C ≥ 3.13` and `C ≤ 4` are immediate, and the docstrings attribute both to [Ma21]. Proved in [`Green19.lean`](./Green19.lean). |
+| `ErdosProblems/330.lean` | **Solved** (Turturean, ~May 2026) | [erdosproblems.com/330](https://www.erdosproblems.com/330); repo [issue #491](https://github.com/google-deepmind/formal-conjectures/issues/491) already open. |
+
+Further Erdős problems reported solved Apr–Jun 2026 but not yet reflected in
+the repo — **each needs its exact statement checked against the solution
+before retagging**: 346, 741 (part ii), 750, 865, 996, and possibly the 125
+case-variants. Source: the curated
+[AI-contributions wiki](https://github.com/teorth/erdosproblems/wiki/AI-contributions-to-Erd%C5%91s-problems).
+
+Deliberately **not** retagged: the separable-Hilbert invariant subspace
+problem (Enflo's claimed proof is not settled in the community), and
+`Poincare.lean`'s `smooth_other_cases` (Lin–Wang–Xu settled dim 126's θ₆, which
+does not by itself decide the repo's statement).
+
+## II.4 — A negative result worth recording
+
+Extending my Part I counterexample search for **A067720** (`φ(k²+1) = k·φ(k+1)`
+⟹ `k+1` prime, except `k = 8`) from `k ≤ 3×10⁵` to **`k ≤ 10⁷`** — 48,913
+terms, via a quadratic-residue sieve on `k²+1` — found **zero** counterexamples.
+`k = 8` really is the lone exception in that range. (The residual after sieving
+primes up to `k` is provably 1 or prime, since two primes `> k` cannot multiply
+to `k²+1`.) The conjecture looks solid; no refutation available cheaply.
 
 ---
 
