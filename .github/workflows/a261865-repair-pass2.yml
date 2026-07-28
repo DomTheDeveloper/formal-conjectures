@@ -1,10 +1,14 @@
 name: Apply final A261865 arithmetic repairs
 
+# Automatic trigger disabled 2026-07: this file was invalid YAML and failed on every push;
+# kept for reference.
+# on:
+#   pull_request:
+#     branches: [main]
+#     paths:
+#       - '.github/a261865-repair-pass3.trigger'
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/a261865-repair-pass3.trigger'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -22,40 +26,40 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path('FormalConjectures/OEIS/A261865Base.lean')
-          text = path.read_text()
-          replacements = [
-            ('''  have hmn : m ≤ n := by
-    exact_mod_cast hright'
-  omega
-''', '''  have hmn : m ≤ n := by
-    by_contra h
-    have hle : n + 1 ≤ m := by omega
-    have hle' : (n : ℝ) + 1 ≤ (m : ℝ) := by exact_mod_cast hle
-    linarith
-  omega
-'''),
-            ('''          have hspos : 0 < s := by
-            apply Nat.pos_of_ne_zero
-            intro hs0
-            subst s
-            simp at hr
-''', '''          have hspos : 0 < s := by
-            apply Nat.pos_of_ne_zero
-            intro hs0
-            subst s
-            simp at hrs
-            omega
-'''),
-          ]
-          for old, new in replacements:
-            count = text.count(old)
-            if count != 1:
-              raise SystemExit(f'expected one match, found {count}: {old!r}')
-            text = text.replace(old, new)
-          path.write_text(text)
+          sed 's/^    //' <<'PY' | python3 -
+              from pathlib import Path
+              path = Path('FormalConjectures/OEIS/A261865Base.lean')
+              text = path.read_text()
+              replacements = [
+                ('''  have hmn : m ≤ n := by
+                  exact_mod_cast hright'
+                omega
+              ''', '''  have hmn : m ≤ n := by
+                  by_contra h
+                  have hle : n + 1 ≤ m := by omega
+                  have hle' : (n : ℝ) + 1 ≤ (m : ℝ) := by exact_mod_cast hle
+                  linarith
+                omega
+              '''),
+                ('''          have hspos : 0 < s := by
+                          apply Nat.pos_of_ne_zero
+                          intro hs0
+                          subst s
+                          simp at hr
+              ''', '''          have hspos : 0 < s := by
+                          apply Nat.pos_of_ne_zero
+                          intro hs0
+                          subst s
+                          simp at hrs
+                          omega
+              '''),
+              ]
+              for old, new in replacements:
+                count = text.count(old)
+                if count != 1:
+                  raise SystemExit(f'expected one match, found {count}: {old!r}')
+                text = text.replace(old, new)
+              path.write_text(text)
           PY
       - name: Commit and push repairs
         shell: bash

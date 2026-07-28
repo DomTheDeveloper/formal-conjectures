@@ -4,10 +4,14 @@
 
 name: One-shot WOWII59 branched omega certificate
 
+# Automatic trigger disabled 2026-07: this file was invalid YAML and failed on every push;
+# kept for reference.
+# on:
+#   push:
+#     paths:
+#       - '.github/workflows/one-shot-wow59-linear-branch.yml'
 on:
-  push:
-    paths:
-      - '.github/workflows/one-shot-wow59-linear-branch.yml'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -26,26 +30,26 @@ jobs:
       - name: Add explicit integral branching
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          p = Path('Scratch/WOWII59CycleBridgeTest.lean')
-          text = p.read_text()
-          pattern = r'(private theorem cycle_cover_linear[\s\S]*?\(h25 : x0 \+ x5 \+ x4 \+ x9 ≤ 3\) :\n[\s\S]*?≤ 13 := by\n)  omega\n\n(private theorem cycle_cover)'
-          replacement = r'''\1  interval_cases x0 <;>
-    interval_cases x1 <;>
-    interval_cases x3 <;>
-    interval_cases x5 <;>
-    interval_cases x6 <;>
-    interval_cases x9 <;>
-    interval_cases x10 <;>
-    omega
+          sed 's/^    //' <<'PY' | python3 -
+              from pathlib import Path
+              import re
+              p = Path('Scratch/WOWII59CycleBridgeTest.lean')
+              text = p.read_text()
+              pattern = r'(private theorem cycle_cover_linear[\s\S]*?\(h25 : x0 \+ x5 \+ x4 \+ x9 ≤ 3\) :\n[\s\S]*?≤ 13 := by\n)  omega\n\n(private theorem cycle_cover)'
+              replacement = r'''\1  interval_cases x0 <;>
+                  interval_cases x1 <;>
+                  interval_cases x3 <;>
+                  interval_cases x5 <;>
+                  interval_cases x6 <;>
+                  interval_cases x9 <;>
+                  interval_cases x10 <;>
+                  omega
 
-\2'''
-          new, count = re.subn(pattern, replacement, text, count=1)
-          if count != 1:
-              raise SystemExit(f'linear theorem target count={count}')
-          p.write_text(new)
+              \2'''
+              new, count = re.subn(pattern, replacement, text, count=1)
+              if count != 1:
+                  raise SystemExit(f'linear theorem target count={count}')
+              p.write_text(new)
           PY
 
       - name: Install repository-pinned Lean

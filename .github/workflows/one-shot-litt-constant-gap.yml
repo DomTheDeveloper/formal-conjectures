@@ -4,10 +4,14 @@
 
 name: One-shot Litt constant branch repair
 
+# Automatic trigger disabled 2026-07: this file was invalid YAML and failed on every push;
+# kept for reference.
+# on:
+#   push:
+#     paths:
+#       - '.github/workflows/one-shot-litt-constant-gap.yml'
 on:
-  push:
-    paths:
-      - '.github/workflows/one-shot-litt-constant-gap.yml'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -26,53 +30,53 @@ jobs:
       - name: Apply exact constant-branch repairs
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
+          sed 's/^    //' <<'PY' | python3 -
+              from pathlib import Path
 
-          p = Path('FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean')
-          text = p.read_text()
-          old = '''  have h2pred : 2 ≤ n - 1 := Nat.le_sub_of_add_le (by omega)
-  have h1int : 1 < n - 1 := Nat.lt_of_succ_le h2pred
-'''
-          new = '''  have hpredCancel : n - 1 + 1 = n := Nat.sub_add_cancel (by omega)
-  have h1int : 1 < n - 1 := by omega
-'''
-          if old not in text:
-              raise SystemExit('predecessor target not found')
-          p.write_text(text.replace(old, new, 1))
+              p = Path('FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean')
+              text = p.read_text()
+              old = '''  have h2pred : 2 ≤ n - 1 := Nat.le_sub_of_add_le (by omega)
+                have h1int : 1 < n - 1 := Nat.lt_of_succ_le h2pred
+              '''
+              new = '''  have hpredCancel : n - 1 + 1 = n := Nat.sub_add_cancel (by omega)
+                have h1int : 1 < n - 1 := by omega
+              '''
+              if old not in text:
+                  raise SystemExit('predecessor target not found')
+              p.write_text(text.replace(old, new, 1))
 
-          p = Path('FormalConjectures/Other/LittMostUnfairBetWalshConstantGap.lean')
-          text = p.read_text()
-          old = '''  rcases natMonomial_eq_one_or_neg_one A S with hAS | hAS <;>
-    rcases natMonomial_eq_one_or_neg_one A T with hAT | hAT <;>
-    rcases natMonomial_eq_one_or_neg_one B S with hBS | hBS <;>
-    simp [rawDifference, hAS, hAT, hBS, hB] at *
-'''
-          new = '''  unfold rawDifference
-  rw [← hB]
-  rcases natMonomial_eq_one_or_neg_one A S with hAS | hAS <;>
-    rcases natMonomial_eq_one_or_neg_one A T with hAT | hAT <;>
-    rcases natMonomial_eq_one_or_neg_one B S with hBS | hBS <;>
-    norm_num [hAS, hAT, hBS]
-'''
-          if old not in text:
-              raise SystemExit('sign-product target not found')
-          text = text.replace(old, new, 1)
+              p = Path('FormalConjectures/Other/LittMostUnfairBetWalshConstantGap.lean')
+              text = p.read_text()
+              old = '''  rcases natMonomial_eq_one_or_neg_one A S with hAS | hAS <;>
+                  rcases natMonomial_eq_one_or_neg_one A T with hAT | hAT <;>
+                  rcases natMonomial_eq_one_or_neg_one B S with hBS | hBS <;>
+                  simp [rawDifference, hAS, hAT, hBS, hB] at *
+              '''
+              new = '''  unfold rawDifference
+                rw [← hB]
+                rcases natMonomial_eq_one_or_neg_one A S with hAS | hAS <;>
+                  rcases natMonomial_eq_one_or_neg_one A T with hAT | hAT <;>
+                  rcases natMonomial_eq_one_or_neg_one B S with hBS | hBS <;>
+                  norm_num [hAS, hAT, hBS]
+              '''
+              if old not in text:
+                  raise SystemExit('sign-product target not found')
+              text = text.replace(old, new, 1)
 
-          old = '''  rw [signedRawEnergy_eq_correlations, diagonal_raw_correlation A B hne]
-  have hshift :
-'''
-          new = '''  rw [signedRawEnergy_eq_correlations]
-  have hdiag :
-      (∑ U ∈ (Finset.range n).powerset, rawDifference A B U ^ 2) =
-        (2 ^ n : ℤ) := by
-    simpa [pow_two] using diagonal_raw_correlation A B hne
-  rw [hdiag]
-  have hshift :
-'''
-          if old not in text:
-              raise SystemExit('diagonal target not found')
-          p.write_text(text.replace(old, new, 1))
+              old = '''  rw [signedRawEnergy_eq_correlations, diagonal_raw_correlation A B hne]
+                have hshift :
+              '''
+              new = '''  rw [signedRawEnergy_eq_correlations]
+                have hdiag :
+                    (∑ U ∈ (Finset.range n).powerset, rawDifference A B U ^ 2) =
+                      (2 ^ n : ℤ) := by
+                  simpa [pow_two] using diagonal_raw_correlation A B hne
+                rw [hdiag]
+                have hshift :
+              '''
+              if old not in text:
+                  raise SystemExit('diagonal target not found')
+              p.write_text(text.replace(old, new, 1))
           PY
 
       - name: Install repository-pinned Lean

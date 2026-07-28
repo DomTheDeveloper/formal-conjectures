@@ -3,13 +3,17 @@
 
 name: Litt most-unfair proof check
 
+# Automatic trigger disabled 2026-07: this file was invalid YAML and failed on every push;
+# kept for reference.
+# on:
+#   pull_request:
+#     branches: [main]
+#     paths:
+#       - 'FormalConjectures/Other/LittMostUnfairBet*.lean'
+#       - 'scripts/verify_litt_most_unfair.py'
+#       - '.github/workflows/litt-most-unfair-check.yml'
+#   workflow_dispatch:
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'FormalConjectures/Other/LittMostUnfairBet*.lean'
-      - 'scripts/verify_litt_most_unfair.py'
-      - '.github/workflows/litt-most-unfair-check.yml'
   workflow_dispatch:
 
 permissions:
@@ -43,23 +47,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
+          sed 's/^    //' <<'PY' | python3 -
+              from pathlib import Path
 
-          path = Path('FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean')
-          text = path.read_text()
-          old = '''  have hrevLeft : left.rev = right := by
-    apply Fin.ext
-    dsimp [left, right, Fin.rev]
-    omega'''
-          new = '''  have hrevLeft : left.rev = right := by
-    apply Fin.ext
-    dsimp [left, right, Fin.rev]'''
-          if old in text:
-              text = text.replace(old, new, 1)
-          elif new not in text:
-              raise SystemExit('could not locate the left endpoint reversal proof')
-          path.write_text(text)
+              path = Path('FormalConjectures/Other/LittMostUnfairBetWalshTwoEndpointConstant.lean')
+              text = path.read_text()
+              old = '''  have hrevLeft : left.rev = right := by
+                  apply Fin.ext
+                  dsimp [left, right, Fin.rev]
+                  omega'''
+              new = '''  have hrevLeft : left.rev = right := by
+                  apply Fin.ext
+                  dsimp [left, right, Fin.rev]'''
+              if old in text:
+                  text = text.replace(old, new, 1)
+              elif new not in text:
+                  raise SystemExit('could not locate the left endpoint reversal proof')
+              path.write_text(text)
           PY
       - name: Reject proof holes and trust shortcuts
         run: |

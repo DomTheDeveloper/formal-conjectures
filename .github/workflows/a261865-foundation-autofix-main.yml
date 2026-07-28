@@ -14,11 +14,15 @@
 
 name: Apply A261865 foundation repairs
 
+# Automatic trigger disabled 2026-07: this file was invalid YAML and failed on every push;
+# kept for reference.
+# on:
+#   pull_request:
+#     branches: [main]
+#     paths:
+#       - '.github/a261865-foundation-repair.trigger'
+#   workflow_dispatch:
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/a261865-foundation-repair.trigger'
   workflow_dispatch:
 
 permissions:
@@ -38,90 +42,90 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
+          sed 's/^    //' <<'PY' | python3 -
+              from pathlib import Path
 
-          def replace_exact(path: str, old: str, new: str) -> None:
-              p = Path(path)
-              text = p.read_text()
-              if old in text:
-                  if text.count(old) != 1:
-                      raise SystemExit(f"{path}: ambiguous match for {old!r}")
-                  p.write_text(text.replace(old, new))
-              elif new not in text:
-                  raise SystemExit(f"{path}: neither old nor repaired text found: {old!r}")
+              def replace_exact(path: str, old: str, new: str) -> None:
+                  p = Path(path)
+                  text = p.read_text()
+                  if old in text:
+                      if text.count(old) != 1:
+                          raise SystemExit(f"{path}: ambiguous match for {old!r}")
+                      p.write_text(text.replace(old, new))
+                  elif new not in text:
+                      raise SystemExit(f"{path}: neither old nor repaired text found: {old!r}")
 
-          squarefree = 'FormalConjecturesForMathlib/NumberTheory/SquarefreeRadical.lean'
-          replace_exact(squarefree,
-              '  rw [ha.ext_iff hb]\n',
-              '  rw [Nat.Squarefree.ext_iff ha hb]\n')
-          replace_exact(squarefree,
-              '''  have heq : minpoly ℚ x = X ^ 2 - C r :=
-    Polynomial.eq_of_monic_of_dvd_of_natDegree_le (minpoly.monic hint) hmonic hdvd
-      (by rw [hdeg2, Polynomial.natDegree_X_pow_sub_C])
-''',
-              '''  have heq : minpoly ℚ x = X ^ 2 - C r := by
-    symm
-    exact Polynomial.eq_of_monic_of_dvd_of_natDegree_le
-      (p := minpoly ℚ x) (q := X ^ 2 - C r)
-      (minpoly.monic hint) hmonic hdvd
-      (by rw [hdeg2, Polynomial.natDegree_X_pow_sub_C])
-''')
-          replace_exact(squarefree,
-              '''    refine ⟨Polynomial.X ^ 2 - Polynomial.C (s i : ℚ), ?_, ?_⟩
-    · exact Polynomial.monic_X_pow_sub_C _ two_ne_zero
-    · norm_num [← Polynomial.C_pow]
-      norm_cast
-      rw [Real.sq_sqrt (Nat.cast_nonneg _)]
-      ring
-''',
-              '''    refine ⟨Polynomial.X ^ 2 - Polynomial.C (s i : ℚ),
-      Polynomial.monic_X_pow_sub_C _ two_ne_zero, ?_⟩
-    norm_num [← Polynomial.C_pow]
-    norm_cast
-    rw [Real.sq_sqrt (Nat.cast_nonneg _)]
-    ring
-''')
-          replace_exact(squarefree,
-              '''    apply Subtype.ext
-    simp only [root]
-    push_cast
-    rw [Real.sq_sqrt (Nat.cast_nonneg _)]
-    norm_cast
-''',
-              '''    apply Subtype.ext
-    simp [root, Real.sq_sqrt (Nat.cast_nonneg _)]
-''')
+              squarefree = 'FormalConjecturesForMathlib/NumberTheory/SquarefreeRadical.lean'
+              replace_exact(squarefree,
+                  '  rw [ha.ext_iff hb]\n',
+                  '  rw [Nat.Squarefree.ext_iff ha hb]\n')
+              replace_exact(squarefree,
+                  '''  have heq : minpoly ℚ x = X ^ 2 - C r :=
+                  Polynomial.eq_of_monic_of_dvd_of_natDegree_le (minpoly.monic hint) hmonic hdvd
+                    (by rw [hdeg2, Polynomial.natDegree_X_pow_sub_C])
+              ''',
+                  '''  have heq : minpoly ℚ x = X ^ 2 - C r := by
+                  symm
+                  exact Polynomial.eq_of_monic_of_dvd_of_natDegree_le
+                    (p := minpoly ℚ x) (q := X ^ 2 - C r)
+                    (minpoly.monic hint) hmonic hdvd
+                    (by rw [hdeg2, Polynomial.natDegree_X_pow_sub_C])
+              ''')
+              replace_exact(squarefree,
+                  '''    refine ⟨Polynomial.X ^ 2 - Polynomial.C (s i : ℚ), ?_, ?_⟩
+                  · exact Polynomial.monic_X_pow_sub_C _ two_ne_zero
+                  · norm_num [← Polynomial.C_pow]
+                    norm_cast
+                    rw [Real.sq_sqrt (Nat.cast_nonneg _)]
+                    ring
+              ''',
+                  '''    refine ⟨Polynomial.X ^ 2 - Polynomial.C (s i : ℚ),
+                    Polynomial.monic_X_pow_sub_C _ two_ne_zero, ?_⟩
+                  norm_num [← Polynomial.C_pow]
+                  norm_cast
+                  rw [Real.sq_sqrt (Nat.cast_nonneg _)]
+                  ring
+              ''')
+              replace_exact(squarefree,
+                  '''    apply Subtype.ext
+                  simp only [root]
+                  push_cast
+                  rw [Real.sq_sqrt (Nat.cast_nonneg _)]
+                  norm_cast
+              ''',
+                  '''    apply Subtype.ext
+                  simp [root, Real.sq_sqrt (Nat.cast_nonneg _)]
+              ''')
 
-          torus = 'FormalConjecturesForMathlib/Analysis/Equidistribution/UnitAddTorus.lean'
-          replace_exact(torus,
-              '  linarith [htri, h1, h2, hN0\', hdist]\n',
-              '''  have hdist' : ‖F - p‖ < ε / 3 := by
-    simpa [norm_sub_rev] using hdist
-  linarith [htri, h1, h2, hN0', hdist']
-''')
-          replace_exact(torus,
-              '  | zero => simp [mFourier_zero]\n',
-              '  | zero => simp [mFourier, fourier_apply]\n')
-          replace_exact(torus,
-              '  obtain ⟨z, hz⟩ := AddCircle.coe_eq_zero_iff.mp hzero\'\n',
-              '  obtain ⟨z, hz⟩ := (AddCircle.coe_eq_zero_iff).mp hzero\'\n')
-          replace_exact(torus,
-              '''  simpa only [ContinuousMap.inner_toLp, mFourier_zero, ContinuousMap.one_apply,
-    map_one, one_mul, Pi.zero_apply, neg_zero, zero_add, eq_comm] using h
-''',
-              '''  simpa only [ContinuousMap.inner_toLp, mFourier_zero, ContinuousMap.one_apply,
-    map_one, one_mul, Pi.zero_apply, neg_zero, zero_add, eq_comm] using h.symm
-''')
-          replace_exact(torus,
-              '      _ = 2 := by simp [norm_pow, hnorm]\n',
-              '''      _ = 2 := by
-        rw [norm_pow, hnorm]
-        norm_num
-''')
-          replace_exact(torus,
-              '      simp [mFourier, fourier_apply, norm_prod, Circle.norm_coe]\n',
-              '      simp [mFourier, fourier_apply, norm_prod, Complex.norm_exp]\n')
+              torus = 'FormalConjecturesForMathlib/Analysis/Equidistribution/UnitAddTorus.lean'
+              replace_exact(torus,
+                  '  linarith [htri, h1, h2, hN0\', hdist]\n',
+                  '''  have hdist' : ‖F - p‖ < ε / 3 := by
+                  simpa [norm_sub_rev] using hdist
+                linarith [htri, h1, h2, hN0', hdist']
+              ''')
+              replace_exact(torus,
+                  '  | zero => simp [mFourier_zero]\n',
+                  '  | zero => simp [mFourier, fourier_apply]\n')
+              replace_exact(torus,
+                  '  obtain ⟨z, hz⟩ := AddCircle.coe_eq_zero_iff.mp hzero\'\n',
+                  '  obtain ⟨z, hz⟩ := (AddCircle.coe_eq_zero_iff).mp hzero\'\n')
+              replace_exact(torus,
+                  '''  simpa only [ContinuousMap.inner_toLp, mFourier_zero, ContinuousMap.one_apply,
+                  map_one, one_mul, Pi.zero_apply, neg_zero, zero_add, eq_comm] using h
+              ''',
+                  '''  simpa only [ContinuousMap.inner_toLp, mFourier_zero, ContinuousMap.one_apply,
+                  map_one, one_mul, Pi.zero_apply, neg_zero, zero_add, eq_comm] using h.symm
+              ''')
+              replace_exact(torus,
+                  '      _ = 2 := by simp [norm_pow, hnorm]\n',
+                  '''      _ = 2 := by
+                      rw [norm_pow, hnorm]
+                      norm_num
+              ''')
+              replace_exact(torus,
+                  '      simp [mFourier, fourier_apply, norm_prod, Circle.norm_coe]\n',
+                  '      simp [mFourier, fourier_apply, norm_prod, Complex.norm_exp]\n')
           PY
       - name: Commit repaired foundations
         shell: bash
