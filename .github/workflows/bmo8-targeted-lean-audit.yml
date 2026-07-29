@@ -1,0 +1,32 @@
+name: BMO8 targeted Lean audit
+
+on:
+  pull_request:
+    paths:
+      - 'FormalConjectures/Other/BeaverMathOlympiad8Proof.lean'
+      - 'FormalConjectures/Other/BeaverMathOlympiad.lean'
+      - '.github/workflows/bmo8-targeted-lean-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bmo8-lean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Lean toolchain and dependencies
+        uses: leanprover/lean-action@v1
+        with:
+          use-mathlib-cache: true
+
+      - name: Compile BMO8 certificate
+        run: lake env lean FormalConjectures/Other/BeaverMathOlympiad8Proof.lean
+
+      - name: Reject unfinished proofs
+        run: |
+          ! grep -nE '\b(sorry|admit)\b' FormalConjectures/Other/BeaverMathOlympiad8Proof.lean
