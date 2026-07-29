@@ -1,0 +1,57 @@
+name: OpenAI Erdos 23 n=1 kernel audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/openai-erdos23-n1-audit.yml'
+      - 'FormalConjectures/ErdosProblems/23N1Proof.lean'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned Lean toolchain
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .lake/packages
+            .lake/build
+          key: erdos23-n1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
+          restore-keys: erdos23-n1-${{ runner.os }}-${{ runner.arch }}-
+      - name: Fetch compiled dependencies
+        run: lake exe cache get
+      - name: Reject holes and compiler-trust shortcuts
+        run: |
+          set -euo pipefail
+          f=FormalConjectures/ErdosProblems/23N1Proof.lean
+          ! grep -nE '\b(sorry|admit)\b|native_decide|decide \+native|unsafe|axiom |Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' "$f"
+      - name: Compile exact kernel proof module
+        run: |
+          set -o pipefail
+          lake build FormalConjectures.ErdosProblems.«23N1Proof» 2>&1 | tee /tmp/erdos23-n1-build.log
+      - name: Audit exact theorem axioms
+        run: |
+          cat > /tmp/Erdos23N1Axioms.lean <<'EOF'
+          import FormalConjectures.ErdosProblems.«23N1Proof»
+          #print axioms Erdos23.erdos_23_n1_kernel
+          #print axioms Erdos23.erdos_23_n1_tight_kernel
+          EOF
+          lake env lean /tmp/Erdos23N1Axioms.lean 2>&1 | tee /tmp/erdos23-n1-axioms.log
+          ! grep -E 'sorryAx|Lean\.ofReduce|Lean\.ofReduceBool|Lean\.trustCompiler' /tmp/erdos23-n1-axioms.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: erdos23-n1-${{ github.run_id }}
+          path: |
+            /tmp/erdos23-n1-build.log
+            /tmp/erdos23-n1-axioms.log
+          if-no-files-found: warn
