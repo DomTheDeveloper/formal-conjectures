@@ -1,0 +1,78 @@
+name: OpenAI moving-sofa literal counterexample audit
+
+on:
+  push:
+    branches:
+      - openai/disprove-moving-sofa-uniqueness-literal
+    paths:
+      - 'FormalConjectures/Wikipedia/MovingSofaLiteralCounterexample.lean'
+      - '.github/workflows/openai-moving-sofa-literal-audit.yml'
+  pull_request:
+    paths:
+      - 'FormalConjectures/Wikipedia/MovingSofaLiteralCounterexample.lean'
+      - '.github/workflows/openai-moving-sofa-literal-audit.yml'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pinned Lean toolchain
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Lake cache
+        uses: actions/cache@v4
+        with:
+          path: .lake
+          key: ${{ runner.os }}-lake-${{ hashFiles('lake-manifest.json', 'lean-toolchain') }}
+          restore-keys: |
+            ${{ runner.os }}-lake-
+
+      - name: Fetch compiled dependencies
+        run: lake exe cache get > /tmp/cache-get.log
+
+      - name: Reject proof holes and trust escapes
+        run: |
+          set -euo pipefail
+          file='FormalConjectures/Wikipedia/MovingSofaLiteralCounterexample.lean'
+          if grep -nE '\b(sorry|admit|unsafe|axiom)\b|native_decide|Lean\.(ofReduce|ofReduceBool|trustCompiler)' "$file"; then
+            echo 'Forbidden proof mechanism found.'
+            exit 1
+          fi
+
+      - name: Compile exact counterexample module
+        run: |
+          lake build FormalConjectures.Wikipedia.MovingSofaLiteralCounterexample \
+            > /tmp/moving-sofa-lean.log 2>&1
+          cat /tmp/moving-sofa-lean.log
+
+      - name: Upload compiler diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moving-sofa-lean-log
+          path: /tmp/moving-sofa-lean.log
+
+      - name: Audit axiom-clean generic theorem
+        run: |
+          cat > /tmp/MovingSofaGenericAxioms.lean <<'EOF'
+          import FormalConjectures.Wikipedia.MovingSofaLiteralCounterexample
+          #print axioms MovingSofa.volume_does_not_characterize_exact_set
+          EOF
+          lake env lean /tmp/MovingSofaGenericAxioms.lean | tee /tmp/generic-axioms.log
+          if grep -E 'sorryAx|Lean\.(ofReduce|ofReduceBool|trustCompiler)' /tmp/generic-axioms.log; then
+            echo 'Forbidden axiom dependency found in generic theorem.'
+            exit 1
+          fi
+
+      - name: Record exact-wrapper axioms
+        run: |
+          cat > /tmp/MovingSofaExactAxioms.lean <<'EOF'
+          import FormalConjectures.Wikipedia.MovingSofaLiteralCounterexample
+          #print axioms MovingSofa.sofaConstant_eq_volume_iff_eq_gerversSofa_false
+          EOF
+          lake env lean /tmp/MovingSofaExactAxioms.lean | tee /tmp/exact-axioms.log
