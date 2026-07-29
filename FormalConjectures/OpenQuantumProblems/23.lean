@@ -86,8 +86,8 @@ The file includes the following test lemmas and benchmark-support statements:
 - `hesseFamily_normalized`, `hesseFamily_pairwise`;
 - `bb84Family_normalized`.
 
-At present, these `@[category test, AMS 15 47 81]` results are included with
-placeholder proofs `by sorry`; they are intended to be proved in the next PR.
+The low-dimensional dimension-$2$ and dimension-$3$ benchmark results are proved by
+exact finite algebraic verification of the tetrahedral and Hesse witness families.
 
 ## References
 *Primary source list entry:*
@@ -266,14 +266,288 @@ lemma qubitSICFamily_normalized (i : Fin 4) :
       omega_norm, omega2_norm, abs_of_pos sqrt2_pos, abs_of_pos sqrt3_pos]
   all_goals (try (field_simp; linarith [h2, h3]))
 
+private lemma tetraA_sq_audit : tetraA ^ (2 : ℕ) = (1 / 3 : ℝ) := by
+  unfold tetraA
+  nlinarith [Real.sq_sqrt (by positivity : 0 ≤ (1 / 3 : ℝ))]
+
+private lemma tetraB_sq_audit : tetraB ^ (2 : ℕ) = (2 / 3 : ℝ) := by
+  unfold tetraB
+  nlinarith [Real.sq_sqrt (by positivity : 0 ≤ (2 / 3 : ℝ))]
+
+@[simp] private lemma tetraA_mul_self_audit : tetraA * tetraA = (1 / 3 : ℝ) := by
+  simpa [pow_two] using tetraA_sq_audit
+
+@[simp] private lemma tetraB_mul_self_audit : tetraB * tetraB = (2 / 3 : ℝ) := by
+  simpa [pow_two] using tetraB_sq_audit
+
+@[simp] private lemma tetraA_sq_complex_audit :
+    ((tetraA : ℂ) * tetraA) = (1 / 3 : ℂ) := by
+  have h : (((tetraA * tetraA : ℝ)) : ℂ) = (1 / 3 : ℂ) := by
+    norm_num [tetraA_mul_self_audit]
+  simpa only [Complex.ofReal_mul] using h
+
+@[simp] private lemma tetraB_sq_complex_audit :
+    ((tetraB : ℂ) * tetraB) = (2 / 3 : ℂ) := by
+  have h : (((tetraB * tetraB : ℝ)) : ℂ) = (2 / 3 : ℂ) := by
+    norm_num [tetraB_mul_self_audit]
+  simpa only [Complex.ofReal_mul] using h
+
+private lemma sq_sqrt_three_audit : (Real.sqrt 3) ^ (2 : ℕ) = (3 : ℝ) := by
+  nlinarith [Real.sq_sqrt (by positivity : 0 ≤ (3 : ℝ))]
+
+private lemma omega_sq_audit :
+    ω ^ 2 = ((-(1 : ℝ) / 2 : ℝ) : ℂ) -
+      ((Real.sqrt 3 / 2 : ℝ) : ℂ) * Complex.I := by
+  apply Complex.ext
+  · simp [ω, pow_two, Complex.add_re, Complex.mul_re, Complex.mul_im, Complex.sub_re]
+    nlinarith [sq_sqrt_three_audit]
+  · simp [ω, pow_two, Complex.add_im, Complex.mul_re, Complex.mul_im, Complex.sub_im]
+    ring_nf
+
+set_option linter.unnecessarySeqFocus false in
+private lemma explicit_omega_sq_audit :
+    (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I) = ω ^ 2 := by
+  rw [omega_sq_audit]
+  apply Complex.ext <;> simp <;> ring
+
+@[simp] private lemma explicit_omega_audit :
+    (-(1 : ℂ) / (starRingEnd ℂ) 2 +
+      ((Real.sqrt 3 : ℂ) / (starRingEnd ℂ) 2) * Complex.I) = ω := by
+  have htwo : (starRingEnd ℂ) (2 : ℂ) = 2 := by
+    change star (2 : ℂ) = 2
+    simp
+  rw [htwo]
+  apply Complex.ext <;> simp [ω]
+
+@[simp] private lemma star_omega_audit : star ω = ω ^ 2 := by
+  rw [omega_sq_audit]
+  apply Complex.ext <;> simp [ω]
+
+@[simp] private lemma star_omega_sq_audit : star (ω ^ 2) = ω := by
+  rw [omega_sq_audit]
+  apply Complex.ext <;> simp [ω]
+
+@[simp] private lemma omega_cubed_audit : ω ^ 3 = 1 := by
+  calc
+    ω ^ 3 = ω * (ω ^ 2) := by ring
+    _ = 1 := by
+      rw [omega_sq_audit]
+      apply Complex.ext
+      · simp [ω, Complex.add_re, Complex.mul_re, Complex.mul_im, Complex.sub_re]
+        nlinarith [sq_sqrt_three_audit]
+      · simp [ω, Complex.add_im, Complex.mul_re, Complex.mul_im, Complex.sub_im]
+        ring_nf
+
+@[simp] private lemma omega_four_audit : ω ^ 4 = ω := by
+  calc
+    ω ^ 4 = ω ^ 3 * ω := by ring
+    _ = ω := by simp
+
+@[simp] private lemma omega_mul_omega_sq_audit : ω * (ω ^ 2) = 1 := by
+  calc
+    ω * (ω ^ 2) = ω ^ 3 := by ring
+    _ = 1 := omega_cubed_audit
+
+@[simp] private lemma omega_sq_mul_omega_audit : (ω ^ 2) * ω = 1 := by
+  calc
+    (ω ^ 2) * ω = ω ^ 3 := by ring
+    _ = 1 := omega_cubed_audit
+
+@[simp] private lemma omega_sq_mul_omega_sq_audit : (ω ^ 2) * (ω ^ 2) = ω := by
+  calc
+    (ω ^ 2) * (ω ^ 2) = ω ^ 4 := by ring
+    _ = ω := omega_four_audit
+
+@[simp] private lemma tetraB_sq_mul_audit (z : ℂ) :
+    (tetraB : ℂ) * ((tetraB : ℂ) * z) = (2 / 3 : ℂ) * z := by
+  calc
+    (tetraB : ℂ) * ((tetraB : ℂ) * z) = ((tetraB : ℂ) * tetraB) * z := by ring
+    _ = (2 / 3 : ℂ) * z := by rw [tetraB_sq_complex_audit]
+
+@[simp] private lemma tetraB_mul_mul_tetraB_audit (z : ℂ) :
+    (tetraB : ℂ) * z * (tetraB : ℂ) = (2 / 3 : ℂ) * z := by
+  calc
+    (tetraB : ℂ) * z * (tetraB : ℂ) = ((tetraB : ℂ) * tetraB) * z := by ring
+    _ = (2 / 3 : ℂ) * z := by rw [tetraB_sq_complex_audit]
+
+@[simp] private lemma normSq_one_add_two_mul_omega_audit :
+    Complex.normSq (1 + 2 * ω) = 3 := by
+  have hrewrite :
+      1 + 2 * ω = ((0 : ℝ) : ℂ) + ((Real.sqrt 3 : ℝ) : ℂ) * Complex.I := by
+    apply Complex.ext <;> simp [ω] <;> ring
+  rw [hrewrite, Complex.normSq_add_mul_I]
+  nlinarith [sq_sqrt_three_audit]
+
+@[simp] private lemma normSq_one_add_two_mul_omega_sq_audit :
+    Complex.normSq (1 + 2 * (ω ^ 2)) = 3 := by
+  rw [omega_sq_audit]
+  have hrewrite :
+      1 + 2 * (((-(1 : ℝ) / 2 : ℝ) : ℂ) -
+        ((Real.sqrt 3 / 2 : ℝ) : ℂ) * Complex.I) =
+        ((0 : ℝ) : ℂ) + ((-(Real.sqrt 3) : ℝ) : ℂ) * Complex.I := by
+    apply Complex.ext <;> simp <;> ring
+  rw [hrewrite, Complex.normSq_add_mul_I]
+  nlinarith [sq_sqrt_three_audit]
+
+@[simp] private lemma normSq_qubit_offdiag_omega_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) * ω) = (1 / 3 : ℝ) := by
+  have hrewrite :
+      ((1 / 3 : ℂ) + (2 / 3 : ℂ) * ω) = (1 / 3 : ℂ) * (1 + 2 * ω) := by
+    ring
+  rw [hrewrite, Complex.normSq_mul, normSq_one_add_two_mul_omega_audit]
+  norm_num [Complex.normSq_ofReal]
+
+@[simp] private lemma normSq_qubit_offdiag_omega_sq_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) * (ω ^ 2)) = (1 / 3 : ℝ) := by
+  have hrewrite :
+      ((1 / 3 : ℂ) + (2 / 3 : ℂ) * (ω ^ 2)) =
+        (1 / 3 : ℂ) * (1 + 2 * (ω ^ 2)) := by
+    ring
+  rw [hrewrite, Complex.normSq_mul, normSq_one_add_two_mul_omega_sq_audit]
+  norm_num [Complex.normSq_ofReal]
+
+@[simp] private lemma normSq_qubit_offdiag_explicit_omega_sq_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) *
+      (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I)) = (1 / 3 : ℝ) := by
+  rw [explicit_omega_sq_audit]
+  exact normSq_qubit_offdiag_omega_sq_audit
+
+@[simp] private lemma normSq_qubit_offdiag_star_omega_exact_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) * (starRingEnd ℂ) ω) =
+      (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) * star ω) = (1 / 3 : ℝ)
+  rw [star_omega_audit]
+  exact normSq_qubit_offdiag_omega_sq_audit
+
+@[simp] private lemma overlap_one_two_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * ((tetraB : ℂ) * ω)) =
+      (1 / 3 : ℝ) := by
+  rw [tetraB_sq_mul_audit]
+  exact normSq_qubit_offdiag_omega_audit
+
+@[simp] private lemma overlap_one_three_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+      ((tetraB : ℂ) * (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I))) =
+      (1 / 3 : ℝ) := by
+  rw [explicit_omega_sq_audit, tetraB_sq_mul_audit]
+  exact normSq_qubit_offdiag_omega_sq_audit
+
+@[simp] private lemma overlap_two_one_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * star ω * (tetraB : ℂ)) =
+      (1 / 3 : ℝ) := by
+  rw [star_omega_audit, tetraB_mul_mul_tetraB_audit]
+  exact normSq_qubit_offdiag_omega_sq_audit
+
+@[simp] private lemma overlap_two_three_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * star ω *
+      ((tetraB : ℂ) * (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I))) =
+      (1 / 3 : ℝ) := by
+  rw [star_omega_audit, explicit_omega_sq_audit]
+  ring_nf
+  simpa only [pow_two, tetraB_sq_complex_audit, omega_four_audit] using
+    normSq_qubit_offdiag_omega_audit
+
+@[simp] private lemma overlap_two_three_exact_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * (starRingEnd ℂ) ω *
+      ((tetraB : ℂ) * (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I))) =
+      (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * star ω *
+    ((tetraB : ℂ) * (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I))) =
+    (1 / 3 : ℝ)
+  exact overlap_two_three_audit
+
+@[simp] private lemma overlap_three_one_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+      (-(1 : ℂ) / (starRingEnd ℂ) 2 +
+        ((Real.sqrt 3 : ℂ) / (starRingEnd ℂ) 2) * Complex.I) * (tetraB : ℂ)) =
+      (1 / 3 : ℝ) := by
+  rw [explicit_omega_audit, tetraB_mul_mul_tetraB_audit]
+  exact normSq_qubit_offdiag_omega_audit
+
+@[simp] private lemma overlap_three_two_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+      (-(1 : ℂ) / (starRingEnd ℂ) 2 +
+        ((Real.sqrt 3 : ℂ) / (starRingEnd ℂ) 2) * Complex.I) *
+      ((tetraB : ℂ) * ω)) = (1 / 3 : ℝ) := by
+  rw [explicit_omega_audit]
+  ring_nf
+  simpa only [pow_two, tetraB_sq_complex_audit] using
+    normSq_qubit_offdiag_omega_sq_audit
+
+@[simp] private lemma overlap_three_two_simplified_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * ω *
+      ((tetraB : ℂ) * ω)) = (1 / 3 : ℝ) := by
+  have hphase :
+      (tetraB : ℂ) * ω * ((tetraB : ℂ) * ω) = (2 / 3 : ℂ) * (ω ^ 2) := by
+    calc
+      (tetraB : ℂ) * ω * ((tetraB : ℂ) * ω) =
+          ((tetraB : ℂ) * tetraB) * (ω ^ 2) := by ring
+      _ = (2 / 3 : ℂ) * (ω ^ 2) := by rw [tetraB_sq_complex_audit]
+  rw [hphase]
+  exact normSq_qubit_offdiag_omega_sq_audit
+
+
+@[simp] private lemma overlap_two_three_pow_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * (starRingEnd ℂ) ω *
+      ((tetraB : ℂ) * (ω ^ 2))) = (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) * star ω *
+    ((tetraB : ℂ) * (ω ^ 2))) = (1 / 3 : ℝ)
+  rw [star_omega_audit]
+  have hphase :
+      (tetraB : ℂ) * (ω ^ 2) * ((tetraB : ℂ) * (ω ^ 2)) =
+        (2 / 3 : ℂ) * ω := by
+    calc
+      (tetraB : ℂ) * (ω ^ 2) * ((tetraB : ℂ) * (ω ^ 2)) =
+((tetraB : ℂ) * tetraB) * ((ω ^ 2) * (ω ^ 2)) := by ring
+      _ = (2 / 3 : ℂ) * ω := by
+        rw [tetraB_sq_complex_audit, omega_sq_mul_omega_sq_audit]
+  rw [hphase]
+  exact normSq_qubit_offdiag_omega_audit
+
+@[simp] private lemma normSq_qubit_offdiag_star_omega_pow_two_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2) = (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (2 / 3 : ℂ) * (star ω) ^ 2) =
+    (1 / 3 : ℝ)
+  rw [star_omega_audit]
+  have hpow : (ω ^ 2) ^ 2 = ω := by
+    calc
+      (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+      _ = ω := omega_four_audit
+  rw [hpow]
+  exact normSq_qubit_offdiag_omega_audit
+
+@[simp] private lemma overlap_three_two_star_pow_audit :
+    Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2 * ((tetraB : ℂ) * ω)) = (1 / 3 : ℝ) := by
+  change Complex.normSq ((1 / 3 : ℂ) + (tetraB : ℂ) *
+    (star ω) ^ 2 * ((tetraB : ℂ) * ω)) = (1 / 3 : ℝ)
+  rw [star_omega_audit]
+  have hpow : (ω ^ 2) ^ 2 = ω := by
+    calc
+      (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+      _ = ω := omega_four_audit
+  rw [hpow]
+  exact overlap_three_two_simplified_audit
+
 /-- The tetrahedral qubit SIC family has the correct constant pairwise overlap. -/
 @[category test, AMS 15 47 81]
 lemma qubitSICFamily_pairwise :
-    HasConstantOverlapSq (sicOverlapSq 2) qubitSICFamily := by sorry
+    HasConstantOverlapSq (sicOverlapSq 2) qubitSICFamily := by
+  rintro ⟨i, hi⟩ ⟨j, hj⟩ hij
+  interval_cases i <;> interval_cases j
+  all_goals
+    simp [qubitSICFamily, vec2, overlapSq, sicOverlapSq, Fin.sum_univ_two] at hij ⊢
+    first
+      | done
+      | contradiction
+      | norm_num [sicOverlapSq]
 
 /-- Dimension $2$ admits a SIC-POVM, witnessed by the tetrahedral qubit SIC. -/
 @[category test, AMS 15 47 81]
-theorem hasSICPOVM_two : HasSICPOVM 2 := by sorry
+theorem hasSICPOVM_two : HasSICPOVM 2 := by
+  refine ⟨qubitSICFamily, ?_⟩
+  exact ⟨qubitSICFamily_normalized, qubitSICFamily_pairwise⟩
 
 /-- Every vector in the Hesse qutrit SIC family is normalized. -/
 @[category test, AMS 15 47 81]
@@ -288,14 +562,332 @@ lemma hesseFamily_normalized (i : Fin 9) :
       omega_norm, omega2_norm, abs_of_pos sqrt2_pos]
   all_goals (try (field_simp; linarith [h2]))
 
+private lemma q3_hesseS_sq : hesseS ^ (2 : ℕ) = (1 / 2 : ℝ) := by
+  unfold hesseS
+  nlinarith [Real.sq_sqrt (by positivity : 0 ≤ (1 / 2 : ℝ))]
+
+@[simp] private lemma q3_hesseS_mul_self : hesseS * hesseS = (1 / 2 : ℝ) := by
+  simpa [pow_two] using q3_hesseS_sq
+
+@[simp] private lemma q3_hesseS_sq_complex :
+    ((hesseS : ℂ) * hesseS) = (1 / 2 : ℂ) := by
+  have h : (((hesseS * hesseS : ℝ)) : ℂ) = (1 / 2 : ℂ) := by
+    norm_num [q3_hesseS_mul_self]
+  simpa only [Complex.ofReal_mul] using h
+
+private lemma q3_sqrt_three_sq : (Real.sqrt 3) ^ (2 : ℕ) = (3 : ℝ) := by
+  nlinarith [Real.sq_sqrt (by positivity : 0 ≤ (3 : ℝ))]
+
+private lemma q3_omega_sq :
+    ω ^ 2 = ((-(1 : ℝ) / 2 : ℝ) : ℂ) -
+      ((Real.sqrt 3 / 2 : ℝ) : ℂ) * Complex.I := by
+  apply Complex.ext
+  · simp [ω, pow_two, Complex.add_re, Complex.mul_re, Complex.mul_im, Complex.sub_re]
+    nlinarith [q3_sqrt_three_sq]
+  · simp [ω, pow_two, Complex.add_im, Complex.mul_re, Complex.mul_im, Complex.sub_im]
+    ring_nf
+
+set_option linter.unnecessarySeqFocus false in
+private lemma q3_explicit_omega_sq :
+    (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I) = ω ^ 2 := by
+  rw [q3_omega_sq]
+  apply Complex.ext <;> simp <;> ring
+
+@[simp] private lemma q3_star_omega : star ω = ω ^ 2 := by
+  rw [q3_omega_sq]
+  apply Complex.ext <;> simp [ω]
+
+@[simp] private lemma q3_star_omega_sq : star (ω ^ 2) = ω := by
+  rw [q3_omega_sq]
+  apply Complex.ext <;> simp [ω]
+
+@[simp] private lemma q3_omega_cubed : ω ^ 3 = 1 := by
+  calc
+    ω ^ 3 = ω * (ω ^ 2) := by ring
+    _ = 1 := by
+      rw [q3_omega_sq]
+      apply Complex.ext
+      · simp [ω, Complex.add_re, Complex.mul_re, Complex.mul_im, Complex.sub_re]
+        nlinarith [q3_sqrt_three_sq]
+      · simp [ω, Complex.add_im, Complex.mul_re, Complex.mul_im, Complex.sub_im]
+        ring_nf
+
+@[simp] private lemma q3_omega_four : ω ^ 4 = ω := by
+  calc
+    ω ^ 4 = ω ^ 3 * ω := by ring
+    _ = ω := by simp
+
+@[simp] private lemma q3_omega_mul_omega_sq : ω * (ω ^ 2) = 1 := by
+  calc
+    ω * (ω ^ 2) = ω ^ 3 := by ring
+    _ = 1 := q3_omega_cubed
+
+@[simp] private lemma q3_omega_sq_mul_omega : (ω ^ 2) * ω = 1 := by
+  calc
+    (ω ^ 2) * ω = ω ^ 3 := by ring
+    _ = 1 := q3_omega_cubed
+
+@[simp] private lemma q3_omega_sq_mul_omega_sq : (ω ^ 2) * (ω ^ 2) = ω := by
+  calc
+    (ω ^ 2) * (ω ^ 2) = ω ^ 4 := by ring
+    _ = ω := q3_omega_four
+
+@[simp] private lemma q3_omega_normSq : Complex.normSq ω = 1 := by
+  rw [ω, Complex.normSq_add_mul_I]
+  nlinarith [q3_sqrt_three_sq]
+
+@[simp] private lemma q3_omega_sq_normSq : Complex.normSq (ω ^ 2) = 1 := by
+  simp [pow_two, Complex.normSq_mul]
+
+@[simp] private lemma q3_explicit_omega_sq_normSq :
+    Complex.normSq (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I) = 1 := by
+  rw [q3_explicit_omega_sq]
+  exact q3_omega_sq_normSq
+
+@[simp] private lemma q3_normSq_one_add_omega : Complex.normSq (1 + ω) = 1 := by
+  have hrewrite :
+      1 + ω = ((1 / 2 : ℝ) : ℂ) + ((Real.sqrt 3 / 2 : ℝ) : ℂ) * Complex.I := by
+    simp [ω]
+    ring
+  rw [hrewrite, Complex.normSq_add_mul_I]
+  nlinarith [q3_sqrt_three_sq]
+
+@[simp] private lemma q3_normSq_one_add_omega_sq :
+    Complex.normSq (1 + ω ^ 2) = 1 := by
+  rw [q3_omega_sq]
+  have hrewrite :
+      1 + (((-(1 : ℝ) / 2 : ℝ) : ℂ) -
+        ((Real.sqrt 3 / 2 : ℝ) : ℂ) * Complex.I) =
+        ((1 / 2 : ℝ) : ℂ) + ((-(Real.sqrt 3) / 2 : ℝ) : ℂ) * Complex.I := by
+    apply Complex.ext <;> simp <;> ring
+  rw [hrewrite, Complex.normSq_add_mul_I]
+  nlinarith [q3_sqrt_three_sq]
+
+@[simp] private lemma q3_normSq_half :
+    Complex.normSq (1 / 2 : ℂ) = (1 / 4 : ℝ) := by
+  norm_num [Complex.normSq_ofReal]
+
+@[simp] private lemma q3_normSq_half_mul_omega :
+    Complex.normSq ((1 / 2 : ℂ) * ω) = (1 / 4 : ℝ) := by
+  rw [Complex.normSq_mul, q3_omega_normSq]
+  norm_num [Complex.normSq_ofReal]
+
+@[simp] private lemma q3_normSq_half_mul_omega_sq :
+    Complex.normSq ((1 / 2 : ℂ) * (ω ^ 2)) = (1 / 4 : ℝ) := by
+  rw [Complex.normSq_mul, q3_omega_sq_normSq]
+  norm_num [Complex.normSq_ofReal]
+
+@[simp] private lemma q3_normSq_half_mul_one_add_omega :
+    Complex.normSq ((1 / 2 : ℂ) * (1 + ω)) = (1 / 4 : ℝ) := by
+  rw [Complex.normSq_mul, q3_normSq_one_add_omega]
+  norm_num [Complex.normSq_ofReal]
+
+@[simp] private lemma q3_normSq_half_mul_one_add_omega_sq :
+    Complex.normSq ((1 / 2 : ℂ) * (1 + ω ^ 2)) = (1 / 4 : ℝ) := by
+  rw [Complex.normSq_mul, q3_normSq_one_add_omega_sq]
+  norm_num [Complex.normSq_ofReal]
+
+@[simp] private lemma q3_normSq_half_add_half_mul_omega :
+    Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) * ω) = (1 / 4 : ℝ) := by
+  have h :
+      ((1 / 2 : ℂ) + (1 / 2 : ℂ) * ω) = (1 / 2 : ℂ) * (1 + ω) := by ring
+  rw [h]
+  exact q3_normSq_half_mul_one_add_omega
+
+@[simp] private lemma q3_normSq_half_add_half_mul_omega_sq :
+    Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) * (ω ^ 2)) = (1 / 4 : ℝ) := by
+  have h :
+      ((1 / 2 : ℂ) + (1 / 2 : ℂ) * (ω ^ 2)) =
+        (1 / 2 : ℂ) * (1 + ω ^ 2) := by ring
+  rw [h]
+  exact q3_normSq_half_mul_one_add_omega_sq
+
+@[simp] private lemma q3_normSq_half_add_half_mul_star_omega_exact :
+    Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) * (starRingEnd ℂ) ω) =
+      (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) * star ω) = (1 / 4 : ℝ)
+  rw [q3_star_omega]
+  exact q3_normSq_half_add_half_mul_omega_sq
+
+@[simp] private lemma q3_normSq_half_mul_star_omega_add_half_exact :
+    Complex.normSq ((1 / 2 : ℂ) * (starRingEnd ℂ) ω + (1 / 2 : ℂ)) =
+      (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_half_mul_star_omega_exact
+
+@[simp] private lemma q3_normSq_half_add_half_mul_explicit_omega_sq :
+    Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) *
+      (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I)) = (1 / 4 : ℝ) := by
+  rw [q3_explicit_omega_sq]
+  exact q3_normSq_half_add_half_mul_omega_sq
+
+@[simp] private lemma q3_normSq_half_mul_omega_add_half :
+    Complex.normSq ((1 / 2 : ℂ) * ω + (1 / 2 : ℂ)) = (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_half_mul_omega
+
+@[simp] private lemma q3_normSq_half_mul_explicit_omega_sq_add_half :
+    Complex.normSq ((1 / 2 : ℂ) *
+      (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I) + (1 / 2 : ℂ)) =
+      (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_half_mul_explicit_omega_sq
+
+@[simp] private lemma q3_hesseS_sq_mul (z : ℂ) :
+    (hesseS : ℂ) * ((hesseS : ℂ) * z) = (1 / 2 : ℂ) * z := by
+  calc
+    (hesseS : ℂ) * ((hesseS : ℂ) * z) = ((hesseS : ℂ) * hesseS) * z := by ring
+    _ = (1 / 2 : ℂ) * z := by rw [q3_hesseS_sq_complex]
+
+@[simp] private lemma q3_hesseS_mul_mul_hesseS (z : ℂ) :
+    (hesseS : ℂ) * z * (hesseS : ℂ) = (1 / 2 : ℂ) * z := by
+  calc
+    (hesseS : ℂ) * z * (hesseS : ℂ) = ((hesseS : ℂ) * hesseS) * z := by ring
+    _ = (1 / 2 : ℂ) * z := by rw [q3_hesseS_sq_complex]
+
+@[simp] private lemma q3_normSq_half_add_hesseS_star_omega_mul_hesseS :
+    Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) * (starRingEnd ℂ) ω *
+      (hesseS : ℂ)) = (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) * star ω * (hesseS : ℂ)) =
+    (1 / 4 : ℝ)
+  rw [q3_star_omega, q3_hesseS_mul_mul_hesseS]
+  exact q3_normSq_half_add_half_mul_omega_sq
+
+@[simp] private lemma q3_normSq_half_add_hesseS_omega_mul_hesseS :
+    Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) * ω * (hesseS : ℂ)) =
+      (1 / 4 : ℝ) := by
+  rw [q3_hesseS_mul_mul_hesseS]
+  exact q3_normSq_half_add_half_mul_omega
+
+@[simp] private lemma q3_normSq_half_add_hesseS_omega_mul_hesseS_omega :
+    Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) * ω *
+      ((hesseS : ℂ) * ω)) = (1 / 4 : ℝ) := by
+  have hphase :
+      (hesseS : ℂ) * ω * ((hesseS : ℂ) * ω) = (1 / 2 : ℂ) * (ω ^ 2) := by
+    calc
+      (hesseS : ℂ) * ω * ((hesseS : ℂ) * ω) =
+          ((hesseS : ℂ) * hesseS) * (ω ^ 2) := by ring
+      _ = (1 / 2 : ℂ) * (ω ^ 2) := by rw [q3_hesseS_sq_complex]
+  rw [hphase]
+  exact q3_normSq_half_add_half_mul_omega_sq
+
+@[simp] private lemma q3_normSq_half_add_hesseS_star_omega_mul_hesseS_explicit_sq :
+    Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) * (starRingEnd ℂ) ω *
+      ((hesseS : ℂ) *
+        (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I))) =
+      (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) * star ω *
+    ((hesseS : ℂ) *
+      (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I))) = (1 / 4 : ℝ)
+  rw [q3_star_omega, q3_explicit_omega_sq]
+  ring_nf
+  simpa only [pow_two, q3_hesseS_sq_complex, q3_omega_four] using
+    q3_normSq_half_add_half_mul_omega
+
+@[simp] private lemma q3_normSq_hesseS_star_omega_mul_hesseS_add_half :
+    Complex.normSq ((hesseS : ℂ) * (starRingEnd ℂ) ω * (hesseS : ℂ) +
+      (1 / 2 : ℂ)) = (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_hesseS_star_omega_mul_hesseS
+
+@[simp] private lemma q3_normSq_hesseS_omega_mul_hesseS_add_half :
+    Complex.normSq ((hesseS : ℂ) * ω * (hesseS : ℂ) + (1 / 2 : ℂ)) =
+      (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_hesseS_omega_mul_hesseS
+
+@[simp] private lemma q3_normSq_hesseS_omega_mul_hesseS_omega_add_half :
+    Complex.normSq ((hesseS : ℂ) * ω * ((hesseS : ℂ) * ω) + (1 / 2 : ℂ)) =
+      (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_hesseS_omega_mul_hesseS_omega
+
+@[simp] private lemma q3_normSq_hesseS_star_omega_mul_hesseS_explicit_sq_add_half :
+    Complex.normSq ((hesseS : ℂ) * (starRingEnd ℂ) ω *
+      ((hesseS : ℂ) *
+        (-(1 / 2 : ℂ) - ((Real.sqrt 3 : ℂ) / 2) * Complex.I)) +
+      (1 / 2 : ℂ)) = (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_hesseS_star_omega_mul_hesseS_explicit_sq
+
+
+@[simp] private lemma q3_normSq_half_add_hesseS_star_omega_mul_hesseS_omega_sq :
+    Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) * (starRingEnd ℂ) ω *
+      ((hesseS : ℂ) * (ω ^ 2))) = (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) * star ω *
+    ((hesseS : ℂ) * (ω ^ 2))) = (1 / 4 : ℝ)
+  rw [q3_star_omega]
+  have hphase :
+      (hesseS : ℂ) * (ω ^ 2) * ((hesseS : ℂ) * (ω ^ 2)) =
+        (1 / 2 : ℂ) * ω := by
+    calc
+      (hesseS : ℂ) * (ω ^ 2) * ((hesseS : ℂ) * (ω ^ 2)) =
+((hesseS : ℂ) * hesseS) * ((ω ^ 2) * (ω ^ 2)) := by ring
+      _ = (1 / 2 : ℂ) * ω := by
+        rw [q3_hesseS_sq_complex, q3_omega_sq_mul_omega_sq]
+  rw [hphase]
+  exact q3_normSq_half_add_half_mul_omega
+
+@[simp] private lemma q3_normSq_half_add_half_mul_star_omega_pow_two :
+    Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2) = (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (1 / 2 : ℂ) * (star ω) ^ 2) =
+    (1 / 4 : ℝ)
+  rw [q3_star_omega]
+  have hpow : (ω ^ 2) ^ 2 = ω := by
+    calc
+      (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+      _ = ω := q3_omega_four
+  rw [hpow]
+  exact q3_normSq_half_add_half_mul_omega
+
+@[simp] private lemma q3_normSq_half_add_hesseS_star_omega_pow_two_mul_hesseS_omega :
+    Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) *
+      ((starRingEnd ℂ) ω) ^ 2 * ((hesseS : ℂ) * ω)) = (1 / 4 : ℝ) := by
+  change Complex.normSq ((1 / 2 : ℂ) + (hesseS : ℂ) *
+    (star ω) ^ 2 * ((hesseS : ℂ) * ω)) = (1 / 4 : ℝ)
+  rw [q3_star_omega]
+  have hpow : (ω ^ 2) ^ 2 = ω := by
+    calc
+      (ω ^ 2) ^ 2 = ω ^ 4 := by ring
+      _ = ω := q3_omega_four
+  rw [hpow]
+  exact q3_normSq_half_add_hesseS_omega_mul_hesseS_omega
+
+@[simp] private lemma q3_normSq_half_mul_omega_sq_add_half :
+    Complex.normSq ((1 / 2 : ℂ) * (ω ^ 2) + (1 / 2 : ℂ)) =
+      (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_half_mul_omega_sq
+
+@[simp] private lemma q3_normSq_hesseS_star_omega_mul_hesseS_omega_sq_add_half :
+    Complex.normSq ((hesseS : ℂ) * (starRingEnd ℂ) ω *
+      ((hesseS : ℂ) * (ω ^ 2)) + (1 / 2 : ℂ)) = (1 / 4 : ℝ) := by
+  simpa [add_comm] using
+    q3_normSq_half_add_hesseS_star_omega_mul_hesseS_omega_sq
+
+@[simp] private lemma q3_normSq_half_mul_star_omega_pow_two_add_half :
+    Complex.normSq ((1 / 2 : ℂ) * ((starRingEnd ℂ) ω) ^ 2 +
+      (1 / 2 : ℂ)) = (1 / 4 : ℝ) := by
+  simpa [add_comm] using q3_normSq_half_add_half_mul_star_omega_pow_two
+
+@[simp] private lemma q3_normSq_hesseS_star_omega_pow_two_mul_hesseS_omega_add_half :
+    Complex.normSq ((hesseS : ℂ) * ((starRingEnd ℂ) ω) ^ 2 *
+      ((hesseS : ℂ) * ω) + (1 / 2 : ℂ)) = (1 / 4 : ℝ) := by
+  simpa [add_comm] using
+    q3_normSq_half_add_hesseS_star_omega_pow_two_mul_hesseS_omega
+
+set_option maxHeartbeats 1000000 in
 /-- The Hesse qutrit SIC family has the correct constant pairwise overlap. -/
 @[category test, AMS 15 47 81]
 lemma hesseFamily_pairwise :
-    HasConstantOverlapSq (sicOverlapSq 3) hesseFamily := by sorry
+    HasConstantOverlapSq (sicOverlapSq 3) hesseFamily := by
+  rintro ⟨i, hi⟩ ⟨j, hj⟩ hij
+  interval_cases i <;> interval_cases j
+  all_goals
+    simp [hesseFamily, vec3, overlapSq, sicOverlapSq, Fin.sum_univ_three] at hij ⊢
+    first
+      | done
+      | contradiction
+      | norm_num [sicOverlapSq]
 
 /-- Dimension $3$ admits a SIC-POVM, witnessed by the Hesse qutrit SIC. -/
 @[category test, AMS 15 47 81]
-theorem hasSICPOVM_three : HasSICPOVM 3 := by sorry
+theorem hasSICPOVM_three : HasSICPOVM 3 := by
+  refine ⟨hesseFamily, ?_⟩
+  exact ⟨hesseFamily_normalized, hesseFamily_pairwise⟩
 
 /-- Every vector in the BB84 family is normalized. -/
 @[category test, AMS 15 47 81]
