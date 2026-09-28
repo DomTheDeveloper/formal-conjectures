@@ -1,0 +1,85 @@
+name: Import Geode5 certificate data
+
+on:
+  push:
+    branches: [audit-geode5-crt-proof]
+    paths:
+      - '.github/workflows/geode5-import-certificate-data.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  import-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit-geode5-crt-proof
+      - name: Fetch immutable certificate inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=https://raw.githubusercontent.com/DomTheDeveloper/ProofPlaygrond/geode5-formal-proof/proofs/geode5/data
+          curl -fsSL "$base/G5_1000.txt" -o /tmp/G5_1000.txt
+          curl -fsSL "$base/residues_480.txt" -o /tmp/residues_480.txt
+          test "$(wc -l < /tmp/residues_480.txt)" -eq 480
+          test "$(tr -d '\n' < /tmp/G5_1000.txt | wc -c)" -eq 8367
+      - name: Generate self-contained Lean data module
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          answer = Path('/tmp/G5_1000.txt').read_text().strip()
+          pairs = [tuple(line.split()) for line in Path('/tmp/residues_480.txt').read_text().splitlines()]
+          out = Path('FormalConjectures/Arxiv/2508.10245/Geode5Proof/CertificateData.lean')
+          out.parent.mkdir(parents=True, exist_ok=True)
+          with out.open('w') as f:
+              f.write('''/-
+          Copyright 2026 The Formal Conjectures Authors.
+
+          Licensed under the Apache License, Version 2.0 (the "License");
+          you may not use this file except in compliance with the License.
+          You may obtain a copy of the License at
+
+              https://www.apache.org/licenses/LICENSE-2.0
+
+          Unless required by applicable law or agreed to in writing, software
+          distributed under the License is distributed on an "AS IS" BASIS,
+          WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+          See the License for the specific language governing permissions and
+          limitations under the License.
+          -/
+
+          import Mathlib
+
+          /-!
+          # Exact data for the five-dimensional Geode certificate
+
+          This file contains the exact 8,367-digit candidate and the 480 modular
+          residues supplied by the computational certificate.
+          -/
+
+          namespace Arxiv.«2508.10245».Geode5Proof
+
+          /-- Exact candidate for `G(1000,1000,1000,1000,1000)`. -/
+          def answerValue : ℕ :=
+            ''')
+              f.write(answer + '\n\n')
+              f.write('/-- The 480 `(prime, residue)` pairs used for CRT reconstruction. -/\n')
+              f.write('def residuePairs : List (ℕ × ℕ) := [\n')
+              for i, (p, r) in enumerate(pairs):
+                  f.write(f'  ({p}, {r}){"," if i + 1 < len(pairs) else ""}\n')
+              f.write(']\n\ntheorem residuePairs_length : residuePairs.length = 480 := by\n')
+              f.write('  native_decide\n\nend Arxiv.«2508.10245».Geode5Proof\n')
+          PY
+      - name: Commit generated certificate data
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add FormalConjectures/Arxiv/2508.10245/Geode5Proof/CertificateData.lean
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Add exact Geode5 CRT certificate data [skip ci]'
+          git push origin HEAD:audit-geode5-crt-proof

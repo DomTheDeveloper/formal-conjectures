@@ -1,0 +1,56 @@
+name: Finalize Geode5 table simplification
+
+on:
+  push:
+    branches: [audit-geode5-crt-proof]
+    paths:
+      - '.github/workflows/geode5-final-table-simp.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit-geode5-crt-proof
+      - name: Restore row-specific finite sum expansion
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('FormalConjectures/Arxiv/2508.10245/Geode5Proof/RemainderTables.lean')
+          s = p.read_text()
+          s = s.replace('have hfive : (Polynomial.C (5 : YPoly) : TYPoly) = 5 := by norm_num',
+                        'have hfive : (Polynomial.C (5 : YPoly) : TYPoly) = 5 := by rfl')
+          # The first row has a constant quotient; the other four need fixed-sum expansion.
+          marker = 'Polynomial.derivative_X, Polynomial.derivative_pow]\n  ring_nf'
+          positions = []
+          start = 0
+          while True:
+              i = s.find(marker, start)
+              if i < 0: break
+              positions.append(i)
+              start = i + len(marker)
+          assert len(positions) == 5, len(positions)
+          out = []
+          cursor = 0
+          for idx, pos in enumerate(positions):
+              out.append(s[cursor:pos])
+              if idx == 0:
+                  out.append(marker)
+              else:
+                  out.append('Polynomial.derivative_X, Polynomial.derivative_pow, Finset.sum_range_succ]\n  ring_nf')
+              cursor = pos + len(marker)
+          out.append(s[cursor:])
+          p.write_text(''.join(out))
+          PY
+          rm .github/workflows/geode5-final-table-simp.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add FormalConjectures/Arxiv/2508.10245/Geode5Proof/RemainderTables.lean .github/workflows/geode5-final-table-simp.yml
+          git commit -m 'Finalize Geode5 sparse table simplification [skip ci]'
+          git push origin HEAD:audit-geode5-crt-proof
