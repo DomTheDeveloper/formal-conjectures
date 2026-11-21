@@ -1,0 +1,172 @@
+name: Verify the complete 17-module native proof of ordinary RH
+on:
+  workflow_dispatch:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths: ['.github/workflows/rh-ordinary-native.yml']
+permissions:
+  contents: read
+  actions: read
+env:
+  TOOLS: _certificates/RiemannReduction
+jobs:
+  prepare:
+    name: Construct precisely the 1175724 declarations of the new proof
+    runs-on: ubuntu-24.04
+    timeout-minutes: 200
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lean 4.33.1 and compile the native proof writer
+        run: |
+          set -euo pipefail
+          bash "$TOOLS/module_runner.sh" space 16
+          bash "$TOOLS/module_runner.sh" lean
+          mkdir -p "$RUNNER_TEMP/ordinary/patches"
+          cd "$RUNNER_TEMP/ordinary"
+          d="$GITHUB_WORKSPACE/$TOOLS/chapters"
+          "$HOME/.elan/bin/lean" -R "$d" -c OrdinaryModule.c "$d/OrdinaryModule.lean"
+          "$HOME/.elan/bin/leanc" -O3 -DNDEBUG -o ordinary-module OrdinaryModule.c
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44935029011
+          pattern: rh-olean-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/ordinary/original
+      - name: Check the complete module delta and write the exact new objects
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/ordinary"
+          d="$GITHUB_WORKSPACE/$TOOLS/chapters"
+          curl -fsSL --retry 5 'https://github.com/DomTheDeveloper/formal-conjectures/releases/download/rh-source-e96c40c44137/native-chapters.tar.zst' -o additions.tar.zst
+          echo '516dd52edab7fd3c5a8dc979ac6c0a69c120308d64f7bd88a4a9eaca90033677  additions.tar.zst' | sha256sum -c -
+          tar --zstd -xf additions.tar.zst
+          python3 "$d/native_ordinary.py" prepare original patches "$PWD/ordinary-module" RHChapters
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ordinary-native-modules-patch
+          path: ${{ runner.temp }}/ordinary/patches
+          retention-days: 10
+          compression-level: 0
+          if-no-files-found: error
+  replay:
+    name: Stock Lean recheck of ordinary RH, lane ${{ matrix.lane }}
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the original Lean kernel
+        run: |
+          bash "$TOOLS/module_runner.sh" space
+          bash "$TOOLS/module_runner.sh" lean
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44935029011
+          pattern: rh-olean-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/ordinary/original
+      - uses: actions/download-artifact@v4
+        with:
+          name: ordinary-native-modules-patch
+          path: ${{ runner.temp }}/ordinary/patches
+      - name: Authenticate the exact 17 proof objects
+        run: |
+          cd "$RUNNER_TEMP/ordinary"
+          python3 "$GITHUB_WORKSPACE/$TOOLS/chapters/native_ordinary.py" unpack original patches "$PWD"
+      - name: Check owned declarations in their exact new module environment
+        env:
+          LANE: ${{ matrix.lane }}
+          LEAN_ABORT_ON_PANIC: '1'
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/ordinary"
+          extra=$(( $(df -BG --output=avail . | tail -1 | tr -d ' G') - 6 ))
+          if ((extra>55)); then extra=55; fi
+          if ((extra>0)); then
+            sudo fallocate -l "${extra}G" replay.swap
+            sudo chmod 600 replay.swap
+            sudo mkswap replay.swap
+            sudo swapon replay.swap
+          fi
+          mkdir -p verdicts
+          export LEAN_PATH="$PWD"
+          for ((i=LANE; i<17; i+=8)); do
+            mod="RHBatches.Part$i"
+            /usr/bin/time -v leanchecker "$mod"
+            sha=$(jq -r ".modules[$i].sha256" patches/ordinary-native-plan.json)
+            echo "Lean 4.33.1 accepted $mod $sha" | tee "verdicts/native-$i.txt"
+          done
+          if ((LANE==0)); then
+            lean --run "$GITHUB_WORKSPACE/$TOOLS/chapters/NativeTarget.lean" RHBatches/Part16.olean
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ordinary-native-verdicts-${{ matrix.lane }}
+          path: ${{ runner.temp }}/ordinary/verdicts
+          retention-days: 90
+          if-no-files-found: error
+  publish:
+    name: Publish all 17 independently replayable native objects
+    needs: replay
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make room for the proof
+        run: bash "$TOOLS/module_runner.sh" space
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44935029011
+          pattern: rh-olean-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/ordinary/original
+      - uses: actions/download-artifact@v4
+        with:
+          name: ordinary-native-modules-patch
+          path: ${{ runner.temp }}/ordinary/patches
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ordinary-native-verdicts-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/ordinary/verdicts
+      - name: Validate all hashes and kernel verdicts before publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/ordinary"
+          python3 "$GITHUB_WORKSPACE/$TOOLS/chapters/native_ordinary.py" release original patches verdicts release
+          cd release
+          tag=rh-ordinary-native-3eaf53b19177
+          cat > "$RUNNER_TEMP/ordinary-notes.md" <<'EOF'
+          These 17 native Lean modules contain the complete proof of ordinary RH from the 474-line derivation, including all 1,175,685 supporting declarations. The 38 new chapter declarations and one public theorem name give 1,175,724 declaration records in total. The original five headline proofs are excluded. Stock Lean 4.33.1 replayed every one of these 17 modules in its actual import environment. The manifest gives the complete set of checksums, individual verdicts and the digest of the corresponding independent-checker export.
+
+          To reproduce, download all 17 Part*.olean.zst assets, decompress them under RHBatches/, set LEAN_PATH to that directory's parent, and run leanchecker RHBatches.Part0 through leanchecker RHBatches.Part16 using Lean 4.33.1. These files contain all the Lean proof prerequisites.
+          EOF
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --target "$GITHUB_SHA" --draft --prerelease --latest=false --title 'Complete ordinary RH in 17 verified Lean modules' --notes-file "$RUNNER_TEMP/ordinary-notes.md"
+          fi
+          for f in Part*.olean.zst ordinary-native-manifest.json; do
+            expected="sha256:$(sha256sum "$f" | cut -d' ' -f1)"
+            for delay in 0 5 15; do
+              sleep "$delay"
+              got=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$f\") | .digest")
+              [[ "$got" != "$expected" ]] || break
+              [[ -z "$got" ]]
+              gh release upload "$tag" "$f" && break
+            done
+            got=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$f\") | .digest")
+            [[ "$got" == "$expected" ]]
+          done
+          gh release edit "$tag" --draft=false --prerelease --latest=false
