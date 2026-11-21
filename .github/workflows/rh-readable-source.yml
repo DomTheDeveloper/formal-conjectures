@@ -1,0 +1,77 @@
+name: Kernel-compare readable algebra and publish the shortened source
+on:
+  workflow_dispatch:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths: ['.github/workflows/rh-readable-source.yml', '_certificates/RiemannReduction/refinements/edits.json']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 220
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out the pinned source and toolchain
+        run: |
+          set -euo pipefail
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /usr/share/swift /opt/ghc /opt/hostedtoolcache/CodeQL
+          git init -q "$RUNNER_TEMP/archived"
+          git -C "$RUNNER_TEMP/archived" fetch -q --depth 1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          git -C "$RUNNER_TEMP/archived" checkout -q --detach FETCH_HEAD
+          curl -fsSL https://github.com/leanprover/elan/releases/download/v4.2.1/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/elan-init" -y --default-toolchain leanprover/lean4:v4.33.1
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          echo 'ELAN_TOOLCHAIN=leanprover/lean4:v4.33.1' >> "$GITHUB_ENV"
+      - name: Compile both source versions and compare every public interface with Lean
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/archived"
+          lake exe cache get
+          lake env python3 "$GITHUB_WORKSPACE/_certificates/RiemannReduction/refinements/verify.py" "$PWD" "$RUNNER_TEMP/compared"
+      - name: Build and verify all 17 source volumes
+        working-directory: _certificates/RiemannReduction
+        run: |
+          set -euo pipefail
+          python3 pack_source.py "$RUNNER_TEMP/archived" "$RUNNER_TEMP/refined" --refined > "$RUNNER_TEMP/source-volumes.json"
+          cp "$RUNNER_TEMP/source-volumes.json" "$RUNNER_TEMP/compared/kernel-verdicts.jsonl" "$RUNNER_TEMP/refined/"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: checked-readable-project
+          path: ${{ runner.temp }}/refined
+          compression-level: 0
+          retention-days: 30
+  publish:
+    runs-on: ubuntu-24.04
+    needs: verify
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: checked-readable-project
+          path: output
+      - name: Publish the source under its mathematical-project fingerprint
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="rh-source-$(jq -r '.source.tree_sha256[:12]' output/source-volumes.json)"
+          count=$(jq -r '.source.reduced_lines' output/source-volumes.json)
+          modules=$(jq -r '.source.refined_modules' output/source-volumes.json)
+          cat > "$RUNNER_TEMP/notes.md" <<EOF
+          The 17 archives contain the complete shortened Lean source with $count lines. All archive members were individually recovered and compared against the rewritten project. The kernel verdicts cover every public declaration of $modules further simplified algebra modules, including transparent definition bodies. The comparison rebuilt original and shortened sources using the author's pinned toolchain and Mathlib.
+          EOF
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" output/* --target "$GITHUB_SHA" --prerelease --latest=false --title 'Riemann hypothesis — further simplified Lean source in 17 volumes' --notes-file "$RUNNER_TEMP/notes.md"
+          else
+            gh release view "$tag" --json assets > existing.json
+            python3 - <<'PY'
+          import hashlib,json,pathlib
+          assets = {a['name']:a['digest'] for a in json.loads(pathlib.Path('existing.json').read_text())['assets']}
+          for p in pathlib.Path('output').iterdir():
+              if assets.get(p.name) != 'sha256:' + hashlib.file_digest(p.open('rb'), 'sha256').hexdigest():
+                  raise SystemExit(f'The existing release differs at {p.name}.')
+          PY
+          fi

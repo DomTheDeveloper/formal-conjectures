@@ -1,4 +1,28 @@
 {
+  "algebra_refinements": {
+    "definitions": 186,
+    "free_module_quotient_original": 2516,
+    "free_module_quotient_refined": 86,
+    "full_source_rebuild": "not completed",
+    "lean": "4.33.1",
+    "lines_removed": 20568,
+    "modules": 31,
+    "original_lines": 49643,
+    "public_declarations": 343,
+    "refined_lines": 29075,
+    "source_tree": {
+      "base_changed_files": 84186,
+      "base_tree_sha256": "ae2ba3a2e34e07ba02869f1269f3dc6e3fdde85e15cc4ac90d85102b8d155a1c",
+      "changed_files": 84217,
+      "original_lines": 17374215,
+      "reduced_lines": 17086737,
+      "refined_modules": 31,
+      "source_files": 175187,
+      "source_revision": "40e56bab026552e089d7afcfeff08d2defb9c005",
+      "tree_sha256": "aa4f709977bd35dfcf20523d8740d7b01d7fe95a174d6dd3f5aa8e0678b69099"
+    },
+    "total_project_lines": 17086737
+  },
   "all_five": {
     "axioms": [
       "propext",
@@ -28,6 +52,16 @@
   "analytical_certificate": {
     "arithmetic_hypothesis": "one-sided prime-window estimate",
     "exporter_commit": "15f6055e299ad5b89345e533cc2192f4cc00f659",
+    "github_rebuild": {
+      "actions_run": 44928687235,
+      "compressed_bytes": 54534408,
+      "compressed_sha256": "a523ab6a4005f80e1a5548e3b13ff1e2765baeec0d912c4185e206cbbb8d7e35",
+      "con_leche": "accepted 55308 declarations (--verified)",
+      "declaration_records": 55308,
+      "shortened_project_sources_compiled": 31,
+      "stock": "Lean default kernel accepts the solution",
+      "uncompressed_sha256": "b3426bca96dacc1ccf77fd7a01fb0e806b2b785c833c4c74c896f167f5d6b3e8"
+    },
     "node": "RiemannReduction.rh_of_prime_windows",
     "original": {
       "bytes": 436362084,

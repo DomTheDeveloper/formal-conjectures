@@ -41,7 +41,7 @@ def volume(name):
     return ABELIAN.get(parts[4], 17)
 
 
-def pack(repo, out):
+def pack(repo, out, materialize=run):
     out.mkdir(parents=True, exist_ok=False)
     paths = [out / f'{i:02d}-{title}.tar.zst' for i, title in enumerate(TOPICS, 1)]
     contents = {}
@@ -66,7 +66,7 @@ def pack(repo, out):
                 counts[index]['lean_files'] += 1
                 counts[index]['lean_lines'] += data.count(b'\n')
 
-        source = run(repo, None, visit=add)
+        source = materialize(repo, None, visit=add)
     if any(p.returncode for p in encoders):
         raise RuntimeError('A zstd encoder failed')
     for i, path in enumerate(paths, 1):
@@ -93,5 +93,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('repo', type=Path)
     parser.add_argument('output', type=Path, help='new directory for the 17 archives')
+    parser.add_argument('--refined', action='store_true')
     args = parser.parse_args()
-    print(json.dumps(pack(args.repo, args.output), indent=2))
+    import refine_source
+    print(json.dumps(pack(args.repo, args.output, refine_source.run if args.refined else run), indent=2))

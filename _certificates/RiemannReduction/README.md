@@ -4,13 +4,21 @@ This directory rebuilds a shorter Lean source tree and generates 17 kernel proof
 
 | Quantity | Published release | Reduced, all five conclusions | Reduced, ordinary RH alone |
 |---|---:|---:|---:|
-| Lean source lines | 17,374,215 | 17,107,305 | — |
+| Lean source lines | 17,374,215 | 17,086,737 | — |
 | Lean source files | 175,187 | 175,187 | — |
 | Kernel declaration records | 1,468,418 | 1,172,294 | 1,172,274 |
 | Distinct expression records in the export | 1,065,214,335 | 1,048,298,917 | 1,048,296,913 |
 | Uncompressed kernel export, bytes | 61,570,595,788 | 60,520,686,934 | 60,520,564,304 |
 
-The source patch preserves theorem statements and removes 251,383 redundant imports. It shortens 2,133 proofs using an earlier theorem with the same exported proposition and universe parameters. Reapplying the patch reproduces the measured tree digest across every source file. The independent kernel reduction works directly on proof terms. Its five public roots are ordinary RH, the zeta zero statement, and the three Dirichlet L-function statements in the original challenge. The original export contains exactly the three standard axiom declarations `propext`, `Classical.choice` and `Quot.sound`.
+The first source pass preserves theorem statements and removes 251,383 redundant imports. It shortens 2,133 proofs using an earlier theorem with the same exported proposition and universe parameters. Reapplying the patch reproduces the measured tree digest across every source file. The independent kernel reduction works directly on proof terms. Its five public roots are ordinary RH, the zeta zero statement, and the three Dirichlet L-function statements in the original challenge. The original export contains exactly the three standard axiom declarations `propext`, `Classical.choice` and `Quot.sound`.
+
+## Readable algebra
+
+Thirty-one algebra modules shrank from 49,643 to 29,075 lines. Lean rechecked their original and rewritten proof terms in disjoint namespaces. Its kernel compared 343 public declaration types, their universe parameters, and every named argument and its visibility. It also checked definitional equality of all 186 public definition bodies. Both versions use Mathlib at the pinned revision.
+
+The [86-line module quotient proof](refinements/FreeModuleQuotient.lean) replaces a 2,516-line file. If the coordinates of a module are free modulo an ideal $I$, and $I$ lies inside $K$, reducing every coordinate modulo $K$ gives coordinates for the corresponding quotient module. The kernel of the coordinate map consists exactly of the relations imposed by $K$. In the original, writing every instance used for the ring, module, matrix and quotient operations occupied most of the statement.
+
+Run `python3 refine_source.py archive refined` to reconstruct the 17,086,737-line project. Omit `refined` to verify its fingerprint in memory. To repeat the compiled comparison, run `lake exe cache get` in the pinned source checkout and then `lake env python3 /path/to/refinements/verify.py "$PWD" /path/to/verification-output`. [Machine-readable results](refinements/results.json) · [GitHub rebuild](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-readable-source.yml)
 
 ## The mathematical idea
 
@@ -22,13 +30,15 @@ $$
 
 Imagine a zeta zero with real part 0.60. Its contribution creates a pole of the Mellin transform of this error. The localized Landau theorem then forces an excursion above any fixed multiple of $y^{0.55}$ somewhere in every sufficiently late interval $[Y,Y^{3/2}]$. The arithmetic construction produces arbitrarily late intervals where the error stays below one such multiple throughout. Choosing an exponent between ½ and the real part of any proposed zero excludes every zero to the right. The functional equation supplies the other half of RH.
 
-The 49-line [PrimeWindows.lean](PrimeWindows.lean) formalizes the implication from these window bounds to Mathlib’s ordinary RH. Lean 4.33.1 checks it with the standard three axioms. Its explicit hypothesis is the arithmetic estimate. The complete exported proof of this implication contained 59,545 declaration records. Stock Lean and ConLeche in verified mode both accepted the shortened 55,308-record proof with its full dependency closure and no temporary theorem assumptions.
+The 49-line [PrimeWindows.lean](PrimeWindows.lean) formalizes the implication from these window bounds to Mathlib’s ordinary RH. Lean 4.33.1 checks it with the standard three axioms. Its explicit hypothesis is the arithmetic estimate. GitHub rebuilt all 31 project modules needed by this implication from the shortened source. The complete exported proof of the implication contained 59,545 declaration records. Stock Lean and ConLeche in verified mode both accepted the shortened 55,308-record proof with its full dependency closure and no temporary theorem assumptions. [Download the checked certificate](https://github.com/DomTheDeveloper/formal-conjectures/releases/download/rh-source-ae2ba3a2e34e/prime-window-proof.ndjson.zst) · [Read the kernel verdicts](https://github.com/DomTheDeveloper/formal-conjectures/releases/download/rh-source-ae2ba3a2e34e/prime-window-kernels.txt)
 
 The hard estimate comes from divisibility. A nonzero algebraic integer divisible by many prime ideals must have a large norm. The proof compares this lower bound with an upper bound from a chain of theta lifts. The choice of chain length balances errors that grow with the length and errors that shrink with it. Ordinary zeta uses the trivial character in the final prime sum. The arithmetic work that delivers its bound still uses auxiliary characters and fields. [Alpöge’s note](https://alpo.ge/remark.pdf) · [Annotated mathematical guide](https://github.com/nasqret/riemann-rev)
 
 ## Download the 17 source volumes
 
-The [17 downloadable archives](https://github.com/DomTheDeveloper/formal-conjectures/releases/tag/rh-source-ae2ba3a2e34e) contain the complete shortened source organized by topic, including the build configuration. Extract all 17 into one directory with `for f in *.tar.zst; do tar --zstd -xf "$f"; done`. Together they contain 175,187 Lean modules. The materializer decompressed every archived file and compared it with the shortened project. The [volume manifest](source-volumes.json) lists each topic, line count and SHA-256.
+The [further simplified source release](https://github.com/DomTheDeveloper/formal-conjectures/releases/tag/rh-source-aa4f709977bd) contains the 17,086,737-line project. Each of the 17 archives was decoded and its files were compared byte for byte with the refactored project.
+
+The first pass is available in [17 downloadable archives](https://github.com/DomTheDeveloper/formal-conjectures/releases/tag/rh-source-ae2ba3a2e34e). They contain 17,107,305 source lines and the complete build configuration. Extract all 17 into one directory with `for f in *.tar.zst; do tar --zstd -xf "$f"; done`. Together they contain 175,187 Lean modules. The materializer decompressed every archived file and compared it with the shortened project. The [volume manifest](source-volumes.json) lists each topic, line count and SHA-256.
 
 ## Materialize the shorter Lean source
 
@@ -41,7 +51,7 @@ cd reduced-source
 lake build Main
 ```
 
-The 919,424-byte patch encodes edits against the original Git revision. The proof source and its dependency remain necessary to reconstruct the project. The full source tree digest, input pins, line counts and hashes of both unpartitioned kernel exports are in [measurements.json](measurements.json).
+The 919,424-byte patch encodes edits against the original Git revision. The proof source and its dependency remain necessary to reconstruct the project. The first-pass source tree digest, input pins, line counts and hashes of both unpartitioned kernel exports are in [measurements.json](measurements.json).
 
 ## Generate the proof and run Lean
 
