@@ -4,8 +4,6 @@ import ParseExport33
 import RH17.S09_Reflection
 import RH17.S16_TwoArithmeticInputs
 
-namespace UpperTheory.LiteratureTheorems
-end UpperTheory.LiteratureTheorems
 
 open Lean Elab Command
 

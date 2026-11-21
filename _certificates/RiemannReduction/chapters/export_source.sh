@@ -41,7 +41,13 @@ p = Path(sys.argv[1])
 lines = p.read_bytes().splitlines(keepends=True)
 if not all(s.startswith(b'import Development.AutomorphicArithmetic.') for s in lines[:4]) or not lines[4].startswith(b'import RH17.'):
     raise ValueError('Unexpected original provider imports')
-p.write_bytes(b'import RHChapterContext\n'+b''.join(lines[4:]))
+text = b'import RHChapterContext\n' + b''.join(lines[4:])
+# Raw kernel exports carry declarations and universe levels. Reintroduce the namespace for Lean's 'open' command.
+marker = b'namespace RH17\n'
+namespace = b'namespace UpperTheory.LiteratureTheorems\nend UpperTheory.LiteratureTheorems\n\n'
+if text.count(marker) != 1:
+    raise ValueError('Unexpected chapter namespace')
+p.write_bytes(text.replace(marker, namespace + marker, 1))
 PY
 cd "$project"
 export LEAN_PATH="$scratch/objects:$scratch/parser:$(lake env printenv LEAN_PATH)"
