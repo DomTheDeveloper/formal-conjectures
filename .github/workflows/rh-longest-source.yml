@@ -1,0 +1,47 @@
+name: Rebuild and compare the longest individual file in the Riemann hypothesis source
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['_certificates/RiemannReduction/longest-source/**', '.github/workflows/rh-longest-source.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Lean and fetch the original project
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh space 18
+          bash _certificates/RiemannReduction/module_runner.sh lean
+          repo="$RUNNER_TEMP/original"
+          git init -q "$repo"
+          git -C "$repo" fetch -q --depth=1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          git -C "$repo" checkout -q --detach FETCH_HEAD
+          cd "$repo"
+          "$HOME/.elan/bin/lake" exe cache get
+      - name: Build the original file and all one hundred forty-seven project prerequisites
+        env:
+          LEAN_ABORT_ON_PANIC: '1'
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/original"
+          lake build +Formalism.HermitianCurvature.HermitianCurvatureProofs.IsAdmissibleSplittingCharPairMulTwist:olean
+      - name: Compile the shortened file, kernel-replay it and compare original kernel records
+        env:
+          LEAN_ABORT_ON_PANIC: '1'
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/original"
+          lake env python3 "$GITHUB_WORKSPACE/_certificates/RiemannReduction/longest-source/verify.py" "$PWD" "$RUNNER_TEMP/results"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Longest_Lean_File_Shortened
+          path: |
+            ${{ runner.temp }}/results/result.json
+            ${{ runner.temp }}/results/src/
+          if-no-files-found: error
+          retention-days: 90
