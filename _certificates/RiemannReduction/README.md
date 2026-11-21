@@ -2,19 +2,21 @@
 
 This directory rebuilds a shorter Lean source tree and generates 17 kernel proof articles from Levent Alpöge’s published release. It also contains a short Lean deduction of ordinary RH from an explicit bound on a weighted prime sum.
 
-| Quantity | Published release | Reduced, all five conclusions | Reduced, ordinary RH alone |
-|---|---:|---:|---:|
-| Lean source lines | 17,374,215 | 17,086,632 | — |
-| Lean source files | 175,187 | 175,187 | — |
-| Kernel declaration records | 1,468,418 | 1,172,294 | 1,172,274 |
-| Distinct expression records in the export | 1,065,214,335 | 1,048,298,917 | 1,048,296,913 |
-| Uncompressed kernel export, bytes | 61,570,595,788 | 60,520,686,934 | 60,520,564,304 |
+| Quantity | Published | Challenge-preserving reduction |
+|---|---:|---:|
+| Lean source lines | 17,374,215 | 17,086,632 |
+| Lean source files | 175,187 | 175,187 |
+| Kernel declaration records | 1,468,418 | 1,175,732 |
+| Distinct expression records in the export | 1,065,214,335 | 1,048,304,687 |
+| Uncompressed kernel export, bytes | 61,570,595,788 | 60,521,386,737 |
 
 The first source pass preserves theorem statements and removes 251,383 redundant imports. It shortens 2,133 proofs using an earlier theorem with the same exported proposition and universe parameters. Reapplying the patch reproduces the measured tree digest across every source file. The independent kernel reduction works directly on proof terms. Its five public roots are ordinary RH, the zeta zero statement, and the three Dirichlet L-function statements in the original challenge. The original export contains exactly the three standard axiom declarations `propext`, `Classical.choice` and `Quot.sound`.
 
-The first three kernel-size rows above describe the initial reduction. The challenge-preserving all-five export contains 1,175,732 declaration records and 1,048,304,687 expression records in 60,521,386,737 bytes. Its SHA-256 is `c06133e527f9962f8c0c759e8dcc2007ae0d86535e165fa7453a0956624fa94d`.
-
 The first complete independent replay checked all 1,172,294 solution declarations and then rejected the official challenge comparison at `riemannHypothesis`. The comparator found a difference in the library declarations its type reads. The revised reduction preserves all 53,721 shared declarations from the official challenge, including the original names and bodies of 3,425 theorems that the first pass shared. Its 1,175,732 declarations are undergoing a fresh full comparison. [First comparator run](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44917310333) · [Revised comparator run](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-protected-kernel.yml)
+
+## The ordinary-RH deduction in 17 readable files
+
+The [17 chapters](chapters) contain 474 lines. The final theorem constructs the arithmetic inputs and concludes ordinary RH. Its imports reach 175,174 original modules. Chapters 10 and 11 give separately checked explanations of what an off-line zero would force and why the chain length is approximately a square root. The [complete kernel comparison](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-proof-chapters.yml) checks the new proof terms together with all their arithmetic dependencies.
 
 ## Native Lean proof modules
 
@@ -99,7 +101,7 @@ done
 - **Native check of the endpoint.** A local stock Lean run accepted a smaller interval containing all five public conclusions. It checked 1,010 owned records and used 13,842 earlier theorem headers. That check alone certifies the final interval. Its counts and verdict are recorded in [measurements.json](measurements.json).
 - **Every source theorem replacement.** A separate stock Lean run checked all 2,133 proposed uses of earlier theorems at the original propositions and universe parameters. It built a native proof for each substitution and supplied 26,019 supporting theorem statements as temporary headers. Reproduce this check with `bash check_source_reuse.sh original.zst build` after running `reduce.sh`. This checks the mathematical substitutions. Rebuilding the source also exercises tactic elaboration and the import graph.
 - **Every deleted import.** Lean 4.33.1 parsed every original and revised module header. A separate reachability check confirmed that each of the 251,383 removed imports was already available through an earlier retained public import in the revised graph. This covers all 175,187 source modules and 83,202 changed headers. The check preserves the order and visibility of the retained imports.
-- **Lean source.** The source patch and kernel reducer are separate transformations. Source reproduction verifies the bytes of the patch output. Stock Lean compiled three rewritten modules. The largest measured sample went from 532 lines to 381. The full import and arithmetic proof-term checks run separately from these source compiler checks. Compiling a final theorem against existing imports does not substitute for checking its dependencies.
+- **Lean source.** The source patch and kernel reducer are separate transformations. Source reproduction verifies the bytes of the patch output. Stock Lean compiled three rewritten modules. The largest measured sample went from 532 lines to 381. The 32 further mathematical rewrites have their own compiler and public declaration comparisons. The complete 175,187-module rewritten source tree still awaits a clean source build.
 - **Baseline.** The original proof has its own published compilation and independent kernel verification record. [Original verification files](https://math.mit.edu/~drew/grh/) · [Pinned Lean source](https://github.com/leanprover-community/riemann-hypothesis/tree/40e56bab026552e089d7afcfeff08d2defb9c005)
 
 The small regression test exercises theorem sharing, cross-part dependencies and binder names. It also checks that the native kernel rejects a deliberately mistyped proof on both a regular file and a pipe.

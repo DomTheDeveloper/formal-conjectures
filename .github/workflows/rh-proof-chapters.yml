@@ -1,0 +1,131 @@
+name: Independently verify the 17 readable RH chapters and all arithmetic prerequisites
+on:
+  workflow_dispatch:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths: ['.github/workflows/rh-proof-chapters.yml']
+permissions:
+  contents: read
+jobs:
+  source:
+    name: Compile all 17 readable chapters and match every new proof body
+    runs-on: ubuntu-24.04
+    timeout-minutes: 220
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Lean, Mathlib and the chapter imports
+        shell: bash
+        run: |
+          set -euo pipefail
+          d=_certificates/RiemannReduction
+          bash "$d/module_runner.sh" space
+          bash "$d/module_runner.sh" lean
+          export PATH="$HOME/.elan/bin:$PATH" ELAN_TOOLCHAIN=leanprover/lean4:v4.33.1
+          git init -q "$RUNNER_TEMP/archived"
+          git -C "$RUNNER_TEMP/archived" fetch -q --depth 1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          git -C "$RUNNER_TEMP/archived" checkout -q --detach FETCH_HEAD
+          (cd "$RUNNER_TEMP/archived" && lake exe cache get)
+          python3 "$d/chapters/restore_imports.py" "$RUNNER_TEMP/archived" "$RUNNER_TEMP/archives" "$(dirname "$(elan which lean)")/leantar"
+          git init -q "$RUNNER_TEMP/exporter"
+          git -C "$RUNNER_TEMP/exporter" fetch -q --depth 1 https://github.com/leanprover/lean4export 15f6055e299ad5b89345e533cc2192f4cc00f659
+          git -C "$RUNNER_TEMP/exporter" checkout -q --detach FETCH_HEAD
+          (cd "$RUNNER_TEMP/exporter" && lake build Export)
+      - name: Recover the authenticated provider signatures and compile the chapters
+        shell: bash
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction"
+          cd "$RUNNER_TEMP"
+          curl -fsSL --retry 4 https://math.mit.edu/~drew/grh/solution.ndjson.zst -o original.zst
+          bash "$d/reduce.sh" original.zst build all share
+          bash "$d/chapters/export_source.sh" original.zst build archived exporter chapter-source 2>&1 | tee source-verdict.txt
+          python3 "$d/chapters/compare_supplements.py" "$d/chapters/chapters.ndjson.zst" chapter-source/chapters.ndjson.zst | tee -a source-verdict.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chapter-source-verdict
+          path: ${{ runner.temp }}/source-verdict.txt
+          retention-days: 90
+  check:
+    name: Check the new ordinary RH deduction against the original Mathlib statement
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lean 4.36.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://github.com/leanprover/elan/releases/download/v4.2.1/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/elan-init" -y --default-toolchain leanprover/lean4:v4.36.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          echo 'ELAN_TOOLCHAIN=leanprover/lean4:v4.36.0' >> "$GITHUB_ENV"
+      - name: Build the independently implemented Lean checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q "$RUNNER_TEMP/con-leche"
+          git -C "$RUNNER_TEMP/con-leche" fetch -q --depth 1 https://github.com/leanprover/con-leche 5ea446d5c79d23ef1f954215d094db2162f1ab6f
+          git -C "$RUNNER_TEMP/con-leche" checkout -q --detach FETCH_HEAD
+          cd "$RUNNER_TEMP/con-leche" && lake build con-leche
+      - name: Verify the complete new proof and its arithmetic dependencies
+        shell: bash
+        env:
+          LEAN_ABORT_ON_PANIC: '1'
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/github_verify.sh certified chapters 2>&1 | tee "$RUNNER_TEMP/chapters-kernel.txt"
+      - name: Record source, dependencies and the independent kernel verdict
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/accepted-chapters"
+          work="$RUNNER_TEMP/rh-verification"
+          mkdir -p "$out"
+          cp "$RUNNER_TEMP/chapters-kernel.txt" "$out/"
+          cp "$work/reduced.sha256" "$out/complete-solution.sha256"
+          cp "$work/chapters/link/"{link-plan.json,external.tsv,closure.json} "$out/"
+          cp _certificates/RiemannReduction/chapters/chapters.ndjson.zst "$out/"
+          cd _certificates/RiemannReduction/chapters
+          tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -czf "$out/RH17-lean.tar.gz" RH17
+          (cd "$out" && sha256sum RH17-lean.tar.gz chapters.ndjson.zst complete-solution.sha256 closure.json external.tsv link-plan.json > checksums.txt)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: checked-ordinary-RH-chapters
+          path: ${{ runner.temp }}/accepted-chapters
+          compression-level: 0
+          retention-days: 90
+  publish:
+    needs: [source, check]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: checked-ordinary-RH-chapters
+          path: certificate
+      - uses: actions/download-artifact@v4
+        with:
+          name: chapter-source-verdict
+          path: certificate
+      - name: Publish the verified chapters and full replay instructions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd certificate
+          sha256sum -c checksums.txt
+          tag="rh-chapters-$(cut -c1-12 complete-solution.sha256)"
+          cat > "$RUNNER_TEMP/chapters-release.md" <<EOF
+          The 17 readable Lean chapters derive ordinary RH from the published arithmetic. The independent kernel checked their entire supporting proof and matched Mathlib's original RH challenge. The dependency audit excluded the original final RH theorems. The accompanying proof-term supplement is linked to the authenticated original by the reconstruction scripts at commit $GITHUB_SHA. The complete linked article digest and the verification log are included.
+          EOF
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --draft --prerelease --latest=false --target "$GITHUB_SHA" --title '17 verified Lean chapters deriving ordinary RH' --notes-file "$RUNNER_TEMP/chapters-release.md"
+          fi
+          for f in *; do
+            sha="sha256:$(sha256sum "$f" | cut -d' ' -f1)"
+            existing=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$f\") | .digest")
+            if [[ -z "$existing" ]]; then gh release upload "$tag" "$f"; else [[ "$existing" == "$sha" ]]; fi
+          done
+          gh release edit "$tag" --draft=false --prerelease --latest=false

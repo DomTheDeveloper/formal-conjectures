@@ -16,16 +16,27 @@ zstd -dcq --long=31 challenge.zst > challenge.ndjson
 echo 'bd484ac9886a96f26b1d9a7a59ebd45b7a70d102c015d4f31f9302bbdd6ab2b9  challenge.ndjson' | sha256sum -c -
 bash "$here/reduce.sh" original.zst build all share
 article_index="$workdir/build"
-if [[ ${2:-} == protected ]]; then
-    article_index="$workdir/guarded"
-    bash "$here/guard_solution.sh" challenge.zst build "$article_index"
-fi
+selection=all-share
+supplement=/dev/null
+case "${2:-}" in
+    protected)
+        article_index="$workdir/guarded"
+        bash "$here/guard_solution.sh" challenge.zst build "$article_index" ;;
+    chapters)
+        article_index="$workdir/chapters"
+        selection=ordinary-chapters
+        supplement="$article_index/extension.ndjson"
+        bash "$here/chapters/prepare.sh" challenge.zst build "$article_index"
+        python3 "$here/chapters/ordinary_challenge.py" challenge.zst challenge.ndjson
+        echo '22e1398650efdc2d09930785e7ec5abf32e8311f1488d08d6e9def78455e7106  challenge.ndjson' | sha256sum -c - ;;
+esac
 mkdir -p empty mounted
 # Give the checker a seekable, regular file without writing 60 GB of plain text.
 cat > emit-pseudo.sh <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
-bash "$here/emit.sh" "$workdir/original.zst" "$article_index" all-share
+bash "$here/emit.sh" "$workdir/original.zst" "$article_index" "$selection"
+cat "$supplement"
 touch "$workdir/emit.ok"
 EOF
 chmod +x emit-pseudo.sh
