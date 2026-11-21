@@ -204,6 +204,49 @@
     "native_lean_exit": 0,
     "sha256": "fbf29eb9ba11fc5dce361b2ab04b4af58a8690f9880ef614ec42c32baf6c7ebd"
   },
+  "prime_windows_36": {
+    "conclusion": "ordinary RH conditional on one-sided prime-window bounds",
+    "full_export_declarations": 59527,
+    "full_replay": [
+      "Lean 4.36.0 default kernel",
+      "ConLeche --verified"
+    ],
+    "github_run": 44938455264,
+    "lines": 36,
+    "reduced_export_declarations": 55294,
+    "reduced_expression_records": 7636235,
+    "sha256": "d31882ecbbf2905b3e1e4e6182a5e3f52f7173c00ee35ea967318ff4053b8532",
+    "source_axioms": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "source_lean": "4.33.1"
+  },
+  "readable_ordinary_RH": {
+    "additional_original_records_over_all_five": 4,
+    "chapter_files_transitively_imported_by_root": 15,
+    "lines_in_those_chapters": 427,
+    "new_declaration_names": 38,
+    "new_proof_including_public_alias_records": 1175724,
+    "ordinary_challenge_sha256": "22e1398650efdc2d09930785e7ec5abf32e8311f1488d08d6e9def78455e7106",
+    "original_external_names": 501,
+    "original_records_in_new_dependency_closure": 1175685,
+    "original_source_import_closure": {
+      "project_lines": 17373725,
+      "project_modules": 175174
+    },
+    "prohibited_original_type_indices_checked": 11,
+    "root_source_file_length": 60,
+    "sha256": "3eaf53b191772193311d4ee225159ab3e25d3f877311a867508f77dec41bae97",
+    "source_bytes": 19872,
+    "source_files": 17,
+    "source_lines": 474,
+    "source_replay_local": "38 of 38 complete declarations match the checked input up to binder labels and table order",
+    "uncompressed_bytes": 60521197756,
+    "unconditional_root": "RH17.riemannHypothesisFromPublishedArithmetic",
+    "unused_original_records_from_all_five": 51
+  },
   "source": {
     "added_module_imports": 0,
     "changed_files": 84186,

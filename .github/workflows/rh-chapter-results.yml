@@ -1,0 +1,121 @@
+name: Publish the 17 readable RH chapters after both independent checks
+on:
+  workflow_dispatch:
+    inputs:
+      source_run:
+        description: Action run that rebuilt the chapter sources
+        default: '44941516939'
+        required: true
+      kernel_run:
+        description: Action run containing the full arithmetic proof check
+        default: '44940181471'
+        required: true
+      kernel_job:
+        description: Full arithmetic proof comparison job
+        default: '136955442429'
+        required: true
+  push:
+    branches: [rh/unconditional-reduction]
+    paths: ['.github/workflows/rh-chapter-results.yml']
+env:
+  SOURCE_RUN: ${{ inputs.source_run || '44941516939' }}
+  KERNEL_RUN: ${{ inputs.kernel_run || '44940181471' }}
+  KERNEL_JOB: ${{ inputs.kernel_job || '136955442429' }}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inputs:
+    name: Wait for the native source build and the complete kernel comparison
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Retire the superseded first-pass split
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          old=44924258184
+          if [[ "$(gh run view "$old" --json status --jq .status)" != completed ]]; then
+            gh run cancel "$old"
+          fi
+      - name: Require success from both checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          previous=''
+          while :; do
+            source=$(gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN" --jq '[.status,.conclusion] | join(" ")')
+            kernel=$(gh api "repos/$GH_REPO/actions/jobs/$KERNEL_JOB" --jq '[.run_id,.status,.conclusion] | map(tostring) | join(" ")')
+            [[ "$kernel" == "$KERNEL_RUN "* ]]
+            state="Source $source | complete mathematical proof $kernel"
+            if [[ "$state" != "$previous" ]]; then echo "$state"; previous="$state"; fi
+            if [[ "$source" == 'completed success' && "$kernel" == "$KERNEL_RUN completed success" ]]; then break; fi
+            if [[ "$source" == completed* && "$source" != 'completed success' ]]; then exit 1; fi
+            if [[ "$kernel" == "$KERNEL_RUN completed "* && "$kernel" != "$KERNEL_RUN completed success" ]]; then exit 1; fi
+            sleep 45
+          done
+  publish:
+    needs: inputs
+    name: Match the source and proof, then publish the accepted result
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ env.KERNEL_RUN }}
+          name: checked-ordinary-RH-chapters
+          path: certificate
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ env.SOURCE_RUN }}
+          name: chapter-source-verdict
+          path: certificate
+      - name: Compare all 17 source files, the proof-term input and the complete article hash
+        run: |
+          set -euo pipefail
+          src="$GITHUB_WORKSPACE/_certificates/RiemannReduction/chapters"
+          cd certificate
+          sha256sum -c checksums.txt
+          cmp chapters.ndjson.zst "$src/chapters.ndjson.zst"
+          mkdir "$RUNNER_TEMP/accepted-source"
+          tar -xzf RH17-lean.tar.gz -C "$RUNNER_TEMP/accepted-source"
+          diff -rq "$src/RH17" "$RUNNER_TEMP/accepted-source/RH17"
+          test "$(find "$src/RH17" -name '*.lean' | wc -l)" = 17
+          grep -F 'All 38 declarations from source match the linked checked input, including complete proof bodies.' source-verdict.txt
+          test "$(cut -d' ' -f1 complete-solution.sha256)" = '3eaf53b191772193311d4ee225159ab3e25d3f877311a867508f77dec41bae97'
+      - name: Publish the source, proof supplement and the full verdict
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd certificate
+          tag="rh-chapters-$(cut -c1-12 complete-solution.sha256)"
+          cat > "$RUNNER_TEMP/verified.md" <<EOF
+          These 17 Lean source chapters contain 474 lines and conclude ordinary RH with no hypotheses. They use the published arithmetic theory. The source build checked all 38 new declarations against the proof supplement. ConLeche checked the entire linked proof against Mathlib's original RiemannHypothesis statement. Every supporting theorem in that check has a checked proof body. The original headline theorems are outside the new root's dependency closure.
+
+          [Chapter source build](https://github.com/$GH_REPO/actions/runs/$SOURCE_RUN) · [Complete independent kernel verdict](https://github.com/$GH_REPO/actions/runs/$KERNEL_RUN/job/$KERNEL_JOB) · [Source and reconstruction instructions](https://github.com/$GH_REPO/tree/$GITHUB_SHA/_certificates/RiemannReduction/chapters)
+          EOF
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --draft --prerelease --latest=false --target "$GITHUB_SHA" --title '17 verified Lean chapters deriving ordinary RH' --notes-file "$RUNNER_TEMP/verified.md"
+          fi
+          for file in *; do
+            expected="sha256:$(sha256sum "$file" | cut -d' ' -f1)"
+            actual=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$file\") | .digest")
+            if [[ -z "$actual" ]]; then gh release upload "$tag" "$file"; fi
+            actual=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$file\") | .digest")
+            [[ "$actual" == "$expected" ]]
+          done
+          gh release edit "$tag" --draft=false --prerelease --latest=false
