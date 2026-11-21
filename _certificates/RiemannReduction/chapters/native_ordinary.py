@@ -1,7 +1,10 @@
 """Build, replay and publish the closed ordinary-RH proof in 17 native modules."""
+from array import array
 from hashlib import file_digest
 import json
+import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -22,6 +25,44 @@ def check(path, expected):
 
 def write(path, value):
     path.write_text(json.dumps(value, indent=2) + '\n')
+
+
+def delta(index, parent, ordinary, output):
+    def bits(selection):
+        return int.from_bytes((selection/'decls.bits').read_bytes()[4:], 'little')
+    before, after = bits(parent), bits(ordinary)
+    changed = before ^ after
+    ordinals = {}
+    while changed:
+        lowest = changed & -changed
+        d = lowest.bit_length() - 1
+        ordinals[d] = 'drop' if before & lowest else 'add'
+        changed ^= lowest
+    table = array('I')
+    path = index/'declarations.bin'
+    with path.open('rb') as f:
+        table.fromfile(f, path.stat().st_size//4)
+    if sys.byteorder != 'little':
+        table.byteswap()
+    names = {}
+    pos = record = 0
+    while pos < len(table):
+        nn, ne, nr, _ = table[pos:pos+4]
+        if record in ordinals:
+            if nn != 1:
+                raise ValueError('The expected delta has no multi-constant declaration groups')
+            names[table[pos+4]] = ordinals[record]
+        pos += 4 + nn + ne + nr
+        record += 1
+    rows = []
+    with (index/'names.tsv').open() as catalog:
+        for line in catalog:
+            i, _, name = line.rstrip('\n').split('\t', 2)
+            if int(i) in names:
+                rows.append(f'{names[int(i)]}\t{name}\n')
+    if len(rows) != 55 or len(ordinals) != 55 or sum(r.startswith('add\t') for r in rows) != 4:
+        raise ValueError('Unexpected difference between the two complete selections')
+    output.write_text(''.join(rows))
 
 
 def prepare(original, output, builder, supplements):
@@ -89,28 +130,52 @@ def archives(original, patches):
 def unpack(original, patches, destination):
     objects = destination/'RHBatches'
     objects.mkdir(exist_ok=True, parents=True)
+    temporary = os.environ.get('RUNNER_TEMP')
+    discard_downloads = (os.environ.get('GITHUB_ACTIONS') == 'true' and temporary and
+                         all(p.is_relative_to(Path(temporary).resolve()) for p in (original, patches, destination)))
     for part, archive in archives(original, patches):
-        check(archive, part['compressed_sha256'])
         native = objects / f'Part{part["index"]}.olean'
-        subprocess.run(['zstd', '-dq', archive, '-o', native], check=True)
-        check(native, part['sha256'])
-        for p in {original/part['filename'], archive}:
-            p.unlink(missing_ok=True)
+        if not native.exists():
+            check(archive, part['compressed_sha256'])
+            with tempfile.TemporaryDirectory(dir=objects) as tmp:
+                decoded = Path(tmp)/'part.olean'
+                subprocess.run(['zstd', '-dq', archive, '-o', decoded], check=True)
+                check(decoded, part['sha256'])
+                decoded.replace(native)
+        else:
+            check(native, part['sha256'])
+        if discard_downloads:
+            for p in {original/part['filename'], archive}:
+                p.unlink(missing_ok=True)
 
 
 def release(original, patches, verdicts, result):
     result.mkdir(exist_ok=True, parents=True)
     plan = json.loads((patches/'ordinary-native-plan.json').read_text())
-    for part, archive in archives(original, patches):
+    objects = list(archives(original, patches))
+    for part, archive in objects:
         check(archive, part['compressed_sha256'])
         verdict = (verdicts/f'native-{part["index"]}.txt').read_text().strip()
         if verdict != f'Lean 4.33.1 accepted {part["module"]} {part["sha256"]}':
             raise ValueError(f'Missing kernel verdict for {part["module"]}')
         plan['modules'][part['index']]['native_verdict'] = verdict
-        archive.rename(result/part['filename'])
+    for part, archive in objects:
+        target = result/part['filename']
+        if target.exists():
+            check(target, part['compressed_sha256'])
+        else:
+            try:
+                target.hardlink_to(archive)
+            except OSError:
+                with tempfile.TemporaryDirectory(dir=result) as tmp:
+                    copy = Path(tmp)/'object.zst'
+                    shutil.copyfile(archive, copy)
+                    check(copy, part['compressed_sha256'])
+                    copy.replace(target)
     write(result/'ordinary-native-manifest.json', plan)
 
 
 if __name__ == '__main__':
     command, *args = sys.argv[1:]
-    {'prepare':prepare, 'unpack':unpack, 'release':release}[command](*(Path(p).resolve() for p in args))
+    commands = {'delta':delta, 'prepare':prepare, 'unpack':unpack, 'release':release}
+    commands[command](*(Path(p).resolve() for p in args))

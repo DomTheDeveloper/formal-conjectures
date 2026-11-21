@@ -1,0 +1,85 @@
+{
+  "original_declarations": 1175685,
+  "groups": {
+    "Deduction once the two arithmetic inputs are supplied": {
+      "direct_roots": 440,
+      "including_shared": 104876,
+      "exclusive": 2617
+    },
+    "Galois compatibility": {
+      "direct_roots": 1,
+      "including_shared": 417401,
+      "exclusive": 75374
+    },
+    "Arithmetic covolume estimate": {
+      "direct_roots": 16,
+      "including_shared": 425228,
+      "exclusive": 126652
+    },
+    "Global eigenform hypotheses": {
+      "direct_roots": 1,
+      "including_shared": 294088,
+      "exclusive": 3264
+    },
+    "Local theta hypotheses": {
+      "direct_roots": 1,
+      "including_shared": 233940,
+      "exclusive": 3132
+    },
+    "Theta integral matching": {
+      "direct_roots": 1,
+      "including_shared": 159123,
+      "exclusive": 10750
+    },
+    "Local Langlands input for the covolume construction": {
+      "direct_roots": 1,
+      "including_shared": 76515,
+      "exclusive": 1
+    },
+    "Green functions from regular characters": {
+      "direct_roots": 2,
+      "including_shared": 100585,
+      "exclusive": 0
+    },
+    "From the definite-side geometry to theta chains": {
+      "direct_roots": 10,
+      "including_shared": 197273,
+      "exclusive": 15879
+    },
+    "Local Langlands existence": {
+      "direct_roots": 1,
+      "including_shared": 121354,
+      "exclusive": 0
+    },
+    "Cohomology window from Galois compatibility": {
+      "direct_roots": 1,
+      "including_shared": 392303,
+      "exclusive": 69689
+    },
+    "Existence of the definite-side geometric data": {
+      "direct_roots": 1,
+      "including_shared": 757173,
+      "exclusive": 340871
+    },
+    "Local bounds at two and three": {
+      "direct_roots": 1,
+      "including_shared": 152644,
+      "exclusive": 2
+    },
+    "Dependence of the local parameters": {
+      "direct_roots": 1,
+      "including_shared": 119088,
+      "exclusive": 0
+    },
+    "Remaining types and providers": {
+      "direct_roots": 36,
+      "including_shared": 129001,
+      "exclusive": 0
+    },
+    "Original Mathlib challenge": {
+      "direct_roots": 53716,
+      "including_shared": 51686,
+      "exclusive": 9
+    }
+  }
+}

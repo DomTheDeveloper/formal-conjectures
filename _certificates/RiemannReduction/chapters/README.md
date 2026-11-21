@@ -34,6 +34,27 @@ theorem zeroAtThreeFifthsContradiction (s : ℂ) (location : s.re = 3/5)
 end RH17
 ```
 
+## Where the proof is large
+
+Supplying the chain and cohomology inputs leaves 104,876 original declarations in the deduction. Constructing those inputs and including the official Mathlib challenge brings the total to 1,175,685. Tracing the proof of each particular input gives the following counts. A declaration shared by two inputs appears in both totals. The last column counts declarations reached exclusively through that row among all 16 measured groups.
+
+| Input in the readable proof | All supporting declarations | Exclusive to this input |
+|---|---:|---:|
+| Existence of the geometric data on the definite unitary group | 757,173 | 340,871 |
+| Arithmetic covolume estimate | 425,228 | 126,652 |
+| Galois compatibility | 417,401 | 75,374 |
+| Cohomology window from Galois compatibility | 392,303 | 69,689 |
+| Deduction with the chain and cohomology inputs supplied | 104,876 | 2,617 |
+
+The largest row is the single theorem used at `obtain ⟨geometry⟩` in chapter 17. Its conclusion supplies the geometry on which the chain construction runs. In the current proof, 340,871 declarations enter solely through this theorem. [Original geometry theorem](https://github.com/leanprover-community/riemann-hypothesis/blob/40e56bab026552e089d7afcfeff08d2defb9c005/src/Development/AutomorphicArithmetic/ThetaCorrespondence/ThetaPairLifts/ThirdPlaceSeries/SiegelEisensteinSecondTermHypotheses.lean#L44) · [All 16 measured groups](dependency-costs.json)
+
+After running the reconstruction below, `measure_arithmetic.py` independently traces each group and checks that their union matches the complete dependency selection, declaration by declaration.
+
+```bash
+python3 chapters/measure_arithmetic.py chapters-build/index chapters-build/ordinary-chapters \
+  chapters-build/link/external.tsv build/slice /tmp/rh-input-counts input-counts.json
+```
+
 ## Compile the source
 
 From a checkout of the published project at `40e56bab026552e089d7afcfeff08d2defb9c005`, install its pinned Lean 4.33.1 and fetch its Mathlib cache. The following command builds the required project imports, compiles all 17 chapters and prints the axiom audit of the final theorem.
@@ -45,6 +66,8 @@ bash /path/to/chapters/build_chapters.sh "$PWD" /path/to/output-oleans
 ## Reconstruct the independent check
 
 The GitHub source job recompiles all 17 chapters and compares every new definition, theorem type and proof body with the input to the independent kernel. Its temporary arithmetic interfaces are discarded at export. The separate whole-proof job restores and checks all supporting declarations.
+
+The [source-to-proof comparison](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44941516939/job/136959535553) matched all 38 new declarations used by the final theorem, including their complete bodies. The [native endpoint check](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44940612477/job/136956744233) used the real arithmetic proof modules and checked the raw type of the final theorem.
 
 The proof-term file `chapters.ndjson.zst` supplies the 38 new declaration names used by the final proof. The linker checks that every other constant is present in the authenticated original and rejects a new axiom or a name collision. It traces the full proofs of those prerequisites, removes the original headline results and checks the remaining graph for the prohibited final names and their exact exported proposition IDs. The official ordinary-RH challenge is obtained by deleting the four other challenge statements. Its underlying Mathlib definitions and its statement of RH retain their original bytes.
 
@@ -69,6 +92,8 @@ lean --run /path/to/chapters/ThinExport.lean /path/to/build/index/names.tsv \
 
 ## Native Lean replay
 
+The [17-module ordinary-RH build](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44944338529) places the complete dependency selection and the readable chapter proof inside 17 native `.olean` files. The original five headline proofs are removed. The exported public name `riemannHypothesis` points to `RH17.riemannHypothesisFromPublishedArithmetic`. Stock Lean can replay these files without the original project checkout. The build authenticates its input objects, compares every reconstructed declaration with its serialized form, and runs `leanchecker` on each file before publication.
+
 The 17 native modules of the five-theorem export already contain all but four of the archived supporting declarations needed by this specialized proof. There are 51 declarations in the five-theorem version that the new proof does not use. The native check supplies the four additional original proofs and replays the 38 chapter declarations with the original Lean 4.33.1 kernel. Its last check reads the compiled root and verifies that its type is the unchanged constant `RiemannHypothesis` with no hypotheses. [Native chapter run](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-native-chapters.yml) · [Parent-module checks](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44935029011)
 
 To regenerate the four additional proof terms after running the parent and chapter reductions, use the two selections from the same challenge-preserving index.
@@ -77,4 +102,6 @@ To regenerate the four additional proof terms after running the parent and chapt
 build/slice stage-extension chapters-build/index protected/all-share chapters-build/ordinary-chapters extra
 python3 dictionary.py chapters-build/index extra
 zstd -dcq --long=31 original.zst | build/slice emit chapters-build/index extra | zstd -T1 -9 -o arithmetic-extension.ndjson.zst
+python3 chapters/native_ordinary.py delta chapters-build/index protected/all-share chapters-build/ordinary-chapters delta.tsv
+cmp delta.tsv chapters/native-delta.tsv
 ```
