@@ -1,0 +1,120 @@
+name: Reduce the RH source at two imports and verify the consolidated proof with stock Lean
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['_certificates/RiemannReduction/two-headers/**', '.github/workflows/rh-fused-source.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify every project constant and build the two source projects
+        run: |
+          set -euo pipefail
+          w="$RUNNER_TEMP/work"
+          mkdir -p "$w"
+          git init -q "$w/original"
+          git -C "$w/original" fetch -q --depth=1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          curl -fsSL --retry 4 https://github.com/james-shore/rh-proof-dependencies/releases/download/v0.2/constants.csv.gz -o "$w/constants.gz"
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction/two-headers"
+          python3 "$d/build.py" "$w/original" "$w/constants.gz" "$w/two" --archives
+          python3 "$d/fuse.py" "$w/original" "$w/two" "$w/fused" --archives
+          cp "$w/two/source.json" "$w/two/combined.json" "$w/fused/"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Riemann_Source_Import_Cut
+          path: |
+            ${{ runner.temp }}/work/fused/Riemann_Import_Cut.tar.zst
+            ${{ runner.temp }}/work/fused/fused.json
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 90
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Riemann_Source_Smallest
+          path: |
+            ${{ runner.temp }}/work/fused/Riemann_Combined_Source.tar.zst
+            ${{ runner.temp }}/work/fused/fused.json
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 90
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Riemann_Main_Source
+          path: |
+            ${{ runner.temp }}/work/fused/Main.lean
+            ${{ runner.temp }}/work/fused/external.txt
+            ${{ runner.temp }}/work/fused/fused.json
+          if-no-files-found: error
+  native:
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Riemann_Main_Source
+          path: ${{ runner.temp }}/source
+      - name: Fetch the authenticated original Lean objects
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh space
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq aria2 squashfs-tools-ng
+          mkdir -p "$RUNNER_TEMP/original-objects/mounted"
+          cd "$RUNNER_TEMP/original-objects"
+          revision=8c90877ceaa694974526e0aab9aaaf6ea0f5099e
+          curl -fsSL --retry 4 "https://raw.githubusercontent.com/leanprover-community/riemann-hypothesis/$revision/scripts/fetch-published-cache.py" -o cache.py
+          echo '7023f0d5814246e1a2f96cf5960793db8a8540708ca483fd1de66649d968f2bf  cache.py' | sha256sum -c -
+          base=https://huggingface.co/datasets/JackMcCarthy/riemann-hypothesis-build/resolve/9036e64326acf4acfae159b96664e9708445c1d1
+          curl -fsSL --retry 5 "$base/olean-manifest.sha256" -o olean-manifest.sha256
+          if ! aria2c --file-allocation=none -x8 -s8 -k32M --timeout=60 --max-tries=3 --retry-wait=5 --console-log-level=warn --out=oleans.tar.zst "$base/oleans.tar.zst"; then
+            rm -f oleans.tar.zst oleans.tar.zst.aria2
+            curl -fsSL --retry 5 --retry-all-errors --continue-at - "$base/oleans.tar.zst" -o oleans.tar.zst
+          fi
+          python3 "$GITHUB_WORKSPACE/_certificates/RiemannReduction/chapters/objects_tar.py" cache.py "$PWD" | tar2sqfs -q -s -c zstd -X level=3 -b 262144 -j 3 objects.sqfs
+          sudo mount -t squashfs -o loop,ro objects.sqfs mounted
+          test "$(find mounted -type f -name '*.olean' | wc -l)" -eq 175187
+          rm oleans.tar.zst
+      - name: Install the original compiler and pinned Mathlib
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh lean
+          mkdir -p "$RUNNER_TEMP/project"
+          cd "$RUNNER_TEMP/project"
+          for f in lakefile.toml lake-manifest.json lean-toolchain; do
+            curl -fsSL --retry 4 "https://raw.githubusercontent.com/leanprover-community/riemann-hypothesis/40e56bab026552e089d7afcfeff08d2defb9c005/$f" -o "$f"
+          done
+          "$HOME/.elan/bin/lake" exe cache get
+          test "$(git -C .lake/packages/mathlib rev-parse HEAD)" = 0df444a360eaa60ab8c11dca51a86af692955474
+      - name: Compile the distributed source with all five explicit theorem checks
+        env:
+          LEAN_ABORT_ON_PANIC: '1'
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/project"
+          available=$(( $(df -BG --output=avail . | tail -1 | tr -d ' G') - 6 ))
+          if ((available>64)); then available=64; fi
+          if ((available>0)); then
+            sudo fallocate -l "${available}G" "$RUNNER_TEMP/compile.swap"
+            sudo chmod 600 "$RUNNER_TEMP/compile.swap"
+            sudo mkswap "$RUNNER_TEMP/compile.swap"
+            sudo swapon "$RUNNER_TEMP/compile.swap"
+          fi
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction/two-headers"
+          lake env python3 "$d/native.py" "$RUNNER_TEMP/source" "$RUNNER_TEMP/original-objects/mounted" "$RUNNER_TEMP/verdict"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Riemann_Main_Native_Verification
+          path: |
+            ${{ runner.temp }}/verdict/lean.log
+            ${{ runner.temp }}/verdict/native.json
+            ${{ runner.temp }}/verdict/Main.olean
+          if-no-files-found: warn
+          retention-days: 90

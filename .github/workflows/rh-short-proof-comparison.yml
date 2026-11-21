@@ -1,0 +1,40 @@
+name: Compare the public types of two shortened RH proof components
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['_certificates/RiemannReduction/short-proofs/**', '.github/workflows/rh-short-proof-comparison.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned original Lean and Mathlib
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh space
+          bash _certificates/RiemannReduction/module_runner.sh lean
+          root="$RUNNER_TEMP/proof-src"
+          sub=src/Development/AutomorphicArithmetic/IntegralCasts/CapelliIdentities
+          mkdir -p "$root/$sub"
+          cd "$root"
+          for file in lean-toolchain lakefile.toml lake-manifest.json "$sub/FrechetDerivEvaluation.lean" "$sub/FreeModuleQuotient.lean"; do
+            curl -fsSL --retry 4 "https://raw.githubusercontent.com/leanprover-community/riemann-hypothesis/40e56bab026552e089d7afcfeff08d2defb9c005/$file" -o "$file"
+          done
+          "$HOME/.elan/bin/lake" exe cache get
+      - name: Rebuild both versions, kernel-replay them and compare every public statement
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/proof-src"
+          lake env python3 "$GITHUB_WORKSPACE/_certificates/RiemannReduction/short-proofs/verify.py" "$PWD" "$RUNNER_TEMP/short-results"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Verified_Short_Proofs
+          path: |
+            ${{ runner.temp }}/short-results/result.json
+            ${{ runner.temp }}/short-results/kernel-verdicts.jsonl
+            ${{ runner.temp }}/short-results/source/
+          if-no-files-found: error

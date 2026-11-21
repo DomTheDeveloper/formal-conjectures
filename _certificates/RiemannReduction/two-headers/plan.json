@@ -1,0 +1,35 @@
+{
+  "changes": {
+    "Development.AutomorphicArithmetic.AutomorphicVarieties.ModularityArgument.ThresholdArguments.DenseThresholdCases.PublishedHypothesesFromPatching": {
+      "source_sha256": "45c745d53d11358f0a9bedbd35171231c85260acc57cad4886b754652a24890d",
+      "imports": [
+        "Mathlib",
+        "Development.AutomorphicArithmetic.AutomorphicVarieties.AutomorphicForms.TemperedLocalComponents.DefQuatExists",
+        "Development.AutomorphicArithmetic.AutomorphicVarieties.AutomorphicForms.TemperedLocalComponents.PCuspSS",
+        "Development.AutomorphicArithmetic.AutomorphicVarieties.AutomorphicForms.TemperedLocalComponents.GelfandKazhdanReal",
+        "Development.AutomorphicArithmetic.AutomorphicVarieties.AutomorphicForms.TemperedLocalComponents.NewformRepOf",
+        "Development.AutomorphicArithmetic.AutomorphicVarieties.ModularityArgument.ThresholdArguments.DenseThresholdCases.TPCohC",
+        "Development.AutomorphicArithmetic.AutomorphicVarieties.ModularityArgument.ThresholdArguments.DenseThresholdCases.AfDesc",
+        "Development.AutomorphicArithmetic.Foundations.Convolution.SplitEigenfunctions.AbsNormConj",
+        "Development.AutomorphicArithmetic.Foundations.Convolution.RealGroupAnalysis.QuadBC2",
+        "Development.AutomorphicArithmetic.AutomorphicVarieties.ModularityArgument.ClozelCohomology.ClozelConjC",
+        "Development.AutomorphicArithmetic.AutomorphicVarieties.ModularityArgument.ThresholdArguments.DenseThresholdCases.SVPatch",
+        "Development.AutomorphicArithmetic.AutomorphicVarieties.ModularityArgument.BaseChangeUnits.CycFree"
+      ],
+      "original_imports": 89
+    },
+    "Development.AutomorphicArithmetic.CharacterBoxes.RiemannHypothesisOfEveryCharacter": {
+      "source_sha256": "80d57d0936668a1cde784b87c67f680d017962b6cecf0710a51a32b9d8549880",
+      "imports": [
+        "Mathlib",
+        "Development.AutomorphicArithmetic.CharacterBoxes.EveryCharacter",
+        "Development.AbelianVarietyTheory.Proofs.DivisorProofs.RealLineOneParameterHomomorphism"
+      ],
+      "original_imports": 209
+    }
+  },
+  "excluded_modules": 10723,
+  "excluded_lines": 785588,
+  "header_savings": 283,
+  "live_missing": 0
+}
