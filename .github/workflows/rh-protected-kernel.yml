@@ -1,0 +1,110 @@
+name: Verify the reduced proof against the unchanged official RH challenge
+on:
+  workflow_dispatch:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths: ['.github/workflows/rh-protected-kernel.yml']
+permissions:
+  contents: read
+jobs:
+  previous:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+      contents: write
+    steps:
+      - name: Stop publishing the superseded first-pass comparison candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          old=44931866154
+          if [[ "$(gh run view "$old" --json status --jq .status)" != completed ]]; then
+            gh run cancel "$old" || true
+          fi
+          tag=rh-kernel-1177a7b095e3
+          if gh release view "$tag" >/dev/null 2>&1; then
+            cat > "$RUNNER_TEMP/first-pass.md" <<'EOF'
+          The first-pass reduced export contains 1,172,294 declarations. ConLeche checked the solution declarations, then rejected the comparison against the original challenge because the mathematical definitions reachable from RiemannHypothesis did not match its comparison rule. This export is retained for reproducibility. The protected comparison run preserves the challenge's library vocabulary and records a separate verdict.
+          EOF
+            gh release edit "$tag" --prerelease --latest=false --title 'First-pass export with a failed RH statement comparison' --notes-file "$RUNNER_TEMP/first-pass.md"
+          fi
+  replay:
+    name: Full certified comparison of all five original statements
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lean 4.36.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://github.com/leanprover/elan/releases/download/v4.2.1/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/elan-init" -y --default-toolchain leanprover/lean4:v4.36.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          echo 'ELAN_TOOLCHAIN=leanprover/lean4:v4.36.0' >> "$GITHUB_ENV"
+      - name: Build the independently implemented Lean checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q "$RUNNER_TEMP/con-leche"
+          git -C "$RUNNER_TEMP/con-leche" fetch -q --depth 1 https://github.com/leanprover/con-leche 5ea446d5c79d23ef1f954215d094db2162f1ab6f
+          git -C "$RUNNER_TEMP/con-leche" checkout -q --detach FETCH_HEAD
+          cd "$RUNNER_TEMP/con-leche" && lake build con-leche
+      - name: Reduce all five targets and replay the complete result
+        env:
+          LEAN_ABORT_ON_PANIC: '1'
+        run: bash _certificates/RiemannReduction/github_verify.sh certified protected
+
+      - name: Package the 17 parts of the accepted proof
+        working-directory: _certificates/RiemannReduction
+        run: |
+          set -euo pipefail
+          scratch="$RUNNER_TEMP/rh-verification"
+          if [[ -f "$scratch/replay.swap" ]]; then sudo swapoff "$scratch/replay.swap"; sudo rm "$scratch/replay.swap"; fi
+          python3 - "$scratch" <<'PY'
+          from pathlib import Path
+          from hashlib import sha256
+          import json, sys
+          from pack_export import pack
+          base = Path(sys.argv[1])
+          proof = base / 'mounted/proof.ndjson'
+          digest = (base / 'reduced.sha256').read_text().split()[0]
+          with proof.open('rb') as stream:
+              manifest = pack(stream, base/'accepted', proof.stat().st_size, digest)
+          bits = (base / 'guarded/all-share/decls.bits').read_bytes()[4:]
+          manifest.update(declaration_records=int.from_bytes(bits, 'little').bit_count(),
+                          checker='con-leche --verified --compare', official_challenge_sha256='bd484ac9886a96f26b1d9a7a59ebd45b7a70d102c015d4f31f9302bbdd6ab2b9')
+          (base / 'accepted/export-manifest.json').write_text(json.dumps(manifest, indent=2)+'\n')
+          PY
+      - name: Publish the complete challenge-checked kernel proof
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/rh-verification/accepted"
+          tag="rh-kernel-$(jq -r '.sha256[:12]' export-manifest.json)"
+          records=$(jq -r '.declaration_records' export-manifest.json)
+          cat > "$RUNNER_TEMP/verified-notes.md" <<EOF
+          These 17 compressed parts reconstruct the complete reduced proof. ConLeche in verified mode checked all $records declarations and matched all five original mathematical statements against the official independent challenge.
+          EOF
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --draft --prerelease --latest=false --target "$GITHUB_SHA" --title 'Verified Riemann hypothesis kernel proof in 17 parts' --notes-file "$RUNNER_TEMP/verified-notes.md"
+          fi
+          for f in rh-proof-??-of-17.zst export-manifest.json; do
+            sha="sha256:$(sha256sum "$f" | cut -d' ' -f1)"
+            for delay in 0 5 15; do
+              sleep "$delay"
+              remote=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$f\") | .digest")
+              if [[ "$remote" == "$sha" ]]; then break; fi
+              if [[ -n "$remote" ]]; then echo "Existing digest differs for $f" >&2; exit 1; fi
+              gh release upload "$tag" "$f" && break
+            done
+            remote=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$f\") | .digest")
+            [[ "$remote" == "$sha" ]]
+          done
+          gh release edit "$tag" --draft=false --prerelease --latest=false

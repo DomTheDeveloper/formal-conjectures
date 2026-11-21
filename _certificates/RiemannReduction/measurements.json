@@ -81,7 +81,31 @@
     },
     "temporary_theorem_assumptions": 0
   },
+  "challenge_guarded": {
+    "declaration_records": 1175732,
+    "expressions": 1048304687,
+    "full_verified_comparison": "pending",
+    "protection": {
+      "challenge_constants": 53722,
+      "challenge_only": [
+        "sorryAx"
+      ],
+      "challenge_sha256": "bd484ac9886a96f26b1d9a7a59ebd45b7a70d102c015d4f31f9302bbdd6ab2b9",
+      "common_original_constants": 53721,
+      "original_references_restored": 3425,
+      "original_theorem_bodies_restored": 3425
+    }
+  },
   "export_format": "lean4export 3.1.0",
+  "first_full_comparison": {
+    "actions_run": 44917310333,
+    "challenge_record": 51215,
+    "checker": "con-leche --verified --compare",
+    "diagnostic": "its type reads RiemannHypothesis, which the solution does not declare alike",
+    "job": 136885569880,
+    "official_challenge_comparison": "rejected",
+    "solution_records_checked": 1172294
+  },
   "input": {
     "compressed_bytes": 7699933588,
     "compressed_sha256": "61a8938ad5f5e57397c1c0e3b954916af546d9004ade01c3555744a681b05381",

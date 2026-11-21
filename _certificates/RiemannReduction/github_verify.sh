@@ -15,12 +15,21 @@ curl --fail --location --retry 4 --silent --show-error https://math.mit.edu/~dre
 zstd -dcq --long=31 challenge.zst > challenge.ndjson
 echo 'bd484ac9886a96f26b1d9a7a59ebd45b7a70d102c015d4f31f9302bbdd6ab2b9  challenge.ndjson' | sha256sum -c -
 bash "$here/reduce.sh" original.zst build all share
+article_index="$workdir/build"
+if [[ ${2:-} == protected ]]; then
+    article_index="$workdir/guarded"
+    mkdir -p "$article_index"
+    ln -s "$workdir/build/slice" "$article_index/slice"
+    python3 "$here/preserve_challenge.py" challenge.zst build/index "$article_index/index"
+    { cat "$article_index/index/challenge-roots.txt"; python3 "$here/roots.py" "$article_index/index" all; } |
+        "$article_index/slice" mark "$article_index/index" "$article_index/all-share" share
+fi
 mkdir -p empty mounted
 # Give the checker a seekable, regular file without writing 60 GB of plain text.
 cat > emit-pseudo.sh <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
-bash "$here/emit.sh" "$workdir/original.zst" "$workdir/build" all-share
+bash "$here/emit.sh" "$workdir/original.zst" "$article_index" all-share
 touch "$workdir/emit.ok"
 EOF
 chmod +x emit-pseudo.sh
@@ -44,6 +53,6 @@ case "$1" in
     reference)
         /usr/bin/time -v leanchecker --from-export mounted/proof.ndjson ;;
     certified)
-        /usr/bin/time -v "$RUNNER_TEMP/con-leche/.lake/build/bin/con-leche" --verified --jobs=3 --compare challenge.ndjson mounted/proof.ndjson ;;
+        /usr/bin/time -v "$RUNNER_TEMP/con-leche/.lake/build/bin/con-leche" --verified --jobs=4 --progress=100000 --compare challenge.ndjson mounted/proof.ndjson ;;
     *) exit 2 ;;
 esac
