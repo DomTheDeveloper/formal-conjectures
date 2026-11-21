@@ -1,15 +1,5 @@
 name: Reduced Riemann proof
 on:
-  push:
-    branches: [rh/unconditional-reduction]
-    paths:
-      - '.github/workflows/rh-reduced-kernel.yml'
-      - '_certificates/RiemannReduction/slice.cpp'
-      - '_certificates/RiemannReduction/catalog.py'
-      - '_certificates/RiemannReduction/roots.py'
-      - '_certificates/RiemannReduction/reduce.sh'
-      - '_certificates/RiemannReduction/emit.sh'
-      - '_certificates/RiemannReduction/github_verify.sh'
   workflow_dispatch:
 permissions:
   contents: read

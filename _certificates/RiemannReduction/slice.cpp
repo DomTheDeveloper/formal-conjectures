@@ -19,8 +19,8 @@
 using U = uint32_t;
 using Bytes = std::vector<uint8_t>;
 namespace fs = std::filesystem;
-static void require(bool condition, const std::string& what) {
-    if (!condition) throw std::runtime_error(what);
+static void require(bool condition, std::string_view what) {
+    if (!condition) throw std::runtime_error(std::string(what));
 }
 static U number(std::string_view s) {
     U n; auto [end, err] = std::from_chars(s.data(), s.data()+s.size(), n);
@@ -29,7 +29,7 @@ static U number(std::string_view s) {
 }
 static size_t field_pos(std::string_view s, std::string_view key) {
     size_t p = s.find(key);
-    require(p != s.npos, "missing field " + std::string(key));
+    if (p == s.npos) throw std::runtime_error("missing field " + std::string(key) + " in " + std::string(s.substr(0, 240)));
     return p+key.size();
 }
 static U field(std::string_view s, std::string_view key) { return number(s.substr(field_pos(s,key))); }
@@ -157,11 +157,28 @@ static std::vector<size_t> offsets(const std::vector<U>& table,U expected) {
     while(p<table.size()){result.push_back(p);require(p+4<=table.size(),"truncated declaration header");p+=4+table[p]+table[p+1]+table[p+2];}
     require(p==table.size() && result.size()==expected,"declaration table mismatch");return result;
 }
-static void mark(const fs::path& dir,const fs::path& output,bool merge) {
+static void mark(const fs::path& dir,const fs::path& output,bool merge,
+                 const fs::path& whole={}, U part=0, U parts=0) {
     fs::create_directories(output);
     U nx,nd;std::ifstream totals(dir/"totals.txt");require(bool(totals>>nx>>nd),"missing index");
     auto canon=read_words(dir/"canonical.bin"),table=read_words(dir/"declarations.bin");
     auto entry=offsets(table,nd);Bits names(canon.size()),exprs(nx),decls(nd);
+    Bits stubs(nd);
+    U begin=0,end=nd;
+    std::vector<uint8_t> theorem;
+    if (parts) {
+        require(part < parts && parts <= nd, "invalid shard");
+        begin = uint64_t(nd) * part / parts;
+        end = uint64_t(nd) * (part+1) / parts;
+        auto full = Bits::load(whole/"decls.bits");
+        require(full.count==nd, "wrong parent selection");
+        std::ifstream kinds(dir/"declaration-kinds.bin", std::ios::binary);
+        theorem.resize(nd);
+        require(bool(kinds.read(reinterpret_cast<char*>(theorem.data()),nd)), "missing declaration kinds");
+        for (U d=begin;d<end;++d) {
+            if (full.has(d)) names.add(table[entry[d]+4]);
+        }
+    }
     U root;while(std::cin>>root)names.add(root);
     require(std::cin.eof() && names.changes>0,"invalid or empty root list");
     std::ifstream edgefile(dir/"edges.zst",std::ios::binary);auto pages=blocks(edgefile);
@@ -181,7 +198,13 @@ static void mark(const fs::path& dir,const fs::path& output,bool merge) {
                     --dc;size_t p=entry[dc];U nn=table[p],ne=table[p+1],nr=table[p+2],alt=table[p+3];p+=4;
                     bool use=false;for(U k=0;k<nn;++k)use|=names.has(table[p+k]);if(!use)continue;
                     decls.add(dc);for(U k=0;k<nn;++k)names.add(table[p++]);
-                    for(U k=0;k<ne;++k){U x=table[p++];exprs.add(merge&&alt&&k==1?alt:x);}
+                    bool stub = parts && dc < begin && theorem[dc];
+                    if (stub) stubs.add(dc);
+                    for(U k=0;k<ne;++k){
+                        U x=table[p++];
+                        if (stub && k==1) continue;
+                        exprs.add(merge&&alt&&k==1?alt:x);
+                    }
                     for(U k=0;k<nr;++k)names.add(table[p++]);
                 }else{
                     --ex;if(!exprs.has(ex))continue;
@@ -200,6 +223,14 @@ static void mark(const fs::path& dir,const fs::path& output,bool merge) {
         std::cerr<<"pass "<<passes<<": "<<decls.changes<<" records, "<<exprs.changes<<" expressions\n";
     }while(delta);
     names.save(output/"names.bits");exprs.save(output/"exprs.bits");decls.save(output/"decls.bits");
+    if (parts) {
+        stubs.save(output/"stubs.bits");
+        std::ofstream cut(output/"cut.txt");
+        cut<<part<<" "<<parts<<" "<<begin<<" "<<end<<" "<<stubs.changes<<"\n";
+    } else {
+        fs::remove(output/"stubs.bits");
+        fs::remove(output/"cut.txt");
+    }
     std::ofstream m(output/"mode.txt");m<<merge<<"\n";
 }
 struct Edit {size_t pos,end;U value;};
@@ -212,17 +243,66 @@ static void edited(const std::string& line,std::vector<Edit>& edits) {
     size_t p=0;for(auto e:edits){require(p<=e.pos,"overlapping fields");std::cout.write(line.data()+p,e.pos-p);std::cout<<e.value;p=e.end;}
     std::cout.write(line.data()+p,line.size()-p);std::cout.put('\n');
 }
+static void rename_fields(std::string_view line, std::string_view key, bool array,
+                          const Bits& dict, std::vector<Edit>& edits) {
+    size_t start=0;
+    while((start=line.find(key,start))!=line.npos) {
+        size_t pos=start+key.size();
+        start=pos;
+        if(array) {
+            if (line[pos]!='[') throw std::runtime_error("invalid name array");
+            ++pos;
+        }
+        while(pos<line.size() && line[pos]>='0' && line[pos]<='9') {
+            size_t end=pos;
+            while(end<line.size() && line[end]>='0' && line[end]<='9') ++end;
+            U old=number(line.substr(pos,end-pos));
+            edits.push_back({pos,end,dict.rank(old)});
+            if(!array || line[end]!=',') break;
+            pos=end+1;
+        }
+    }
+}
+static void rename_declaration(std::string_view line,const Bits& dict,std::vector<Edit>& edits) {
+    for(auto key:{"\"name\":","\"induct\":","\"ctor\":"}) rename_fields(line,key,false,dict,edits);
+    for(auto key:{"\"levelParams\":","\"all\":","\"ctors\":"}) rename_fields(line,key,true,dict,edits);
+}
 static void emit(const fs::path& dir,const fs::path& selection) {
     auto exprs=Bits::load(selection/"exprs.bits"),decls=Bits::load(selection/"decls.bits");exprs.ranks();
     bool merge;std::ifstream mode(selection/"mode.txt");require(bool(mode>>merge),"missing mode");
     auto canon=read_words(dir/"canonical.bin"),table=read_words(dir/"declarations.bin");auto entry=offsets(table,decls.count);
+    auto stubs = fs::exists(selection/"stubs.bits") ? Bits::load(selection/"stubs.bits") : Bits(0);
+    auto dict = fs::exists(selection/"dictionary.bits") ? Bits::load(selection/"dictionary.bits") : Bits(0);
+    if(dict.count) dict.ranks();
     std::string line;std::vector<Edit> edits;edits.reserve(16);U dc=0,ex=0;
     while(std::getline(std::cin,line)){
         auto k=first_key(line);edits.clear();
-        if(non_expr(k)){std::cout<<line<<'\n';continue;}
+        if(non_expr(k)){
+            if(dict.count && k=="in") {
+                U name=field(line,"\"in\":");
+                if(!dict.has(name)) continue;
+                edits.push_back(edit(line,"\"in\":",dict.rank(name)));
+                edits.push_back(edit(line,"\"pre\":",dict.rank(field(line,"\"pre\":"))));
+            } else if (dict.count && (k=="il" || k=="param")) {
+                rename_fields(line,"\"param\":",false,dict,edits);
+            }
+            edited(line,edits);continue;
+        }
         if(decl_key(k)){
             U cur=dc++;if(!decls.has(cur))continue;
             size_t p=entry[cur];U alt=table[p+3];
+            if(stubs.count && stubs.has(cur)) {
+                require(k=="thm","only a theorem can cross a verification cut");
+                const auto from=field_pos(line,"\"levelParams\":");
+                const auto to=line.find(']',from);
+                require(to!=line.npos && line[from]=='[',"invalid theorem universe parameters");
+                std::string axiom="{\"axiom\":{\"isUnsafe\":false,\"levelParams\":"+line.substr(from,to-from+1)
+                    +",\"name\":"+std::to_string(field(line,"\"name\":"))+",\"type\":"+std::to_string(exprs.rank(field(line,"\"type\":")))+"}}";
+                if(dict.count) rename_declaration(axiom,dict,edits);
+                edited(axiom,edits);
+                continue;
+            }
+            if(dict.count) rename_declaration(line,dict,edits);
             // These are the only expression-valued fields in a declaration, including inductive rules.
             for(auto key:{std::string_view("\"type\":"),std::string_view("\"value\":"),std::string_view("\"rhs\":")}){
                 size_t start=0;
@@ -241,7 +321,16 @@ static void emit(const fs::path& dir,const fs::path& selection) {
             else if(k=="lam"||k=="forallE"||k=="letE"){child("\"type\":");child("\"body\":");if(k=="letE")child("\"value\":");}
             else if(k=="proj")child("\"struct\":");
             else if(k=="mdata")child("\"expr\":");
-            else if(k=="const" && merge){U n=field(line,"\"name\":");if(canon.at(n)!=n)edits.push_back(edit(line,"\"name\":",canon[n]));}
+            else if(k=="const" && (merge||dict.count)){
+                U n=field(line,"\"name\":");U to=merge?canon.at(n):n;
+                if(dict.count) to=dict.rank(to);
+                if(to!=n)edits.push_back(edit(line,"\"name\":",to));
+            }
+            if(dict.count) {
+                if(k=="lam" || k=="forallE" || k=="letE") edits.push_back(edit(line,"\"name\":",0));
+                if(k=="proj") rename_fields(line,"\"typeName\":",false,dict,edits);
+                require(k!="mdata","metadata unsupported in dictionary mode");
+            }
         }
         edited(line,edits);
     }
@@ -255,6 +344,11 @@ int main(int argc,char**argv){
         std::string action=argv[1];
         if(action=="index" && argc==3)make_index(argv[2]);
         else if(action=="mark" && argc==5){std::string m=argv[4];require(m=="plain"||m=="share","invalid mode");mark(argv[2],argv[3],m=="share");}
+        else if(action=="shard" && argc==7) {
+            U n=number(argv[6]);
+            require(n>0,"empty partition");
+            mark(argv[2],argv[4],true,argv[3],number(argv[5]),n);
+        }
         else if(action=="emit" && argc==4)emit(argv[2],argv[3]);
         else throw std::runtime_error("invalid command");
         return 0;

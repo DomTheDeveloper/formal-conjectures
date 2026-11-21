@@ -12,11 +12,13 @@ expected=61a8938ad5f5e57397c1c0e3b954916af546d9004ade01c3555744a681b05381
 printf '%s  %s\n' "$expected" "$input" | sha256sum -c -
 g++ -std=c++20 -O3 -DNDEBUG -Wall -Wextra -Werror "$here/slice.cpp" -lzstd -o slice
 # Index files may be reused only for this fixed input and this exact reader.
-stamp=$(cat "$here/catalog.py" "$here/slice.cpp" | sha256sum | cut -d' ' -f1)
+stamp=$(cat "$here/catalog.py" "$here/slice.cpp" "$here/dictionary.py" | sha256sum | cut -d' ' -f1)
 if [[ ! -f index/complete || "$(cat index/complete)" != "$expected $stamp" ]]; then
     zstd -dcq --long=31 "$input" |
         LC_ALL=C grep -aE '^\{"(in"|axiom"|def"|thm"|opaque"|quot"|inductive")' |
-        python3 "$here/catalog.py" index
+        zstd -q -T1 -3 -f -o index/names-declarations.zst
+    zstd -dcq index/names-declarations.zst | python3 "$here/catalog.py" index
+    zstd -dcq index/names-declarations.zst | python3 "$here/dictionary.py" index
     zstd -dcq --long=31 "$input" | ./slice index index
     printf '%s %s\n' "$expected" "$stamp" > index/complete
 fi

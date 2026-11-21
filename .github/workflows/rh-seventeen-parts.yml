@@ -1,0 +1,63 @@
+name: Lean replay of 17 Riemann proof parts
+on:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths:
+      - '.github/workflows/rh-seventeen-parts.yml'
+      - '_certificates/RiemannReduction/github_parts.sh'
+      - '_certificates/RiemannReduction/parts.sh'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: Native Lean lane ${{ matrix.lane }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lean 4.36.0
+        run: |
+          set -euo pipefail
+          curl -fsSL https://github.com/leanprover/elan/releases/download/v4.2.1/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/elan-init" -y --default-toolchain leanprover/lean4:v4.36.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          echo 'ELAN_TOOLCHAIN=leanprover/lean4:v4.36.0' >> "$GITHUB_ENV"
+      - name: Build, audit and kernel-check the assigned parts
+        env:
+          LEAN_ABORT_ON_PANIC: '1'
+        run: bash _certificates/RiemannReduction/github_parts.sh "${{ matrix.lane }}" 4
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kernel-verdicts-${{ matrix.lane }}
+          path: ${{ runner.temp }}/rh-parts/results
+          if-no-files-found: ignore
+          retention-days: 30
+  coverage:
+    name: Confirm every declaration was covered
+    runs-on: ubuntu-24.04
+    needs: replay
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: kernel-verdicts-*
+          path: results
+          merge-multiple: true
+      - run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          path=Path('results')
+          cuts=[json.loads((path/f'part-{i:02d}.json').read_text()) for i in range(1,18)]
+          assert all((path/f'part-{i:02d}.log').read_text().count('Lean default kernel accepts the solution')==1 for i in range(1,18))
+          assert [c['part'] for c in cuts]==list(range(1,18))
+          assert cuts[0]['first_record']==0 and cuts[-1]['end_record']==1468418
+          assert all(a['end_record']==b['first_record'] for a,b in zip(cuts,cuts[1:]))
+          assert sum(c['owned_records'] for c in cuts)==1172294
+          print('Lean checked all 17 proof intervals covering 1,172,294 declaration records.')
+          PY

@@ -4,7 +4,6 @@ import argparse
 import array
 import json
 from pathlib import Path
-import struct
 import sys
 
 PRIMITIVES = """Quot Quot.mk Quot.lift Quot.ind propext Quot.sound Classical.choice
@@ -29,7 +28,7 @@ def catalog(stream, folder):
     reorder = array.array('I', [0])
     counts = {k: 0 for k in DECLS}
     identical = replaced = ndecl = 0
-    with (folder/'declarations.bin').open('wb') as out, (folder/'names.tsv').open('w') as inventory:
+    with (folder/'declarations.bin').open('wb') as out, (folder/'names.tsv').open('w') as inventory, (folder/'declaration-kinds.bin').open('wb') as kinds:
         for raw in stream:
             rec = json.loads(raw)
             if 'in' in rec:
@@ -77,6 +76,7 @@ def catalog(stream, folder):
             write_words(out, [len(node_names), len(required_expr), len(refs), alt_body, *node_names, *required_expr, *refs])
             for name in node_names:
                 print(name, key, names[name].replace('\n','\\n').replace('\t','\\t'), sep='\t', file=inventory)
+            kinds.write(bytes([key == 'thm']))
             counts[key] += len(node_names)
             ndecl += 1
     with (folder/'canonical.bin').open('wb') as dest:

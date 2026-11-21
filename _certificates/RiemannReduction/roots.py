@@ -12,6 +12,8 @@ args = parser.parse_args()
 catalog = json.loads((args.catalog/'catalog.json').read_text())
 names = dict(catalog['targets'])
 want = TARGETS if args.target == 'all' else [TARGETS[0] if args.target == 'ordinary' else args.target]
+if args.target == 'primitives':
+    want = []
 missing = set(want)-names.keys()
 if missing:
     with (args.catalog/'names.tsv').open() as source:
