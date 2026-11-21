@@ -1,0 +1,90 @@
+name: Prime-window proof from shortened Lean source
+on:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths: ['.github/workflows/rh-prime-window.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned Lean toolchains and source
+        run: |
+          set -euo pipefail
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /usr/share/swift /opt/ghc /opt/hostedtoolcache/CodeQL
+          curl -fsSL https://github.com/leanprover/elan/releases/download/v4.2.1/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/elan-init" -y --default-toolchain leanprover/lean4:v4.33.1
+          "$HOME/.elan/bin/elan" toolchain install leanprover/lean4:v4.36.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          git init -q "$RUNNER_TEMP/archived"
+          git -C "$RUNNER_TEMP/archived" fetch -q --depth 1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          python3 _certificates/RiemannReduction/apply_source.py "$RUNNER_TEMP/archived" "$RUNNER_TEMP/shortened"
+      - name: Compile every project module needed for the analytic theorem
+        env:
+          ELAN_TOOLCHAIN: leanprover/lean4:v4.33.1
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/shortened"
+          lake exe cache get
+          lake build +Development.AutomorphicArithmetic.DedekindLFunctions.LandauTheorems.ZeroFreeOfRpowWindow:olean +Formalism.GammaFactorNonvanishing.RhOfRight:olean
+      - name: Compile the exporter and the independent checker
+        run: |
+          set -euo pipefail
+          git init -q "$RUNNER_TEMP/exporter"
+          git -C "$RUNNER_TEMP/exporter" fetch -q --depth 1 https://github.com/leanprover/lean4export 15f6055e299ad5b89345e533cc2192f4cc00f659
+          git -C "$RUNNER_TEMP/exporter" checkout -q --detach FETCH_HEAD
+          (cd "$RUNNER_TEMP/exporter" && ELAN_TOOLCHAIN=leanprover/lean4:v4.33.1 lake build lean4export)
+          git init -q "$RUNNER_TEMP/con-leche"
+          git -C "$RUNNER_TEMP/con-leche" fetch -q --depth 1 https://github.com/leanprover/con-leche 5ea446d5c79d23ef1f954215d094db2162f1ab6f
+          git -C "$RUNNER_TEMP/con-leche" checkout -q --detach FETCH_HEAD
+          (cd "$RUNNER_TEMP/con-leche" && ELAN_TOOLCHAIN=leanprover/lean4:v4.36.0 lake build con-leche)
+      - name: Compile the short theorem and run both kernels on its whole proof
+        env:
+          ELAN_TOOLCHAIN: leanprover/lean4:v4.33.1
+          LEAN_ABORT_ON_PANIC: '1'
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/analytic-proof"
+          mkdir -p "$out"
+          native=$(ELAN_TOOLCHAIN=leanprover/lean4:v4.36.0 elan which leanchecker)
+          bash _certificates/RiemannReduction/check_prime_windows.sh "$RUNNER_TEMP/shortened" "$RUNNER_TEMP/windows" \
+            "$RUNNER_TEMP/exporter/.lake/build/bin/lean4export" "$native" "$RUNNER_TEMP/con-leche/.lake/build/bin/con-leche" 2>&1 |
+            tee "$out/prime-window-kernels.txt"
+          zstd -q --long=27 -T1 -9 "$RUNNER_TEMP/windows/windows.ndjson" -o "$out/prime-window-proof.ndjson.zst"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: checked-prime-window-proof
+          path: ${{ runner.temp }}/analytic-proof
+          compression-level: 0
+          retention-days: 90
+  publish:
+    needs: verify
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: checked-prime-window-proof
+          path: certificate
+      - name: Attach the verified mathematical implication to the source release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          tag=rh-source-ae2ba3a2e34e
+          for f in certificate/*; do
+            name=$(basename "$f")
+            existing=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$name\") | .digest")
+            if [[ -z "$existing" ]]; then
+              gh release upload "$tag" "$f"
+            elif [[ "$name" == *.ndjson.zst && "$existing" != "sha256:$(sha256sum "$f" | cut -d' ' -f1)" ]]; then
+              echo 'A different certificate already exists under this release name.' >&2
+              exit 1
+            fi
+          done
