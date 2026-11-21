@@ -12,7 +12,20 @@ This directory rebuilds a shorter Lean source tree and generates 17 kernel proof
 
 The first source pass preserves theorem statements and removes 251,383 redundant imports. It shortens 2,133 proofs using an earlier theorem with the same exported proposition and universe parameters. Reapplying the patch reproduces the measured tree digest across every source file. The independent kernel reduction works directly on proof terms. Its five public roots are ordinary RH, the zeta zero statement, and the three Dirichlet L-function statements in the original challenge. The original export contains exactly the three standard axiom declarations `propext`, `Classical.choice` and `Quot.sound`.
 
+The first three kernel-size rows above describe the initial reduction. The challenge-preserving all-five export contains 1,175,732 declaration records and 1,048,304,687 expression records in 60,521,386,737 bytes. Its SHA-256 is `c06133e527f9962f8c0c759e8dcc2007ae0d86535e165fa7453a0956624fa94d`.
+
 The first complete independent replay checked all 1,172,294 solution declarations and then rejected the official challenge comparison at `riemannHypothesis`. The comparator found a difference in the library declarations its type reads. The revised reduction preserves all 53,721 shared declarations from the official challenge, including the original names and bodies of 3,425 theorems that the first pass shared. Its 1,175,732 declarations are undergoing a fresh full comparison. [First comparator run](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44917310333) · [Revised comparator run](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-protected-kernel.yml)
+
+## Native Lean proof modules
+
+The [native module workflow](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-native-modules.yml) partitions the authentic reduced proof into 17 modules. Each declaration has one owner. The graph pass moves prerequisites into an earlier module when necessary and checks that the union covers the entire selected proof. Every module after the first imports its predecessor. All proofs retain their bodies. The writer reads back every serialized `.olean` file and compares its constants and imports with the parsed export. The unmodified Lean 4.33.1 `leanchecker` then replays each module independently. The workflow publishes 17 native objects only after all owners pass.
+
+To check the released objects locally, put each decompressed `PartN.olean` under `RHBatches/` and run the following from its parent directory with Lean 4.33.1 on the path.
+
+```bash
+export LEAN_PATH="$PWD"
+for part in {0..16}; do leanchecker "RHBatches.Part$part" || exit 1; done
+```
 
 ## Readable algebra
 

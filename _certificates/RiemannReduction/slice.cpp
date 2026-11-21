@@ -24,7 +24,7 @@ static void require(bool condition, std::string_view what) {
         throw std::runtime_error(std::string(what));
 }
 static U number(std::string_view s) {
-    U n;
+    U n = 0;
     auto [end, err] = std::from_chars(s.data(), s.data() + s.size(), n);
     require(err == std::errc() && end != s.data(), "missing or out-of-range numeric field");
     return n;
@@ -612,6 +612,7 @@ static void emit(const fs::path &dir, const fs::path &selection) {
             "input or output incomplete");
 }
 #include "intern.hpp"
+#include "stages.hpp"
 
 int main(int argc, char **argv) {
     try {
@@ -625,6 +626,12 @@ int main(int argc, char **argv) {
             intern(std::cerr, number(argv[2]), action == "intern");
         } else if (action == "index" && argc == 3)
             make_index(argv[2]);
+        else if (action == "stage-plan" && argc == 6)
+            stage_plan(argv[2], argv[3], argv[4], number(argv[5]));
+        else if (action == "stage-names" && argc == 4)
+            stage_names(argv[2], argv[3]);
+        else if (action == "stage-emit" && argc == 5)
+            stage_emit(argv[2], argv[3], argv[4]);
         else if (action == "mark" && argc == 5) {
             std::string m = argv[4];
             require(m == "plain" || m == "share", "invalid mode");

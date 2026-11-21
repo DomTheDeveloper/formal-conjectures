@@ -1,0 +1,270 @@
+name: Build and kernel-check the complete RH proof as 17 Lean modules
+on:
+  workflow_dispatch:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths: ['.github/workflows/rh-native-modules.yml']
+permissions:
+  contents: read
+env:
+  TOOLS: _certificates/RiemannReduction
+  LEAN_ABORT_ON_PANIC: '1'
+jobs:
+  split:
+    name: Partition every declaration in the protected full proof
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve the original export and original challenge
+        run: |
+          set -euo pipefail
+          bash "$TOOLS/module_runner.sh" space
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq zstd libzstd-dev
+          cd "$RUNNER_TEMP"
+          curl -fsSL --retry 4 https://math.mit.edu/~drew/grh/solution.ndjson.zst -o original.zst
+          curl -fsSL --retry 4 https://math.mit.edu/~drew/grh/challenge.ndjson.zst -o challenge.zst
+      - name: Share proofs, preserve the official challenge and partition the dependency graph
+        run: bash "$TOOLS/build_modules.sh" "$RUNNER_TEMP/original.zst" "$RUNNER_TEMP/challenge.zst" "$RUNNER_TEMP/parts"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-module-plan
+          path: |
+            ${{ runner.temp }}/parts/module-plan.json
+            ${{ runner.temp }}/parts/plan.log
+          retention-days: 3
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-0
+          path: ${{ runner.temp }}/parts/fragments/stage-0.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-1
+          path: ${{ runner.temp }}/parts/fragments/stage-1.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-2
+          path: ${{ runner.temp }}/parts/fragments/stage-2.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-3
+          path: ${{ runner.temp }}/parts/fragments/stage-3.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-4
+          path: ${{ runner.temp }}/parts/fragments/stage-4.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-5
+          path: ${{ runner.temp }}/parts/fragments/stage-5.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-6
+          path: ${{ runner.temp }}/parts/fragments/stage-6.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-7
+          path: ${{ runner.temp }}/parts/fragments/stage-7.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-8
+          path: ${{ runner.temp }}/parts/fragments/stage-8.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-9
+          path: ${{ runner.temp }}/parts/fragments/stage-9.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-10
+          path: ${{ runner.temp }}/parts/fragments/stage-10.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-11
+          path: ${{ runner.temp }}/parts/fragments/stage-11.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-12
+          path: ${{ runner.temp }}/parts/fragments/stage-12.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-13
+          path: ${{ runner.temp }}/parts/fragments/stage-13.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-14
+          path: ${{ runner.temp }}/parts/fragments/stage-14.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-15
+          path: ${{ runner.temp }}/parts/fragments/stage-15.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-export-16
+          path: ${{ runner.temp }}/parts/fragments/stage-16.ndjson.zst
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+  encode:
+    needs: split
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        part: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    name: Encode exact proof objects for module ${{ matrix.part }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned Lean release
+        run: |
+          bash "$TOOLS/module_runner.sh" space 50
+          bash "$TOOLS/module_runner.sh" lean
+      - uses: actions/download-artifact@v4
+        with:
+          name: rh-export-${{ matrix.part }}
+          path: ${{ runner.temp }}/encode
+      - uses: actions/download-artifact@v4
+        with:
+          name: rh-module-plan
+          path: ${{ runner.temp }}/encode
+      - name: Serialize and read back every proof term
+        run: bash "$TOOLS/encode_module.sh" "$RUNNER_TEMP/encode" "${{ matrix.part }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-olean-${{ matrix.part }}
+          path: |
+            ${{ runner.temp }}/encode/Part${{ matrix.part }}.olean.zst
+            ${{ runner.temp }}/encode/Part${{ matrix.part }}.json
+          retention-days: 3
+          compression-level: 0
+          if-no-files-found: error
+  replay:
+    needs: encode
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [0, 1, 2, 3]
+    name: Stock Lean recheck lane ${{ matrix.lane }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned Lean release
+        run: |
+          bash "$TOOLS/module_runner.sh" space 26
+          bash "$TOOLS/module_runner.sh" lean
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: rh-olean-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/replay
+      - name: Run the native kernel on actual proofs
+        run: bash "$TOOLS/replay_modules.sh" "$RUNNER_TEMP/replay" "${{ matrix.lane }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rh-verdicts-${{ matrix.lane }}
+          path: ${{ runner.temp }}/replay/verdicts
+          retention-days: 3
+          if-no-files-found: error
+  publish:
+    needs: replay
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make room for the release
+        run: bash "$TOOLS/module_runner.sh" space
+      - uses: actions/download-artifact@v4
+        with:
+          name: rh-module-plan
+          path: ${{ runner.temp }}/release
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: rh-olean-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/release
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: rh-verdicts-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/release
+      - name: Confirm full kernel coverage and publish the verified Lean objects
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          python3 "$TOOLS/module_manifest.py" combine "$RUNNER_TEMP/release"
+          cd "$RUNNER_TEMP/release"
+          tag="rh-lean-modules-$(sha256sum module-manifest.json | cut -c1-12)"
+          cat > "$RUNNER_TEMP/notes.md" <<'EOF'
+          These 17 native Lean 4.33.1 modules contain the complete reduced proof objects for all five original conclusions. The stock leanchecker replayed every owning module. The attached manifest records the authenticated original input, proof coverage, exact imports, file hashes, and 17 kernel verdicts. To recheck locally, decompress the modules into RHBatches/, set LEAN_PATH to its parent, and run leanchecker on RHBatches.Part0 through RHBatches.Part16.
+          EOF
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --target "$GITHUB_SHA" --prerelease --draft --latest=false --title '17 native Lean modules for the complete RH certificate' --notes-file "$RUNNER_TEMP/notes.md"
+          fi
+          for f in Part*.olean.zst module-manifest.json; do
+            expected="sha256:$(sha256sum "$f" | cut -d' ' -f1)"
+            for delay in 0 5 15; do
+              sleep "$delay"
+              got=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$f\") | .digest")
+              [[ "$got" != "$expected" ]] || break
+              [[ -z "$got" ]]
+              gh release upload "$tag" "$f" && break
+            done
+            got=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$f\") | .digest")
+            [[ "$got" == "$expected" ]]
+          done
+          gh release edit "$tag" --draft=false --prerelease --latest=false
