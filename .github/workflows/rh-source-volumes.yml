@@ -1,0 +1,85 @@
+name: Shortened Riemann source and native import audit
+on:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths: ['.github/workflows/rh-source-volumes.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get the source and the original Lean compiler
+        run: |
+          set -euo pipefail
+          git init -q "$RUNNER_TEMP/original"
+          git -C "$RUNNER_TEMP/original" fetch -q --depth 1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          git -C "$RUNNER_TEMP/original" checkout -q --detach FETCH_HEAD
+          curl -fsSL https://github.com/leanprover/elan/releases/download/v4.2.1/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/elan-init" -y --default-toolchain leanprover/lean4:v4.33.1
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          echo 'ELAN_TOOLCHAIN=leanprover/lean4:v4.33.1' >> "$GITHUB_ENV"
+      - name: Verify every source file and every removed import
+        working-directory: _certificates/RiemannReduction
+        run: |
+          set -euo pipefail
+          python3 apply_source.py "$RUNNER_TEMP/original" "$RUNNER_TEMP/reduced"
+          git -c core.quotePath=false -C "$RUNNER_TEMP/original" ls-tree -r --name-only HEAD src |
+            sed -n 's!^src/\(.*\.lean\)$!\1!p' |
+            lean --run SourceImports.lean "$RUNNER_TEMP/original/src" "$RUNNER_TEMP/reduced/src" |
+            python3 audit_imports.py | tee "$RUNNER_TEMP/source-imports.json"
+      - name: Pack and decompress all 17 source volumes
+        working-directory: _certificates/RiemannReduction
+        run: |
+          set -euo pipefail
+          git init -q "$RUNNER_TEMP/zstd"
+          git -C "$RUNNER_TEMP/zstd" fetch -q --depth 1 https://github.com/facebook/zstd f8745da6ff1ad1e7bab384bd1f9d742439278e99
+          git -C "$RUNNER_TEMP/zstd" checkout -q --detach FETCH_HEAD
+          make -s -C "$RUNNER_TEMP/zstd/programs" -j3 zstd
+          export PATH="$RUNNER_TEMP/zstd/programs:$PATH"
+          python3 pack_source.py "$RUNNER_TEMP/original" "$RUNNER_TEMP/rh-source" > "$RUNNER_TEMP/source-volumes.json"
+          cmp source-volumes.json "$RUNNER_TEMP/source-volumes.json"
+          cp "$RUNNER_TEMP/source-volumes.json" "$RUNNER_TEMP/source-imports.json" "$RUNNER_TEMP/rh-source/"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shortened-riemann-source
+          path: ${{ runner.temp }}/rh-source
+          compression-level: 0
+          retention-days: 90
+  publish:
+    needs: source
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: shortened-riemann-source
+          path: source
+      - name: Publish the source volumes under their tree fingerprint
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          tag="rh-source-$(jq -r '.source.tree_sha256[:12]' source/source-volumes.json)"
+          if gh release view "$tag" --json assets > existing.json 2>/dev/null; then
+            python3 - <<'PY'
+          import hashlib,json,pathlib
+          assets={a['name']:a['digest'] for a in json.loads(pathlib.Path('existing.json').read_text())['assets']}
+          for p in pathlib.Path('source').iterdir():
+              expected='sha256:'+hashlib.file_digest(p.open('rb'),'sha256').hexdigest()
+              if assets.get(p.name)!=expected:
+                  raise SystemExit(f'The existing release differs at {p.name}.')
+          PY
+            exit 0
+          fi
+          cat > "$RUNNER_TEMP/notes.md" <<'NOTES'
+          These 17 topic archives contain the complete rewritten project, including its three build files. Extract them into one directory to recover 175,187 Lean modules and 17,107,305 source lines. Each archived file was decompressed and compared byte for byte against the reproduced patch output. The native import audit covers all 251,383 removed import statements.
+
+          The mathematical source is Levent Alpöge's published release, pinned at 40e56bab026552e089d7afcfeff08d2defb9c005. The source-compilation and kernel-replay results for this reduction are recorded separately in the branch README.
+          NOTES
+          gh release create "$tag" source/* --target "$GITHUB_SHA" --prerelease --latest=false --title 'Riemann hypothesis — shortened Lean source in 17 volumes' --notes-file "$RUNNER_TEMP/notes.md"

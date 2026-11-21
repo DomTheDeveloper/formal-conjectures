@@ -26,6 +26,10 @@ The 49-line [PrimeWindows.lean](PrimeWindows.lean) formalizes the implication fr
 
 The hard estimate comes from divisibility. A nonzero algebraic integer divisible by many prime ideals must have a large norm. The proof compares this lower bound with an upper bound from a chain of theta lifts. The choice of chain length balances errors that grow with the length and errors that shrink with it. Ordinary zeta uses the trivial character in the final prime sum. The arithmetic work that delivers its bound still uses auxiliary characters and fields. [Alpöge’s note](https://alpo.ge/remark.pdf) · [Annotated mathematical guide](https://github.com/nasqret/riemann-rev)
 
+## Download the 17 source volumes
+
+The [17 downloadable archives](https://github.com/DomTheDeveloper/formal-conjectures/releases/tag/rh-source-ae2ba3a2e34e) contain the complete shortened source organized by topic, including the build configuration. Extract all 17 into one directory with `for f in *.tar.zst; do tar --zstd -xf "$f"; done`. Together they contain 175,187 Lean modules. The materializer decompressed every archived file and compared it with the shortened project. The [volume manifest](source-volumes.json) lists each topic, line count and SHA-256.
+
 ## Materialize the shorter Lean source
 
 Run these commands from this directory. The patch applier needs Python 3 and Git. It reads the pinned Git objects, includes the original project configuration and writes all 175,187 Lean files to a new directory. Omitting the output directory checks the full tree fingerprint in memory.
@@ -60,9 +64,10 @@ done
 ## What each check establishes
 
 - **Whole kernel export.** The reducer traces types, values, universe parameters, projections, inductives and recursor rules. When two theorems share a kernel type and universe parameters, it can reuse the earlier proof. The reference run uses stock `leanchecker`. A second run uses the independent Lean implementation ConLeche in verified mode and compares all five statements with the published challenge. [Whole-proof run](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44917310333)
-- **Seventeen proof articles.** Every retained declaration belongs to one index interval. Its owner must check its entire body. A later interval may use an earlier theorem through its checked statement. Definitions and inductive declarations keep their bodies. The coverage auditor checks every boundary, checks that every temporary assumption is an earlier theorem, and checks that all 1,172,294 retained records have an owner. A green coverage job means that all 17 native kernel runs passed. [17-part run](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44919932054)
+- **Seventeen proof articles.** Every retained declaration belongs to one index interval. Its owner must check its entire body. A later interval may use an earlier theorem through its checked statement. Definitions and inductive declarations keep their bodies. The splitter also retains proof bodies needed by definitions and theorem types. If the kernel identifies another declaration needing reduction, the splitter restores its actual dependency closure and rechecks the part. The coverage auditor checks every boundary, checks that every temporary assumption is an earlier theorem, and checks that all 1,172,294 retained records have an owner. A green coverage job means that all 17 native kernel runs passed. [Corrected 17-part run](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44924258184). In the [first run](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44919932054), part 1 passed and parts 2 through 5 failed at `Rat.instEncodable`. Lean accepted that rational-number definition in isolation and in the corrected part 2 prefix once its computational proof bodies were restored
 - **Native check of the endpoint.** A local stock Lean run accepted a smaller interval containing all five public conclusions. It checked 1,010 owned records and used 13,842 earlier theorem headers. That check alone certifies the final interval. Its counts and verdict are recorded in [measurements.json](measurements.json).
 - **Every source theorem replacement.** A separate stock Lean run checked all 2,133 proposed uses of earlier theorems at the original propositions and universe parameters. It built a native proof for each substitution and supplied 26,019 supporting theorem statements as temporary headers. Reproduce this check with `bash check_source_reuse.sh original.zst build` after running `reduce.sh`. This checks the mathematical substitutions. Rebuilding the source also exercises tactic elaboration and the import graph.
+- **Every deleted import.** Lean 4.33.1 parsed every original and revised module header. A separate reachability check confirmed that each of the 251,383 removed imports was already available through an earlier retained public import in the revised graph. This covers all 175,187 source modules and 83,202 changed headers. The check preserves the order and visibility of the retained imports.
 - **Lean source.** The source patch and kernel reducer are separate transformations. Source reproduction verifies the bytes of the patch output. Stock Lean compiled three rewritten modules. The largest measured sample went from 532 lines to 381. The full import and arithmetic proof-term checks run separately from these source compiler checks. Compiling a final theorem against existing imports does not substitute for checking its dependencies.
 - **Baseline.** The original proof has its own published compilation and independent kernel verification record. [Original verification files](https://math.mit.edu/~drew/grh/) · [Pinned Lean source](https://github.com/leanprover-community/riemann-hypothesis/tree/40e56bab026552e089d7afcfeff08d2defb9c005)
 
@@ -70,4 +75,14 @@ The small regression test exercises theorem sharing, cross-part dependencies and
 
 ```bash
 python3 test_reduce.py
+```
+
+
+## Additional certificate compression
+
+The ordinary-RH export can share another 2,283,655 identical expression records after dropping unused name-table entries and local binder labels. The resulting stream has 1,046,013,258 expression records and 59,524,488,006 bytes before compression. Its SHA-256 is `fc7e5faebdc3affadcb02f9505bf9f96a256dd55d1a042ad134be278acecec14`. The full replays linked above use the larger export. To reproduce this additional candidate after selecting ordinary RH, run these commands.
+
+```bash
+python3 dictionary.py build/index build/ordinary-share
+bash emit.sh original.zst build ordinary-share | build/slice intern 22 > ordinary-compact.ndjson
 ```

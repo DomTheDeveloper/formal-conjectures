@@ -11,7 +11,7 @@ import tarfile
 HERE=Path(__file__).resolve().parent
 REV='40e56bab026552e089d7afcfeff08d2defb9c005'
 
-def run(repo, output):
+def run(repo, output, visit=None):
     with lzma.open(HERE/'source-edits.jsonl.xz','rt') as patch:
         edits=dict(json.loads(line) for line in patch)
     if output is not None:
@@ -43,6 +43,8 @@ def run(repo, output):
                     files+=1
                     reduced_lines+=data.count(b'\n')
                     tree.update(rel.encode()+b'\0'+hashlib.sha256(data).digest())
+                if visit is not None:
+                    visit(entry.name, data)
                 if output is not None:
                     target=output/path
                     target.parent.mkdir(parents=True,exist_ok=True)

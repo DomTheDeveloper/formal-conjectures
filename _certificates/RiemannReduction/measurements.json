@@ -56,6 +56,15 @@
     "temporary_theorem_headers": 13842,
     "total_records": 23498
   },
+  "ordinary_compact_candidate": {
+    "bytes": 59524488006,
+    "complete_kernel_replay": "not run for this serialization",
+    "declaration_records": 1172274,
+    "expressions": 1046013258,
+    "new_shared_expressions": 2283655,
+    "retained_names": 1312461,
+    "sha256": "fc7e5faebdc3affadcb02f9505bf9f96a256dd55d1a042ad134be278acecec14"
+  },
   "ordinary_rh": {
     "axioms": [
       "propext",
@@ -77,6 +86,15 @@
       "thm": 952429
     },
     "sha256": "795cd72be92a00a49b4f0ef96b7c5c219ddd68d46213c2c403e161d2c2bee8d2"
+  },
+  "part_boundary_regression": {
+    "accepted_after_restoring_computational_proofs": true,
+    "corrected_part_2_through_rat_native_exit": 0,
+    "corrected_partition_run": 44924258184,
+    "failed_partition_run": 44919932054,
+    "isolated_native_checker": "4.36.0",
+    "original_part_1_native_exit": 0,
+    "rejected_with_proof_headers_only": "Rat.instEncodable"
   },
   "prime_windows": {
     "axiom_output": "'RiemannReduction.rh_of_prime_windows' depends on axioms: [propext, Classical.choice, Quot.sound]",
@@ -106,6 +124,16 @@
     "source_revision": "40e56bab026552e089d7afcfeff08d2defb9c005",
     "tree_sha256": "ae2ba3a2e34e07ba02869f1269f3dc6e3fdde85e15cc4ac90d85102b8d155a1c"
   },
+  "source_import_check": {
+    "all_removed_imports_reachable_from_a_preceding_retained_import": true,
+    "changed_headers": 83202,
+    "distinct_removed_module_names": 24687,
+    "graph_vertices": 175536,
+    "lean": "4.33.1",
+    "parser": "Lean.parseImports'",
+    "removed_imports": 251383,
+    "source_modules": 175187
+  },
   "source_patch_replay": {
     "changed_files": 84186,
     "original_lines": 17374215,
@@ -126,6 +154,12 @@
     "source_replacements": 2133,
     "supporting_theorem_headers": 26019,
     "verified_explicit_reuses": 2133
+  },
+  "source_volumes": {
+    "compressed_bytes": 194427010,
+    "count": 17,
+    "manifest": "source-volumes.json",
+    "verified_decompressed_files": 175190
   },
   "verified_source_samples": {
     "Formalism.FrobeniusOrbits.RealSubfieldLeCompositum": {

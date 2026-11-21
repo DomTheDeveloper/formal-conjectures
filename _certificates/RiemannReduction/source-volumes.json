@@ -1,0 +1,148 @@
+{
+  "source": {
+    "source_revision": "40e56bab026552e089d7afcfeff08d2defb9c005",
+    "source_files": 175187,
+    "changed_files": 84186,
+    "original_lines": 17374215,
+    "reduced_lines": 17107305,
+    "tree_sha256": "ae2ba3a2e34e07ba02869f1269f3dc6e3fdde85e15cc4ac90d85102b8d155a1c"
+  },
+  "volumes": [
+    {
+      "files": 13,
+      "lean_files": 10,
+      "lean_lines": 70,
+      "file": "01-entry-points.tar.zst",
+      "bytes": 2414,
+      "sha256": "23208f4f29bd4a1ea27b93eb618d6ce13f312d2a19cdb2f47cdd24738c380758"
+    },
+    {
+      "files": 616,
+      "lean_files": 616,
+      "lean_lines": 63970,
+      "file": "02-basic-lemmas-and-positivity.tar.zst",
+      "bytes": 664265,
+      "sha256": "47380849437898b8fad4e0c2e76d1d11c082fe447088192ed14d2d5dda4d6536"
+    },
+    {
+      "files": 18254,
+      "lean_files": 18254,
+      "lean_lines": 3193233,
+      "file": "03-formalism.tar.zst",
+      "bytes": 30280106,
+      "sha256": "11183e3f050bceca42e18d446e9cb0568e58651849a9e55d53cb99121065d796"
+    },
+    {
+      "files": 8507,
+      "lean_files": 8507,
+      "lean_lines": 1117079,
+      "file": "04-ground-theory.tar.zst",
+      "bytes": 9887403,
+      "sha256": "28efd0a4a7c28afddd88e871ab87e87f23aeb4cba76972b5167db95a0fc7b05a"
+    },
+    {
+      "files": 2027,
+      "lean_files": 2027,
+      "lean_lines": 191976,
+      "file": "05-companion-theory.tar.zst",
+      "bytes": 2145237,
+      "sha256": "d19c99fc6d91248c1832acdadae62c8a17f533ba040ae5f3256d52a5b5eb6563"
+    },
+    {
+      "files": 3845,
+      "lean_files": 3845,
+      "lean_lines": 561157,
+      "file": "06-reciprocity-theory.tar.zst",
+      "bytes": 5386896,
+      "sha256": "98fa5c899d5d5448627318393b48bb542b873681f191002799446a67f5f47dd7"
+    },
+    {
+      "files": 18431,
+      "lean_files": 18431,
+      "lean_lines": 1764001,
+      "file": "07-automorphic-arithmetic.tar.zst",
+      "bytes": 20161380,
+      "sha256": "9537487d79c3bdd8c1ca3dd33651b6be2e9e0abc465cdc88a7a7a987cab3535b"
+    },
+    {
+      "files": 15147,
+      "lean_files": 15147,
+      "lean_lines": 1169122,
+      "file": "08-automorphic-spectrum.tar.zst",
+      "bytes": 13576515,
+      "sha256": "2f057df83ae20d39075ad4bfddb14f2f6003ab10384fab3a3ef41c7fb4e02f3e"
+    },
+    {
+      "files": 7051,
+      "lean_files": 7051,
+      "lean_lines": 844342,
+      "file": "09-weil-bound.tar.zst",
+      "bytes": 9548493,
+      "sha256": "39844fe1532d0243c4448e17c3176ccdb96afefa4ccf9e503e209ee1a9208dce"
+    },
+    {
+      "files": 1613,
+      "lean_files": 1613,
+      "lean_lines": 127990,
+      "file": "10-etale-cohomology-and-discrete-groups.tar.zst",
+      "bytes": 1377317,
+      "sha256": "5c21f34b4de60e608147d5653b559ca1b6da3c1cb83cc894e9883b002d1db76c"
+    },
+    {
+      "files": 499,
+      "lean_files": 499,
+      "lean_lines": 137037,
+      "file": "11-resolution-of-singularities.tar.zst",
+      "bytes": 1075507,
+      "sha256": "fe20c6610355aa6fda44f284e6344e3f3e2cd1501a97054189cea80956334270"
+    },
+    {
+      "files": 3769,
+      "lean_files": 3769,
+      "lean_lines": 704515,
+      "file": "12-abelian-variety-foundations.tar.zst",
+      "bytes": 8005376,
+      "sha256": "ddbb5b7b488e28e47df9ef95b6881354b7a122a04cdbcd61ada708ec462202d2"
+    },
+    {
+      "files": 42424,
+      "lean_files": 42424,
+      "lean_lines": 2758752,
+      "file": "13-divisor-proofs.tar.zst",
+      "bytes": 36033224,
+      "sha256": "97de73f995b48e31e1b36cd267cad685d64678636be622dcfdd7b51faaec85b5"
+    },
+    {
+      "files": 8951,
+      "lean_files": 8951,
+      "lean_lines": 657409,
+      "file": "14-inertia-eigenvalues.tar.zst",
+      "bytes": 8451155,
+      "sha256": "35c62579332b87b5cfcc5e39be7af25e1667bc8807924b63de2e0d0711a48695"
+    },
+    {
+      "files": 7769,
+      "lean_files": 7769,
+      "lean_lines": 585418,
+      "file": "15-iwasawa-decomposition.tar.zst",
+      "bytes": 7916845,
+      "sha256": "4bd492a404cb1e8e13bdd989ddf60c6927c6555f3c5ad4587edad3272b251762"
+    },
+    {
+      "files": 6642,
+      "lean_files": 6642,
+      "lean_lines": 530319,
+      "file": "16-twisted-operators.tar.zst",
+      "bytes": 6549481,
+      "sha256": "af1543edaf0fa493576a2e148e9b2d67a44eb9b3e35c72b83ff4d5aeb1eb0c99"
+    },
+    {
+      "files": 29632,
+      "lean_files": 29632,
+      "lean_lines": 2700915,
+      "file": "17-other-abelian-variety-proofs.tar.zst",
+      "bytes": 33365396,
+      "sha256": "0d2848b6a6319f05307389e371a63769c2d1fced6d73f000ad9d06ff651c58ef"
+    }
+  ]
+}
