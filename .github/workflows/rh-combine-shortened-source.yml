@@ -1,0 +1,37 @@
+name: Reproduce the combined source reduction
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['_certificates/RiemannReduction/combine-source/**', '.github/workflows/rh-combine-shortened-source.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Identify the exact original theorem dependencies
+        run: |
+          set -euo pipefail
+          w="$RUNNER_TEMP/combined"
+          mkdir -p "$w/dist"
+          git init -q "$w/original"
+          git -C "$w/original" fetch -q --depth=1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          curl -fsSL --retry 4 https://github.com/james-shore/rh-proof-dependencies/releases/download/v0.2/constants.csv.gz -o "$w/constants.gz"
+          python3 _certificates/RiemannReduction/reflection-imports/trim.py "$w/original" "$w/evidence" --constants "$w/constants.gz"
+      - name: Apply the verified rewrite recipes, check imports and reproduce the combined digest
+        run: |
+          set -euo pipefail
+          w="$RUNNER_TEMP/combined"
+          python3 _certificates/RiemannReduction/combine-source/combine.py "$w/original" "$w/evidence" "$w/dist/Riemann_Combined_Source.tar.zst" | tee "$w/dist/combined.json"
+          cd "$w/dist"
+          sha256sum Riemann_Combined_Source.tar.zst > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Riemann_Combined_Source
+          path: ${{ runner.temp }}/combined/dist/
+          compression-level: 0
+          retention-days: 90
+          if-no-files-found: error
