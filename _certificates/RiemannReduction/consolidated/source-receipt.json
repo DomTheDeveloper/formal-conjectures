@@ -1,0 +1,38 @@
+{
+  "source": "40e56bab026552e089d7afcfeff08d2defb9c005",
+  "original_file_count": 175187,
+  "fused_file_count": 164452,
+  "affected_source_modules": [
+    "Development.AutomorphicArithmetic.AutomorphicVarieties.ModularityArgument.ThresholdArguments.DenseThresholdCases.PublishedHypothesesFromPatching",
+    "Development.AutomorphicArithmetic.AutomorphicVarieties.ModularityArgument.ThresholdArguments.DenseThresholdCases.TemperedProductOfSquareIntegrable",
+    "Development.AutomorphicArithmetic.AutomorphicVarieties.ModularityArgument.ThresholdArguments.DenseThresholdCases.TopMainZj",
+    "Development.AutomorphicArithmetic.AutomorphicVarieties.ModularityArgument.ThresholdArguments.DenseThresholdCases.VwinOfRow",
+    "Development.AutomorphicArithmetic.AutomorphicVarieties.ModularityArgument.ThresholdArguments.DenseThresholdCases.WindowBoundOfLiteratureLevel",
+    "Development.AutomorphicArithmetic.AutomorphicVarieties.SmallClassNumbers.CorGKOf",
+    "Development.AutomorphicArithmetic.CharacterBoxes.MainConclusion",
+    "Development.AutomorphicArithmetic.CharacterBoxes.RiemannHypothesisOfEveryCharacter",
+    "Development.AutomorphicArithmetic.ThetaCorrespondence.ThetaPairLifts.ThirdPlaceSeries.EveryCharacterOfLiteratureOfVWin",
+    "Main",
+    "Supplements.Kernels.MainTheorems",
+    "Supplements.Kernels.MainTheoremsAll",
+    "Supplements.Kernels.MainTheoremsCritical"
+  ],
+  "unchanged_external_modules": 164451,
+  "root_imports": 255,
+  "root_lines": 1237,
+  "root_sha256": "06d4c700d45a64cb67354449b0dc38156d872000f8adf98700fdd7df2db88dc1",
+  "import_only": {
+    "lines": 16588178,
+    "files": 164452,
+    "lines_removed": 786037,
+    "source_sha256": "dd2e498b30a99b2d79f19e46507764b648a05a86d55bd9f28d34904e88e2b884",
+    "archive_sha256": "8df99505773cd2a1e92e7904788a84181eda4216117a39f57870511c6e1a591e"
+  },
+  "combined": {
+    "lines": 16323888,
+    "files": 164452,
+    "lines_removed": 1050327,
+    "source_sha256": "b168cea4599a73d6483383da7000208d6508eaedf06d95adf7665c6ec783481a",
+    "archive_sha256": "afad4e86236d8400a2a5937442f24e6c00ee0df0800c735d6e80c4f94a5ca2e8"
+  }
+}
