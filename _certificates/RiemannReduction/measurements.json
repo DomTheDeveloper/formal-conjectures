@@ -1,8 +1,28 @@
 {
   "all_five": {
+    "axioms": [
+      "propext",
+      "Quot.sound",
+      "Classical.choice"
+    ],
     "bytes": 60520686934,
     "declaration_records": 1172294,
     "expressions": 1048298917,
+    "public_roots": [
+      "riemannHypothesis",
+      "riemannZeta_eq_zero_re",
+      "LFunction_ne_zero_of_half_lt_re",
+      "LFunction_eq_zero_re",
+      "LFunction_eq_zero_re_of_isPrimitive"
+    ],
+    "retained_constants": {
+      "axiom": 3,
+      "def": 211800,
+      "inductive": 24239,
+      "opaque": 91,
+      "quot": 4,
+      "thm": 952442
+    },
     "sha256": "1177a7b095e392e13a32ec9f5d9dd58e60ea27ff114a4aefc1d395ecd040f2ba"
   },
   "export_format": "lean4export 3.1.0",
@@ -37,9 +57,25 @@
     "total_records": 23498
   },
   "ordinary_rh": {
+    "axioms": [
+      "propext",
+      "Quot.sound",
+      "Classical.choice"
+    ],
     "bytes": 60520564304,
     "declaration_records": 1172274,
     "expressions": 1048296913,
+    "public_roots": [
+      "riemannHypothesis"
+    ],
+    "retained_constants": {
+      "axiom": 3,
+      "def": 211793,
+      "inductive": 24239,
+      "opaque": 91,
+      "quot": 4,
+      "thm": 952429
+    },
     "sha256": "795cd72be92a00a49b4f0ef96b7c5c219ddd68d46213c2c403e161d2c2bee8d2"
   },
   "prime_windows": {
@@ -79,9 +115,17 @@
     "tree_sha256": "ae2ba3a2e34e07ba02869f1269f3dc6e3fdde85e15cc4ac90d85102b8d155a1c"
   },
   "source_proof_signatures": {
+    "added_theorem_records": 2133,
     "distinct_named_theorems": 3950,
     "identical_type_and_universe_vectors": 2133,
-    "source_replacements": 2133
+    "kernel": "Lean 4.36.0",
+    "kernel_output": "Lean default kernel accepts the solution",
+    "native_lean_exit": 0,
+    "original_declaration_records": 49042,
+    "reuse_list_sha256": "ba0ef356c0e340be5fa824358c6a7f90fbfd70df50d83d348aa1e1144566d589",
+    "source_replacements": 2133,
+    "supporting_theorem_headers": 26019,
+    "verified_explicit_reuses": 2133
   },
   "verified_source_samples": {
     "Formalism.FrobeniusOrbits.RealSubfieldLeCompositum": {

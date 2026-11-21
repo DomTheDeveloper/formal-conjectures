@@ -29,6 +29,9 @@ def fixture():
                  {'ie':8,'const':{'name':3,'us':[]}},theorem(4,8)])
     rows.extend([{'ie':9,'const':{'name':4,'us':[]}},binder(10,'forallE',0,4,4),
                  binder(11,'lam',0,4,9),{'thm':{'name':5,'all':[5],'levelParams':[],'type':10,'value':11}}])
+    # The duplicate lambda has exactly the same children and binder annotations.
+    rows.insert(-1, binder(12,'lam',0,4,9))
+    rows[-1]['thm']['value']=12
     return rows
 
 def main():
@@ -50,6 +53,11 @@ def main():
         subprocess.run(['g++','-std=c++20','-O2',str(HERE/'slice.cpp'),'-lzstd','-o',str(binary)],check=True)
         subprocess.run([binary,'index',index],input=raw,check=True)
         subprocess.run([checker,'--from-export',original],check=True)
+        rewritten=subprocess.check_output([binary,'intern','12'],input=raw)
+        distinct=root/'interned.ndjson'
+        distinct.write_bytes(rewritten)
+        assert sum('"ie":' in x for x in rewritten.decode().splitlines()) == 12
+        subprocess.run([checker,'--from-export',distinct],check=True)
         for mode, expected in [('plain',3),('share',1)]:
             dest=root/mode
             subprocess.run([binary,'mark',index,dest,mode],input=b'4\n',check=True)
