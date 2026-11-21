@@ -1,0 +1,107 @@
+name: Complete the stock Lean kernel replay of all five original statements
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['.github/workflows/rh-complete-five-native.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  ORIGINAL_RUN: 44935029011
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 4, 8, 12, 16]
+    name: Replay original five-theorem module ${{ matrix.part }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install original Lean
+        run: |
+          bash _certificates/RiemannReduction/module_runner.sh space
+          bash _certificates/RiemannReduction/module_runner.sh lean
+      - name: Fetch and authenticate the exact module and its original parents
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PART: ${{ matrix.part }}
+        run: |
+          set -euo pipefail
+          w="$RUNNER_TEMP/kernel"
+          mkdir -p "$w/RHBatches"
+          cd "$w"
+          for ((i=0; i<=PART; i++)); do
+            gh run download "$ORIGINAL_RUN" --repo "$GITHUB_REPOSITORY" --name "rh-olean-$i" --dir "$w"
+            echo "$(jq -r .compressed_sha256 "Part$i.json")  Part$i.olean.zst" | sha256sum -c -
+            zstd -dq -o "RHBatches/Part$i.olean" "Part$i.olean.zst"
+            echo "$(jq -r .sha256 "Part$i.json")  RHBatches/Part$i.olean" | sha256sum -c -
+            rm "Part$i.olean.zst"
+          done
+      - name: Replay all owned declarations in stock Lean 4.33.1
+        env:
+          PART: ${{ matrix.part }}
+          LEAN_ABORT_ON_PANIC: '1'
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/kernel"
+          budget=$(( $(df -BG --output=avail . | tail -1 | tr -d ' G') - 6 ))
+          if ((budget>55)); then budget=55; fi
+          if ((budget>0)); then
+            sudo fallocate -l "${budget}G" replay.swap
+            sudo chmod 600 replay.swap
+            sudo mkswap replay.swap
+            sudo swapon replay.swap
+          fi
+          export LEAN_PATH="$PWD"
+          /usr/bin/time -v leanchecker -v "RHBatches.Part$PART"
+          echo "Lean 4.33.1 accepted RHBatches.Part$PART $(jq -r .sha256 "Part$PART.json")" | tee "native-$PART.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: five-native-verdict-${{ matrix.part }}
+          path: ${{ runner.temp }}/kernel/native-${{ matrix.part }}.txt
+          if-no-files-found: error
+  verify:
+    needs: replay
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44935029011
+          pattern: rh-verdicts-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/complete
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: five-native-verdict-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/complete
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44935029011
+          name: rh-module-plan
+          path: ${{ runner.temp }}/complete
+      - name: Authenticate every checked object and combine seventeen kernel verdicts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh space
+          cd "$RUNNER_TEMP/complete"
+          for i in {0..16}; do
+            gh run download "$ORIGINAL_RUN" --repo "$GITHUB_REPOSITORY" --name "rh-olean-$i" --dir .
+          done
+          python3 "$GITHUB_WORKSPACE/_certificates/RiemannReduction/module_manifest.py" combine .
+          jq -e '.declaration_records == 1175732 and (.modules | length == 17)' module-manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Five_Theorem_Native_Verification
+          path: ${{ runner.temp }}/complete/module-manifest.json
+          if-no-files-found: error
+          retention-days: 90
