@@ -1,0 +1,84 @@
+name: Verify the source cut in the Riemann hypothesis proof
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['_certificates/RiemannReduction/reflection-imports/**', '.github/workflows/rh-trim-reflection-imports.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch the original proof objects and their pinned manifest
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh space
+          mkdir -p "$RUNNER_TEMP/original-objects/mounted"
+          cd "$RUNNER_TEMP/original-objects"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq squashfs-tools-ng
+          upstream=8c90877ceaa694974526e0aab9aaaf6ea0f5099e
+          curl -fsSL --retry 5 "https://raw.githubusercontent.com/leanprover-community/riemann-hypothesis/$upstream/scripts/fetch-published-cache.py" -o upstream_cache.py
+          echo '7023f0d5814246e1a2f96cf5960793db8a8540708ca483fd1de66649d968f2bf  upstream_cache.py' | sha256sum -c -
+          base=https://huggingface.co/datasets/JackMcCarthy/riemann-hypothesis-build/resolve/9036e64326acf4acfae159b96664e9708445c1d1
+          for name in olean-manifest.sha256 oleans.tar.zst; do
+            curl -fsSL --retry 5 --retry-all-errors --continue-at - --output "$name" "$base/$name"
+            stat -c '%s %n' "$name"
+          done
+      - name: Authenticate each of the 350374 files and mount the 175187 Lean objects
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction/chapters"
+          cd "$RUNNER_TEMP/original-objects"
+          python3 "$d/objects_tar.py" upstream_cache.py "$PWD" | tar2sqfs -q -s -c zstd -X level=3 -b 262144 -j 3 native.sqfs
+          sudo mount -t squashfs -o loop,ro native.sqfs mounted
+          test -f mounted/BuildAid/D1.olean
+          test "$(find mounted -type f -name '*.olean' | wc -l)" -eq 175187
+          rm oleans.tar.zst
+          df -h .
+      - name: Install original Lean and the exact archived Mathlib dependencies
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh lean
+          git init -q "$RUNNER_TEMP/archived"
+          cd "$RUNNER_TEMP/archived"
+          git fetch -q --depth 1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          git checkout -q --detach FETCH_HEAD
+          test "$(git rev-parse HEAD:src)" = b41b516b1f7baee4d83ced235ecc71fd43c97695
+          "$HOME/.elan/bin/lake" exe cache get
+          test "$(git -C .lake/packages/mathlib rev-parse HEAD)" = 0df444a360eaa60ab8c11dca51a86af692955474
+      - name: Materialize the reduced source and check every published kernel constant
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction/reflection-imports"
+          w="$RUNNER_TEMP/reflection-cut"
+          mkdir -p "$w"
+          curl -fsSL --retry 4 https://github.com/james-shore/rh-proof-dependencies/releases/download/v0.2/constants.csv.gz -o "$w/constants.csv.gz"
+          python3 "$d/trim.py" "$RUNNER_TEMP/archived" "$w/evidence" --constants "$w/constants.csv.gz" --source "$w/project"
+      - name: Recompile the edited file and all transitive consumers from source
+        env:
+          LEAN_ABORT_ON_PANIC: '1'
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction/reflection-imports"
+          w="$RUNNER_TEMP/reflection-cut"
+          cd "$RUNNER_TEMP/archived"
+          available=$(( $(df -BG --output=avail . | tail -1 | tr -d ' G') - 6 ))
+          if ((available>64)); then available=64; fi
+          if ((available>0)); then
+            sudo fallocate -l "${available}G" "$w/compile.swap"
+            sudo chmod 600 "$w/compile.swap"
+            sudo mkswap "$w/compile.swap"
+            sudo swapon "$w/compile.swap"
+          fi
+          lake env python3 "$d/rebuild.py" "$w/project" "$w/evidence" "$RUNNER_TEMP/original-objects/mounted" "$w/retained-objects"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rh-source-cut-evidence
+          path: ${{ runner.temp }}/reflection-cut/evidence/
+          if-no-files-found: warn
+          retention-days: 45
