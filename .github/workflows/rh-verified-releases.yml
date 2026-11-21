@@ -1,0 +1,178 @@
+name: Publish the already accepted RH proof and preserve the kernel verdict
+on:
+  workflow_dispatch:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths: ['.github/workflows/rh-verified-releases.yml']
+permissions:
+  actions: read
+  contents: read
+env:
+  TOOLS: _certificates/RiemannReduction
+  GH_REPO: ${{ github.repository }}
+jobs:
+  tags:
+    name: Reserve the three proof digests at the current source revision
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create the immutable Git tags before publishing the proof assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD:$TOOLS/chapters/RH17)" = c9b5dbc2ddc2a288dd31a34a8aa848609cb4ff12
+          for tag in rh-kernel-c06133e527f9 rh-chapters-3eaf53b19177 rh-ordinary-native-3eaf53b19177; do
+            bash "$TOOLS/release_tag.sh" "$tag"
+          done
+  five:
+    name: Reconstruct the accepted bytes and publish all five statements
+    runs-on: ubuntu-24.04
+    timeout-minutes: 250
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recover the independent verifier output from the original public job
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          bash "$TOOLS/module_runner.sh" space
+          mkdir -p "$RUNNER_TEMP/reproduce"
+          cd "$RUNNER_TEMP/reproduce"
+          id=136936415029
+          gh api "repos/$GH_REPO/actions/jobs/$id" --jq '.steps[] | select(.name == "Reduce all five targets and replay the complete result") | .conclusion' | grep -Fx success
+          if ! gh api "repos/$GH_REPO/actions/jobs/$id/logs" > original-verifier.log || ! grep -Fq '5 axioms justified by the solution' original-verifier.log; then
+            gh run view 44933951202 --job "$id" --log > original-verifier.log
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          text=Path('original-verifier.log').read_text(encoding='utf-8-sig')
+          accepted='con-leche: accepted 51692 declarations, 5 axioms justified by the solution mounted/proof.ndjson (1175732 declarations accepted) (--verified)'
+          hashes='c06133e527f9962f8c0c759e8dcc2007ae0d86535e165fa7453a0956624fa94d  mounted/proof.ndjson'
+          names=['riemannHypothesis','riemannZeta_eq_zero_re','LFunction_ne_zero_of_half_lt_re','LFunction_eq_zero_re','LFunction_eq_zero_re_of_isPrimitive']
+          wanted=[hashes,accepted,*[f'con-leche: theorem {n} justified by the solution' for n in names]]
+          for line in wanted:
+              if not any(row.endswith(line) for row in text.splitlines()): raise ValueError(f'Missing verifier result: {line}')
+          if not any(line.rstrip().endswith('Exit status: 0') for line in text.splitlines()): raise ValueError('Missing successful verifier exit')
+          Path('five-theorem-verdict.txt').write_text('https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44933951202/job/136936415029\n'+'\n'.join(wanted)+'\nExit status: 0\n')
+          PY
+      - name: Rebuild and round-trip the exact 60521386737 bytes accepted by the kernel
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/$TOOLS"
+          cd "$RUNNER_TEMP/reproduce"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libzstd-dev zstd
+          curl -fsSL --retry 4 https://math.mit.edu/~drew/grh/solution.ndjson.zst -o original.zst
+          curl -fsSL --retry 4 https://math.mit.edu/~drew/grh/challenge.ndjson.zst -o challenge.zst
+          bash "$d/reduce.sh" original.zst build all share
+          bash "$d/guard_solution.sh" challenge.zst build protected
+          cat > package.py <<'PY'
+          from pathlib import Path
+          import json,sys
+          from pack_export import pack
+          digest='c06133e527f9962f8c0c759e8dcc2007ae0d86535e165fa7453a0956624fa94d'
+          records=int.from_bytes(Path('protected/all-share/decls.bits').read_bytes()[4:],'little').bit_count()
+          if records!=1175732: raise ValueError(records)
+          result=pack(sys.stdin.buffer, Path('accepted'), 60521386737, digest)
+          result.update(declaration_records=records, checker='con-leche --verified --compare', official_challenge_sha256='bd484ac9886a96f26b1d9a7a59ebd45b7a70d102c015d4f31f9302bbdd6ab2b9')
+          Path('accepted/export-manifest.json').write_text(json.dumps(result,indent=2)+'\n')
+          PY
+          bash "$d/emit.sh" original.zst protected all-share | PYTHONPATH="$d" python3 package.py
+          cp five-theorem-verdict.txt accepted/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: five-statement-kernel-first-nine
+          path: |
+            ${{ runner.temp }}/reproduce/accepted/rh-proof-0*-of-17.zst
+            ${{ runner.temp }}/reproduce/accepted/export-manifest.json
+            ${{ runner.temp }}/reproduce/accepted/five-theorem-verdict.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
+      - uses: actions/upload-artifact@v4
+        with:
+          name: five-statement-kernel-last-eight
+          path: ${{ runner.temp }}/reproduce/accepted/rh-proof-1*-of-17.zst
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
+      - name: Publish all 17 byte ranges and the authenticated verdict
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/$TOOLS"
+          cd "$RUNNER_TEMP/reproduce/accepted"
+          tag=rh-kernel-c06133e527f9
+          bash "$d/release_tag.sh" "$tag"
+          echo 'ConLeche in verified mode checked all 1,175,732 declarations in this reduced certificate and matched all five mathematical statements against the original challenge. These 17 ordered byte ranges reconstruct the exact checked export. The manifest and verifier output supply its checksums and verdict.' > "$RUNNER_TEMP/five.md"
+          bash "$d/release_proof.sh" "$tag" 'Verified five-theorem RH kernel proof in 17 parts' "$RUNNER_TEMP/five.md" rh-proof-??-of-17.zst export-manifest.json five-theorem-verdict.txt
+  native:
+    name: Publish the 17 original-target native modules after all stock Lean checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 315
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make room for the complete native proof
+        run: bash "$TOOLS/module_runner.sh" space
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44935029011
+          name: rh-module-plan
+          path: ${{ runner.temp }}/native-proof
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44935029011
+          pattern: rh-olean-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/native-proof
+      - name: Wait for the actual verdict on each part
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          while :; do
+            data=$(gh api "repos/$GH_REPO/actions/runs/44935029011/jobs?per_page=100" --jq '[.jobs[] | select(.name | startswith("Stock Lean recheck lane")) | .conclusion]')
+            if [[ $(jq '[.[] | select(. == "success")] | length' <<< "$data") == 4 ]]; then break; fi
+            if [[ $(jq '[.[] | select(. != null and . != "success")] | length' <<< "$data") != 0 ]]; then exit 1; fi
+            sleep 45
+          done
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44935029011
+          pattern: rh-verdicts-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/native-proof
+      - name: Verify all 17 signed-off object hashes and reserve their manifest tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/$TOOLS"
+          cd "$RUNNER_TEMP/native-proof"
+          python3 "$d/module_manifest.py" combine "$PWD"
+          tag="rh-lean-modules-$(sha256sum module-manifest.json | cut -c1-12)"
+          bash "$d/release_tag.sh" "$tag"
+      - name: Confirm the original publisher or finish publishing its accepted bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/$TOOLS"
+          cd "$RUNNER_TEMP/native-proof"
+          tag="rh-lean-modules-$(sha256sum module-manifest.json | cut -c1-12)"
+          while [[ "$(gh run view 44935029011 --json status --jq .status)" != completed ]]; do sleep 40; done
+          echo 'The stock Lean 4.33.1 kernel replayed these 17 native modules in their actual import environments. They contain the complete reduced certificate for all five original mathematical statements. The manifest records the full coverage, checksums and 17 individual kernel verdicts.' > "$RUNNER_TEMP/native.md"
+          bash "$d/release_proof.sh" "$tag" '17 native Lean modules for the complete five-theorem RH certificate' "$RUNNER_TEMP/native.md" Part*.olean.zst module-manifest.json
