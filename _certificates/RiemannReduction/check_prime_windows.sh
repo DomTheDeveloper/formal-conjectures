@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Recompile the 49-line theorem, export its full dependency closure and check the shorter certificate.
+# Recompile the prime-window theorem, export its full dependency closure and check the shorter certificate.
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 project=$(realpath "$1")

@@ -22,7 +22,7 @@ jobs:
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
           git init -q "$RUNNER_TEMP/archived"
           git -C "$RUNNER_TEMP/archived" fetch -q --depth 1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
-          python3 _certificates/RiemannReduction/apply_source.py "$RUNNER_TEMP/archived" "$RUNNER_TEMP/shortened"
+          python3 _certificates/RiemannReduction/refine_source.py "$RUNNER_TEMP/archived" "$RUNNER_TEMP/shortened"
       - name: Compile every project module needed for the analytic theorem
         env:
           ELAN_TOOLCHAIN: leanprover/lean4:v4.33.1
@@ -77,7 +77,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          tag=rh-source-ae2ba3a2e34e
+          tag=rh-source-e96c40c44137
           for f in certificate/*; do
             name=$(basename "$f")
             existing=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$name\") | .digest")
