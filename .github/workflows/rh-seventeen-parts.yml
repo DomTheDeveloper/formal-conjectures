@@ -53,8 +53,8 @@ jobs:
           from pathlib import Path
           import json
           path=Path('results')
-          cuts=[json.loads((path/f'part-{i:02d}.json').read_text()) for i in range(1,18)]
-          assert all((path/f'part-{i:02d}.log').read_text().count('Lean default kernel accepts the solution')==1 for i in range(1,18))
+          cuts=[json.loads((path/f'part-{i:02d}-coverage.json').read_text()) for i in range(1,18)]
+          assert all((path/f'part-{i:02d}-kernel.log').read_text().count('Lean default kernel accepts the solution')==1 for i in range(1,18))
           assert [c['part'] for c in cuts]==list(range(1,18))
           assert cuts[0]['first_record']==0 and cuts[-1]['end_record']==1468418
           assert all(a['end_record']==b['first_record'] for a,b in zip(cuts,cuts[1:]))

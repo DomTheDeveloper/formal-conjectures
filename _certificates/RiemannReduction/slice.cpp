@@ -290,7 +290,8 @@ static std::vector<size_t> offsets(const std::vector<U> &table, U expected) {
     return result;
 }
 static void mark(const fs::path &dir, const fs::path &output, bool merge,
-                 const fs::path &whole = {}, U part = 0, U parts = 0, bool type_only = false) {
+                 const fs::path &whole = {}, U part = 0, U parts = 0, bool type_only = false,
+                 bool protect_definitions = false, const fs::path &protected_selection = {}) {
     fs::create_directories(output);
     fs::remove(output / "dictionary.bits");
     U nx, nd;
@@ -300,14 +301,32 @@ static void mark(const fs::path &dir, const fs::path &output, bool merge,
     auto entry = offsets(table, nd);
     Bits names(canon.size()), exprs(nx), decls(nd);
     Bits stubs(nd);
+    Bits protected_records =
+        protected_selection.empty() ? Bits(0) : Bits::load(protected_selection / "decls.bits");
+    require(!protected_records.count || protected_records.count == nd, "wrong protected selection");
     U begin = 0, end = nd;
     std::vector<uint8_t> theorem;
-    if (parts || type_only) {
+    if (parts || type_only || protect_definitions) {
         std::ifstream kinds(dir / "declaration-kinds.bin", std::ios::binary);
         theorem.resize(nd);
         require(bool(kinds.read(reinterpret_cast<char *>(theorem.data()), nd)),
                 "missing declaration kinds");
         begin = nd;
+        if (protect_definitions) {
+            // A proof can be inspected while a data definition computes, for example
+            // by reducing a well-founded recursion. Preserve these actual proof bodies.
+            auto full = Bits::load(whole / "decls.bits");
+            require(full.count == nd, "wrong parent selection");
+            for (U d = 0; d < nd; ++d) {
+                if (!full.has(d))
+                    continue;
+                size_t record = entry[d];
+                if (theorem[d])
+                    exprs.add(table[record + 4 + table[record]]);
+                else
+                    names.add(table[record + 4]);
+            }
+        }
         if (parts) {
             require(part < parts && parts <= nd, "invalid shard");
             begin = uint64_t(nd) * part / parts;
@@ -323,7 +342,8 @@ static void mark(const fs::path &dir, const fs::path &output, bool merge,
     U root;
     while (std::cin >> root)
         names.add(root);
-    require(std::cin.eof() && names.changes > 0, "invalid or empty root list");
+    require(std::cin.eof() && (names.changes > 0 || exprs.changes > 0),
+            "invalid or empty root list");
     std::ifstream edgefile(dir / "edges.zst", std::ios::binary);
     auto pages = blocks(edgefile);
     unsigned passes = 0;
@@ -366,7 +386,8 @@ static void mark(const fs::path &dir, const fs::path &output, bool merge,
                     decls.add(dc);
                     for (U k = 0; k < nn; ++k)
                         names.add(table[p++]);
-                    bool stub = (parts || type_only) && dc < begin && theorem[dc];
+                    bool stub = (parts || type_only) && dc < begin && theorem[dc] &&
+                                (!protected_records.count || !protected_records.has(dc));
                     if (stub)
                         stubs.add(dc);
                     for (U k = 0; k < ne; ++k) {
@@ -608,12 +629,16 @@ int main(int argc, char **argv) {
             std::string m = argv[4];
             require(m == "plain" || m == "share", "invalid mode");
             mark(argv[2], argv[3], m == "share");
-        } else if (action == "types" && argc == 4)
-            mark(argv[2], argv[3], false, {}, 0, 0, true);
-        else if ((action == "shard" || action == "shard-plain") && argc == 7) {
+        } else if (action == "protect" && argc == 5)
+            mark(argv[2], argv[4], true, argv[3], 0, 0, false, true);
+        else if ((action == "types" || action == "types-share") && (argc == 4 || argc == 5))
+            mark(argv[2], argv[3], action == "types-share", {}, 0, 0, true, false,
+                 argc == 5 ? argv[4] : "");
+        else if ((action == "shard" || action == "shard-plain") && (argc == 7 || argc == 8)) {
             U n = number(argv[6]);
             require(n > 0, "empty partition");
-            mark(argv[2], argv[4], action == "shard", argv[3], number(argv[5]), n);
+            mark(argv[2], argv[4], action == "shard", argv[3], number(argv[5]), n, false, false,
+                 argc == 8 ? argv[7] : "");
         } else if (action == "emit" && argc == 4)
             emit(argv[2], argv[3]);
         else
