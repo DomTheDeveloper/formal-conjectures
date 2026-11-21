@@ -22,7 +22,7 @@ $$
 
 Imagine a zeta zero with real part 0.60. Its contribution creates a pole of the Mellin transform of this error. The localized Landau theorem then forces an excursion above any fixed multiple of $y^{0.55}$ somewhere in every sufficiently late interval $[Y,Y^{3/2}]$. The arithmetic construction produces arbitrarily late intervals where the error stays below one such multiple throughout. Choosing an exponent between ½ and the real part of any proposed zero excludes every zero to the right. The functional equation supplies the other half of RH.
 
-The 49-line [PrimeWindows.lean](PrimeWindows.lean) formalizes the implication from these window bounds to Mathlib’s ordinary RH. Lean 4.33.1 checks it with the standard three axioms. Its explicit hypothesis is the arithmetic estimate.
+The 49-line [PrimeWindows.lean](PrimeWindows.lean) formalizes the implication from these window bounds to Mathlib’s ordinary RH. Lean 4.33.1 checks it with the standard three axioms. Its explicit hypothesis is the arithmetic estimate. The complete exported proof of this implication contained 59,545 declaration records. Stock Lean and ConLeche in verified mode both accepted the shortened 55,308-record proof with its full dependency closure and no temporary theorem assumptions.
 
 The hard estimate comes from divisibility. A nonzero algebraic integer divisible by many prime ideals must have a large norm. The proof compares this lower bound with an upper bound from a chain of theta lifts. The choice of chain length balances errors that grow with the length and errors that shrink with it. Ordinary zeta uses the trivial character in the final prime sum. The arithmetic work that delivers its bound still uses auxiliary characters and fields. [Alpöge’s note](https://alpo.ge/remark.pdf) · [Annotated mathematical guide](https://github.com/nasqret/riemann-rev)
 
@@ -63,7 +63,7 @@ done
 
 ## What each check establishes
 
-- **Whole kernel export.** The reducer traces types, values, universe parameters, projections, inductives and recursor rules. When two theorems share a kernel type and universe parameters, it can reuse the earlier proof. The reference run uses stock `leanchecker`. A second run uses the independent Lean implementation ConLeche in verified mode and compares all five statements with the published challenge. [Whole-proof run](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44917310333)
+- **Whole kernel export.** The reducer traces types, values, universe parameters, projections, inductives and recursor rules. When two theorems share a kernel type and universe parameters, it can reuse the earlier proof. The reference run uses stock `leanchecker`. A second run uses the independent Lean implementation ConLeche in verified mode and compares all five statements with the published challenge. [Whole-proof run](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44917310333). The single-job stock replay lost its hosted runner before it returned a verdict
 - **Seventeen proof articles.** Every retained declaration belongs to one index interval. Its owner must check its entire body. A later interval may use an earlier theorem through its checked statement. Definitions and inductive declarations keep their bodies. The splitter also retains proof bodies needed by definitions and theorem types. If the kernel identifies another declaration needing reduction, the splitter restores its actual dependency closure and rechecks the part. The coverage auditor checks every boundary, checks that every temporary assumption is an earlier theorem, and checks that all 1,172,294 retained records have an owner. A green coverage job means that all 17 native kernel runs passed. [Corrected 17-part run](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44924258184). In the [first run](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44919932054), part 1 passed and parts 2 through 5 failed at `Rat.instEncodable`. Lean accepted that rational-number definition in isolation and in the corrected part 2 prefix once its computational proof bodies were restored
 - **Native check of the endpoint.** A local stock Lean run accepted a smaller interval containing all five public conclusions. It checked 1,010 owned records and used 13,842 earlier theorem headers. That check alone certifies the final interval. Its counts and verdict are recorded in [measurements.json](measurements.json).
 - **Every source theorem replacement.** A separate stock Lean run checked all 2,133 proposed uses of earlier theorems at the original propositions and universe parameters. It built a native proof for each substitution and supplied 26,019 supporting theorem statements as temporary headers. Reproduce this check with `bash check_source_reuse.sh original.zst build` after running `reduce.sh`. This checks the mathematical substitutions. Rebuilding the source also exercises tactic elaboration and the import graph.
@@ -77,6 +77,14 @@ The small regression test exercises theorem sharing, cross-part dependencies and
 python3 test_reduce.py
 ```
 
+
+## Replay the mathematical explanation
+
+With the original project's two analytic imports compiled, `check_prime_windows.sh` recompiles [PrimeWindows.lean](PrimeWindows.lean), exports its declarations and dependencies, and runs both kernels. Pass the project, a working directory, and the paths to lean4export, Lean 4.36.0's leanchecker and ConLeche. The exporter revision used here is `15f6055e299ad5b89345e533cc2192f4cc00f659`.
+
+```bash
+bash check_prime_windows.sh archive window-check /path/to/lean4export /path/to/leanchecker /path/to/con-leche
+```
 
 ## Additional certificate compression
 

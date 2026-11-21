@@ -25,6 +25,28 @@
     },
     "sha256": "1177a7b095e392e13a32ec9f5d9dd58e60ea27ff114a4aefc1d395ecd040f2ba"
   },
+  "analytical_certificate": {
+    "arithmetic_hypothesis": "one-sided prime-window estimate",
+    "exporter_commit": "15f6055e299ad5b89345e533cc2192f4cc00f659",
+    "node": "RiemannReduction.rh_of_prime_windows",
+    "original": {
+      "bytes": 436362084,
+      "certified_kernel": "con-leche: accepted 59545 declarations (--verified)",
+      "compressed_bytes": 67523463,
+      "declaration_records": 59545,
+      "sha256": "2a55537b127ca5782d0d1ceb9a90904719c1d6bee9e0af56231fdb91a4b9399c",
+      "stock_kernel": "Lean default kernel accepts the solution"
+    },
+    "reduced": {
+      "bytes": 417138943,
+      "certified_kernel": "con-leche: accepted 55308 declarations (--verified)",
+      "compressed_bytes": 54536257,
+      "declaration_records": 55308,
+      "sha256": "06b04269cd4a9ea04ffd4c62090efbe40bd03de01a39b88fcb49ab656724e530",
+      "stock_kernel": "Lean default kernel accepts the solution"
+    },
+    "temporary_theorem_assumptions": 0
+  },
   "export_format": "lean4export 3.1.0",
   "input": {
     "compressed_bytes": 7699933588,
@@ -55,6 +77,11 @@
     "parts": 1024,
     "temporary_theorem_headers": 13842,
     "total_records": 23498
+  },
+  "monolithic_stock_run": {
+    "job": 136885570034,
+    "run": 44917310333,
+    "status": "hosted runner lost communication before returning a kernel verdict"
   },
   "ordinary_compact_candidate": {
     "bytes": 59524488006,
@@ -159,7 +186,9 @@
     "compressed_bytes": 194427010,
     "count": 17,
     "manifest": "source-volumes.json",
-    "verified_decompressed_files": 175190
+    "release": "https://github.com/DomTheDeveloper/formal-conjectures/releases/tag/rh-source-ae2ba3a2e34e",
+    "verified_decompressed_files": 175190,
+    "verified_github_run": 44926049411
   },
   "verified_source_samples": {
     "Formalism.FrobeniusOrbits.RealSubfieldLeCompositum": {
