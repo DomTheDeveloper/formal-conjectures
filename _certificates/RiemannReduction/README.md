@@ -4,7 +4,7 @@ This directory rebuilds a shorter Lean source tree and generates 17 kernel proof
 
 | Quantity | Published release | Reduced, all five conclusions | Reduced, ordinary RH alone |
 |---|---:|---:|---:|
-| Lean source lines | 17,374,215 | 17,086,737 | — |
+| Lean source lines | 17,374,215 | 17,086,632 | — |
 | Lean source files | 175,187 | 175,187 | — |
 | Kernel declaration records | 1,468,418 | 1,172,294 | 1,172,274 |
 | Distinct expression records in the export | 1,065,214,335 | 1,048,298,917 | 1,048,296,913 |
@@ -27,13 +27,13 @@ export LEAN_PATH="$PWD"
 for part in {0..16}; do leanchecker "RHBatches.Part$part" || exit 1; done
 ```
 
-## Readable algebra
+## Readable individual proofs
 
-Thirty-one algebra modules shrank from 49,643 to 29,075 lines. Lean rechecked their original and rewritten proof terms in disjoint namespaces. Its kernel compared 343 public declaration types, their universe parameters, and every named argument and its visibility. It also checked definitional equality of all 186 public definition bodies. Both versions use Mathlib at the pinned revision.
+Thirty-two algebra and analysis modules shrank from 49,705 to 29,032 lines. Lean rechecked their original and rewritten proof terms in disjoint namespaces. Its kernel compared 344 public declaration types, their universe parameters, and every named argument and its visibility. It also checked definitional equality of all 186 public definition bodies. Both versions use Mathlib at the pinned revision.
 
-The [86-line module quotient proof](refinements/FreeModuleQuotient.lean) replaces a 2,516-line file. If the coordinates of a module are free modulo an ideal $I$, and $I$ lies inside $K$, reducing every coordinate modulo $K$ gives coordinates for the corresponding quotient module. The kernel of the coordinate map consists exactly of the relations imposed by $K$. In the original, writing every instance used for the ring, module, matrix and quotient operations occupied most of the statement.
+The [26-line module quotient proof](refinements/FreeModuleQuotient.lean) replaces a 2,516-line file. If the coordinates of a module are free modulo an ideal $I$, reducing them modulo a larger ideal $K$ gives coordinates on its quotient. Tensoring with $S/K$ performs that reduction. Tensor product commutes with finite products, and $I$ already acts as zero on each new coordinate. The [17-line zeta reflection proof](refinements/RhOfRight.lean) replaces a 62-line argument. The completed zeta function has the same value at $s$ and $1-s$, so a nontrivial zero strictly left of the critical line would give a zero strictly right of it. Both replacements use only Mathlib.
 
-Run `python3 refine_source.py archive refined` to reconstruct the 17,086,737-line project. Omit `refined` to verify its fingerprint in memory. To repeat the compiled comparison, run `lake exe cache get` in the pinned source checkout and then `lake env python3 /path/to/refinements/verify.py "$PWD" /path/to/verification-output`. [Machine-readable results](refinements/results.json) · [GitHub rebuild](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-readable-source.yml)
+Run `python3 refine_source.py archive refined` to reconstruct the 17,086,632-line project. Omit `refined` to verify its fingerprint in memory. To repeat the compiled comparison, run `lake exe cache get` in the pinned source checkout and then `lake env python3 /path/to/refinements/verify.py "$PWD" /path/to/verification-output`. [Machine-readable results](refinements/results.json) · [GitHub rebuild](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-readable-source.yml)
 
 ## The mathematical idea
 
@@ -51,7 +51,7 @@ The hard estimate comes from divisibility. A nonzero algebraic integer divisible
 
 ## Download the 17 source volumes
 
-The [further simplified source release](https://github.com/DomTheDeveloper/formal-conjectures/releases/tag/rh-source-aa4f709977bd) contains the 17,086,737-line project. Each of the 17 archives was decoded and its files were compared byte for byte with the refactored project.
+The [further simplified source release](https://github.com/DomTheDeveloper/formal-conjectures/releases/tag/rh-source-e96c40c44137) contains the 17,086,632-line project. Each of the 17 archives was decoded and its files were compared byte for byte with the refactored project.
 
 The first pass is available in [17 downloadable archives](https://github.com/DomTheDeveloper/formal-conjectures/releases/tag/rh-source-ae2ba3a2e34e). They contain 17,107,305 source lines and the complete build configuration. Extract all 17 into one directory with `for f in *.tar.zst; do tar --zstd -xf "$f"; done`. Together they contain 175,187 Lean modules. The materializer decompressed every archived file and compared it with the shortened project. The [volume manifest](source-volumes.json) lists each topic, line count and SHA-256.
 

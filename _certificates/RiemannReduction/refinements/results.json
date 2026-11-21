@@ -1,8 +1,8 @@
 {
-  "modules": 31,
-  "public_declarations": 343,
+  "modules": 32,
+  "public_declarations": 344,
   "definitions": 186,
-  "original_lines": 49643,
-  "refined_lines": 29075,
-  "lines_removed": 20568
+  "original_lines": 49705,
+  "refined_lines": 29032,
+  "lines_removed": 20673
 }

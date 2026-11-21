@@ -2,26 +2,28 @@
   "algebra_refinements": {
     "definitions": 186,
     "free_module_quotient_original": 2516,
-    "free_module_quotient_refined": 86,
+    "free_module_quotient_refined": 26,
     "full_source_rebuild": "not completed",
     "lean": "4.33.1",
-    "lines_removed": 20568,
-    "modules": 31,
-    "original_lines": 49643,
-    "public_declarations": 343,
-    "refined_lines": 29075,
+    "lines_removed": 20673,
+    "modules": 32,
+    "original_lines": 49705,
+    "public_declarations": 344,
+    "refined_lines": 29032,
+    "reflection_original": 62,
+    "reflection_refined": 17,
     "source_tree": {
       "base_changed_files": 84186,
       "base_tree_sha256": "ae2ba3a2e34e07ba02869f1269f3dc6e3fdde85e15cc4ac90d85102b8d155a1c",
-      "changed_files": 84217,
+      "changed_files": 84218,
       "original_lines": 17374215,
-      "reduced_lines": 17086737,
-      "refined_modules": 31,
+      "reduced_lines": 17086632,
+      "refined_modules": 32,
       "source_files": 175187,
       "source_revision": "40e56bab026552e089d7afcfeff08d2defb9c005",
-      "tree_sha256": "aa4f709977bd35dfcf20523d8740d7b01d7fe95a174d6dd3f5aa8e0678b69099"
+      "tree_sha256": "e96c40c44137720e27727404f63d18e86ce7f524da8f4fae8b725c89d90f7599"
     },
-    "total_project_lines": 17086737
+    "total_project_lines": 17086632
   },
   "all_five": {
     "axioms": [
@@ -82,9 +84,18 @@
     "temporary_theorem_assumptions": 0
   },
   "challenge_guarded": {
+    "actions_run": 44933951202,
+    "bytes": 60521386737,
     "declaration_records": 1175732,
     "expressions": 1048304687,
     "full_verified_comparison": "pending",
+    "interface_regression": {
+      "actual_RH_checked_by_this_regression": false,
+      "old": "Rejected at RiemannHypothesis",
+      "original_shared_replacement": "posSumOfEncodable._proof_1",
+      "protected": "accepted all 5 P → P interface checks",
+      "replaced_private_reference": "RiemannHypothesis._proof_1"
+    },
     "protection": {
       "challenge_constants": 53722,
       "challenge_only": [
@@ -94,7 +105,8 @@
       "common_original_constants": 53721,
       "original_references_restored": 3425,
       "original_theorem_bodies_restored": 3425
-    }
+    },
+    "sha256": "c06133e527f9962f8c0c759e8dcc2007ae0d86535e165fa7453a0956624fa94d"
   },
   "export_format": "lean4export 3.1.0",
   "first_full_comparison": {
