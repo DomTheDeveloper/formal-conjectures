@@ -1,0 +1,47 @@
+name: Reduced Riemann proof
+on:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths:
+      - '.github/workflows/rh-reduced-kernel.yml'
+      - '_certificates/RiemannReduction/slice.cpp'
+      - '_certificates/RiemannReduction/catalog.py'
+      - '_certificates/RiemannReduction/roots.py'
+      - '_certificates/RiemannReduction/reduce.sh'
+      - '_certificates/RiemannReduction/emit.sh'
+      - '_certificates/RiemannReduction/github_verify.sh'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    name: ${{ matrix.checker }} kernel
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    strategy:
+      fail-fast: false
+      matrix:
+        checker: [certified, reference]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lean 4.36.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://github.com/leanprover/elan/releases/download/v4.2.1/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/elan-init" -y --default-toolchain leanprover/lean4:v4.36.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          echo 'ELAN_TOOLCHAIN=leanprover/lean4:v4.36.0' >> "$GITHUB_ENV"
+      - name: Build the independently implemented Lean checker
+        if: matrix.checker == 'certified'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q "$RUNNER_TEMP/con-leche"
+          git -C "$RUNNER_TEMP/con-leche" fetch -q --depth 1 https://github.com/leanprover/con-leche 5ea446d5c79d23ef1f954215d094db2162f1ab6f
+          git -C "$RUNNER_TEMP/con-leche" checkout -q --detach FETCH_HEAD
+          cd "$RUNNER_TEMP/con-leche" && lake build con-leche
+      - name: Reduce all five targets and replay the complete result
+        env:
+          LEAN_ABORT_ON_PANIC: '1'
+        run: bash _certificates/RiemannReduction/github_verify.sh "${{ matrix.checker }}"
