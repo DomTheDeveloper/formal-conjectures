@@ -12,6 +12,8 @@ import urllib.request
 
 HOST = 'https://rh-cache.taucetiproject.org'
 MANIFEST = HOST + '/bootstrap/e50d09817ad81469f737e8f637561e6ccf86c670/modules.jsonl.gz'
+ARCHIVE_TREE = 'b41b516b1f7baee4d83ced235ecc71fd43c97695'
+BOOTSTRAP = 'e50d09817ad81469f737e8f637561e6ccf86c670'
 DIGEST = '292caa386a620d935cfc736b56fcceaab9fe7073086693b62e899c1ee4725f04'
 IMPORT = re.compile(r'^\s*(?:(?:public|meta)\s+)*import\s+([\w.\x27]+)', re.M)
 CHAPTERS = Path(__file__).resolve().parent / 'RH17'
@@ -49,13 +51,27 @@ def get(url, expected):
             time.sleep(2 ** attempt)
 
 
+def match_source(project, header):
+    def git(*args):
+        return subprocess.check_output(['git', '-C', project, *args], text=True).strip()
+    if git('rev-parse', 'HEAD:src') != ARCHIVE_TREE:
+        raise ValueError('The checkout differs from the published proof tree')
+    if subprocess.run(['git', '-C', project, 'cat-file', '-e', BOOTSTRAP + '^{commit}'],
+                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
+        subprocess.run(['git', '-C', project, 'fetch', '-q', '--depth', '1', 'origin', BOOTSTRAP], check=True)
+    if header['source_tree'] != git('rev-parse', BOOTSTRAP + ':src'):
+        raise ValueError('The bootstrap source tree differs from its pinned manifest')
+    if git('diff', '--name-status', 'HEAD', BOOTSTRAP, '--', 'src') != 'A\tsrc/Challenge.lean':
+        raise ValueError('The bootstrap changed a file of the published proof')
+    if header['toolchain'] != (project / 'lean-toolchain').read_text().strip():
+        raise ValueError('Unexpected Lean toolchain')
+
+
 def restore(project, tmp, leantar):
     found = imports(project)
     rows = gzip.decompress(get(MANIFEST, DIGEST)).splitlines()
     header = json.loads(rows[0])
-    tree = subprocess.check_output(['git', '-C', project, 'rev-parse', 'HEAD:src'], text=True).strip()
-    if header['source_tree'] != tree or header['toolchain'] != 'leanprover/lean4:v4.33.1':
-        raise ValueError('The cache source tree or toolchain differs from the checkout')
+    match_source(project, header)
     selected = [r for line in rows[1:] if (r := json.loads(line))[0] in found]
     if {r[0] for r in selected} != found or len(selected) != len(found):
         raise ValueError('Incomplete module inventory')

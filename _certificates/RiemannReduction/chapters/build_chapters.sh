@@ -5,7 +5,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 project=$(realpath "$1")
 out=$(realpath -m "$2")
 cd "$project"
-test "$(git rev-parse HEAD:src)" = 24df20b62d9976ccd20da819bc20b16f808f0fdd
+test "$(git rev-parse HEAD:src)" = b41b516b1f7baee4d83ced235ecc71fd43c97695
 test "$(cat lean-toolchain)" = leanprover/lean4:v4.33.1
 mapfile -t modules < <(awk '$1=="import" && $2 !~ /^RH17\./ {print "+"$2":olean"}' "$here"/RH17/S*.lean | sort -u)
 lake build "${modules[@]}"

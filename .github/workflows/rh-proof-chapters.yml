@@ -3,64 +3,12 @@ on:
   workflow_dispatch:
   push:
     branches: [rh/unconditional-reduction]
-    paths: ['.github/workflows/rh-proof-chapters.yml']
+    paths: ['_certificates/RiemannReduction/chapters/RH17/**', '_certificates/RiemannReduction/chapters/chapters.ndjson.zst', '_certificates/RiemannReduction/chapters/link_tail.py', '_certificates/RiemannReduction/chapters/ordinary_challenge.py']
 permissions:
   contents: read
 jobs:
-  superseded:
-    name: Retire the duplicate run whose project-cache download failed
-    permissions:
-      actions: write
-    runs-on: ubuntu-24.04
-    steps:
-      - shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          run=44939516568
-          if [[ "$(gh run view "$run" --json status --jq .status)" != completed ]]; then
-            gh run cancel "$run"
-          fi
   source:
-    name: Compile all 17 readable chapters and match every new proof body
-    runs-on: ubuntu-24.04
-    timeout-minutes: 350
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install pinned Lean, Mathlib and the chapter imports
-        shell: bash
-        run: |
-          set -euo pipefail
-          d=_certificates/RiemannReduction
-          bash "$d/module_runner.sh" space
-          bash "$d/module_runner.sh" lean
-          export PATH="$HOME/.elan/bin:$PATH" ELAN_TOOLCHAIN=leanprover/lean4:v4.33.1
-          git init -q "$RUNNER_TEMP/archived"
-          git -C "$RUNNER_TEMP/archived" fetch -q --depth 1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
-          git -C "$RUNNER_TEMP/archived" checkout -q --detach FETCH_HEAD
-          (cd "$RUNNER_TEMP/archived" && lake exe cache get)
-          python3 "$d/chapters/restore_imports.py" "$RUNNER_TEMP/archived" "$RUNNER_TEMP/archives" "$(dirname "$(elan which lean)")/leantar"
-          git init -q "$RUNNER_TEMP/exporter"
-          git -C "$RUNNER_TEMP/exporter" fetch -q --depth 1 https://github.com/leanprover/lean4export 15f6055e299ad5b89345e533cc2192f4cc00f659
-          git -C "$RUNNER_TEMP/exporter" checkout -q --detach FETCH_HEAD
-          (cd "$RUNNER_TEMP/exporter" && lake build Export)
-      - name: Recover the authenticated provider signatures and compile the chapters
-        shell: bash
-        run: |
-          set -euo pipefail
-          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction"
-          cd "$RUNNER_TEMP"
-          curl -fsSL --retry 4 https://math.mit.edu/~drew/grh/solution.ndjson.zst -o original.zst
-          bash "$d/reduce.sh" original.zst build all share
-          bash "$d/chapters/export_source.sh" original.zst build archived exporter chapter-source 2>&1 | tee source-verdict.txt
-          python3 "$d/chapters/compare_supplements.py" "$d/chapters/chapters.ndjson.zst" chapter-source/chapters.ndjson.zst | tee -a source-verdict.txt
-      - uses: actions/upload-artifact@v4
-        with:
-          name: chapter-source-verdict
-          path: ${{ runner.temp }}/source-verdict.txt
-          retention-days: 90
+    uses: ./.github/workflows/rh-chapter-elaboration.yml
   check:
     name: Check the new ordinary RH deduction against the original Mathlib statement
     runs-on: ubuntu-24.04

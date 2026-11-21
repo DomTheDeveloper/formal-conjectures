@@ -8,7 +8,7 @@ project=$(realpath "$3")
 exporter=$(realpath "$4")
 scratch=$(realpath -m "$5")
 mkdir -p "$scratch"/{objects/RH17,src/RH17,parser}
-test "$(git -C "$project" rev-parse HEAD:src)" = 24df20b62d9976ccd20da819bc20b16f808f0fdd
+test "$(git -C "$project" rev-parse HEAD:src)" = b41b516b1f7baee4d83ced235ecc71fd43c97695
 test "$(git -C "$exporter" rev-parse HEAD)" = 15f6055e299ad5b89345e533cc2192f4cc00f659
 python3 - "$here/arithmetic-names.txt" "$build/index/names.tsv" > "$scratch/provider-ids.txt" <<'PY'
 from pathlib import Path
