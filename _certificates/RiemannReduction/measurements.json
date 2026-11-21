@@ -88,7 +88,7 @@
     "bytes": 60521386737,
     "declaration_records": 1175732,
     "expressions": 1048304687,
-    "full_verified_comparison": "pending",
+    "full_verified_comparison": "ConLeche --verified --compare passed for all five original challenge statements",
     "interface_regression": {
       "actual_RH_checked_by_this_regression": false,
       "old": "Rejected at RiemannHypothesis",
@@ -106,7 +106,8 @@
       "original_references_restored": 3425,
       "original_theorem_bodies_restored": 3425
     },
-    "sha256": "c06133e527f9962f8c0c759e8dcc2007ae0d86535e165fa7453a0956624fa94d"
+    "sha256": "c06133e527f9962f8c0c759e8dcc2007ae0d86535e165fa7453a0956624fa94d",
+    "verified_job": 136936415029
   },
   "export_format": "lean4export 3.1.0",
   "first_full_comparison": {
@@ -225,8 +226,24 @@
   },
   "readable_ordinary_RH": {
     "additional_original_records_over_all_five": 4,
+    "arithmetic_dependency_counts": "chapters/dependency-costs.json",
     "chapter_files_transitively_imported_by_root": 15,
+    "chapter_source_git_tree": "c9b5dbc2ddc2a288dd31a34a8aa848609cb4ff12",
     "lines_in_those_chapters": 427,
+    "native_endpoint": {
+      "conclusion": "success",
+      "fully_checked_additional_declarations": 42,
+      "job": 136956744233,
+      "run": 44940612477
+    },
+    "native_module_assembly": {
+      "added_to_parent": 43,
+      "conclusion": "success",
+      "job": 136968214638,
+      "modules": 17,
+      "original_records_removed_from_parent": 51,
+      "run": 44944338529
+    },
     "new_declaration_names": 38,
     "new_proof_including_public_alias_records": 1175724,
     "ordinary_challenge_sha256": "22e1398650efdc2d09930785e7ec5abf32e8311f1488d08d6e9def78455e7106",
@@ -242,6 +259,12 @@
     "source_bytes": 19872,
     "source_files": 17,
     "source_lines": 474,
+    "source_replay_github": {
+      "conclusion": "success",
+      "job": 136959535553,
+      "matching_complete_declarations": 38,
+      "run": 44941516939
+    },
     "source_replay_local": "38 of 38 complete declarations match the checked input up to binder labels and table order",
     "uncompressed_bytes": 60521197756,
     "unconditional_root": "RH17.riemannHypothesisFromPublishedArithmetic",
