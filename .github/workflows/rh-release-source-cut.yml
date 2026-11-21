@@ -1,0 +1,62 @@
+name: Publish the reproducible consolidated Lean sources
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['.github/workflows/rh-release-source-cut.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for the package build to publish both verified archives
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 100); do
+            status=$(gh api "repos/$GH_REPO/actions/runs/44960247690/jobs?per_page=100" --jq '.jobs[] | select(.name=="package") | .status + "/" + (.conclusion // "")')
+            if [[ $status == completed/success ]]; then exit 0; fi
+            if [[ $status == completed/* ]]; then echo "$status"; exit 1; fi
+            sleep 10
+          done
+          exit 1
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44960247690
+          name: Riemann_Source_Import_Cut
+          path: ${{ runner.temp }}/dist
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44960247690
+          name: Riemann_Source_Smallest
+          path: ${{ runner.temp }}/other
+      - name: Verify the two archives and publish them under a distinct source tag
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction"
+          cd "$RUNNER_TEMP/dist"
+          cmp fused.json "$RUNNER_TEMP/other/fused.json"
+          cmp fused.json "$d/consolidated/source-receipt.json"
+          cp "$RUNNER_TEMP/other/Riemann_Combined_Source.tar.zst" .
+          cp "$d/consolidated/Main.lean" .
+          jq -r '(.import_only.archive_sha256+"  Riemann_Import_Cut.tar.zst"),(.combined.archive_sha256+"  Riemann_Combined_Source.tar.zst"),(.root_sha256+"  Main.lean")' fused.json > SHA256SUMS
+          sha256sum -c SHA256SUMS
+          cat >notes.md <<'EOF'
+          The original project has 17,374,215 lines in 175,187 Lean modules. Both archives here contain 164,452 modules. The import-only archive contains 16,588,178 lines. The combined archive incorporates earlier source rewrites and contains 16,323,888 lines. Each archive includes its pinned Lake configuration. SHA256SUMS identifies the compressed source bytes and the readable root.
+          
+          The [source and kernel build](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44960247690) reproduces both archives and checks the import-only version with stock Lean. A clean source rebuild of the combined version remains outstanding. The [complete ordinary-RH proof in seventeen stock-Lean-verified modules](https://github.com/DomTheDeveloper/formal-conjectures/releases/tag/rh-ordinary-native-3eaf53b19177) is available separately.
+          EOF
+          tag=rh-source-b168cea4599a
+          if ! gh api "repos/$GH_REPO/git/ref/tags/$tag" --silent 2>/dev/null; then
+            gh api --method POST "repos/$GH_REPO/git/refs" -f "ref=refs/tags/$tag" -f "sha=$GITHUB_SHA" --silent
+          fi
+          test "$(gh api "repos/$GH_REPO/git/ref/tags/$tag" --jq .object.sha)" = "$GITHUB_SHA"
+          bash "$d/release_proof.sh" "$tag" 'Consolidated RH sources, up to 1,050,327 fewer lines' notes.md Riemann_Combined_Source.tar.zst Riemann_Import_Cut.tar.zst Main.lean fused.json SHA256SUMS
