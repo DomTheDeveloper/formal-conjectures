@@ -56,6 +56,65 @@ template <class FX, class FN> static void children(const Event &e, FX expression
     }
 }
 
+// Supply the declarations that one complete proof needs beyond an independently checked base.
+static void stage_extension(const fs::path &dir, const fs::path &base,
+                            const fs::path &solution, const fs::path &out) {
+    require(!fs::exists(base / "stubs.bits") && !fs::exists(solution / "stubs.bits"),
+            "a parent proof contains temporary theorem assumptions");
+    std::ifstream a(base / "mode.txt"), b(solution / "mode.txt");
+    bool first, merge;
+    require(bool(a >> first) && bool(b >> merge) && first == merge, "incompatible proof modes");
+    auto before = Bits::load(base / "decls.bits"), after = Bits::load(solution / "decls.bits");
+    require(before.count == after.count, "different original declaration counts");
+    U nx, nd;
+    std::ifstream totals(dir / "totals.txt");
+    require(bool(totals >> nx >> nd) && nd == after.count, "different original index");
+    auto canon = read_words(dir / "canonical.bin"), table = read_words(dir / "declarations.bin");
+    auto entry = offsets(table, nd);
+    Bits declarations(nd), available(canon.size()), names(canon.size()), expressions(nx);
+    for (U d = 0; d < nd; ++d) {
+        if (!before.has(d) && !after.has(d))
+            continue;
+        U p = entry[d], nn = table[p], ne = table[p + 1], nr = table[p + 2], alt = table[p + 3];
+        bool fresh = !before.has(d);
+        if (fresh)
+            declarations.add(d);
+        p += 4;
+        for (U j = 0; j < nn; ++j) {
+            U n = table[p++];
+            available.add(n);
+            if (fresh)
+                names.add(n);
+        }
+        if (!fresh)
+            continue;
+        for (U j = 0; j < ne; ++j) {
+            U x = table[p++];
+            expressions.add(merge && alt && j == 1 ? alt : x);
+        }
+        for (U j = 0; j < nr; ++j)
+            names.add(table[p++]);
+    }
+    walk_reverse(dir / "edges.zst", [&](const Event &e, U x, U) {
+        if (e.kind == Declaration || !expressions.has(x))
+            return;
+        children(e, [&](U child) { expressions.add(child); },
+                 [&](U n, bool rewrite) { names.add(merge && rewrite ? canon.at(n) : n); });
+    });
+    for (U n = 0; n < names.count; ++n)
+        require(!names.has(n) || available.has(n), "extension has an unproved prerequisite");
+    fs::create_directories(out);
+    require(!fs::exists(out / "stubs.bits"), "use a fresh extension directory");
+    fs::remove(out / "dictionary.bits");
+    declarations.save(out / "decls.bits");
+    expressions.save(out / "exprs.bits");
+    names.save(out / "names.bits");
+    std::ofstream mode(out / "mode.txt");
+    mode << int(merge) << "\n";
+    std::cerr << "extension: " << declarations.changes << " declarations, "
+              << expressions.changes << " expression records\n";
+}
+
 static void stage_plan(const fs::path &dir, const fs::path &whole, const fs::path &out, U stages) {
     require(stages && stages <= 32, "use one to thirty-two stages");
     fs::create_directories(out);

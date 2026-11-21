@@ -1,0 +1,103 @@
+name: Native Lean replay of the readable RH derivation
+on:
+  workflow_dispatch:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths: ['.github/workflows/rh-native-chapters.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  native:
+    name: Replay the 42 added declarations in the real arithmetic environment
+    runs-on: ubuntu-24.04
+    timeout-minutes: 200
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the author's Lean 4.33.1
+        run: |
+          bash _certificates/RiemannReduction/module_runner.sh space
+          bash _certificates/RiemannReduction/module_runner.sh lean
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44935029011
+          pattern: rh-olean-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/native-proof
+      - name: Authenticate all 17 native parent modules
+        run: bash _certificates/RiemannReduction/unpack_modules.sh "$RUNNER_TEMP/native-proof"
+      - name: Serialize the arithmetic supplement and the readable chapter proof
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction"
+          work="$RUNNER_TEMP/native-proof"
+          mkdir -p "$work"/{parser,RHChapters}
+          git init -q "$work/parser/exporter"
+          git -C "$work/parser/exporter" fetch -q --depth 1 https://github.com/leanprover/lean4export 15f6055e299ad5b89345e533cc2192f4cc00f659
+          git -C "$work/parser/exporter" checkout -q --detach FETCH_HEAD
+          cd "$work/parser"
+          cp exporter/Export/Parse.lean ParseExport33.lean
+          cp "$d/MakeStage.lean" .
+          lean -R . -o ParseExport33.olean -c ParseExport33.c ParseExport33.lean
+          LEAN_PATH="$PWD" lean -R . -o MakeStage.olean -c MakeStage.c MakeStage.lean
+          leanc -O3 -DNDEBUG -o make-stage ParseExport33.c MakeStage.c
+          zstd -dcq "$d/chapters/arithmetic-extension.ndjson.zst" |
+            ./make-stage /dev/stdin RHBatches.Part16 RHChapters.Arithmetic "$work/RHChapters/Arithmetic.olean"
+          zstd -dcq "$d/chapters/chapters.ndjson.zst" |
+            ./make-stage /dev/stdin RHChapters.Arithmetic RHChapters.Proof "$work/RHChapters/Proof.olean"
+      - name: Recheck every additional theorem with the stock native kernel
+        env:
+          LEAN_ABORT_ON_PANIC: '1'
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction"
+          cd "$RUNNER_TEMP/native-proof"
+          free_gib=$(df -BG --output=avail . | tail -1 | tr -d ' G')
+          swap_gib=$((free_gib-6))
+          if ((swap_gib>40)); then swap_gib=40; fi
+          if ((swap_gib>0)); then
+              sudo fallocate -l "${swap_gib}G" replay.swap
+              sudo chmod 600 replay.swap
+              sudo mkswap replay.swap
+              sudo swapon replay.swap
+          fi
+          export LEAN_PATH="$PWD"
+          {
+            for mod in RHChapters.Arithmetic RHChapters.Proof; do
+              /usr/bin/time -v leanchecker "$mod"
+              echo "Stock Lean 4.33.1 accepted $mod"
+            done
+            lean --run "$d/chapters/NativeTarget.lean" RHChapters/Proof.olean
+            sha256sum RHChapters/{Arithmetic,Proof}.olean
+          } 2>&1 | tee native-chapters-verdict.txt
+          tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner --zstd -cf native-chapters.tar.zst RHChapters
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-readable-chapter-verdict
+          path: |
+            ${{ runner.temp }}/native-proof/native-chapters.tar.zst
+            ${{ runner.temp }}/native-proof/native-chapters-verdict.txt
+          retention-days: 90
+  publish:
+    needs: native
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-readable-chapter-verdict
+          path: result
+      - name: Attach the native chapter proof and its verifier output
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd result
+          tag=rh-source-e96c40c44137
+          for f in native-chapters.tar.zst native-chapters-verdict.txt; do
+            current=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$f\") | .digest")
+            if [[ -z "$current" ]]; then gh release upload "$tag" "$f"; else [[ "$f" == *.txt || "$current" == "sha256:$(sha256sum "$f" | cut -d' ' -f1)" ]]; fi
+          done

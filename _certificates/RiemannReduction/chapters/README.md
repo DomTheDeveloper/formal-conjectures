@@ -44,3 +44,15 @@ lean --run /path/to/chapters/ThinExport.lean /path/to/build/index/names.tsv \
 ```
 
 [Full kernel comparison on GitHub](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-proof-chapters.yml)
+
+## Native Lean replay
+
+The 17 native modules of the five-theorem export already contain all but four of the archived supporting declarations needed by this specialized proof. There are 51 declarations in the five-theorem version that the new proof does not use. The native check supplies the four additional original proofs and replays the 38 chapter declarations with the original Lean 4.33.1 kernel. Its last check reads the compiled root and verifies that its type is the unchanged constant `RiemannHypothesis` with no hypotheses. [Native chapter run](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-native-chapters.yml) · [Parent-module checks](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44935029011)
+
+To regenerate the four additional proof terms after running the parent and chapter reductions, use the two selections from the same challenge-preserving index.
+
+```bash
+build/slice stage-extension chapters-build/index protected/all-share chapters-build/ordinary-chapters extra
+python3 dictionary.py chapters-build/index extra
+zstd -dcq --long=31 original.zst | build/slice emit chapters-build/index extra | zstd -T1 -9 -o arithmetic-extension.ndjson.zst
+```

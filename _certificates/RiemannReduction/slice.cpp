@@ -626,6 +626,8 @@ int main(int argc, char **argv) {
             intern(std::cerr, number(argv[2]), action == "intern");
         } else if (action == "index" && argc == 3)
             make_index(argv[2]);
+        else if (action == "stage-extension" && argc == 6)
+            stage_extension(argv[2], argv[3], argv[4], argv[5]);
         else if (action == "stage-plan" && argc == 6)
             stage_plan(argv[2], argv[3], argv[4], number(argv[5]));
         else if (action == "stage-names" && argc == 4)

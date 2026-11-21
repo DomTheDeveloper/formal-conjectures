@@ -16,7 +16,7 @@ The first complete independent replay checked all 1,172,294 solution declaration
 
 ## The ordinary-RH deduction in 17 readable files
 
-The [17 chapters](chapters) contain 474 lines. The final theorem constructs the arithmetic inputs and concludes ordinary RH. Its imports reach 175,174 original modules. Chapters 10 and 11 give separately checked explanations of what an off-line zero would force and why the chain length is approximately a square root. The [complete kernel comparison](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-proof-chapters.yml) checks the new proof terms together with all their arithmetic dependencies.
+The [17 chapters](chapters) contain 474 lines. The final theorem constructs the arithmetic inputs and concludes ordinary RH. Its imports reach 175,174 original modules. Chapters 10 and 11 give separately checked explanations of what an off-line zero would force and why the chain length is approximately a square root. The [complete kernel comparison](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44940181471) checks the new proof terms together with all their arithmetic dependencies.
 
 ## Native Lean proof modules
 
