@@ -1,0 +1,42 @@
+name: Package the shortened Riemann hypothesis source
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['_certificates/RiemannReduction/source-cut/**', '.github/workflows/rh-package-source-cut.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch the original Git tree and pinned constant inventory
+        run: |
+          set -euo pipefail
+          w="$RUNNER_TEMP/compact"
+          mkdir -p "$w/dist"
+          git init -q "$w/original"
+          git -C "$w/original" fetch -q --depth=1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          curl -fsSL --retry 4 https://github.com/james-shore/rh-proof-dependencies/releases/download/v0.2/constants.csv.gz -o "$w/constants.csv.gz"
+      - name: Materialize the complete project
+        run: |
+          set -euo pipefail
+          w="$RUNNER_TEMP/compact"
+          python3 _certificates/RiemannReduction/reflection-imports/trim.py "$w/original" "$w/evidence" --constants "$w/constants.csv.gz" --archive "$w/dist/Riemann_Reduced_Source.tar.zst"
+          cp "$w/evidence/source.json" "$w/dist/"
+      - name: Read the archive back, verify every Git blob and follow imports from Main
+        run: |
+          set -euo pipefail
+          w="$RUNNER_TEMP/compact"
+          python3 _certificates/RiemannReduction/source-cut/verify_archive.py "$w/original" "$w/dist/Riemann_Reduced_Source.tar.zst" | tee "$w/dist/archive.json"
+          cd "$w/dist"
+          sha256sum Riemann_Reduced_Source.tar.zst > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Riemann_Reduced_Source
+          path: ${{ runner.temp }}/compact/dist/
+          retention-days: 90
+          if-no-files-found: error
+          compression-level: 0
