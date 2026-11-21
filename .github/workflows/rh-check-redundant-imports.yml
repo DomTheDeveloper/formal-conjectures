@@ -1,0 +1,51 @@
+name: Verify more than one million removed source lines while preserving the surviving proof bodies
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['_certificates/RiemannReduction/order-preserving-imports/**', '.github/workflows/rh-check-redundant-imports.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the proof-body-preserving source from the published archive
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction"
+          w="$RUNNER_TEMP/audit"
+          mkdir -p "$w"
+          cd "$w"
+          url=https://github.com/DomTheDeveloper/formal-conjectures/releases/download/rh-source-b168cea4599a/Riemann_Import_Cut.tar.zst
+          curl -fsSL --retry 4 "$url" -o input.tar.zst
+          python3 "$d/order-preserving-imports/shorten.py" input.tar.zst "$w/result"
+      - name: Fetch pristine upstream source and install stock Lean 4.33.1
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh space
+          bash _certificates/RiemannReduction/module_runner.sh lean
+          w="$RUNNER_TEMP/audit"
+          git init -q "$w/original"
+          git -C "$w/original" fetch -q --depth=1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          git -C "$w/original" checkout -q --detach FETCH_HEAD
+          test "$(git -C "$w/original" rev-parse HEAD:src)" = b41b516b1f7baee4d83ced235ecc71fd43c97695
+      - name: Parse each external source header with Lean and check every deleted import
+        run: |
+          set -euo pipefail
+          w="$RUNNER_TEMP/audit"
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction"
+          lean --run "$d/SourceImports.lean" "$w/original/src" "$w/result/changed-src" < "$w/result/external-paths.txt" |
+            python3 "$d/order-preserving-imports/check.py" | tee "$w/result/lean-import-audit.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Riemann_Proof_Preserving_Source
+          path: |
+            ${{ runner.temp }}/audit/result/Riemann_Proof_Preserving_Source.tar.zst
+            ${{ runner.temp }}/audit/result/source.json
+            ${{ runner.temp }}/audit/result/lean-import-audit.json
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 90
