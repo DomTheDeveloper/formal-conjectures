@@ -1,0 +1,62 @@
+{
+  "all_five": {
+    "bytes": 60520686934,
+    "declaration_records": 1172294,
+    "expressions": 1048298917,
+    "sha256": "1177a7b095e392e13a32ec9f5d9dd58e60ea27ff114a4aefc1d395ecd040f2ba"
+  },
+  "export_format": "lean4export 3.1.0",
+  "input": {
+    "compressed_bytes": 7699933588,
+    "compressed_sha256": "61a8938ad5f5e57397c1c0e3b954916af546d9004ade01c3555744a681b05381",
+    "declaration_records": 1468418,
+    "expanded_bytes": 61570595788,
+    "expanded_sha256": "5ea74b912147c5c93cc2b6d70cc727cf908df2f62ac6a20480a3fa02f6be244e",
+    "expressions": 1065214335
+  },
+  "known_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "local_endpoints": {
+    "checker": "Lean 4.36.0 leanchecker --from-export /dev/stdin",
+    "end_record": 1468418,
+    "expressions": 3516910,
+    "first_record": 1466983,
+    "foundation_axioms": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "kernel_result": "Lean default kernel accepts the solution",
+    "owned_records": 1010,
+    "part": 1024,
+    "parts": 1024,
+    "temporary_theorem_headers": 13842,
+    "total_records": 23498
+  },
+  "ordinary_rh": {
+    "bytes": 60520564304,
+    "declaration_records": 1172274,
+    "expressions": 1048296913,
+    "sha256": "795cd72be92a00a49b4f0ef96b7c5c219ddd68d46213c2c403e161d2c2bee8d2"
+  },
+  "source": {
+    "added_module_imports": 0,
+    "changed_files": 84186,
+    "changed_modules": 84186,
+    "original_bytes": 1030531854,
+    "original_lines": 17374215,
+    "original_modules": 175187,
+    "patch_bytes": 919424,
+    "patch_sha256": "ea94f686d91aa6faac1908ea6493d51e642f9311f8f7152a6f4b222ef5e7bdfd",
+    "reduced_bytes": 1008989200,
+    "reduced_lines": 17107305,
+    "redundant_imports": 251383,
+    "shortened_theorems": 2133,
+    "source_files": 175187,
+    "source_revision": "40e56bab026552e089d7afcfeff08d2defb9c005",
+    "tree_sha256": "ae2ba3a2e34e07ba02869f1269f3dc6e3fdde85e15cc4ac90d85102b8d155a1c"
+  }
+}
