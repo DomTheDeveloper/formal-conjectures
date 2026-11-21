@@ -21,10 +21,11 @@ private theorem trivialPrimeSum (y : ℝ) :
   simp [Deduction.Gchi, Deduction.G, hχ, Complex.add_re, Complex.sub_re]
 
 private theorem zetaPrimeSum (y : ℝ) : Deduction.Gm zetaFamily y = Deduction.G y := by
-  simpa [Deduction.Gm, zetaFamily] using trivialPrimeSum y
+  change (∑ _ : Unit, (1 : ℝ) * (Deduction.Gchi (1 : DirichletCharacter ℂ 1) y).re) = _
+  simpa using trivialPrimeSum y
 
-private theorem zetaL (s : ℂ) : DirichletCharacter.LFunction (zetaFamily.χ ()) s = riemannZeta s :=
-  congrFun (DirichletCharacter.LFunction_modOne_eq (χ := zetaFamily.χ ())) s
+private theorem zetaL (s : ℂ) : DirichletCharacter.LFunction (1 : DirichletCharacter ℂ 1) s = riemannZeta s :=
+  congrFun (DirichletCharacter.LFunction_modOne_eq (χ := (1 : DirichletCharacter ℂ 1))) s
 
 /-- The arithmetic part must supply one-sided bounds on arbitrarily late windows. -/
 theorem rh_of_prime_windows
@@ -40,6 +41,7 @@ theorem rh_of_prime_windows
     ((by norm_num : (0 : ℝ) < 1/2).trans hhalf) hθ (by norm_num : (0 : ℝ) < 1/2)
     (by simpa only [zetaPrimeSum] using hC)
   have hL := bound () s (hsmall.trans_le (min_le_left _ _))
+  change DirichletCharacter.LFunction (1 : DirichletCharacter ℂ 1) s ≠ 0 at hL
   rwa [zetaL] at hL
 
 #print axioms rh_of_prime_windows

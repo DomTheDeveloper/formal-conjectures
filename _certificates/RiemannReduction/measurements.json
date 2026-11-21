@@ -42,6 +42,17 @@
     "expressions": 1048296913,
     "sha256": "795cd72be92a00a49b4f0ef96b7c5c219ddd68d46213c2c403e161d2c2bee8d2"
   },
+  "prime_windows": {
+    "axiom_output": "'RiemannReduction.rh_of_prime_windows' depends on axioms: [propext, Classical.choice, Quot.sound]",
+    "file": "PrimeWindows.lean",
+    "hypotheses": [
+      "one-sided prime-sum bounds on arbitrarily late windows for every exponent between one half and one"
+    ],
+    "lean": "4.33.1",
+    "lines": 49,
+    "native_lean_exit": 0,
+    "sha256": "fbf29eb9ba11fc5dce361b2ab04b4af58a8690f9880ef614ec42c32baf6c7ebd"
+  },
   "source": {
     "added_module_imports": 0,
     "changed_files": 84186,
@@ -58,5 +69,41 @@
     "source_files": 175187,
     "source_revision": "40e56bab026552e089d7afcfeff08d2defb9c005",
     "tree_sha256": "ae2ba3a2e34e07ba02869f1269f3dc6e3fdde85e15cc4ac90d85102b8d155a1c"
+  },
+  "source_patch_replay": {
+    "changed_files": 84186,
+    "original_lines": 17374215,
+    "reduced_lines": 17107305,
+    "source_files": 175187,
+    "source_revision": "40e56bab026552e089d7afcfeff08d2defb9c005",
+    "tree_sha256": "ae2ba3a2e34e07ba02869f1269f3dc6e3fdde85e15cc4ac90d85102b8d155a1c"
+  },
+  "source_proof_signatures": {
+    "distinct_named_theorems": 3950,
+    "identical_type_and_universe_vectors": 2133,
+    "source_replacements": 2133
+  },
+  "verified_source_samples": {
+    "Formalism.FrobeniusOrbits.RealSubfieldLeCompositum": {
+      "after_lines": 301,
+      "before_lines": 337,
+      "compiler_options": "default compiler options",
+      "native_lean_exit": 0,
+      "sha256": "cda836dbc54409dca94d78b24ca45a957a2a4ac6f7f9fc15530c38aca2c430ce"
+    },
+    "Formalism.GL3MeanSquares.HookFormulaTorsion.DifferentIdealConditions": {
+      "after_lines": 406,
+      "before_lines": 407,
+      "compiler_options": "release compiler options",
+      "native_lean_exit": 0,
+      "sha256": "ecafc050932763e0b8c7041966123e5d95c2baaf623bad4578b819e74107074a"
+    },
+    "Formalism.SatakeDualWeyl.KpqSubgroupCompact": {
+      "after_lines": 381,
+      "before_lines": 532,
+      "compiler_options": "default compiler options",
+      "native_lean_exit": 0,
+      "sha256": "bcf5c9befc97a5ce40e86d3c85d3696adf5c2b4fa72de445451f7a2fd19d7a35"
+    }
   }
 }
