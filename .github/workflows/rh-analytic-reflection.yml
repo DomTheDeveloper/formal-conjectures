@@ -1,0 +1,30 @@
+name: Check both Riemann zeta reflection proofs with Mathlib
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['_certificates/RiemannReduction/analytic-reflection/**', '.github/workflows/rh-analytic-reflection.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Lean
+        run: |
+          bash _certificates/RiemannReduction/module_runner.sh space
+          bash _certificates/RiemannReduction/module_runner.sh lean
+      - name: Obtain the archived Mathlib environment
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/analytic-project"
+          mkdir -p "$root"
+          cd "$root"
+          for name in lakefile.toml lake-manifest.json lean-toolchain; do
+            curl -fsSL --retry 4 "https://raw.githubusercontent.com/leanprover-community/riemann-hypothesis/40e56bab026552e089d7afcfeff08d2defb9c005/$name" -o "$name"
+          done
+          lake exe cache get Mathlib.NumberTheory.Harmonic.ZetaAsymp Mathlib.NumberTheory.LSeries.Nonvanishing Mathlib.Tactic
+      - name: Elaborate, check axioms, and replay both source files with the Lean kernel
+        run: bash _certificates/RiemannReduction/analytic-reflection/check.sh "$RUNNER_TEMP/analytic-project"
