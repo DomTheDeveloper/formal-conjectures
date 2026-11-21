@@ -1,0 +1,119 @@
+name: Compile the 17 unchanged RH chapters against the original Lean objects
+on:
+  push:
+    branches: [rh/unconditional-reduction]
+    paths: ['.github/workflows/rh-direct-chapters.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  direct:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch the original proof objects and their pinned manifest
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh space
+          mkdir -p "$RUNNER_TEMP/original-objects/mounted"
+          cd "$RUNNER_TEMP/original-objects"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq squashfs-tools-ng
+          upstream=8c90877ceaa694974526e0aab9aaaf6ea0f5099e
+          curl -fsSL --retry 5 "https://raw.githubusercontent.com/leanprover-community/riemann-hypothesis/$upstream/scripts/fetch-published-cache.py" -o upstream_cache.py
+          echo '7023f0d5814246e1a2f96cf5960793db8a8540708ca483fd1de66649d968f2bf  upstream_cache.py' | sha256sum -c -
+          base=https://huggingface.co/datasets/JackMcCarthy/riemann-hypothesis-build/resolve/9036e64326acf4acfae159b96664e9708445c1d1
+          for name in olean-manifest.sha256 oleans.tar.zst; do
+            curl -fsSL --retry 5 --retry-all-errors --continue-at - --output "$name" "$base/$name"
+            stat -c '%s %n' "$name"
+          done
+      - name: Authenticate each of the 350374 files and mount the 175187 Lean objects
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction/chapters"
+          cd "$RUNNER_TEMP/original-objects"
+          python3 "$d/objects_tar.py" upstream_cache.py "$PWD" | tar2sqfs -q -s -c zstd -X level=3 -b 262144 -j 3 native.sqfs
+          sudo mount -t squashfs -o loop,ro native.sqfs mounted
+          test -f mounted/BuildAid/D1.olean
+          test "$(find mounted -type f -name '*.olean' | wc -l)" -eq 175187
+          rm oleans.tar.zst
+          df -h .
+      - name: Install original Lean and the exact archived Mathlib dependencies
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh lean
+          git init -q "$RUNNER_TEMP/archived"
+          cd "$RUNNER_TEMP/archived"
+          git fetch -q --depth 1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          git checkout -q --detach FETCH_HEAD
+          test "$(git rev-parse HEAD:src)" = b41b516b1f7baee4d83ced235ecc71fd43c97695
+          "$HOME/.elan/bin/lake" exe cache get
+          test "$(git -C .lake/packages/mathlib rev-parse HEAD)" = 0df444a360eaa60ab8c11dca51a86af692955474
+      - name: Compile the unmodified chapter sources and check the final axiom inventory
+        env:
+          LEAN_ABORT_ON_PANIC: '1'
+        run: |
+          set -euo pipefail
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction/chapters"
+          w="$RUNNER_TEMP/direct-chapters"
+          mkdir -p "$w/objects/RH17" "$w/result"
+          cd "$RUNNER_TEMP/archived"
+          extra=$(( $(df -BG --output=avail . | tail -1 | tr -d ' G') - 6 ))
+          if ((extra>64)); then extra=64; fi
+          if ((extra>0)); then
+            sudo fallocate -l "${extra}G" "$w/replay.swap"
+            sudo chmod 600 "$w/replay.swap"
+            sudo mkswap "$w/replay.swap"
+            sudo swapon "$w/replay.swap"
+          fi
+          sudo sysctl -w vm.max_map_count=1048576
+          ulimit -n "$(ulimit -Hn)"
+          export LEAN_PATH="$w/objects:$RUNNER_TEMP/original-objects/mounted:$(lake env printenv LEAN_PATH)"
+          {
+            lean --version
+            echo 'Source revision 40e56bab026552e089d7afcfeff08d2defb9c005. Published archive SHA-256 953bab5386a7849527a11960f80a2fab427c49c637d6e94cc75788dd8f40196b.'
+            for f in "$d"/RH17/S*.lean; do
+              name=$(basename "$f" .lean)
+              echo "Compiling RH17.$name"
+              lean -j1 --tstack=400000 -DwarningAsError=true -R "$d" -o "$w/objects/RH17/$name.olean" "$f"
+            done
+            lean --run "$d/NativeTarget.lean" "$w/objects/RH17/S17_RiemannHypothesis.olean"
+            (cd "$d" && sha256sum RH17/S*.lean)
+          } 2>&1 | tee "$w/result/direct-source-verdict.txt"
+          python3 - "$w/result/direct-source-verdict.txt" <<'PY'
+          from pathlib import Path
+          import re, sys
+          log = Path(sys.argv[1]).read_text()
+          declaration = r"'RH17\.riemannHypothesisFromPublishedArithmetic' depends on axioms:\s*\[([^]]*)\]"
+          found = re.findall(declaration, log)
+          if len(found) != 1 or {s.strip() for s in found[0].split(',')} != {'propext', 'Classical.choice', 'Quot.sound'}:
+              raise SystemExit('Unexpected axiom inventory for the unconditional theorem')
+          PY
+          cd "$w/objects"
+          test "$(find RH17 -name '*.olean' | wc -l)" -eq 17
+          tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner --zstd -cf "$w/result/RH17-compiled.tar.zst" RH17
+      - uses: actions/upload-artifact@v4
+        with:
+          name: direct-compiled-RH17
+          path: ${{ runner.temp }}/direct-chapters/result
+          retention-days: 90
+      - name: Attach the compiled chapters and their original-source verdict
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/direct-chapters/result"
+          for f in RH17-compiled.tar.zst direct-source-verdict.txt; do
+            tag=rh-source-e96c40c44137
+            remote=$(gh release view "$tag" --json assets --jq ".assets[] | select(.name == \"$f\") | .digest")
+            if [[ -z "$remote" ]]; then
+              gh release upload "$tag" "$f"
+            elif [[ "$remote" != "sha256:$(sha256sum "$f" | cut -d' ' -f1)" ]]; then
+              echo "A different $f already exists at $tag" >&2
+              exit 1
+            fi
+          done
+    permissions:
+      contents: write
