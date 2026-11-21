@@ -1,0 +1,104 @@
+name: Compare the revised mathematical source files from the packaged RH project with stock Lean
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['_certificates/RiemannReduction/checked-source/**', '.github/workflows/rh-compared-source.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44961385993
+          name: Riemann_Proof_Preserving_Source
+          path: ${{ runner.temp }}/input
+      - name: Build the source archive and extract its exact revised mathematical files
+        run: |
+          set -euo pipefail
+          w="$RUNNER_TEMP"
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction/checked-source"
+          git init -q "$w/original"
+          git -C "$w/original" fetch -q --depth=1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          git -C "$w/original" checkout -q --detach FETCH_HEAD
+          python3 "$d/build.py" "$w/input/Riemann_Proof_Preserving_Source.tar.zst" "$w/original" "$w/project"
+          cd "$w/project"
+          echo 'dac08ac02dbfd879dac9145f9a8a5a037dfd7bb788b46fd42aab1ef0e482a7d6  Riemann_Compared_Source.tar.zst' | sha256sum -c -
+          test "$(jq -r .source_sha256 source.json)" = 3233badfe363c559b5daa45faed2999fe61813ed4163e526782efa8625f4c9d7
+          python3 "$d/check_math.py" extract "$PWD/Riemann_Compared_Source.tar.zst" "$PWD/source.json" "$w/pairs"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Riemann_Compared_Source_Project
+          path: ${{ runner.temp }}/project
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 90
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Riemann_Compared_Actual_Source_Files
+          path: ${{ runner.temp }}/pairs
+          if-no-files-found: error
+  math:
+    needs: package
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [0, 1, 2]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Riemann_Compared_Actual_Source_Files
+          path: ${{ runner.temp }}/pairs
+      - name: Install pinned Lean and Mathlib and check out authentic original files
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh space
+          bash _certificates/RiemannReduction/module_runner.sh lean
+          git init -q "$RUNNER_TEMP/original"
+          git -C "$RUNNER_TEMP/original" fetch -q --depth=1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          git -C "$RUNNER_TEMP/original" checkout -q --detach FETCH_HEAD
+          cd "$RUNNER_TEMP/original"
+          "$HOME/.elan/bin/lake" exe cache get
+      - name: Compile original and rewritten files, replay and compare their public declarations
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/original"
+          d="$GITHUB_WORKSPACE/_certificates/RiemannReduction/checked-source"
+          lake env python3 "$d/check_math.py" compare "$PWD" "$RUNNER_TEMP/pairs" "$RUNNER_TEMP/result" "${{ matrix.lane }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Source_Comparisons_${{ matrix.lane }}
+          path: ${{ runner.temp }}/result/lane-*.json
+          if-no-files-found: error
+  verify:
+    needs: math
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: Source_Comparisons_*
+          path: ${{ runner.temp }}/comparisons
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: Riemann_Compared_Actual_Source_Files
+          path: ${{ runner.temp }}/pairs
+      - name: Check coverage against every Mathlib-only source replacement in the archive
+        run: |
+          python3 _certificates/RiemannReduction/checked-source/check_math.py combine "$RUNNER_TEMP/pairs/source.json" "$RUNNER_TEMP/comparisons" "$RUNNER_TEMP/math.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Riemann_Mathlib_File_Comparisons
+          path: ${{ runner.temp }}/math.json
+          if-no-files-found: error
+          retention-days: 90

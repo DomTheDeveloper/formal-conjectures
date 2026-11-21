@@ -1,6 +1,28 @@
 # Simplifying Alpöge’s Lean proof of the Riemann hypothesis
 
-The [17 readable Lean chapters](chapters) derive ordinary RH from Levent Alpöge’s published arithmetic. They total 474 lines, including two optional mathematical explanations. The proof path to the final theorem occupies 427 lines across 15 of the chapters. For the full original project and its five headline conclusions, the reductions are as follows.
+The [17 readable Lean chapters](chapters) derive ordinary RH from Levent Alpöge’s published arithmetic. They total 474 lines, including two optional mathematical explanations. The proof path to the final theorem occupies 427 lines across 15 of the chapters. Stock Lean 4.33.1 replayed the entire ordinary-RH proof in 17 native modules. They contain 1,175,724 declaration records, including the original arithmetic support. The final native theorem has type `RiemannHypothesis` with no hypotheses. [Native release](https://github.com/DomTheDeveloper/formal-conjectures/releases/tag/rh-ordinary-native-3eaf53b19177) · [Kernel verdict](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44944338529)
+
+## Complete Lean source packages
+
+| Source | Lean modules | Physical Lean lines | Reduction from the published source |
+| --- | ---: | ---: | ---: |
+| Published | 175,187 | 17,374,215 | |
+| Consolidated source with two import cuts | 164,452 | 16,588,178 | 786,037 |
+| Same proof bodies with redundant public imports removed | 164,452 | 16,360,125 | 1,014,090 |
+| Source with individually compared mathematical rewrites | 164,452 | 16,337,345 | 1,036,870 |
+| Smallest combined source | 164,452 | 16,323,888 | 1,050,327 |
+
+The consolidated [Main.lean](consolidated/Main.lean) contains the source from thirteen upstream modules. The other 164,451 files in the first package have their original Git contents. The second package removes a further 228,053 import lines. Lean's parser read all 164,451 external headers. For every deletion the module was already available through an earlier retained public import, with the same import flags. The smallest package changes proof bodies in 1,912 of the 164,452 files. All its import headers match the proof-body-preserving package. Source digests, the import audit and the native checks have separate receipts. [Source release](https://github.com/DomTheDeveloper/formal-conjectures/releases/tag/rh-source-b168cea4599a) · [Public-import audit and source](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44961385993) · [Consolidated root build](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44960247690)
+
+The 16,337,345-line archive includes 33 mathematical files that import only Mathlib. Its comparison workflow extracts those files from the distributed archive, recompiles each alongside its original and compares the public interfaces in Lean. One further file is the [longest original Lean source](individual-files/IsAdmissibleSplittingCharPairMulTwist.lean). Removing repeated section and linter setup shortens it from 17,981 to 16,112 lines. Its own comparison is built from the original 147 project dependencies. [Packaged mathematical source comparisons](https://github.com/DomTheDeveloper/formal-conjectures/actions/workflows/rh-compared-source.yml) · [Longest-file comparison](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44961908533)
+
+Two additional individual replacements have native comparisons against the complete original public statements. The [free-module quotient](short-proofs/FreeModuleQuotient.lean) takes 25 lines instead of 2,516. The [polynomial derivative](short-proofs/FrechetDerivEvaluation.lean) takes 20 lines instead of 268. Both originals and both replacements were rebuilt and replayed. [Individual comparisons](https://github.com/DomTheDeveloper/formal-conjectures/actions/runs/44960247672)
+
+The [Mathlib-only zeta reflection proof](analytic-reflection/ZetaReflection.lean) shows that ordinary RH is equivalent to nonvanishing in the upper right part of the critical strip. The arithmetic needed to establish nonvanishing is included in the seventeen native modules.
+
+## Earlier source and five-theorem certificate reductions
+
+The source pass preceding the import cuts and the protected five-theorem kernel certificate have the following counts.
 
 | Quantity | Published | Challenge-preserving reduction |
 |---|---:|---:|
