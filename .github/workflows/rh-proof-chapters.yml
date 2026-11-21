@@ -7,10 +7,26 @@ on:
 permissions:
   contents: read
 jobs:
+  superseded:
+    name: Retire the duplicate run whose project-cache download failed
+    permissions:
+      actions: write
+    runs-on: ubuntu-24.04
+    steps:
+      - shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          run=44939516568
+          if [[ "$(gh run view "$run" --json status --jq .status)" != completed ]]; then
+            gh run cancel "$run"
+          fi
   source:
     name: Compile all 17 readable chapters and match every new proof body
     runs-on: ubuntu-24.04
-    timeout-minutes: 220
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
       - name: Install pinned Lean, Mathlib and the chapter imports

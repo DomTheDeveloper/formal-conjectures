@@ -37,7 +37,8 @@ def imports(project):
 def get(url, expected):
     for attempt in range(4):
         try:
-            with urllib.request.urlopen(url, timeout=90) as stream:
+            request = urllib.request.Request(url, headers={'User-Agent': 'RiemannHypothesisCache/1.0'})
+            with urllib.request.urlopen(request, timeout=90) as stream:
                 data = stream.read()
             if sha256(data).hexdigest() != expected:
                 raise ValueError(f'Unexpected SHA-256 for {url}')
@@ -81,5 +82,18 @@ def restore(project, tmp, leantar):
     print(f'Restored {len(jobs)} pinned original project imports')
 
 
+def build_from_source(project):
+    targets = {name for f in sorted(CHAPTERS.glob('S*.lean'))[:-1]
+               for name in IMPORT.findall(f.read_text())
+               if (project / 'src' / name.replace('.', '/')).with_suffix('.lean').is_file()}
+    subprocess.run(['lake', 'build', *['+' + name + ':olean' for name in sorted(targets)]],
+                   cwd=project, check=True)
+
+
 if __name__ == '__main__':
-    restore(Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve(), sys.argv[3])
+    project = Path(sys.argv[1]).resolve()
+    try:
+        restore(project, Path(sys.argv[2]).resolve(), sys.argv[3])
+    except OSError as exc:
+        print(f'Project cache unavailable ({exc}). Compiling all 1,418 imports from source.', flush=True)
+        build_from_source(project)
