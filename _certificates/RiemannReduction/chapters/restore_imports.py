@@ -14,6 +14,7 @@ HOST = 'https://rh-cache.taucetiproject.org'
 MANIFEST = HOST + '/bootstrap/e50d09817ad81469f737e8f637561e6ccf86c670/modules.jsonl.gz'
 ARCHIVE_TREE = 'b41b516b1f7baee4d83ced235ecc71fd43c97695'
 BOOTSTRAP = 'e50d09817ad81469f737e8f637561e6ccf86c670'
+UPSTREAM = 'https://github.com/leanprover-community/riemann-hypothesis.git'
 DIGEST = '292caa386a620d935cfc736b56fcceaab9fe7073086693b62e899c1ee4725f04'
 IMPORT = re.compile(r'^\s*(?:(?:public|meta)\s+)*import\s+([\w.\x27]+)', re.M)
 CHAPTERS = Path(__file__).resolve().parent / 'RH17'
@@ -58,7 +59,7 @@ def match_source(project, header):
         raise ValueError('The checkout differs from the published proof tree')
     if subprocess.run(['git', '-C', project, 'cat-file', '-e', BOOTSTRAP + '^{commit}'],
                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
-        subprocess.run(['git', '-C', project, 'fetch', '-q', '--depth', '1', 'origin', BOOTSTRAP], check=True)
+        subprocess.run(['git', '-C', project, 'fetch', '-q', '--depth', '1', UPSTREAM, BOOTSTRAP], check=True)
     if header['source_tree'] != git('rev-parse', BOOTSTRAP + ':src'):
         raise ValueError('The bootstrap source tree differs from its pinned manifest')
     if git('diff', '--name-status', 'HEAD', BOOTSTRAP, '--', 'src') != 'A\tsrc/Challenge.lean':
@@ -108,8 +109,11 @@ def build_from_source(project):
 
 if __name__ == '__main__':
     project = Path(sys.argv[1]).resolve()
+    tree = subprocess.check_output(['git', '-C', project, 'rev-parse', 'HEAD:src'], text=True).strip()
+    if tree != ARCHIVE_TREE or (project / 'lean-toolchain').read_text().strip() != 'leanprover/lean4:v4.33.1':
+        raise SystemExit('Use the pinned published Lean project')
     try:
         restore(project, Path(sys.argv[2]).resolve(), sys.argv[3])
-    except OSError as exc:
+    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
         print(f'Project cache unavailable ({exc}). Compiling all 1,418 imports from source.', flush=True)
         build_from_source(project)
