@@ -47,7 +47,7 @@ Imagine a zeta zero with real part 0.60. Its contribution creates a pole of the 
 
 The 49-line [PrimeWindows.lean](PrimeWindows.lean) formalizes the implication from these window bounds to Mathlib’s ordinary RH. Lean 4.33.1 checks it with the standard three axioms. Its explicit hypothesis is the arithmetic estimate. GitHub rebuilt all 31 project modules needed by this implication from the shortened source. The complete exported proof of the implication contained 59,545 declaration records. Stock Lean and ConLeche in verified mode both accepted the shortened 55,308-record proof with its full dependency closure and no temporary theorem assumptions. [Download the checked certificate](https://github.com/DomTheDeveloper/formal-conjectures/releases/download/rh-source-ae2ba3a2e34e/prime-window-proof.ndjson.zst) · [Read the kernel verdicts](https://github.com/DomTheDeveloper/formal-conjectures/releases/download/rh-source-ae2ba3a2e34e/prime-window-kernels.txt)
 
-The hard estimate comes from divisibility. A nonzero algebraic integer divisible by many prime ideals must have a large norm. The proof compares this lower bound with an upper bound from a chain of theta lifts. The choice of chain length balances errors that grow with the length and errors that shrink with it. Ordinary zeta uses the trivial character in the final prime sum. The arithmetic work that delivers its bound still uses auxiliary characters and fields. [Alpöge’s note](https://alpo.ge/remark.pdf) · [Annotated mathematical guide](https://github.com/nasqret/riemann-rev)
+The hard estimate comes from divisibility. A nonzero algebraic integer divisible by many prime ideals must have a large norm. The proof compares this lower bound with an upper bound from a chain of theta lifts. For a prime-counting scale $X$ and a chain of $m$ lifts, the competing error terms have sizes $X/m$ and $m$, up to small power losses. Choosing $m$ near $\sqrt X$ makes both errors square-root sized. Ordinary zeta uses the trivial character in the final prime sum. The arithmetic work that delivers its bound still uses auxiliary characters and fields. [Alpöge’s note](https://alpo.ge/remark.pdf) · [Annotated mathematical guide](https://github.com/nasqret/riemann-rev)
 
 ## Download the 17 source volumes
 
@@ -70,13 +70,19 @@ The 919,424-byte patch encodes edits against the original Git revision. The proo
 
 ## Generate the proof and run Lean
 
-Install a C++20 compiler, libzstd, the zstd CLI, Python 3 and Lean 4.36.0. From this directory, generate the complete proof. The ordinary-RH variant uses `ordinary` in place of `all` in the second command and `ordinary-share` in the third.
+Install a C++20 compiler, libzstd, the zstd CLI, Python 3 and the independently implemented checker ConLeche. The commands below reproduce the challenge-preserving five-theorem proof. Decompressing the proof to disk requires about 61 GB in addition to the input and search index. The GitHub workflow uses a compressed filesystem for the proof.
 
 ```bash
 curl -fL https://math.mit.edu/~drew/grh/solution.ndjson.zst -o original.zst
+curl -fL https://math.mit.edu/~drew/grh/challenge.ndjson.zst -o challenge.zst
 bash reduce.sh original.zst build all share
-bash emit.sh original.zst build all-share | leanchecker --from-export /dev/stdin
+bash guard_solution.sh challenge.zst build protected
+bash emit.sh original.zst protected all-share > protected.ndjson
+zstd -dcq --long=31 challenge.zst > challenge.ndjson
+con-leche --verified --compare challenge.ndjson protected.ndjson
 ```
+
+The independent checker revision is `5ea446d5c79d23ef1f954215d094db2162f1ab6f`, built with Lean 4.36.0. The native modules use the author's Lean 4.33.1. The SHA-256 of the complete protected export is `c06133e527f9962f8c0c759e8dcc2007ae0d86535e165fa7453a0956624fa94d`.
 
 To write the 17 compressed kernel articles, run the loop below. Change the last argument from `emit` to `check` to stream each article directly through Lean. The GitHub workflow checks the parts across four runners. Each runner reuses one download and index.
 

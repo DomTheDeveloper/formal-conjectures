@@ -18,11 +18,7 @@ bash "$here/reduce.sh" original.zst build all share
 article_index="$workdir/build"
 if [[ ${2:-} == protected ]]; then
     article_index="$workdir/guarded"
-    mkdir -p "$article_index"
-    ln -s "$workdir/build/slice" "$article_index/slice"
-    python3 "$here/preserve_challenge.py" challenge.zst build/index "$article_index/index"
-    { cat "$article_index/index/challenge-roots.txt"; python3 "$here/roots.py" "$article_index/index" all; } |
-        "$article_index/slice" mark "$article_index/index" "$article_index/all-share" share
+    bash "$here/guard_solution.sh" challenge.zst build "$article_index"
 fi
 mkdir -p empty mounted
 # Give the checker a seekable, regular file without writing 60 GB of plain text.

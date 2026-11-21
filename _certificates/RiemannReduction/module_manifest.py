@@ -45,7 +45,7 @@ def plan(root):
         raise ValueError('Incomplete declaration coverage')
     dump(root / 'module-plan.json', dict(lean_version='4.33.1', declaration_records=total,
          original_solution_zst_sha256='61a8938ad5f5e57397c1c0e3b954916af546d9004ade01c3555744a681b05381',
-         challenge=read(root / 'guarded/preservation.json'), modules=entries))
+         challenge=read(root / 'protected/index/preservation.json'), modules=entries))
 
 
 def encode(root, i):
