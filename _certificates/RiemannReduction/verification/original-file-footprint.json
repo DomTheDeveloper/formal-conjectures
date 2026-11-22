@@ -1,0 +1,12 @@
+{
+  "upstream_commit": "40e56bab026552e089d7afcfeff08d2defb9c005",
+  "catalog_sha256": "28e2367d1a48ef51f82bf6e42fe1bddbc12f9778bf62846168b1b06ec75947c5",
+  "original_lean_files": 175187,
+  "original_lean_lines": 17374215,
+  "catalog_rows": 1484733,
+  "referenced_project_constants": 1270184,
+  "files_supplying_a_referenced_constant": 146440,
+  "lines_in_those_original_files": 15027884,
+  "other_original_files": 28747,
+  "lines_in_other_original_files": 2346331
+}
