@@ -1,0 +1,59 @@
+name: Rebuild a closed source sample from the smallest RH archive in stock Lean
+on:
+  push:
+    branches: [rh/trim-reflection-imports]
+    paths: ['_certificates/RiemannReduction/shortest-sample/**', '.github/workflows/rh-smallest-source-sample.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      LAKE_ARTIFACT_CACHE: 'false'
+      LEAN_ABORT_ON_PANIC: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare two source-only copies of the 256-module project
+        run: |
+          set -euo pipefail
+          bash _certificates/RiemannReduction/module_runner.sh space
+          bash _certificates/RiemannReduction/module_runner.sh lean
+          w="$RUNNER_TEMP"
+          git init -q "$w/upstream"
+          git -C "$w/upstream" fetch -q --depth=1 https://github.com/leanprover-community/riemann-hypothesis 40e56bab026552e089d7afcfeff08d2defb9c005
+          git -C "$w/upstream" checkout -q --detach FETCH_HEAD
+          cd "$w/upstream"
+          "$HOME/.elan/bin/lake" exe cache get
+          curl -fsSL --retry 4 https://github.com/DomTheDeveloper/formal-conjectures/releases/download/rh-source-b168cea4599a/Riemann_Combined_Source.tar.zst -o "$w/project.tar.zst"
+          python3 "$GITHUB_WORKSPACE/_certificates/RiemannReduction/shortest-sample/prepare.py" "$PWD" "$w/project.tar.zst" "$w/sample"
+      - name: Build every original file in the selected closure
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/sample/original"
+          test ! -d .lake/build
+          lake --no-cache build +Main:olean 2>&1 | tee "$RUNNER_TEMP/sample/original.log"
+      - name: Rebuild every dependency and all 104 changed proof sources from the distributed archive
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/sample/shortened"
+          test ! -d .lake/build
+          lake --no-cache build +Main:olean 2>&1 | tee "$RUNNER_TEMP/sample/shortened.log"
+      - name: Kernel-replay every changed module and compare all its original public declarations
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/sample/shortened"
+          lake env python3 "$GITHUB_WORKSPACE/_certificates/RiemannReduction/shortest-sample/check.py" "$RUNNER_TEMP/sample"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Riemann_Smallest_Closed_Source_Check
+          path: |
+            ${{ runner.temp }}/sample/original.log
+            ${{ runner.temp }}/sample/shortened.log
+            ${{ runner.temp }}/sample/selection.json
+            ${{ runner.temp }}/sample/verdict.json
+            ${{ runner.temp }}/sample/public-comparisons.jsonl
+          if-no-files-found: warn
+          retention-days: 90
