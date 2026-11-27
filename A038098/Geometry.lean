@@ -42,7 +42,7 @@ theorem width_geometry {m d : ℝ} (hm : 2000000 ≤ m)
     dsimp [y,x]
     nlinarith only [dsmall,m2,hm]
   have rp : 0<x-d := by nlinarith only [m3,dsmall,sq_pos_of_pos hm0]
-  have upper : y+d ≤ 1.000002*x := by linarith only [diff,m3]
+  have upper : y+d ≤ 1.000002*x := by linarith only [diff,m3,sq_nonneg m]
   have lroot : 0.99999*s ≤ √(x-d) := le_sqrt_of_sq_le (by
     nlinarith only [hs2,m3,dsmall,hx0.le])
   have uroot : √(y+d) ≤ 1.000001*s := by

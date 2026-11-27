@@ -30,15 +30,20 @@ private theorem head_value (m : ℝ) {a b : ℝ} (ha : 0<a) (hab : a≤b) :
       HasDerivAt (fun v : ℝ => -m*v⁻¹) (m/t^2) t := by
     rw [uIcc_of_le hab] at ht
     have ht0 := (ha.trans_le ht.1).ne'
-    convert! (hasDerivAt_inv ht0).const_mul (-m) using 1 <;> first | rfl | (try dsimp; try field_simp [ht0]; ring)
+    have he : m/t^2 = -m * -(t^2)⁻¹ := by simp [div_eq_mul_inv]
+    rw [he]
+    exact (hasDerivAt_inv ht0).const_mul (-m)
   rw [intervalIntegral.integral_eq_sub_of_hasDerivAt der
     ((intervalIntegrable_iff_integrableOn_Ioc_of_le hab).2 (head_integrable _ ha))]
   ring
 
 private theorem tail_der (m B : ℝ) {t : ℝ} (ht : 0<t) :
     HasDerivAt (fun v : ℝ => -(m*B)*(v^2)⁻¹) (m*(2*B/t^3)) t := by
-  convert! ((hasDerivAt_pow 2 t).inv (by positivity)).const_mul (-(m*B)) using 1 <;>
-    first | rfl | (try dsimp; try field_simp [ht.ne']; ring)
+  have he : m*(2*B/t^3) = -(m*B)*(-(2*t^1)/(t^2)^2) := by
+    field_simp [ht.ne']
+    ring
+  rw [he]
+  convert! ((hasDerivAt_pow 2 t).inv (by positivity)).const_mul (-(m*B)) using 1 <;> simp
 
 private theorem tail_lim (m B : ℝ) :
     Tendsto (fun v : ℝ => -(m*B)*(v^2)⁻¹) atTop (𝓝 0) := by
