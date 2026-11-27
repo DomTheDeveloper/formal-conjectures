@@ -42,7 +42,8 @@ $$
 for all $n > 5040$, where $\gamma$ is the Euler-Mascheroni constant and $\sigma(n)$ is
 the sum of divisors.
 -/
-@[category research solved, AMS 11]
+@[category research solved, AMS 11, formal_proof using lean4 at
+  "https://palomar-registry.org/entry.html?id=PALOMAR-2026-09-14-000007&version=1"]
 theorem robin_criterion :
     RiemannHypothesis ↔ ∀ n > 5040, σ 1 n < (exp eulerMascheroniConstant) * n * log (log n) := by
   sorry
