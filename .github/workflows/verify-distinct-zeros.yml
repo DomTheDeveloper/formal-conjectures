@@ -1,0 +1,32 @@
+name: Verify the distinct-zero theorem
+on:
+  push:
+    branches: [proof/riemann-zeta-distinct-dyadic-85]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  kernel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned proof environment and check the theorem
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Reclaim space on the ephemeral hosted runner for the exported kernel proof.
+          if (( $(df --output=avail -BG "$RUNNER_TEMP" | tail -1 | tr -dc '0-9') < 32 )); then
+            sudo rm -rf /usr/local/lib/android/sdk
+          fi
+          work="$RUNNER_TEMP/distinct-zeros"
+          mkdir "$work"
+          cd "$work"
+          url=https://raw.githubusercontent.com/josusanmartin/riemann/6b22d6acb9f5f21043e56c81d75a702d86d4633d
+          curl -fsSLO "$url/boat/compact/install-toolchain.sh"
+          curl -fsSLO "$url/boat/compact/install-runtime.sh"
+          curl -fsSLO "$url/challenge/compact-runtime.json"
+          bash install-toolchain.sh "$work/lean"
+          bash install-runtime.sh "$work/runtime" "$work/compact-runtime.json"
+          export PATH="$work/lean/bin:$PATH"
+          bash "$GITHUB_WORKSPACE/Proofs/DistinctZeros/verify.sh" "$work/runtime"
