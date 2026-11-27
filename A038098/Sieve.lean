@@ -146,7 +146,8 @@ theorem byteWeight_eq (n : ℕ) : byteWeight n = Nat.count (fun i => n.testBit i
   apply count_congr_below
   intro i hi
   change (n % (2^8)).testBit i = true ↔ _
-  simp [Nat.testBit_mod_two_pow,hi]
+  rw [Nat.testBit_mod_two_pow]
+  simp [hi]
 
 def weight : ℕ → ℕ → ℕ
   | 0,n => byteWeight n
@@ -165,6 +166,7 @@ theorem weight_eq (d n : ℕ) : weight d n = Nat.count (fun i => n.testBit i = t
     · apply count_congr_below
       intro i hi
       change (n % (1 <<< half)).testBit i = true ↔ _
+      change i < half at hi
       simp [Nat.shiftLeft_eq, Nat.testBit_mod_two_pow, hi]
     · simp [half,Nat.testBit_shiftRight]
 
@@ -176,10 +178,7 @@ theorem prefixWeight_eq {d w : ℕ} (hw : w ≤ 8 <<< d) (mask : ℕ) :
   obtain ⟨t, ht⟩ := Nat.exists_eq_add_of_le hw
   rw [ht,Nat.count_add]
   have he : Nat.count (fun k => (mask % (1 <<< w)).testBit (w+k) = true) t = 0 := by
-    suffices h : (fun k => (mask % (1 <<< w)).testBit (w+k) = true) = (fun _ : ℕ => False) by
-      rw [h]; simp [Nat.count]
-    funext k; apply propext
-    simp [Nat.shiftLeft_eq, Nat.testBit_mod_two_pow]
+    simp [Nat.count_eq_card_filter_range, Nat.shiftLeft_eq, Nat.testBit_mod_two_pow]
   rw [he,Nat.add_zero]
   apply count_congr_below
   intro i hi
@@ -196,7 +195,8 @@ theorem blockCount_eq {d b start width : ℕ} (hw : width ≤ 8 <<< d) (hb : b <
     (f := fun i => (compositeMask start width (primeList b)).testBit i = true)
     (fun i hi => by
       have hm := mask_prime hb hstart hu hi
-      cases (compositeMask start width (primeList b)).testBit i <;> simp_all)
+      rw [← hm]
+      cases (compositeMask start width (primeList b)).testBit i <;> decide)
   rw [hc]
   simp only [Nat.count_eq_card_filter_range]
   have h := Finset.card_filter_add_card_filter_not (s := Finset.range width) (p := fun i => (start+i).Prime)
