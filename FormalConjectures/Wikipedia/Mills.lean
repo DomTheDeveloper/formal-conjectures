@@ -79,6 +79,47 @@ theorem irrational {A} (hA : IsMinMills A) :
     Irrational A := by
   sorry
 
+/-- If the integers from `m³` to `p - 1` are all composite, a prime floor of
+`x³` with `m ≤ x` must be at least `p`. -/
+@[category API, AMS 11]
+private theorem prime_cube_floor_lower {x : ℝ} {m p : ℕ} (hm : (m : ℝ) ≤ x)
+    (hp : (⌊x ^ 3⌋₊).Prime) (gap : ∀ k : ℕ, m ^ 3 ≤ k → k < p → ¬k.Prime) :
+    (p : ℝ) ≤ x ^ 3 := by
+  have hfloor : m ^ 3 ≤ ⌊x ^ 3⌋₊ := Nat.le_floor (by
+    push_cast
+    exact pow_le_pow_left₀ (Nat.cast_nonneg m) hm 3)
+  have hp' : p ≤ ⌊x ^ 3⌋₊ := le_of_not_gt (fun h => gap _ hfloor h hp)
+  exact (Nat.cast_le.mpr hp').trans (Nat.floor_le (pow_nonneg ((Nat.cast_nonneg m).trans hm) 3))
+
+/-- Every Mills number greater than one exceeds the lower endpoint of
+Caldwell and Cheng's ten-decimal interval. -/
+@[category API, AMS 11]
+theorem lower_bound_of_isMills {A : ℝ} (hA : 1 < A) (h : IsMills A) : 1.3063778838 < A := by
+  have hp (n : ℕ+) := Nat.prime_iff.mpr (h n)
+  have h3 : (2 : ℝ) ≤ A ^ 3 :=
+    (Nat.cast_le.mpr (hp 1).two_le).trans (Nat.floor_le (by positivity))
+  have h9 : (11 : ℝ) ≤ (A ^ 3) ^ 3 := by
+    apply prime_cube_floor_lower (m := 2) (p := 11) h3
+    · simpa only [← pow_mul] using hp 2
+    · intro k hk hlt
+      norm_num at hk
+      interval_cases k <;> norm_num1
+  have h27 : (1361 : ℝ) ≤ ((A ^ 3) ^ 3) ^ 3 := by
+    apply prime_cube_floor_lower (m := 11) (p := 1361) h9
+    · simpa only [← pow_mul] using hp 3
+    · intro k hk hlt
+      norm_num at hk
+      interval_cases k <;> norm_num1
+  have h81 : (2521008887 : ℝ) ≤ (((A ^ 3) ^ 3) ^ 3) ^ 3 := by
+    apply prime_cube_floor_lower (m := 1361) (p := 2521008887) h27
+    · simpa only [← pow_mul] using hp 4
+    · intro k hk hlt
+      norm_num at hk
+      interval_cases k <;> norm_num1
+  simp only [← pow_mul] at h81
+  apply lt_of_pow_lt_pow_left₀ 81 (by linarith)
+  exact (by norm_num : (1.3063778838 : ℝ) ^ 81 < 2521008887).trans_le h81
+
 /--
 **Mills' constant lower bound** (Caldwell–Cheng, 2005): assuming the Riemann hypothesis,
 Mills' constant begins at $1.3063778838\ldots$.
