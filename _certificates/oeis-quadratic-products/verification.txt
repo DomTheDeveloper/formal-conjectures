@@ -1,0 +1,25 @@
+Lean (version 4.33.1, x86_64-unknown-linux-gnu, commit 819816b2e0a3bf405af45ae5c7af2491d8f5bee6, Release)
+mathlib 0df444a360eaa60ab8c11dca51a86af692955474
+
+$ lake --no-cache --wfail build
+ℹ [1486/1488] Built QuadraticDivisors (4.4s)
+info: QuadraticDivisors.lean:197:0: 'QuadraticDivisors.triangular_factor' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: QuadraticDivisors.lean:198:0: 'QuadraticDivisors.nonzero_multiple' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: QuadraticDivisors.lean:199:0: 'QuadraticDivisors.valuation_at_divisor' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: QuadraticDivisors.lean:200:0: 'QuadraticDivisors.evaluate_block' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: QuadraticDivisors.lean:201:0: 'QuadraticDivisors.prime_divides_some_term' depends on axioms: [propext, Classical.choice, Quot.sound]
+ℹ [1487/1488] Built RealPrimeLists (13s)
+info: RealPrimeLists.lean:173:0: 'QuadraticDivisors.finite_test' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: RealPrimeLists.lean:174:0: 'QuadraticDivisors.missing_prime_139' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: RealPrimeLists.lean:175:0: 'QuadraticDivisors.prefix_A363409' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: RealPrimeLists.lean:176:0: 'QuadraticDivisors.prefix_A363413' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: RealPrimeLists.lean:177:0: 'QuadraticDivisors.corrected_prefix_A363415' depends on axioms: [propext, Classical.choice, Quot.sound]
+Build completed successfully (1488 jobs).
+
+$ python3 check.py
+d=5, p=139, n=138: (2, 0, 20)
+d=5, p=139, n=139: (2, 0, 40)
+A363409, primes through 101: [2, 5, 13, 23, 29, 31, 47, 53, 61, 71, 101]
+A363413, primes through 79: [2, 3, 11, 19, 23, 31, 47, 59, 67, 71, 79]
+A363415, primes through 197: [5, 11, 13, 31, 53, 79, 97, 113, 137, 139, 157, 179, 193, 197]
+Exact-integer triangular-factor checks passed for d = 2..9 and n = 1..200.
