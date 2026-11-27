@@ -4,14 +4,14 @@ The real-part sequence OEIS A363415 has a missing prime in its conjectured list.
 
     5, 11, 13, 31, 53, 79, 97, 113, 137, 139, 157, 179, 193, 197.
 
-The same proof project verifies two other conjectured prefixes and answers the prime-divisor question in four companion entries.
+The same proof project verifies two other conjectured prefixes and answers the prime-divisor question in four companion entries. A further theorem settles the proposed oscillating prime classes for A363410 under the explicit interpretation below.
 
 ## Reproduce the results
 
 With Lean's Elan toolchain manager installed, extract the archive and run these commands from the directory containing this file. The manifest pins all Lake dependencies.
 
 ```sh
-lake exe cache get Mathlib.NumberTheory.Zsqrtd.Basic Mathlib.NumberTheory.Padics.PadicVal.Basic Mathlib.Tactic.LinearCombination Mathlib.Tactic.Linarith Mathlib.Tactic.Ring Mathlib.Algebra.Field.ZMod
+lake exe cache get Mathlib.NumberTheory.Zsqrtd.Basic Mathlib.NumberTheory.Padics.PadicVal.Basic Mathlib.Tactic.LinearCombination Mathlib.Tactic.Linarith Mathlib.Tactic.Ring Mathlib.Algebra.Field.ZMod Mathlib.NumberTheory.LegendreSymbol.QuadraticReciprocity Mathlib.Tactic.FieldSimp
 lake --wfail build
 python3 check.py
 ```
@@ -28,6 +28,7 @@ Set ω² = −d. Define A(d,n) and B(d,n) by expanding the product of (1 + kω) 
 | [A363413](https://oeis.org/A363413), real coordinate at d = 4 | Its proposed list is exact through 79. |
 | [A363415](https://oeis.org/A363415), real coordinate at d = 5 | The corrected list above includes precisely the primes through 197 that divide no term. |
 | [A363410](https://oeis.org/A363410), [A363412](https://oeis.org/A363412), [A363414](https://oeis.org/A363414), [A363416](https://oeis.org/A363416) | For d = 2, 3, 4, 5 respectively, every positive m divides the nonzero term B(d,2m). The theorem holds for every integer d ≥ 2. |
+| [A363410](https://oeis.org/A363410), type 3 primes | Exactly p = 2 and the primes p ≡ 5 or 7 modulo 8 exhibit the oscillation defined below. |
 
 ### The general divisor theorem
 
@@ -41,12 +42,24 @@ The search scans the primes up to 197 and uses the recurrence (a,b) ↦ (a − d
 
 For p = 139 the shorter block of 139 suffices. After 138 steps the residues (a,b) are (2,0), and the product of the real residues at indices 0 through 138 is 20 modulo 139. The next factor is 1 modulo 139. Hence A(5,139q+r) = 2^q A(5,r) modulo 139 for 0 ≤ r < 139. This proves nondivisibility at all indices.
 
+### Which primes oscillate in A363410?
+
+The OEIS entry describes type 3 as oscillatory and explicitly leaves that word undefined. Here it means that every tail contains both a term coprime to p and nonzero terms divisible by arbitrarily high powers of p. For any fixed prime power p^e, the triangular-factor theorem gives arbitrarily late nonzero multiples of p^e.
+
+Each factor at k has norm 1 + dk². If this polynomial has no root modulo p, every product has nonzero norm there. At an index n = 2m with p dividing m, its imaginary coordinate vanishes modulo p. Its real coordinate is therefore nonzero. The next factor has coordinates (1,1) modulo p, so B(d,n+1) is nonzero modulo p. These adjacent indices give both sides of the claimed oscillation.
+
+If the polynomial has a root, a factor with zero norm occurs within the first 2p indices. At index 2p the imaginary coordinate is already zero modulo p. The norm is zero as well, forcing the real coordinate to vanish. All subsequent products have both coordinates zero modulo p.
+
+For d = 2 and p odd, a root exists exactly when −2 is a quadratic residue. The supplementary law of quadratic reciprocity gives p ≡ 1 or 3 modulo 8 in this case. At p = 2 the polynomial is constantly 1. This proves the stated list. The separate OEIS conjecture about the asymptotic slope for split primes remains open here.
+
 ## Files
 
 | File | Contents |
 | --- | --- |
 | QuadraticDivisors.lean | Quadratic-integer model, evaluation as a finite product, triangular factor, explicit nonzero multiple and valuation formula |
 | RealPrimeLists.lean | Reduction to a finite test, certificate for 139, three exact prime lists |
+| Oscillation.lean | General finite-field criterion and the complete type-3 prime classification for A363410 |
+| OeisSolutions.lean | Finite-product versions of the statements for A363410 and A363415 |
 | check.py | Modular certificates, prime enumeration and sample exact-integer checks |
 | verification.txt | Toolchain, dependency revision and axiom output from the proof check |
 

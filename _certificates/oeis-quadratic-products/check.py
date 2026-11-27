@@ -56,3 +56,15 @@ if __name__ == "__main__":
             triangle = n * (n + 1) // 2
             assert b != 0 and (b - triangle) % (d * triangle) == 0
     print("Exact-integer triangular-factor checks passed for d = 2..9 and n = 1..200.")
+
+    for p in filter(is_prime, range(2, 60)):
+        has_root = any((1 + 2 * r * r) % p == 0 for r in range(p))
+        assert (not has_root) == (p == 2 or p % 8 in (5, 7))
+        if has_root:
+            assert certificate(2, p, 2 * p)[:2] == (0, 0)
+        else:
+            for exponent in (1, 2):
+                m = p ** exponent
+                assert certificate(2, m, 2 * m)[1] == 0
+                assert certificate(2, p, 2 * m + 1)[1] != 0
+    print("A363410 oscillation witnesses and the complementary zero blocks agree for every prime below 60.")

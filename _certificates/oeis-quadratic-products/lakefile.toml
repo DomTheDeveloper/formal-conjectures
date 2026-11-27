@@ -1,6 +1,6 @@
 name = "quadraticProductProofs"
 version = "1.0.0"
-defaultTargets = ["RealPrimeLists"]
+defaultTargets = ["OeisSolutions"]
 
 [[require]]
 name = "mathlib"
@@ -13,3 +13,9 @@ name = "QuadraticDivisors"
 
 [[lean_lib]]
 name = "RealPrimeLists"
+
+[[lean_lib]]
+name = "Oscillation"
+
+[[lean_lib]]
+name = "OeisSolutions"
