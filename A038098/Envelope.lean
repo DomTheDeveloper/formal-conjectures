@@ -10,7 +10,7 @@ public section
 namespace Sun.CubeAnalytic
 open Real
 
-def ExplicitPsi : Prop :=
+@[expose] def ExplicitPsi : Prop :=
   ∀ z : ℝ, 10^10 ≤ z →
     |Chebyshev.psi z - z| ≤ √z * (log z ^ 2 / (8 * π) - 0.2985 * log z + 4.62)
 

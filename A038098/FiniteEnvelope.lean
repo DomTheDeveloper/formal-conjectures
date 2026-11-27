@@ -8,7 +8,7 @@ open Real
 
 /-- Büthe's finite ψ estimate is needed only at or above 1500. The same
 interface is supplied below 10^10 by the stronger four-fifths certificate. -/
-def FinitePsi (B : ℝ) : Prop :=
+@[expose] def FinitePsi (B : ℝ) : Prop :=
   ∀ z : ℝ, 1500 ≤ z → z ≤ B → |Chebyshev.psi z-z| ≤ 0.94*√z
 
 private theorem log_le_point38_sqrt {m : ℝ} (hm : 200 ≤ m) : log m ≤ 0.38*√m := by

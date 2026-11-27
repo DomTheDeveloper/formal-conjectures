@@ -38,7 +38,7 @@ theorem smoothed_of_integer_zero_sum {n d : ℕ} (hd : 1≤d) (hxd : d<n^3)
       (d:ℝ)*(√((n:ℝ)^3)*errorCoeff (log ((n:ℝ)^3)) - d)) :
     SmoothedBound n := by
   have hd0 : 0<(d:ℝ) := by exact_mod_cast (show 0 < d by omega)
-  have hy : 1 ≤ (n+1)^3 := by positivity
+  have hy : 1 ≤ (n+1)^3 := Nat.succ_le_of_lt (pow_pos (Nat.succ_pos n) _)
   have H := integer_four_point
     (F := fun m : ℕ => ∫ t in (1:ℝ)..(m:ℝ), Chebyshev.psi t) hF hE hd hxd hy
   have hgain : (|Z ((n+1)^3+d)-Z ((n+1)^3)-Z (n^3)+Z (n^3-d)|+3)/(d:ℝ) ≤

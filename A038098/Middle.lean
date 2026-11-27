@@ -7,14 +7,14 @@ namespace Sun.CubeAnalytic
 open Real
 
 /-- Coefficient of √x in the paper's proposed upper bound for the smoothed increment. -/
-noncomputable def errorCoeff (t : ℝ) : ℝ :=
+@[expose] noncomputable def errorCoeff (t : ℝ) : ℝ :=
   let u := t/3 + log (2.01/(3.01*(2*π)))
   let v := t/2 + log (0.671/(2.01*(2*π)))
   6.01 + 2.01/(2*π)*(v^2-u^2+2*v+2*u)
 
 /-- The remaining analytic estimate for this cube. The smoothing width is free, so it may
 be chosen integral when applying the integer integrated explicit formula. -/
-def SmoothedBound (n : ℕ) : Prop :=
+@[expose] def SmoothedBound (n : ℕ) : Prop :=
   let x : ℝ := (n:ℝ)^3
   let y : ℝ := ((n:ℝ)+1)^3
   let F := fun z : ℝ => ∫ u in (1:ℝ)..z, Chebyshev.psi u
