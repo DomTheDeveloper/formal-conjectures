@@ -87,11 +87,19 @@ theorem conjecture3 (p : ℕ) (hp : OeisA3625.A p) :
     a ((p ^ 2 - 1) / 2) ≡ p ^ 2 [MOD p ^ 4] := by
   sorry
 
+set_option linter.style.formal_proof_palomar false in
 /--
 Conjecture 4 (Peter Bala, 2024):
 If $n$ is a product of distinct primes from A003625 then $a((n-1)/2)$ is divisible by $n^2$.
+
+Formalized by eliayousf using Codex in Open Math Agents. @domthedeveloper's two-block proof,
+formalized with Codex, reuses the first two half-block congruences from that formalization.
 -/
-@[category research open, AMS 11]
+@[category research solved, AMS 11,
+  formal_proof using lean4 at
+    "https://github.com/GuillaumeBAUD-coder/open-math-agents/blob/f225addc007b9fb3e162bc5618bb84fa10f502e2/proofs/OeisA79727.conjecture4.lean#L1688",
+  formal_proof using lean4 at
+    "https://github.com/DomTheDeveloper/ProofPlaygrond/blob/0da6b18a392489b266c662c5f863222b59e9c270/proofs/oeis-a079727/Complete.lean#L25"]
 theorem conjecture4 (S : Finset ℕ) (hS : ∀ p ∈ S, OeisA3625.A p) :
     (∏ p ∈ S, p) ^ 2 ∣ a ((∏ p ∈ S, p - 1) / 2) := by
   sorry
