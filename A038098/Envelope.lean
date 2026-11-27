@@ -163,7 +163,7 @@ private theorem range_bound {n : ℕ} (hn : 6000000 ≤ n) (hΨ : ExplicitPsi) {
     apply (lt_div_iff₀ (show 0 < log (x:ℝ) by linarith)).2
     nlinarith only [hp,gap]
   apply lt_of_le_of_lt increment
-  calc _ < ((y:ℝ)-x) + ((y:ℝ)-x)*0.998/log (x:ℝ) := add_lt_add_left gain _
+  calc _ < ((y:ℝ)-x) + ((y:ℝ)-x)*0.998/log (x:ℝ) := by linarith only [gain]
        _ = _ := by ring
 
 /-- The published explicit ψ estimate suffices for four million consecutive cube comparisons.
