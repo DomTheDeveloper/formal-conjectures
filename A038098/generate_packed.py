@@ -66,8 +66,10 @@ def emit():
         if cube <= BOUND:
             if cube != BOUND:
                 out += [f"theorem pi_{cube} : Nat.primeCounting {cube} = {sum(prime[:cube+1])} := by",
-                        f"  rw [primeCounting_eq_length,primeList_eq_trial (q := {isqrt(cube)}) (by decide)]",
+                        f"  rw [primeCounting_prefix (b := {BOUND}) (by decide),list_ok]",
                         "  decide +kernel", ""]
+                save(f"Small{n:03}",out)
+                out = next_file()
             continue
         while a < cube:
             b = min(a + BLOCK, cube)
@@ -77,18 +79,17 @@ def emit():
             mask = composite_bits(block)
             total = count + block.count(1)
             assert mask.bit_count() + total-count == width
-            out += [f"theorem pi_{b} : Nat.primeCounting {b} = {total} := by",
-                    f"  apply extend_to (a := {a}) (v := {count}) (width := {width}) (stop := {b})",
-                    f"    (b := {BOUND}) (r := 16) (t := {words}) (total := {total}) (by decide) pi_{a}",
-                    "    (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)",
-                    "  unfold packedBlockCount",
-                    "  rw [list_ok]",
-                    f"  have hm : (compositeMask ({a}+1) {width} divisors) % (1 <<< {width}) = {hex(mask)} := by decide +kernel",
-                    "  rw [hm]",
-                    "  decide +kernel", ""]
+            out += [f"private theorem mask_{b} : compositeMask ({a}+1) {width} divisors % (1<<<{width}) = {hex(mask)} :=",
+                    "  by decide +kernel",
+                    f"private theorem count_{b} : {width}-addLanes 16 {words} {hex(mask)} 16+{count}={total} :=",
+                    "  by decide +kernel",
+                    f"theorem pi_{b} : Nat.primeCounting {b} = {total} :=",
+                    f"  extend_certificate (a := {a}) (v := {count}) (width := {width}) (stop := {b})",
+                    f"    (b := {BOUND}) (r := 16) (t := {words}) (total := {total}) (by decide) pi_{a} list_ok",
+                    f"    (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) mask_{b} count_{b}", ""]
             count, a = total, b
             block_number += 1
-            if block_number % 3 == 0 or b == cube:
+            if block_number % 2 == 0 or b == cube:
                 save(f"Block{block_number:03}", out)
                 out = next_file()
     out += ["def Cube (n : ℕ) : Prop := (((n+1)^3).primeCounting : ℚ) / (((n+1)^3:ℕ):ℚ) <",

@@ -60,4 +60,47 @@ theorem extend_to {a v width r t b total stop : ℕ} (he : a+width = stop)
   rw [← he]
   exact primeCounting_extend_packed ha hr ht hw hb hs hu hc
 
+/-- Restrict a single verified divisor table to an earlier endpoint. -/
+theorem primeList_succ (n : ℕ) :
+    primeList (n+1) = primeList n ++ (if (n+1).Prime then [n+1] else []) := by
+  unfold primeList
+  rw [List.range_succ (n+1),List.filter_append]
+  split_ifs with h <;> simp [h]
+
+theorem primeCounting_prefix {a b : ℕ} (hab : a≤b) :
+    a.primeCounting = ((primeList b).filter (fun i => decide (i≤a))).length := by
+  rw [primeCounting_eq_length]
+  congr 1
+  symm
+  induction b, hab using Nat.le_induction with
+  | base =>
+    apply List.filter_eq_self.2
+    intro i hi
+    exact decide_eq_true ((mem_primeList _ _).1 hi).1
+  | succ b hab ih =>
+    rw [primeList_succ,List.filter_append,ih]
+    have hn : ¬b+1≤a := by omega
+    split_ifs <;> simp [hn]
+
+def addLanes (r t x : ℕ) : ℕ → ℕ
+  | 0 => 0
+  | j+1 => addLanes r t x j + laneFast r t (x>>>j)
+
+theorem addLanes_eq (r t x n : ℕ) :
+    addLanes r t x n = ∑ j ∈ Finset.range n, laneFast r t (x>>>j) := by
+  induction n with
+  | zero => simp [addLanes]
+  | succ j ih => rw [addLanes,Finset.sum_range_succ,ih]
+
+theorem extend_certificate {a v width r t b total stop mask : ℕ} {ps : List ℕ}
+    (he : a+width=stop) (ha : a.primeCounting=v) (hp : primeList b=ps)
+    (hr : 0<r) (ht : t<2^r-1) (hw : width≤r*t) (hb : b<a+1)
+    (hs : 2≤a+1) (hu : a+1+width≤(b+1)^2)
+    (hm : compositeMask (a+1) width ps % (1<<<width) = mask)
+    (hc : width-addLanes r t mask r+v=total) : stop.primeCounting=total := by
+  apply extend_to he ha hr ht hw hb hs hu
+  unfold packedBlockCount wideWeight
+  rw [hp,hm,← addLanes_eq]
+  exact hc
+
 end Sun.CubeSieve
