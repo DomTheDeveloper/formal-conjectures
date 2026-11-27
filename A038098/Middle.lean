@@ -26,7 +26,7 @@ theorem middle_cube_of_smoothed (hΨ : ExplicitPsi) {n : ℕ} (hn : 2 ≤ n)
       ((n^3).primeCounting : ℚ) / ((n^3:ℕ):ℚ) := by
   let x : ℕ := n^3
   let y : ℕ := (n+1)^3
-  have hx : 1 < x := by dsimp [x]; nlinarith
+  have hx : 1 < x := lt_of_lt_of_le (by decide : 1 < (2:ℕ)^3) (Nat.pow_le_pow_left hn 3)
   have xy : x < y := Nat.pow_lt_pow_left (Nat.lt_succ_self _) (by decide)
   have xpos : 0 < (x:ℝ) := by exact_mod_cast (show 0 < x by omega)
   have npos : (0:ℝ) < n := by exact_mod_cast (show 0 < n by omega)
@@ -36,8 +36,8 @@ theorem middle_cube_of_smoothed (hΨ : ExplicitPsi) {n : ℕ} (hn : 2 ≤ n)
   have hL : 0 < log (x:ℝ) := by linarith
   have hxsize : 10^15 ≤ (x:ℝ)/1024 := by
     have h42 : 1024*(10:ℝ)^15 ≤ exp 42 := calc
-      _ ≤ 2.71828^42*(1+0/32)^32 := by norm_num
-      _ ≤ _ := by convert exp_lower 42 (f := 0) (by norm_num) using 1; norm_num
+      1024*(10:ℝ)^15 ≤ (2.71828:ℝ)^42*(1+0/32)^32 := by norm_num
+      _ ≤ exp 42 := by convert exp_lower 42 (f := 0) (by norm_num) using 1; norm_num
     have he := exp_le_exp.mpr (show 42 ≤ log (x:ℝ) by linarith)
     rw [exp_log xpos] at he
     linarith
@@ -51,6 +51,7 @@ theorem middle_cube_of_smoothed (hΨ : ExplicitPsi) {n : ℕ} (hn : 2 ≤ n)
     explicit_formula_margin ht (by linarith)
   have he3 : exp (log (x:ℝ)/3) = (n:ℝ) := by
     rw [xc,log_pow]
+    push_cast
     rw [show (3:ℝ)*log n/3=log n by ring, exp_log npos]
   have hs : √(x:ℝ)*exp (log (x:ℝ)/6) = (n:ℝ)^2 := calc
     _ = exp (log (x:ℝ)/2)*exp (log (x:ℝ)/6) := by rw [exp_half,exp_log xpos]
