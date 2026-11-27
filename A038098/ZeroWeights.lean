@@ -9,7 +9,7 @@ namespace Sun.CubeAnalytic
 open Real Set Filter MeasureTheory
 open scoped Topology
 
-noncomputable def ordinateWeight (A B u : ℝ) : ℝ :=
+@[expose] noncomputable def ordinateWeight (A B u : ℝ) : ℝ :=
   min (1/A) (min (1/u) (B/u^2))
 
 private noncomputable def midPiece (u m : ℝ) : ℝ → ℝ :=
@@ -30,17 +30,15 @@ private theorem head_value (m : ℝ) {a b : ℝ} (ha : 0<a) (hab : a≤b) :
       HasDerivAt (fun v : ℝ => -m*v⁻¹) (m/t^2) t := by
     rw [uIcc_of_le hab] at ht
     have ht0 := (ha.trans_le ht.1).ne'
-    convert (hasDerivAt_inv ht0).const_mul (-m) using 1
-    field_simp
+    convert! (hasDerivAt_inv ht0).const_mul (-m) using 1 <;> first | rfl | (try dsimp; try field_simp [ht0]; ring)
   rw [intervalIntegral.integral_eq_sub_of_hasDerivAt der
     ((intervalIntegrable_iff_integrableOn_Ioc_of_le hab).2 (head_integrable _ ha))]
   ring
 
 private theorem tail_der (m B : ℝ) {t : ℝ} (ht : 0<t) :
     HasDerivAt (fun v : ℝ => -(m*B)*(v^2)⁻¹) (m*(2*B/t^3)) t := by
-  convert ((hasDerivAt_pow 2 t).inv (by positivity)).const_mul (-(m*B)) using 1
-  field_simp
-  ring
+  convert! ((hasDerivAt_pow 2 t).inv (by positivity)).const_mul (-(m*B)) using 1 <;>
+    first | rfl | (try dsimp; try field_simp [ht.ne']; ring)
 
 private theorem tail_lim (m B : ℝ) :
     Tendsto (fun v : ℝ => -(m*B)*(v^2)⁻¹) atTop (𝓝 0) := by
@@ -83,8 +81,9 @@ private theorem pieces {u m A B : ℝ} (hu : 0<u) (hm : 0≤m) (ha : 0<A) (hab :
       rw [max_eq_right hbu,Ioc_eq_empty hl,Measure.restrict_empty,integral_zero_measure,zero_add,
         ordinateWeight,min_eq_right hshort,min_eq_right (hshort.trans (one_div_le_one_div_of_le ha hau))]
       field_simp
+      ring
 
-noncomputable def counted {ι : Type*} (S : Finset ι) (g m : ι → ℝ) (t : ℝ) : ℝ :=
+@[expose] noncomputable def counted {ι : Type*} (S : Finset ι) (g m : ι → ℝ) (t : ℝ) : ℝ :=
   ∑ i ∈ S, if g i<t then m i else 0
 
 /-- Any finite set of positive ordinates obeying the zero-count majorant
