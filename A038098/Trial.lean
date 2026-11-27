@@ -64,7 +64,7 @@ theorem extend_to {a v width r t b total stop : ℕ} (he : a+width = stop)
 theorem primeList_succ (n : ℕ) :
     primeList (n+1) = primeList n ++ (if (n+1).Prime then [n+1] else []) := by
   unfold primeList
-  rw [List.range_succ (n+1),List.filter_append]
+  rw [List.range_succ,List.filter_append]
   split_ifs with h <;> simp [h]
 
 theorem primeCounting_prefix {a b : ℕ} (hab : a≤b) :
