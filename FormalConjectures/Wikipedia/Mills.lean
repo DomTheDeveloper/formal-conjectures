@@ -100,19 +100,25 @@ theorem lower_bound_of_isMills {A : ℝ} (hA : 1 < A) (h : IsMills A) : 1.306377
     (Nat.cast_le.mpr (hp 1).two_le).trans (Nat.floor_le (by positivity))
   have h9 : (11 : ℝ) ≤ (A ^ 3) ^ 3 := by
     apply prime_cube_floor_lower (m := 2) (p := 11) h3
-    · simpa only [← pow_mul] using hp 2
+    · have hn := hp ⟨2, by decide⟩
+      change Nat.Prime ⌊A ^ (3 ^ (2 : ℕ))⌋₊ at hn
+      simpa only [← pow_mul, Nat.reduceMul, Nat.reducePow] using hn
     · intro k hk hlt
       norm_num at hk
       interval_cases k <;> norm_num1
   have h27 : (1361 : ℝ) ≤ ((A ^ 3) ^ 3) ^ 3 := by
     apply prime_cube_floor_lower (m := 11) (p := 1361) h9
-    · simpa only [← pow_mul] using hp 3
+    · have hn := hp ⟨3, by decide⟩
+      change Nat.Prime ⌊A ^ (3 ^ (3 : ℕ))⌋₊ at hn
+      simpa only [← pow_mul, Nat.reduceMul, Nat.reducePow] using hn
     · intro k hk hlt
       norm_num at hk
       interval_cases k <;> norm_num1
   have h81 : (2521008887 : ℝ) ≤ (((A ^ 3) ^ 3) ^ 3) ^ 3 := by
     apply prime_cube_floor_lower (m := 1361) (p := 2521008887) h27
-    · simpa only [← pow_mul] using hp 4
+    · have hn := hp ⟨4, by decide⟩
+      change Nat.Prime ⌊A ^ (3 ^ (4 : ℕ))⌋₊ at hn
+      simpa only [← pow_mul, Nat.reduceMul, Nat.reducePow] using hn
     · intro k hk hlt
       norm_num at hk
       interval_cases k <;> norm_num1
