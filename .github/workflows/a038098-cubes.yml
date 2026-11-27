@@ -1,0 +1,37 @@
+name: Verify A038098 cube cases
+on:
+  push:
+    branches: [verify/sun-a038098-cubes]
+    paths: ['A038098/**', '.github/workflows/a038098-cubes.yml']
+permissions:
+  contents: read
+concurrency:
+  group: a038098-cubes
+  cancel-in-progress: true
+jobs:
+  kernel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Install pinned Lean toolchain
+        run: |
+          curl -fsSL --retry 3 https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Fetch the required Mathlib modules
+        env:
+          MATHLIB_NO_CACHE_ON_UPDATE: 1
+        run: |
+          lake exe cache get Mathlib.NumberTheory.PrimeCounting Mathlib.Data.Nat.Bitwise Mathlib.Tactic.NormNum Mathlib.Tactic.Linarith Mathlib.Data.Rat.Cast.Order
+      - name: Verify the sieve
+        run: |
+          mkdir -p .lake/build/lib/lean/A038098
+          lake env lean -o .lake/build/lib/lean/A038098/Sieve.olean A038098/Sieve.lean
+      - name: Verify the cube inequalities and audit their axioms
+        run: |
+          set -eo pipefail
+          lake env lean --tstack=65536 -o .lake/build/lib/lean/A038098/Cases.olean A038098/Cases.lean | tee "$RUNNER_TEMP/axioms.log"
+          grep -F 'Sun.CubeSieve.cubes_141_to_160' "$RUNNER_TEMP/axioms.log"
+          if grep -E 'sorryAx|native_decide|ofReduceBool|trustCompiler' "$RUNNER_TEMP/axioms.log"; then exit 1; fi
