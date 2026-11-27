@@ -12,7 +12,7 @@ open Real
 imply the smoothing estimate for every intermediate cube. Both signs of the
 ordinates occur in z, and w records multiplicity. -/
 theorem smoothed_from_explicit_formula {ι : Type*} (z : ι → ℂ) (w : ι → ℝ)
-    (hz : ∀ i, (z i).re = 1/2) (hi : ∀ i, 0<|(z i).im|) (hw : ∀ i,0≤w i)
+    (hz : ∀ i, (z i).re = 1/2) (hi : ∀ i, 0 < |(z i).im|) (hw : ∀ i,0≤w i)
     (hS : ∀ k : ℕ, 1≤k → Summable (fun i => (w i:ℂ)*zeroKernel (z i) (k:ℝ)))
     {E : ℕ → ℝ} {c₁ c₀ : ℝ}
     (hF : ∀ k : ℕ, 1≤k → (∫ t in (1:ℝ)..(k:ℝ), Chebyshev.psi t) =

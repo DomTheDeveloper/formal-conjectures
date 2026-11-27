@@ -9,7 +9,7 @@ open Real
 
 /-- Scale the three bounds for one zero to the capped inverse-ordinate weight
 with cutoffs A=(2.01/3.01)m and B=(0.671/2.01)√(m³). -/
-theorem one_weight {z : ℂ} (hz : z.re=1/2) (hi : 0<|z.im|) {m d : ℝ}
+theorem one_weight {z : ℂ} (hz : z.re=1/2) (hi : 0 < |z.im|) {m d : ℝ}
     (hm : 2000000≤m) (hd : 6*√(m^3)≤d) (hu : d≤6*√(m^3)+1) :
     ‖fourKernel z (m^3-d) ((m+1)^3) d‖ ≤
     (d*√(m^3))*(2.01*ordinateWeight ((2.01/3.01)*m) ((0.671/2.01)*√(m^3)) |z.im|) := by
@@ -51,7 +51,7 @@ theorem one_weight {z : ℂ} (hz : z.re=1/2) (hi : 0<|z.im|) {m d : ℝ}
 /-- The four-point zero contribution is bounded by the integrated counting
 majorant. All ordinates and both signs may be supplied together. -/
 theorem zero_sum_for_cube {ι : Type*} (z : ι → ℂ) (w : ι → ℝ) {m d : ℝ}
-    (hz : ∀ i, (z i).re=1/2) (hi : ∀ i, 0<|(z i).im|) (hw : ∀ i,0≤w i)
+    (hz : ∀ i, (z i).re=1/2) (hi : ∀ i, 0 < |(z i).im|) (hw : ∀ i,0≤w i)
     (hm : 2000000≤m) (hd : 6*√(m^3)≤d) (hu : d≤6*√(m^3)+1)
     (hcount : ∀ (S : Finset ι) (t : ℝ), (2.01/3.01)*m≤t →
       counted S (fun i => |(z i).im|) (fun i => w i/2) t ≤ countMajorant t) :
