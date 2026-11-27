@@ -6,12 +6,14 @@ The generated file can be checked directly with lake env lean.
 """
 from math import isqrt
 from pathlib import Path
+import sys
 
 FIRST = 141
 LAST = 200
 BLOCK = 65_536
 LIMIT = (LAST + 1) ** 3
 BOUND = isqrt(LIMIT)
+DIR = Path("A038098/Certificate")
 SOURCE = Path("A038098/PackedCases.lean")
 
 def primes_up_to(limit):
@@ -31,6 +33,8 @@ def composite_bits(block):
     return int.from_bytes(packed, "little")
 
 def emit():
+    DIR.mkdir(parents=True, exist_ok=True)
+    modules = []
     prime = primes_up_to(LIMIT)
     ps = [p for p in range(2, BOUND + 1) if prime[p]]
     out = ["module", "public import A038098.Wide", "public import Mathlib.Data.Rat.Cast.Order",
@@ -39,9 +43,24 @@ def emit():
     # A literal divisor list avoids recomputing primality at each bit operation.
     out += [f"private def divisors : List ℕ := {ps}",
             f"private theorem list_ok : primeList {BOUND} = divisors := by decide +kernel", ""]
+    # Check the divisor enumeration and the starting count independently of the big masks.
+    out = [l.replace("private def divisors", "def divisors").replace("private theorem list_ok", "theorem list_ok") for l in out]
+    def save(name, lines):
+        path = DIR / (name + ".lean")
+        path.write_text("\n".join(lines + ["end Sun.PackedCases", ""]), encoding="utf-8")
+        modules.append(path)
+    def next_file():
+        return ["module", f"public import A038098.Certificate.{modules[-1].stem}", "public section",
+                "namespace Sun.PackedCases", "open Sun.CubeSieve",
+                "set_option maxRecDepth 100000", "set_option maxHeartbeats 0", ""]
+    save("Divisors", out)
+    out = next_file()
     a = BOUND
     count = len(ps)
-    out.extend([f"private theorem pi_{a} : Nat.primeCounting {a} = {count} := by decide +kernel", ""])
+    out.extend([f"theorem pi_{a} : Nat.primeCounting {a} = {count} := by decide +kernel", ""])
+    save("Base", out)
+    out = next_file()
+    block_number = 0
     for n in range(FIRST, LAST+2):
         cube = n**3
         while a < cube:
@@ -52,7 +71,7 @@ def emit():
             mask = composite_bits(block)
             total = count + block.count(1)
             assert mask.bit_count() + total-count == width
-            out += [f"private theorem pi_{b} : Nat.primeCounting {b} = {total} := by",
+            out += [f"theorem pi_{b} : Nat.primeCounting {b} = {total} := by",
                     f"  apply primeCounting_extend_packed (a := {a}) (v := {count}) (width := {width})",
                     f"    (b := {BOUND}) (r := 16) (t := {words}) (total := {total}) pi_{a}",
                     "    (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)",
@@ -62,6 +81,10 @@ def emit():
                     "  rw [hm]",
                     "  decide +kernel", ""]
             count, a = total, b
+            block_number += 1
+            if block_number % 3 == 0 or b == cube:
+                save(f"Block{block_number:03}", out)
+                out = next_file()
     out += ["def Cube (n : ℕ) : Prop := (((n+1)^3).primeCounting : ℚ) / (((n+1)^3:ℕ):ℚ) <",
             "  ((n^3).primeCounting : ℚ) / ((n^3:ℕ):ℚ)", ""]
     for n in range(FIRST, LAST+1):
@@ -76,6 +99,7 @@ def emit():
     out += [f"  · exact cube_{n}" for n in ns]
     out += ["", "end Sun.PackedCases", "#print axioms Sun.PackedCases.checked_cubes", ""]
     SOURCE.write_text("\n".join(out), encoding="utf-8")
+    (DIR / "modules.txt").write_text("\n".join(str(p) for p in modules) + "\n", encoding="utf-8")
 
 if __name__ == "__main__":
     emit()
