@@ -14,18 +14,8 @@ def ExplicitPsi : Prop :=
   ∀ z : ℝ, 10^10 ≤ z →
     |Chebyshev.psi z - z| ≤ √z * (log z ^ 2 / (8 * π) - 0.2985 * log z + 4.62)
 
-private theorem theta_lower (hΨ : ExplicitPsi) {z : ℝ} (hz : 10^16 ≤ z) (hlog : log z ≤ 50) :
-    0.99999*z ≤ Chebyshev.theta z := by
-  have hz1 : 1 ≤ z := by linarith
-  have hs := Real.sqrt_nonneg z
-  have hs8 : 100000000 ≤ √z := Real.le_sqrt_of_sq_le (by norm_num1 at hz ⊢; linarith)
-  have hL := Real.log_nonneg hz1
-  have hL2 := pow_le_pow_left₀ hL hlog 2
-  have hterm : log z ^ 2 / (8*π) - 0.2985*log z + 4.62 ≤ 105 := by
-    have : log z ^ 2 / (8*π) ≤ 100 := by rw [div_le_iff₀ (by positivity)]; linarith [pi_gt_d6]
-    linarith
-  have herr := (abs_le.mp (hΨ z (by linarith))).1
-  have hb := mul_le_mul_of_nonneg_left hterm hs
+/-- A concrete version of Mathlib's square-root bound for prime powers. -/
+theorem psi_sub_theta_eighteen {z : ℝ} (hz1 : 1 ≤ z) : Chebyshev.psi z-Chebyshev.theta z ≤ 18*√z := by
   have h4 : log 4 ≤ 2 := by
     rw [log_le_iff_le_exp (by norm_num)]
     rw [show (2:ℝ) = 1+1 by norm_num, exp_add]
@@ -41,15 +31,28 @@ private theorem theta_lower (hΨ : ExplicitPsi) {z : ℝ} (hz : 10^16 ≤ z) (hl
   have h2 := hpow (q := (2:ℝ)⁻¹) (by norm_num)
   have h3 := hpow (q := (3:ℝ)⁻¹) (by norm_num)
   have h5 := hpow (q := (5:ℝ)⁻¹) (by norm_num)
-  have ht := mul_nonneg (show 0 ≤ 0.00001*√z-123 by linarith) hs
-  nlinarith only [Real.sq_sqrt (show 0 ≤ z by linarith), herr, hb, hgap, h2, h3, h5, ht]
+  linarith only [hgap,h2,h3,h5]
 
-/-- Abel summation on [x/1024,x] supplies the left-end prime-count lower bound. -/
-theorem prime_lower_of_explicit (hΨ : ExplicitPsi) {x : ℝ} (hx : 10^16 ≤ x/1024) (hL : log x ≤ 50) :
-    (1+0.998/log x)/log x ≤ (Nat.primeCounting ⌊x⌋₊ : ℝ)/x := by
-  let a := x/1024
-  have ha : 2 ≤ a := by dsimp [a]; linarith
-  have hax : a ≤ x := by dsimp [a] at *; linarith
+private theorem theta_lower (hΨ : ExplicitPsi) {z : ℝ} (hz : 10^15 ≤ z) (hlog : log z ≤ 50) :
+    0.99999*z ≤ Chebyshev.theta z := by
+  have hz1 : 1 ≤ z := by linarith
+  have hs := Real.sqrt_nonneg z
+  have hs8 : 30000000 ≤ √z := Real.le_sqrt_of_sq_le (by norm_num1 at hz ⊢; linarith)
+  have hL := Real.log_nonneg hz1
+  have hL2 := pow_le_pow_left₀ hL hlog 2
+  have hterm : log z ^ 2 / (8*π) - 0.2985*log z + 4.62 ≤ 105 := by
+    have : log z ^ 2 / (8*π) ≤ 100 := by rw [div_le_iff₀ (by positivity)]; linarith [pi_gt_d6]
+    linarith
+  have herr := (abs_le.mp (hΨ z (by linarith))).1
+  have hb := mul_le_mul_of_nonneg_left hterm hs
+  have hgap := psi_sub_theta_eighteen hz1
+  have ht := mul_nonneg (show 0 ≤ 0.00001*√z-123 by linarith) hs
+  nlinarith only [Real.sq_sqrt (show 0 ≤ z by linarith), herr, hb, hgap, ht]
+
+/-- Keep the whole endpoint term and the last part of the Abel-summation integral. -/
+theorem abel_lower {x a c : ℝ} (ha : 2 ≤ a) (hax : a ≤ x) (hc : 0 ≤ c)
+    (hθ : ∀ t ∈ Set.Icc a x, c*t ≤ Chebyshev.theta t) :
+    Chebyshev.theta x/log x + (x-a)*(c/log x^2) ≤ (Nat.primeCounting ⌊x⌋₊ : ℝ) := by
   have hx0 : 0 < x := by linarith
   have hlx : 0 < log x := Real.log_pos (by linarith)
   let f := fun t : ℝ => Chebyshev.theta t / (t * log t ^ 2)
@@ -59,23 +62,35 @@ theorem prime_lower_of_explicit (hΨ : ExplicitPsi) {x : ℝ} (hx : 10^16 ≤ x/
       (fun t ht => ⟨hl.trans ht.1.le,ht.2⟩)
   have h1 : 0 ≤ ∫ t in (2:ℝ)..a, f t := intervalIntegral.integral_nonneg ha
     (fun t ht => div_nonneg (Chebyshev.theta_nonneg _) (mul_nonneg (by linarith [ht.1]) (sq_nonneg _)))
-  have h2 : ∫ t in a..x, 0.99999/(log x)^2 ≤ ∫ t in a..x, f t := by
+  have h2 : ∫ t in a..x, c/(log x)^2 ≤ ∫ t in a..x, f t := by
     apply intervalIntegral.integral_mono_on hax intervalIntegrable_const (integ a x ha hax)
     intro t ht
     have ht0 : 0 < t := by linarith [ht.1]
     have hlt : 0 < log t := Real.log_pos (by linarith [ht.1])
     have hle := Real.log_le_log ht0 ht.2
-    have hθ := theta_lower hΨ (show 10^16 ≤ t from hx.trans ht.1) (hle.trans hL)
-    calc 0.99999/log x ^ 2 ≤ 0.99999/log t ^ 2 :=
-        div_le_div_of_nonneg_left (by norm_num) (by positivity) (pow_le_pow_left₀ hlt.le hle 2)
-      _ = (0.99999*t) / (t * log t ^ 2) := by field_simp
-      _ ≤ f t := div_le_div_of_nonneg_right hθ (by positivity)
+    have hθt := hθ t ht
+    calc c/log x ^ 2 ≤ c/log t ^ 2 :=
+        div_le_div_of_nonneg_left hc (by positivity) (pow_le_pow_left₀ hlt.le hle 2)
+      _ = (c*t) / (t * log t ^ 2) := by field_simp
+      _ ≤ f t := div_le_div_of_nonneg_right hθt (by positivity)
   rw [intervalIntegral.integral_const, smul_eq_mul] at h2
-  have hθx := theta_lower hΨ (hx.trans hax) hL
-  have h3 := div_le_div_of_nonneg_right hθx hlx.le
   have hid := intervalIntegral.integral_add_adjacent_intervals (integ 2 a le_rfl ha) (integ a x ha hax)
   have hπ := Chebyshev.primeCounting_eq_theta_div_log_add_integral (ha.trans hax)
   change (Nat.primeCounting ⌊x⌋₊ : ℝ) = _ + ∫ t in (2:ℝ)..x, f t at hπ
+  linarith only [h1,h2,hid,hπ]
+
+/-- Abel summation on [x/1024,x] supplies the left-end prime-count lower bound. -/
+theorem prime_lower_of_explicit (hΨ : ExplicitPsi) {x : ℝ} (hx : 10^15 ≤ x/1024) (hL : log x ≤ 50) :
+    (1+0.998/log x)/log x ≤ (Nat.primeCounting ⌊x⌋₊ : ℝ)/x := by
+  let a := x/1024
+  have ha : 2 ≤ a := by dsimp [a]; linarith
+  have hax : a ≤ x := by dsimp [a] at *; linarith
+  have hx0 : 0 < x := by linarith
+  have hlx : 0 < log x := Real.log_pos (by linarith)
+  have hb := abel_lower ha hax (by norm_num : (0:ℝ) ≤ 0.99999)
+    (fun t ht => theta_lower hΨ (hx.trans ht.1) ((Real.log_le_log (by linarith [ht.1]) ht.2).trans hL))
+  have hθx := theta_lower hΨ (hx.trans hax) hL
+  have h3 := div_le_div_of_nonneg_right hθx hlx.le
   apply (le_div_iff₀ hx0).2
   calc (1+0.998/log x)/log x*x = x*(log x+0.998)/log x^2 := by field_simp
     _ ≤ x*(0.99999*log x + 0.99999*(1-1/1024))/log x^2 := by
@@ -83,9 +98,9 @@ theorem prime_lower_of_explicit (hΨ : ExplicitPsi) {x : ℝ} (hx : 10^16 ≤ x/
       apply mul_le_mul_of_nonneg_left _ hx0.le
       linarith
     _ = 0.99999*x/log x + (x-a)*(0.99999/log x^2) := by dsimp [a]; field_simp
-    _ ≤ (Nat.primeCounting ⌊x⌋₊ : ℝ) := by linarith only [h1,h2,h3,hid,hπ]
+    _ ≤ (Nat.primeCounting ⌊x⌋₊ : ℝ) := by linarith only [hb,h3]
 
-private theorem exp_lower (k : ℕ) {f : ℝ} (hf : 0 ≤ f) :
+theorem exp_lower (k : ℕ) {f : ℝ} (hf : 0 ≤ f) :
     (2.71828:ℝ)^k*(1+f/32)^32 ≤ exp (k+f) := by
   have h1 := pow_le_pow_left₀ (by norm_num : (0:ℝ) ≤ 2.71828)
     (show 2.71828 ≤ exp 1 by linarith [exp_one_gt_d9]) k

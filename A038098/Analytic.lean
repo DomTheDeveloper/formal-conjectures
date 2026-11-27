@@ -56,7 +56,7 @@ theorem ratio_lt_of_psi {x y : ℕ} {c : ℝ} (hx : 1 < x) (hxy : x < y)
 /-- A uniform numerical margin for the zero-sum estimate in the middle cube range. -/
 theorem middle_margin {t u v : ℝ} (ht : 43.7 ≤ t) (ht' : t ≤ 52)
     (hu : t / 3 - 2.4 ≤ u) (hv : v ≤ t / 2 - 2.75) (hv0 : 0 ≤ v) :
-    6.01 + 2.01 / (2 * π) * (v^2-u^2+2*v+2*u) < 3 * exp (t/6) / t := by
+    6.01 + 2.01 / (2 * π) * (v^2-u^2+2*v+2*u) < 2.994 * exp (t/6) / t := by
   have coeff : (2.01 : ℝ) / (2 * π) ≤ 0.32 := by
     rw [div_le_iff₀ (by positivity)]; linarith [Real.pi_gt_d6]
   let a := t/3 - 2.4
@@ -91,7 +91,7 @@ theorem middle_margin {t u v : ℝ} (ht : 43.7 ≤ t) (ht' : t ≤ 52)
 theorem explicit_formula_margin {t : ℝ} (ht : 43.7 ≤ t) (ht' : t ≤ 52) :
     let u := t / 3 + log (2.01 / (3.01 * (2 * π)))
     let v := t / 2 + log (0.671 / (2.01 * (2 * π)))
-    6.01 + 2.01 / (2 * π) * (v^2-u^2+2*v+2*u) < 3 * exp (t/6) / t := by
+    6.01 + 2.01 / (2 * π) * (v^2-u^2+2*v+2*u) < 2.994 * exp (t/6) / t := by
   dsimp only
   have e24 : 10 < exp (2.4 : ℝ) := by
     rw [show (2.4:ℝ) = (2:ℕ)*1+0.4 by norm_num, exp_add, exp_nat_mul]
