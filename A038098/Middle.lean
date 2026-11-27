@@ -69,14 +69,12 @@ theorem middle_cube_of_smoothed (hΨ : ExplicitPsi) {n : ℕ} (hn : 2 ≤ n)
   calc _ < ((y:ℝ)-x) + ((y:ℝ)-x)*0.998/log (x:ℝ) := by linarith only [gain]
        _ = _ := by ring
 
-/-- An explicit reduction of the former 200 ≤ n ≤ 10⁷ gap to two estimates. -/
-theorem middle_range (hΨ : ExplicitPsi) (hB : FinitePsi (10^19))
+/-- The upper and intermediate cubes only require the local smoothed bound below six million. -/
+theorem cubes_above_finite (hΨ : ExplicitPsi)
     (hS : ∀ n : ℕ, 2154434 ≤ n → n < 6000000 → SmoothedBound n)
-    (n : ℕ) (hn : 200 ≤ n) (hn' : n ≤ 10000000) :
+    (n : ℕ) (hn : 2154434 ≤ n) (hn' : n ≤ 10000000) :
     (((n+1)^3).primeCounting : ℚ) / (((n+1)^3:ℕ):ℚ) <
       ((n^3).primeCounting : ℚ) / ((n^3:ℕ):ℚ) := by
-  by_cases hsmall : n ≤ 2154433
-  · exact cubes_200_to_2154433 hB n hn hsmall
   by_cases hlarge : 6000000 ≤ n
   · exact cubes_six_million_to_ten_million hΨ n hlarge hn'
   apply middle_cube_of_smoothed hΨ (by omega) _ _ (hS n (by omega) (by omega))
@@ -91,6 +89,16 @@ theorem middle_range (hΨ : ExplicitPsi) (hB : FinitePsi (10^19))
     calc (n:ℝ)^3 ≤ (6000000:ℝ)^3 := pow_le_pow_left₀ (by positivity) (by exact_mod_cast (show n ≤ 6000000 by omega)) 3
       _ ≤ 2.71828^50*(1+0/32)^32 := by norm_num
       _ ≤ _ := by convert exp_lower 50 (f := 0) (by norm_num) using 1; norm_num
+
+/-- An explicit reduction of the former 200 ≤ n ≤ 10⁷ gap to two estimates. -/
+theorem middle_range (hΨ : ExplicitPsi) (hB : FinitePsi (10^19))
+    (hS : ∀ n : ℕ, 2154434 ≤ n → n < 6000000 → SmoothedBound n)
+    (n : ℕ) (hn : 200 ≤ n) (hn' : n ≤ 10000000) :
+    (((n+1)^3).primeCounting : ℚ) / (((n+1)^3:ℕ):ℚ) <
+      ((n^3).primeCounting : ℚ) / ((n^3:ℕ):ℚ) := by
+  by_cases hsmall : n ≤ 2154433
+  · exact cubes_200_to_2154433 hB n hn hsmall
+  exact cubes_above_finite hΨ hS n (by omega) hn'
 end Sun.CubeAnalytic
 #print axioms Sun.CubeAnalytic.middle_cube_of_smoothed
 #print axioms Sun.CubeAnalytic.middle_range

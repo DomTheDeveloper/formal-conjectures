@@ -40,11 +40,11 @@ theorem one_weight {z : ℂ} (hz : z.re=1/2) (hi : 0 < |z.im|) {m d : ℝ}
   · calc d*(y-(x-d))/√(x-d) = (d*s)*((y-(x-d))/(√(x-d)*s)) := by
             field_simp
          _ ≤ (d*s)*(3.01/m) := mul_le_mul_of_nonneg_left L sc
-         _ = (d*s)*(2.01*(1/A)) := by dsimp [A]; field_simp; ring
-  · calc 2*d*√(y+d)/g = (d*s/g)*(2*√(y+d)/s) := by field_simp; ring
+         _ = (d*s)*(2.01*(1/A)) := by dsimp [A]; field_simp
+  · calc 2*d*√(y+d)/g = (d*s/g)*(2*√(y+d)/s) := by field_simp
          _ ≤ (d*s/g)*2.01 := mul_le_mul_of_nonneg_left M (by positivity)
          _ = (d*s)*(2.01*(1/g)) := by ring
-  · calc 4*((y+d)*√(y+d))/g^2 = (d*s/g^2)*(4*((y+d)*√(y+d))/(d*s)) := by field_simp; ring
+  · calc 4*((y+d)*√(y+d))/g^2 = (d*s/g^2)*(4*((y+d)*√(y+d))/(d*s)) := by field_simp
          _ ≤ (d*s/g^2)*(0.671*s) := mul_le_mul_of_nonneg_left H (by positivity)
          _ = (d*s)*(2.01*(B/g^2)) := by dsimp [B]; ring
 
