@@ -2,9 +2,9 @@
 Copyright 2026 The Formal Conjectures Authors and @domthedeveloper.
 Released under Apache 2.0 license.
 The five counting and threshold definitions below are copied from google-deepmind/formal-conjectures
-at f606af160664c5a10952e9a957b100a1cd45bbeb. ChallengeDeps supplies the scoring definitions.
+at f606af160664c5a10952e9a957b100a1cd45bbeb.
 -/
-import ChallengeDeps
+import Mathlib
 
 noncomputable section
 
@@ -87,32 +87,23 @@ private theorem dyadic_to_all_heights (total distinct : ℝ → ℕ) {k : ℝ} (
     · simpa [hT] using hT₀ T hT
     · simp [hT]
 
-
 open ZetaZeros
 
-private theorem zeros_eq (a b : ℝ) : zerosIn a b = nontrivialZeros riemannZeta a b := by
-  ext z
-  simp only [zerosIn, IsNontrivialZero, nontrivialZeros, Set.mem_ofPred_eq]
-  tauto
+/-- Distinct critical-line zeros in the same half-open window as `ZetaZeros.Nd`. -/
+noncomputable def lineCount (a b : ℝ) : ℕ :=
+  (nontrivialZeros riemannZeta a b ∩ {z : ℂ | z.re = 1 / 2}).ncard
 
-private theorem line_count_eq (hRH : RiemannHypothesis) (a b : ℝ) :
-    N0star a b = Nd riemannZeta a b := by
-  have h : zerosIn a b ⊆ {z : ℂ | z.re = 1 / 2} := by
-    intro z hz
-    obtain ⟨⟨hzeta, h₀, h₁⟩, _⟩ := hz
-    apply hRH z hzeta
-    · rintro ⟨n, rfl⟩
-      simp at h₀
-      exact (not_lt_of_ge (by positivity)) h₀
-    · rintro rfl
-      simp at h₁
-  rw [N0star, Set.inter_eq_self_of_subset_left h, zeros_eq]
-  rfl
+private theorem lineCount_le (a b : ℝ) : lineCount a b ≤ Nd riemannZeta a b := by
+  have hK : IsCompact (Complex.reProdIm (Set.Icc (0 : ℝ) 1) (Set.Icc a b)) :=
+    isCompact_Icc.reProdIm isCompact_Icc
+  refine Set.ncard_le_ncard Set.inter_subset_left (hK.inter_riemannZetaZeros_finite.subset ?_)
+  rintro z ⟨hz, hr₀, hr₁, hi₀, hi₁⟩
+  exact ⟨⟨⟨hr₀.le, hr₁.le⟩, ⟨hi₀.le, hi₁⟩⟩, hz⟩
 
-theorem distinct_prop_lt_of_record (hRH : RiemannHypothesis) {k : ℝ}
+theorem distinct_prop_lt_of_record {k : ℝ}
     (hk : 17 / 20 < k)
     (record : ∀ ε > 0, ∃ T₀ : ℝ, ∀ T ≥ T₀,
-      (k - ε) * (Ncount T (2 * T) : ℝ) ≤ N0star T (2 * T)) :
+      (k - ε) * (N riemannZeta T (2 * T) : ℝ) ≤ lineCount T (2 * T)) :
     ∃ c > (3 - montgomeryTaylorConst⁻¹) / 2, ∃ o : ℝ → ℝ,
       o =o[atTop] (1 : ℝ → ℝ) ∧ ∀ T > 0,
         (c - o T) * N riemannZeta T (2 * T) ≤ Nd riemannZeta T (2 * T) := by
@@ -120,8 +111,7 @@ theorem distinct_prop_lt_of_record (hRH : RiemannHypothesis) {k : ℝ}
   intro ε hε
   obtain ⟨T₀, hT₀⟩ := record ε hε
   refine ⟨T₀, fun T hT => ?_⟩
-  simpa only [line_count_eq hRH, Ncount, zeros_eq, zeroMult, N, Complex.zeroCountOn,
-    analyticOrderNatAt] using hT₀ T hT
+  exact (hT₀ T hT).trans ((Nat.cast_le (α := ℝ)).2 (lineCount_le T (2 * T)))
 
 end DistinctZeros
 

@@ -7,6 +7,7 @@ src=$(cd "$(dirname "$0")" && pwd)
 build=$(mktemp -d)
 trap 'rm -rf -- "$build"' EXIT
 cd "$build"
+ulimit -s unlimited
 mkdir -p ChallengeDeps Solution
 ln -s "$runtime/deps/zeta/ChallengeDeps.olean" ChallengeDeps.olean
 export LEAN_NUM_THREADS=2 LEAN_ABORT_ON_PANIC=1
@@ -26,8 +27,15 @@ lean -j2 --tstack=400000 -o Solution/Candidate.olean Solution/Candidate.lean
 export LEAN_PATH="$runtime/foundation:$base"
 cp "$src"/{Bridge,Result}.lean .
 lean -j2 -o Bridge.olean Bridge.lean
-lean -j2 -o Result.olean Result.lean | tee axioms.log
-grep -Fx "'riemannZeta.distinct_prop_lt' depends on axioms: [propext, Classical.choice, Quot.sound]" axioms.log
+lean -j2 -o Result.olean Result.lean
 roots=(Quot Quot.mk Quot.lift Quot.ind propext Classical.choice Quot.sound Nat.add Nat.sub Nat.mul Nat.pow Nat.gcd Nat.div Nat.mod Nat.beq Nat.ble Nat.land Nat.lor Nat.xor Nat.shiftLeft Nat.shiftRight String.ofList Char.ofNat List eagerReduce Nat String String.mk Char optParam autoParam semiOutParam outParam)
 leanexport Result -- "${roots[@]}" riemannZeta.distinct_prop_lt > result.ndjson
+# Build the target from DeepMind's pinned definitions independently of the solution.
+python3 "$src/check_interface.py" --print-reference > Expected.lean
+lean -j2 -o Expected.olean Expected.lean
+leanexport Expected -- "${roots[@]}" riemannZeta.distinct_prop_lt > expected.ndjson
+prefix=$(lean --print-prefix)
+LD_LIBRARY_PATH="$prefix/lib/lean:$prefix/lib" "$runtime/checker/matchrunner" \
+  expected.ndjson result.ndjson riemannZeta.distinct_prop_lt
 leanchecker --from-export result.ndjson
+sha256sum expected.ndjson result.ndjson
