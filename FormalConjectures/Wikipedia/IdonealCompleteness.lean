@@ -66,23 +66,23 @@ def knownIdonealNumbers : Finset ℕ :=
 
 /--
 Reduces the unbounded search for a representation `n = a*b + b*c + a*c` (with
-`0 < a < b < c`) to a *bounded, decidable* double search over `a, b ∈ range (n+1)`.
+`0 < a < b < c`) to a *bounded, decidable* double search over `a, b ≤ Nat.sqrt n`.
 
 The third variable is not searched: for a fixed pair `a, b` the equation
 `n = a*b + c*(a+b)` pins down `c = (n - a*b) / (a+b)`, so the witness `c` is
-recovered by exact division. The forward direction uses `a, b ≤ n` (each pairwise
-product is at most `n`) to land the pair in `range (n+1)`.
+recovered by exact division. The bounds follow from `a < b` and `b * b ≤ b * c ≤ n`.
 -/
 @[category API, AMS 11]
 private theorem exists_triple_iff_bounded (n : ℕ) :
     (∃ a b c : ℕ, 0 < a ∧ a < b ∧ b < c ∧ n = a * b + b * c + a * c) ↔
-      (∃ a ∈ Finset.range (n + 1), ∃ b ∈ Finset.range (n + 1),
+      (∃ a ∈ Finset.range (n.sqrt + 1), ∃ b ∈ Finset.range (n.sqrt + 1),
         0 < a ∧ a < b ∧ b < (n - a * b) / (a + b) ∧
           n = a * b + b * ((n - a * b) / (a + b)) + a * ((n - a * b) / (a + b))) := by
   constructor
   · rintro ⟨a, b, c, ha, hab, hbc, heq⟩
-    have hbn : b ≤ n := by nlinarith
-    have han : a ≤ n := by nlinarith
+    have hb : b ≤ n.sqrt := Nat.le_sqrt.mpr <|
+      (Nat.mul_le_mul_left b hbc.le).trans (by omega)
+    have haBound : a ≤ n.sqrt := hab.le.trans hb
     have hsum : n - a * b = c * (a + b) := by
       have : n = a * b + c * (a + b) := by ring_nf; ring_nf at heq; linarith
       omega
@@ -97,11 +97,8 @@ set_option maxRecDepth 4096 in
 /-- All 65 known idoneal numbers are indeed idoneal. -/
 @[category test, AMS 11]
 theorem knownIdonealNumbers_are_idoneal : ∀ n ∈ knownIdonealNumbers, IsIdoneal n := by
-  intro n hn
-  fin_cases hn <;>
-    refine ⟨by norm_num, ?_⟩ <;>
-    rw [exists_triple_iff_bounded] <;>
-    native_decide
+  simp only [IsIdoneal, exists_triple_iff_bounded]
+  decide +kernel
 
 /--
 Idoneal numbers completeness conjecture.
