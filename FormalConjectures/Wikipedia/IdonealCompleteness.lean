@@ -115,4 +115,19 @@ theorem idoneal_numbers_completeness :
     ∀ n : ℕ, IsIdoneal n → n ∈ knownIdonealNumbers := by
   sorry
 
+/-- If Euler's list is complete, these are exactly its semiprime idoneal numbers.
+The prime factor list counts multiplicity. See [OEIS A181564](https://oeis.org/A181564). -/
+@[category research solved, AMS 11]
+theorem semiprime_idoneals_of_complete
+    (hc : ∀ k, IsIdoneal k → k ∈ knownIdonealNumbers) (n : ℕ) :
+    (IsIdoneal n ∧ n.primeFactorsList.length = 2) ↔
+      n ∈ ({4, 6, 9, 10, 15, 21, 22, 25, 33, 57, 58, 85, 93, 133, 177, 253} : Finset ℕ) := by
+  have h : knownIdonealNumbers.filter (fun k => k.primeFactorsList.length = 2) =
+      {4, 6, 9, 10, 15, 21, 22, 25, 33, 57, 58, 85, 93, 133, 177, 253} := by
+    decide +kernel
+  rw [← h, Finset.mem_filter]
+  exact and_congr ⟨hc n, knownIdonealNumbers_are_idoneal n⟩ Iff.rfl
+
+
+
 end Idoneal
