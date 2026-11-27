@@ -52,6 +52,16 @@ gives $v(B_{k-1})=v(B_k)$ since $v(kA_k)=v(B_k)+1$. This proves the last row. At
 
 For either exceptional class, a deviation of at least $\varepsilon n$ in $M\le n<2M$ with $M$ sufficiently large forces its extra valuation to be at least $\lfloor\varepsilon M\rfloor-8$. This selects one residue modulo a power of two greater than $2M$ for large $M$, hence at most one index per exceptional class in that interval. The ordinary rows have at most logarithmic errors. Summing over dyadic intervals proves the stated bound. For the explicit version, the ordinary rows always have error at most $\log_2(n+2)+10$. On either exceptional row the error is the extra valuation plus a constant of absolute value at most three. If the error exceeds that threshold, the extra valuation exceeds $\log_2(M+2)+7$, so all such $m$ occupy a single residue modulo a power of two larger than $2M$. At most two indices per dyadic interval can exceed the threshold. Equivalently, the missing all-index conclusion for each sequence reduces to proving $v(m-\alpha_d)=o(m)$ and $v(m+1+\alpha_d)=o(m)$ as $m\to\infty$ (finite initial zeros have no effect).
 
+## Exponential spacing of linear-sized errors
+
+There is a sharper bound for a fixed relative tolerance. Fix $\varepsilon>0$ and one exceptional class $r\in\{3,4\}$. Suppose $n_1<n_2$ are in that class and at each index the absolute error from the predicted linear valuation is at least $\varepsilon n_i$. Write $n_i=8m_i+r$. By the table, $m_i$ is within $2$-adic valuation at least $\lfloor\varepsilon n_1\rfloor-3$ of the same root. Thus
+$
+ n_2-n_1\ \ge\ 8\cdot 2^{\max(0,\lfloor\varepsilon n_1\rfloor-3)}.
+$
+In particular $n_2\ge 2^{\varepsilon n_1-1}$ for sufficiently large $n_1$. Put $x_i=\varepsilon n_i/4$. Above a fixed threshold depending only on $\varepsilon$, this implies $x_2\ge 2^{x_1}$. Consequently, for either sequence the number of errors of size at least $\varepsilon n$ up to $N$ is $O_\varepsilon(1+\log^* N)$. Here $\log^* N$ counts the number of base-two logarithms required to reach a value at most one. The two exceptional classes each satisfy this spacing bound. The ordinary classes have only finitely many errors of the indicated size.
+
+An [independent recurrence scan](./CheckTwoAdicRoots.py) found zero errors larger than $\log_2(n+2)+10$ among the first million positive indices of either sequence. The maximum absolute errors over this range were $41/2$ at $n=451571$ for A363411 and $93/4$ at $n=666219$ for A363416.
+
 ## Reproducible checks
 
 The certificate verifies the polynomial hypotheses for every offset and both parameters, calculates the two roots modulo 4096 by enumeration, and compares all 65,536 residue-table predictions with independent normalized finite products up to the tested precision. It uses the Python standard library.
