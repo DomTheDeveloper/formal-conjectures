@@ -49,7 +49,9 @@ theorem ratio_lt_of_psi {x y : ℕ} {c : ℝ} (hx : 1 < x) (hxy : x < y)
   have cmp : (y.primeCounting : ℝ) / y < (x.primeCounting : ℝ) / x := by
     apply (div_lt_div_iff₀ ypos xpos).2
     linarith
-  exact_mod_cast cmp
+  rw [← Rat.cast_lt (K := ℝ)]
+  push_cast
+  exact cmp
 
 /-- A uniform numerical margin for the zero-sum estimate in the middle cube range. -/
 theorem middle_margin {t u v : ℝ} (ht : 43.7 ≤ t) (ht' : t ≤ 52)
