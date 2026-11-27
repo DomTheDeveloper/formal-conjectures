@@ -11,7 +11,7 @@ namespace Sun.CubeAnalytic
 open Real Set Filter MeasureTheory
 open scoped Topology
 
-noncomputable def countMajorant (t : ℝ) : ℝ :=
+@[expose] noncomputable def countMajorant (t : ℝ) : ℝ :=
   t/(2*π)*(log t-log (2*π)-1) + log t
 
 private noncomputable def midPrimitive (t : ℝ) : ℝ :=
@@ -26,23 +26,16 @@ private theorem deriv_mid {t : ℝ} (ht : 0<t) :
   have i := hasDerivAt_inv ht.ne'
   have h := ((((l.sub_const (log (2*π))).sub_const 1).pow 2).div_const (4*π)).sub
     ((l.add_const 1).mul i)
-  convert h using 1
-  · rfl
-  · unfold countMajorant
-    field_simp
-    ring
+  convert! h using 1 <;> first | rfl | (unfold countMajorant; dsimp; field_simp; ring)
 
 private theorem deriv_tail (B : ℝ) {t : ℝ} (ht : 0<t) :
     HasDerivAt (tailPrimitive B) (countMajorant t*(2*B/t^3)) t := by
   have l := Real.hasDerivAt_log ht.ne'
   have i := hasDerivAt_inv ht.ne'
-  have h := ((((l.sub_const (log (2*π))).mul i).const_mul (-(B/π))).sub
-    (((l.add_const (1/2)).mul (i.pow 2)).const_mul B)
-  convert h using 1
-  · rfl
-  · unfold countMajorant
-    field_simp
-    ring
+  have p := ((l.sub_const (log (2*π))).mul i).const_mul (-(B/π))
+  have q := ((l.add_const (1/2)).mul (i.pow 2)).const_mul B
+  have h := p.sub q
+  convert! h using 1 <;> first | rfl | (unfold countMajorant; dsimp; field_simp; ring)
 
 private theorem limit_tail (B : ℝ) : Tendsto (tailPrimitive B) atTop (𝓝 0) := by
   have i : Tendsto (fun t : ℝ => t⁻¹) atTop (𝓝 0) := tendsto_inv_atTop_zero
@@ -70,7 +63,8 @@ theorem integrate_zero_count {A B : ℝ} (ha : 0<A) (hab : A≤B) (N : ℝ → �
     unfold countMajorant
     apply ContinuousAt.continuousWithinAt
     fun_prop (disch := positivity)
-  have hm := (hc.integrableOn_Icc).mono_set Ioc_subset_Icc_self
+  have hm : IntegrableOn (fun t : ℝ => countMajorant t/t^2) (Ioc A B) :=
+    hc.integrableOn_Icc.mono_set Ioc_subset_Icc_self
   have hhead : (∫ t in Ioc A B, N t/t^2) ≤ midPrimitive B - midPrimitive A := by
     calc _ ≤ ∫ t in Ioc A B, countMajorant t/t^2 := by
           apply integral_mono_of_nonneg _ hm
