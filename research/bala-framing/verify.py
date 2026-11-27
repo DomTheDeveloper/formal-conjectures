@@ -1,7 +1,7 @@
 """Exact checks for cubic rows and iterated Apéry/Franel transforms. Python 3.10+."""
 
 from functools import cache
-from math import comb
+from math import comb, isqrt
 
 
 @cache
@@ -144,8 +144,47 @@ def check_binary_spheres():
     return limit**2, 32*64
 
 
+
+def check_schroder():
+    def power_coefficient(series, power, degree):
+        result = [1] + [0] * degree
+        for _ in range(power):
+            result = [sum(result[k-j] * series[j] for j in range(min(k, len(series)-1)+1))
+                      for k in range(degree+1)]
+        return result[degree]
+
+    for n in range(1, 11):
+        terms, inputs = [1], [0] + [row(1, -1, n, k) for k in range(1,13)]
+        for k in range(1, 13):
+            coefficient = sum(power_coefficient(terms, m, k-1) for m in (n, n+1))
+            assert exponential_coefficient(inputs, 1, k) == coefficient
+            terms.append(coefficient)
+        if n == 2:
+            assert terms[:6] == [1,2,10,66,498,4066]
+    return 120
+
+
+
+def check_prime_indices():
+    bound, count = 151, 0
+    for shift, terms in ((-1, [1,2,8,110,960,12502]), (0, [1,2,8,146,1344,18502])):
+        seed = [0] + [sum(comb(n,k) * comb(n-1,k) * comb(n+k+shift,k)
+                          for k in range(n)) for n in range(1,bound+1)]
+        odd_log = [2*a if j % 2 else 0 for j, a in enumerate(seed)]
+        assert [1]+[exponential_coefficient(odd_log,k,k) for k in range(1,6)] == terms
+        for p in range(5, bound+1):
+            if any(p % q == 0 for q in range(2,isqrt(p)+1)):
+                continue
+            u = exponential_coefficient(odd_log,p,p)
+            assert (seed[p]-1) % p**3 == 0 and (u-2*seed[p]) % p**3 == 0
+            count += 1
+    return count
+
+
 if __name__ == "__main__":
     print(f"{check_rows()} cubic row congruences")
     print(f"{check_iterations()} iterated quadratic congruences")
     sphere_count, row_count = check_binary_spheres()
     print(f"{sphere_count} exact binary sphere valuations and {row_count} exact row-difference valuations")
+    print(f"{check_schroder()} Schroeder coefficient identities")
+    print(f"{check_prime_indices()} prime-index cases of A362727 and A362729")

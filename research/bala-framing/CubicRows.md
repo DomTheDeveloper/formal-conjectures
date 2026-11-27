@@ -69,6 +69,19 @@ For degree $j\ge3$, the other series have integral coefficients. The bound $v_p(
 
 The final row has $T_{-5}(5)=626$ and $T_{-5}(1)=1$. Thus the extra factor survives the division by the row number and the exponent is attained.
 
+## The Schröder generating function in A363418
+
+Bala also asks about $E_n(x)=\exp(\sum_{k\ge1}T(n,k)x^k/k)$. Let $y=x f(y)^n$ with $f(z)=(1+z)/(1-z)$. Lagrange inversion gives
+```math
+[x^k]\log f(y)=\frac1k[z^{k-1}]f'(z)f(z)^{nk-1}
+=\frac1{nk}[z^k]f(z)^{nk}=\frac{T(n,k)}k .
+```
+Thus $E_n=f(y)$ and $y=xE_n^n$. Substitution into $E_n=(1+y)/(1-y)$ yields
+```math
+E_n=1+xE_n^n+xE_n^{n+1}.
+```
+The constant term and this equation determine all coefficients recursively. This is precisely the generating equation for generalized large Schröder numbers. The OEIS entry labels the family by $n+1$. Pétréolle, Sokal and Zhu label it by $n$ in equation (2.32). For $n=2$ the coefficients start $1,2,10,66,498,4066$, giving A027307 as predicted. [Schröder generating function, equation (2.32)](https://arxiv.org/abs/1807.03271) · [A027307](https://oeis.org/A027307)
+
 ## Attribution
 
 Peter Bala posed the questions. The public proof candidate in the rbajaj5 repository treats the unnormalized period-two family and arbitrary integral coefficient slopes, directly covering the original positive-row A363418 congruence. Its reduced-logarithm approach is the antecedent of (2). The proof here tracks the row divisor through every term, gives a short inverse-square calculation for (4), and treats both signed normalized arrays. The formal framing connection also appears in L. Felipe Müller's 2021 preprint. The argument above uses only the period-two calculation and establishes the displayed bounds directly. Priority of the strengthened bounds is unestablished.
