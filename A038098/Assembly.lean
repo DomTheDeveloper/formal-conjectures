@@ -65,8 +65,8 @@ theorem smoothed_from_explicit_formula {ι : Type*} (z : ι → ℂ) (w : ι →
   have hB := rounded_budget hm dl du
   change |Z (y+d)-Z y-Z x+Z (x-d)|+3 ≤ (d:ℝ)*(s*errorCoeff (log (m^3))-d)
   rw [hR]
-  exact (add_le_add_right (Complex.abs_re_le_norm _) 3).trans
-    ((add_le_add_right hN 3).trans hB)
+  exact (add_le_add (Complex.abs_re_le_norm _) (le_refl (3:ℝ))).trans
+    ((add_le_add hN (le_refl (3:ℝ))).trans hB)
 
 end Sun.CubeAnalytic
 #print axioms Sun.CubeAnalytic.smoothed_from_explicit_formula
