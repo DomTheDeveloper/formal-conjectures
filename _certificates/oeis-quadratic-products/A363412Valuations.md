@@ -5,6 +5,8 @@ $$v_3(a(n))=v_3(n(n+1)/2)\qquad(n\ge1).$$
 In particular $3\nmid a(3m+1)$ for $m\ge0$ and
 $$v_3(a(3m-1))=v_3(a(3m))=1+v_3(m)\qquad(m\ge1).$$
 
+**Earlier proofs.** The Omega Institute's trureturing project had already published Lean proofs of these two assertions, including the common valuation. This note gives a derivation from the general triangular-factor theorem. [Earlier proof records](https://www.trureturing.org/research/bala3634-valuations/) · [Their paired-valuation proof](https://www.trureturing.org/research/bala3634-paired-valuations/).
+
 **Proof.** The previously [Lean-checked triangular-factor theorem](https://github.com/DomTheDeveloper/formal-conjectures/blob/1d1909cf4b4a24e6ae6f33284a1c46c038d8effd/_certificates/oeis-quadratic-products/QuadraticDivisors.lean) gives an integer $z$ with $a(n)=(n(n+1)/2)(1+3z)$ for each $n$. The last factor and 2 are units modulo 3. For $n=3m+1$, neither $n$ nor $n+1$ contains a factor of 3. For $n=3m-1$ and $n=3m$, the factor divisible by 3 in each product is precisely $3m$. This proves the two statements and the common-value formula. Index zero has $a(0)=0$ and is excluded from the valuation formula.
 
 **Finite cross-check using the defining product.**
