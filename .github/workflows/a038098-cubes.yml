@@ -1,8 +1,8 @@
-name: Verify A038098 cube cases
+name: Verify A038098 small cubes
 on:
   push:
     branches: [verify/sun-a038098-cubes]
-    paths: ['A038098/**', '.github/workflows/a038098-cubes.yml']
+    paths: ['A038098/Sieve.lean', 'A038098/Wide.lean', 'A038098/Trial.lean', 'A038098/Cases.lean', 'A038098/generate_packed.py', '.github/workflows/a038098-cubes.yml']
 permissions:
   contents: read
 concurrency:
@@ -29,9 +29,54 @@ jobs:
         run: |
           mkdir -p .lake/build/lib/lean/A038098
           lake env lean -o .lake/build/lib/lean/A038098/Sieve.olean A038098/Sieve.lean
-      - name: Verify the cube inequalities and audit their axioms
+          lake env lean -o .lake/build/lib/lean/A038098/Wide.olean A038098/Wide.lean
+          lake env lean -o .lake/build/lib/lean/A038098/Trial.olean A038098/Trial.lean
+      - name: Generate candidate witnesses
+        run: python3 A038098/generate_packed.py
+      - name: Verify trial divisors and the starting prime count
         run: |
           set -eo pipefail
-          lake env lean --tstack=65536 -o .lake/build/lib/lean/A038098/Cases.olean A038098/Cases.lean | tee "$RUNNER_TEMP/axioms.log"
-          grep -F 'Sun.CubeSieve.cubes_141_to_160' "$RUNNER_TEMP/axioms.log"
+          mkdir -p .lake/build/lib/lean/A038098/Certificate
+          while IFS= read -r file; do
+            echo "Checking $file"
+            /usr/bin/time -f 'elapsed %e seconds, peak %M KiB' lake env lean -j1 --tstack=65536 -o ".lake/build/lib/lean/${file%.lean}.olean" "$file"
+          done < <(sed -n '1,2p' A038098/Certificate/modules.txt)
+      - name: Check the first 13 cube endpoints
+        run: |
+          set -eo pipefail
+          mkdir -p .lake/build/lib/lean/A038098/Certificate
+          while IFS= read -r file; do
+            echo "Checking $file"
+            /usr/bin/time -f 'elapsed %e seconds, peak %M KiB' lake env lean -j1 --tstack=65536 -o ".lake/build/lib/lean/${file%.lean}.olean" "$file"
+          done < <(sed -n '3,15p' A038098/Certificate/modules.txt)
+      - name: Check the next 116 cube endpoint modules
+        run: |
+          set -eo pipefail
+          mkdir -p .lake/build/lib/lean/A038098/Certificate
+          while IFS= read -r file; do
+            echo "Checking $file"
+            /usr/bin/time -f 'elapsed %e seconds, peak %M KiB' lake env lean -j1 --tstack=65536 -o ".lake/build/lib/lean/${file%.lean}.olean" "$file"
+          done < <(sed -n '16,131p' A038098/Certificate/modules.txt)
+      - name: Check the remaining cube endpoint modules
+        run: |
+          set -eo pipefail
+          mkdir -p .lake/build/lib/lean/A038098/Certificate
+          while IFS= read -r file; do
+            echo "Checking $file"
+            /usr/bin/time -f 'elapsed %e seconds, peak %M KiB' lake env lean -j1 --tstack=65536 -o ".lake/build/lib/lean/${file%.lean}.olean" "$file"
+          done < <(sed -n '132,$p' A038098/Certificate/modules.txt)
+      - name: Prove the entire interval and audit its axioms
+        run: |
+          set -eo pipefail
+          lake env lean -j1 --tstack=65536 -o .lake/build/lib/lean/A038098/PackedCases.olean A038098/PackedCases.lean | tee "$RUNNER_TEMP/axioms.log"
+          lake env lean -j1 --tstack=65536 -o .lake/build/lib/lean/A038098/Cases.olean A038098/Cases.lean | tee -a "$RUNNER_TEMP/axioms.log"
+          grep -F 'Sun.CubeSieve.cubes_two_to_two_hundred' "$RUNNER_TEMP/axioms.log"
           if grep -E 'sorryAx|native_decide|ofReduceBool|trustCompiler' "$RUNNER_TEMP/axioms.log"; then exit 1; fi
+      - name: Retain the actual Lean certificate
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: A038098-packed-Lean
+          path: |
+            A038098/PackedCases.lean
+            A038098/Certificate/*.lean
