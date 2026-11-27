@@ -36,8 +36,9 @@ private theorem deriv_first {z : ℂ} (hz : z.re=1/2) {t : ℝ} (ht : 0<t) :
     HasDerivAt (zeroFirst z) ((t:ℂ)^(z-1)) t := by
   have he : z ≠ 0 := by
     intro h; rw [h] at hz; norm_num at hz
-  simpa only [zeroFirst, mul_div_cancel_left₀ _ he] using
-    (hasDerivAt_ofReal_cpow_const ht.ne' he).div_const z
+  have h' : z-1 ≠ -1 := by intro h; apply he; linear_combination h
+  change HasDerivAt (fun u : ℝ => (u:ℂ)^z/z) ((t:ℂ)^(z-1)) t
+  simpa only [sub_add_cancel] using (hasDerivAt_ofReal_cpow_const' ht.ne' h')
 
 /-- Before rounding the numerical cutoffs, the three bounds come respectively
 from two derivatives, one derivative, and the four endpoint values. -/
@@ -92,7 +93,8 @@ theorem fourKernel_le {z : ℂ} (hz : z.re = 1/2) (hi : 0 < |z.im|)
         Complex.one_re,show (1/2:ℝ)+1=1+1/2 by norm_num,Real.rpow_add ht0,Real.rpow_one,← sqrt_eq_rpow,div_div]
       have hM : s^2 ≤ ‖z+1‖*‖z‖ := by rw [pow_two]; exact mul_le_mul hn1 hn hs.le (norm_nonneg _)
       exact (div_le_div_of_nonneg_right (mul_le_mul ht' (sqrt_le_sqrt ht') (sqrt_nonneg _) (by linarith))
-        (by positivity)).trans (div_le_div_of_nonneg_left (by positivity) (by positivity) hM)
+        (mul_nonneg (norm_nonneg _) (norm_nonneg _))).trans
+          (div_le_div_of_nonneg_left (mul_nonneg (by linarith) (sqrt_nonneg _)) (sq_pos_of_pos hs) hM)
     have h1 := (norm_sub_le (zeroKernel z (b+d)) (zeroKernel z b)).trans
       (add_le_add (endpoint (b+d) (by linarith) le_rfl) (endpoint b hab (by linarith)))
     have h2 := (norm_sub_le (zeroKernel z (a+d)) (zeroKernel z a)).trans
