@@ -77,12 +77,12 @@ theorem prime_lower_of_explicit (hΨ : ExplicitPsi) {x : ℝ} (hx : 10^16 ≤ x/
   have hπ := Chebyshev.primeCounting_eq_theta_div_log_add_integral (ha.trans hax)
   change (Nat.primeCounting ⌊x⌋₊ : ℝ) = _ + ∫ t in (2:ℝ)..x, f t at hπ
   apply (le_div_iff₀ hx0).2
-  calc (1+0.998/log x)/log x*x = x*(log x+0.998)/log x^2 := by field_simp; ring
+  calc (1+0.998/log x)/log x*x = x*(log x+0.998)/log x^2 := by field_simp
     _ ≤ x*(0.99999*log x + 0.99999*(1-1/1024))/log x^2 := by
       apply div_le_div_of_nonneg_right _ (sq_nonneg _)
       apply mul_le_mul_of_nonneg_left _ hx0.le
       linarith
-    _ = 0.99999*x/log x + (x-a)*(0.99999/log x^2) := by dsimp [a]; field_simp; ring
+    _ = 0.99999*x/log x + (x-a)*(0.99999/log x^2) := by dsimp [a]; field_simp
     _ ≤ (Nat.primeCounting ⌊x⌋₊ : ℝ) := by linarith only [h1,h2,h3,hid,hπ]
 
 private theorem exp_lower (k : ℕ) {f : ℝ} (hf : 0 ≤ f) :
@@ -93,7 +93,7 @@ private theorem exp_lower (k : ℕ) {f : ℝ} (hf : 0 ≤ f) :
     (show 1+f/32 ≤ exp (f/32) by linarith [add_one_le_exp (f/32)]) 32
   have hh := mul_le_mul h1 h2 (by positivity) (by positivity)
   rw [← exp_nat_mul, ← exp_nat_mul, ← exp_add] at hh
-  convert hh using 2 <;> push_cast <;> ring
+  simpa only [Nat.cast_ofNat, mul_one, show (32:ℝ)*(f/32)=f by ring] using hh
 
 private theorem exp_lower_endpoint : exp (46.75:ℝ) ≤ (6000000:ℝ)^3 := by
   have h := pow_le_pow_left₀ (exp_pos 1).le
@@ -109,7 +109,7 @@ private theorem range_bound {n : ℕ} (hn : 6000000 ≤ n) (hΨ : ExplicitPsi) {
   let m : ℝ := n
   let x : ℕ := n^3
   let y : ℕ := (n+1)^3
-  have hm : 6000000 ≤ m := by exact_mod_cast hn
+  have hm : 6000000 ≤ m := by dsimp [m]; exact_mod_cast hn
   have xm : (x:ℝ) = m^3 := by simp [x,m]
   have ym : (y:ℝ) = (m+1)^3 := by simp [y,m]
   have xbig : (6000000:ℝ)^3 ≤ x := xm.symm ▸ pow_le_pow_left₀ (by norm_num) hm 3
@@ -163,8 +163,8 @@ private theorem range_bound {n : ℕ} (hn : 6000000 ≤ n) (hΨ : ExplicitPsi) {
     apply (lt_div_iff₀ (show 0 < log (x:ℝ) by linarith)).2
     nlinarith only [hp,gap]
   apply lt_of_le_of_lt increment
-  rw [mul_add,mul_one, ← mul_div_assoc]
-  linarith
+  calc _ < ((y:ℝ)-x) + ((y:ℝ)-x)*0.998/log (x:ℝ) := add_lt_add_left gain _
+       _ = _ := by ring
 
 /-- The published explicit ψ estimate suffices for four million consecutive cube comparisons.
 The inequality is strict and uses inclusive prime counts at both endpoints. -/
@@ -181,34 +181,34 @@ theorem cubes_six_million_to_ten_million (hΨ : ExplicitPsi) (n : ℕ)
   · apply range_bound hn hΨ (U := 46.875) (r := 2449) _ (by norm_num) _ (by norm_num)
     · apply bound h0
       calc ((6080000:ℝ)+1)^3 ≤ 2.71828^46*(1+0.875/32)^32 := by norm_num
-        _ ≤ _ := by convert exp_lower 46 (f := 0.875) (by norm_num) using 1 <;> norm_num
+        _ ≤ _ := by convert exp_lower 46 (f := 0.875) (by norm_num) using 1; norm_num
     · norm_num1
       exact_mod_cast (show 5997601 ≤ n by omega)
   by_cases h1 : n ≤ 6280000
   · apply range_bound hn hΨ (U := 46.975) (r := 2465) _ (by norm_num) _ (by norm_num)
     · apply bound h1
       calc ((6280000:ℝ)+1)^3 ≤ 2.71828^46*(1+0.975/32)^32 := by norm_num
-        _ ≤ _ := by convert exp_lower 46 (f := 0.975) (by norm_num) using 1 <;> norm_num
+        _ ≤ _ := by convert exp_lower 46 (f := 0.975) (by norm_num) using 1; norm_num
     · norm_num1
       exact_mod_cast (show 6076225 ≤ n by omega)
   by_cases h2 : n ≤ 6800000
   · apply range_bound hn hΨ (U := 47.2) (r := 2505) _ (by norm_num) _ (by norm_num)
     · apply bound h2
       calc ((6800000:ℝ)+1)^3 ≤ 2.71828^47*(1+0.2/32)^32 := by norm_num
-        _ ≤ _ := by convert exp_lower 47 (f := 0.2) (by norm_num) using 1 <;> norm_num
+        _ ≤ _ := by convert exp_lower 47 (f := 0.2) (by norm_num) using 1; norm_num
     · norm_num1
       exact_mod_cast (show 6275025 ≤ n by omega)
   by_cases h3 : n ≤ 8280000
   · apply range_bound hn hΨ (U := 47.8) (r := 2607) _ (by norm_num) _ (by norm_num)
     · apply bound h3
       calc ((8280000:ℝ)+1)^3 ≤ 2.71828^47*(1+0.8/32)^32 := by norm_num
-        _ ≤ _ := by convert exp_lower 47 (f := 0.8) (by norm_num) using 1 <;> norm_num
+        _ ≤ _ := by convert exp_lower 47 (f := 0.8) (by norm_num) using 1; norm_num
     · norm_num1
       exact_mod_cast (show 6796449 ≤ n by omega)
   apply range_bound hn hΨ (U := 49.275) (r := 2877) _ (by norm_num) _ (by norm_num)
   · apply bound hn'
     calc ((10000000:ℝ)+1)^3 ≤ 2.71828^49*(1+0.275/32)^32 := by norm_num
-      _ ≤ _ := by convert exp_lower 49 (f := 0.275) (by norm_num) using 1 <;> norm_num
+      _ ≤ _ := by convert exp_lower 49 (f := 0.275) (by norm_num) using 1; norm_num
   · norm_num1
     exact_mod_cast (show 8277129 ≤ n by omega)
 end Sun.CubeAnalytic
