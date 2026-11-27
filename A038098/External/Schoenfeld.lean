@@ -40,8 +40,8 @@ private theorem counted_zeros (h : RiemannHypothesis) (R : RosserZeroCount)
       linarith [ind_nonneg t (reflect ρ), ind_nonneg t ρ]
   calc counted S (fun ρ : Zeros => |(ρ:ℂ).im|) (fun ρ => mult ρ/2) t ≤
       ∑ ρ∈S, (ind t ρ+ind t (reflect ρ))/2 := Finset.sum_le_sum fun ρ _ => point ρ
-    _ = (∑ ρ∈S, ind t ρ+ind t (reflect ρ))/2 := (Finset.sum_div ..).symm
-    _ ≤ (∑' ρ, ind t ρ+ind t (reflect ρ))/2 := div_le_div_of_nonneg_right
+    _ = (∑ ρ∈S, (ind t ρ + ind t (reflect ρ)))/2 := (Finset.sum_div ..).symm
+    _ ≤ (∑' ρ, (ind t ρ + ind t (reflect ρ)))/2 := div_le_div_of_nonneg_right
       (Summable.sum_le_tsum _ (fun ρ _ => add_nonneg (ind_nonneg t ρ) (ind_nonneg t (reflect ρ)))
         (hs.add hr)) (by norm_num)
     _ = cnt t := by rw [hs.tsum_add hr,reflect.tsum_eq (ind t),cnt_eq]; ring
