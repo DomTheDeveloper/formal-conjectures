@@ -41,7 +41,6 @@ private theorem tail_der (m B : ℝ) {t : ℝ} (ht : 0<t) :
     HasDerivAt (fun v : ℝ => -(m*B)*(v^2)⁻¹) (m*(2*B/t^3)) t := by
   have he : m*(2*B/t^3) = -(m*B)*(-(2*t^1)/(t^2)^2) := by
     field_simp [ht.ne']
-    ring
   rw [he]
   convert! ((hasDerivAt_pow 2 t).inv (by positivity)).const_mul (-(m*B)) using 1 <;> simp
 

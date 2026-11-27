@@ -12,10 +12,10 @@ public section
 namespace Sun.CubeAnalytic
 open Real
 
-noncomputable def zeroKernel (z : ℂ) (t : ℝ) : ℂ :=
+@[expose] noncomputable def zeroKernel (z : ℂ) (t : ℝ) : ℂ :=
   (t:ℂ)^(z+1)/(z+1)/z
 
-noncomputable def fourKernel (z : ℂ) (a b d : ℝ) : ℂ :=
+@[expose] noncomputable def fourKernel (z : ℂ) (a b d : ℝ) : ℂ :=
   (zeroKernel z (b+d)-zeroKernel z b)-(zeroKernel z (a+d)-zeroKernel z a)
 
 private theorem segment {f f' : ℝ → ℂ} {a b C : ℝ} (hab : a ≤ b)
