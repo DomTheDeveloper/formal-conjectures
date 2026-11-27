@@ -103,12 +103,13 @@ theorem cubes_200_to_2153
     (n : ℕ) (hn : 200 ≤ n) (hn' : n ≤ 2153) :
     (((n+1)^3).primeCounting : ℚ) / (((n+1)^3:ℕ):ℚ) <
       ((n^3).primeCounting : ℚ) / ((n^3:ℕ):ℚ) := by
-  apply cubes_of_finite_psi (B := 10^10) _ n hn
-  · intro z hz hz'
+  have hΨ : FinitePsi (10^10) := by
+    intro z hz hz'
     exact (h z hz hz').trans (mul_le_mul_of_nonneg_right (by norm_num) (sqrt_nonneg _))
-  · push_cast
-    have hN : (n:ℝ) ≤ 2153 := by exact_mod_cast hn'
-    exact (pow_le_pow_left₀ (by positivity) (show (n:ℝ)+1 ≤ 2154 by linarith) 3).trans (by norm_num)
+  apply cubes_of_finite_psi hΨ n hn
+  push_cast
+  have hN : (n:ℝ) ≤ 2153 := by exact_mod_cast hn'
+  exact (pow_le_pow_left₀ (by positivity) (show (n:ℝ)+1 ≤ 2154 by linarith) 3).trans (by norm_num)
 
 theorem cubes_200_to_2154433 (h : FinitePsi (10^19))
     (n : ℕ) (hn : 200 ≤ n) (hn' : n ≤ 2154433) :
