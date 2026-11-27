@@ -127,5 +127,24 @@ theorem sum_weight_le {ι : Type*} (S : Finset ι) (g m : ι → ℝ) {A B : ℝ
            intro i hi
            split_ifs <;> simp [hm i hi], hcount t ht⟩)
 
+/-- The count bound on finite subsets gives the full convergent sum of the
+weighted ordinates, even when the index type includes multiplicities. -/
+theorem tsum_ordinateWeight_le {ι : Type*} (g m : ι → ℝ) {A B : ℝ}
+    (ha : 0<A) (hab : A≤B) (hg : ∀ i, 0<g i) (hm : ∀ i, 0≤m i)
+    (hcount : ∀ (S : Finset ι) (t : ℝ), A≤t → counted S g m t ≤ countMajorant t) :
+    Summable (fun i => m i*ordinateWeight A B (g i)) ∧
+    (∑' i, m i*ordinateWeight A B (g i)) ≤
+      ((log B-log (2*π))^2-(log A-log (2*π))^2+2*(log B-log (2*π))+
+        2*(log A-log (2*π)))/(4*π) + (log A+1)/A - 1/(2*B) := by
+  have hB := ha.trans_le hab
+  have hn (i : ι) : 0 ≤ m i*ordinateWeight A B (g i) := by
+    have hgi := hg i
+    apply mul_nonneg (hm i)
+    exact le_min (by positivity) (le_min (by positivity) (by positivity))
+  have hf (S : Finset ι) := sum_weight_le S g m ha hab (fun i _ => hg i)
+    (fun i _ => hm i) (hcount S)
+  exact ⟨summable_of_sum_le hn hf, Real.tsum_le_of_sum_le hn hf⟩
+
 end Sun.CubeAnalytic
 #print axioms Sun.CubeAnalytic.sum_weight_le
+#print axioms Sun.CubeAnalytic.tsum_ordinateWeight_le

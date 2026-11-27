@@ -26,7 +26,11 @@ private theorem deriv_mid {t : ℝ} (ht : 0<t) :
   have i := hasDerivAt_inv ht.ne'
   have h := ((((l.sub_const (log (2*π))).sub_const 1).pow 2).div_const (4*π)).sub
     ((l.add_const 1).mul i)
-  convert! h using 1 <;> first | rfl | (unfold countMajorant; dsimp; field_simp; ring)
+  convert! h using 1
+  unfold countMajorant
+  dsimp
+  field_simp
+  ring
 
 private theorem deriv_tail (B : ℝ) {t : ℝ} (ht : 0<t) :
     HasDerivAt (tailPrimitive B) (countMajorant t*(2*B/t^3)) t := by
@@ -35,7 +39,11 @@ private theorem deriv_tail (B : ℝ) {t : ℝ} (ht : 0<t) :
   have p := ((l.sub_const (log (2*π))).mul i).const_mul (-(B/π))
   have q := ((l.add_const (1/2)).mul (i.pow 2)).const_mul B
   have h := p.sub q
-  convert! h using 1 <;> first | rfl | (unfold countMajorant; dsimp; field_simp; ring)
+  convert! h using 1
+  unfold countMajorant
+  dsimp
+  field_simp
+  ring
 
 private theorem limit_tail (B : ℝ) : Tendsto (tailPrimitive B) atTop (𝓝 0) := by
   have i : Tendsto (fun t : ℝ => t⁻¹) atTop (𝓝 0) := tendsto_inv_atTop_zero
@@ -69,9 +77,9 @@ theorem integrate_zero_count {A B : ℝ} (ha : 0<A) (hab : A≤B) (N : ℝ → �
     calc _ ≤ ∫ t in Ioc A B, countMajorant t/t^2 := by
           apply integral_mono_of_nonneg _ hm
           · exact (ae_restrict_iff' measurableSet_Ioc).2 (ae_of_all _ (fun t ht =>
-              div_nonneg (hN t ht.1.le).1 (sq_nonneg _)))
-          · exact (ae_restrict_iff' measurableSet_Ioc).2 (ae_of_all _ (fun t ht =>
               div_le_div_of_nonneg_right (hN t ht.1.le).2 (sq_nonneg _)))
+          · exact (ae_restrict_iff' measurableSet_Ioc).2 (ae_of_all _ (fun t ht =>
+              div_nonneg (hN t ht.1.le).1 (sq_nonneg _)))
          _ = _ := by
           rw [← intervalIntegral.integral_of_le hab]
           apply intervalIntegral.integral_eq_sub_of_hasDerivAt
@@ -92,11 +100,11 @@ theorem integrate_zero_count {A B : ℝ} (ha : 0<A) (hab : A≤B) (N : ℝ → �
     · refine (ae_restrict_iff' measurableSet_Ioi).2 (ae_of_all _ ?_)
       intro t ht
       have ht0 := hB.trans ht
-      exact mul_nonneg (hN t (hab.trans ht.le)).1 (by positivity)
+      exact mul_le_mul_of_nonneg_right (hN t (hab.trans ht.le)).2 (by positivity)
     · refine (ae_restrict_iff' measurableSet_Ioi).2 (ae_of_all _ ?_)
       intro t ht
       have ht0 := hB.trans ht
-      exact mul_le_mul_of_nonneg_right (hN t (hab.trans ht.le)).2 (by positivity)
+      exact mul_nonneg (hN t (hab.trans ht.le)).1 (by positivity)
   apply (add_le_add hhead htail).trans_eq
   unfold midPrimitive tailPrimitive
   field_simp
