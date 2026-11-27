@@ -1,5 +1,6 @@
 import A038098.Cases
 import A038098.External.Riemann
+import A038098.External.Small
 import SunPrimeDensity.Main
 
 /-! Sun's first OEIS A038098 conjecture from ordinary RH and Theorem 2
@@ -25,6 +26,17 @@ theorem conjecture1_of_RH_and_buthe (hRH : RiemannHypothesis)
   simpa only [Nat.cast_pow, Nat.cast_add, Nat.cast_one] using
     cubes_200_to_ten_million hRH hB m (by omega) ht
 
+/-- The same conjecture needs the published bound only above 10^10 when the
+previous finite ψ computation is included. -/
+theorem conjecture1_of_RH_and_upper_finite_bound (hRH : RiemannHypothesis)
+    (hB : ∀ x : ℝ, 10^10 < x → x ≤ 10^19 →
+      |Chebyshev.psi x - x| ≤ 0.94 * Real.sqrt x)
+    (k : ℕ) (hk : 2 < k) (n : ℕ) (hn : 2 ≤ n) :
+    (Nat.primeCounting ((n + 1) ^ k) : ℚ) / ((n + 1) ^ k : ℚ) <
+      (Nat.primeCounting (n ^ k) : ℚ) / (n ^ k : ℚ) :=
+  conjecture1_of_RH_and_buthe hRH (finitePsi_of_above_ten_billion hB) k hk n hn
+
 end Sun.CubeBridge
 
 #print axioms Sun.CubeBridge.conjecture1_of_RH_and_buthe
+#print axioms Sun.CubeBridge.conjecture1_of_RH_and_upper_finite_bound
