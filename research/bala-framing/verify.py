@@ -118,6 +118,34 @@ def check_iterations():
     return count
 
 
+
+def check_binary_spheres():
+    # Add one coordinate. A positive absolute value has two possible signs.
+    limit = 128
+    previous = [1] + [0] * limit
+    for dimension in range(1, limit + 1):
+        current, partial_sum = [], 0
+        for distance, count in enumerate(previous):
+            current.append(count + 2 * partial_sum)
+            partial_sum += count
+            if distance == 0:
+                continue
+            s, t = valuation(dimension, 2), valuation(distance, 2)
+            expected = 1+s if t == 0 else (1 if s == 0 else 2*s+t)
+            assert valuation(current[-1], 2) == expected
+        previous = current
+    for n in range(1, 33):
+        for k in range(2, 129, 2):
+            t = valuation(k, 2)
+            expected = 1 if t == 1 else 3*t-3+valuation(n, 2)
+            difference = row(1, -1, n, k) - row(1, -1, n, k//2)
+            assert valuation(difference, 2) == expected
+    assert row(1,-1,4,4) == 11008 and row(1,-1,4,2) == 32
+    return limit**2, 32*64
+
+
 if __name__ == "__main__":
     print(f"{check_rows()} cubic row congruences")
     print(f"{check_iterations()} iterated quadratic congruences")
+    sphere_count, row_count = check_binary_spheres()
+    print(f"{sphere_count} exact binary sphere valuations and {row_count} exact row-difference valuations")
